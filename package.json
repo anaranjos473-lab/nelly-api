@@ -1,0 +1,28 @@
+{
+  "name": "nelly-backend",
+  "version": "1.0.0",
+  "description": "API Core para Nelly Delivery - Tuxtla Gutiérrez",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [
+    "delivery",
+    "tuxtla",
+    "fintech",
+    "billetera"
+  ],
+  "author": "Nelly Team",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mercadopago": "^1.0.16"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
