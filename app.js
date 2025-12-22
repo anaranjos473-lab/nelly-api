@@ -6,8 +6,8 @@ const app = express();
 app.use(express.json());
 
 // --- AQUÍ ESTÁ EL SALUDO QUE BUSCA TU CELULAR ---
+// Cuando la App entre a la puerta principal ('/'), respondemos esto:
 app.get('/', (req, res) => {
-    // Respondemos con un texto entre comillas para que Android lo entienda
     res.json("¡Conexión Exitosa con Nelly!");
 });
 
