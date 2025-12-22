@@ -1,13 +1,17 @@
 const express = require('express');
-const walletRoutes = require('./routes/walletRoutes');
 const dotenv = require('dotenv');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Conexión de rutas
-app.use('/api/v1/wallet', walletRoutes);
+// --- AQUÍ ESTÁ EL SALUDO QUE BUSCA TU CELULAR ---
+app.get('/', (req, res) => {
+    // Respondemos con un texto entre comillas para que Android lo entienda
+    res.json("¡Conexión Exitosa con Nelly!");
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Nelly API en puerto ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Nelly API corriendo en el puerto ${PORT}`);
+});
