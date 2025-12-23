@@ -1,35 +1,37 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const OpenAI = require('openai'); // 1. Importamos la librería de OpenAI
+const OpenAI = require('openai'); // Importamos la IA
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-// 2. Configuramos el cerebro usando la llave que guardaste en Render
+// Configuramos la IA con la llave que acabas de guardar en Render
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY 
 });
 
-// Ruta Principal (La que ya funciona)
+// Ruta 1: La bienvenida (para comprobar que el servidor vive)
 app.get('/', (req, res) => {
     res.json("¡Conexión Exitosa con Nelly!");
 });
 
-// --- NUEVA RUTA: EL CEREBRO ---
-// Cuando entres aquí, Nelly usará la IA para responder
+// Ruta 2: EL CEREBRO 🧠
+// Cuando entres aquí, Nelly pensará una respuesta
 app.get('/cerebro', async (req, res) => {
     try {
-        console.log("Preguntándole al cerebro...");
-        // Le pedimos a Nelly que se presente
+        console.log("Preguntando a la IA...");
         const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", content: "Preséntate brevemente en 20 palabras como Nelly, una asistente de delivery en Tuxtla." }],
+            messages: [
+                { role: "system", content: "Eres Nelly, una asistente útil y amable de una aplicación de delivery en Tuxtla Gutiérrez, Chiapas." },
+                { role: "user", content: "Salúdame y dime qué puedes hacer por mí en una frase corta." }
+            ],
             model: "gpt-3.5-turbo",
         });
-        // Respondemos al celular con lo que dijo la IA
+        // Enviamos la respuesta de la IA
         res.json(completion.choices[0].message.content);
     } catch (error) {
-        console.error("Error en OpenAI:", error);
+        console.error(error);
         res.status(500).json("Error en el cerebro: " + error.message);
     }
 });
