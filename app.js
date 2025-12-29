@@ -1,42 +1,45 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const OpenAI = require('openai'); // Importamos la IA
+const OpenAI = require('openai');
+const { MercadoPagoConfig, Preference } = require('mercadopago');
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Configuramos la IA con la llave que acabas de guardar en Render
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY 
-});
+// Configuración de OpenAI (Cerebro)
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Ruta 1: La bienvenida (para comprobar que el servidor vive)
+// Configuración de Mercado Pago (Billetera)
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+
 app.get('/', (req, res) => {
-    res.json("¡Conexión Exitosa con Nelly!");
+    res.json("¡Nelly está lista para cobrar y pensar!");
 });
 
-// Ruta 2: EL CEREBRO 🧠
-// Cuando entres aquí, Nelly pensará una respuesta
-app.get('/cerebro', async (req, res) => {
+// RUTA PARA COBRAR 💸
+app.get('/pagar', async (req, res) => {
     try {
-        console.log("Preguntando a la IA...");
-        const completion = await openai.chat.completions.create({
-            messages: [
-                { role: "system", content: "Eres Nelly, una asistente útil y amable de una aplicación de delivery en Tuxtla Gutiérrez, Chiapas." },
-                { role: "user", content: "Salúdame y dime qué puedes hacer por mí en una frase corta." }
-            ],
-            model: "gpt-3.5-turbo",
+        const preference = new Preference(client);
+        const result = await preference.create({
+            body: {
+                items: [{
+                    title: 'Pedido de Comida - Nelly Delivery',
+                    quantity: 1,
+                    unit_price: 150.00, // Precio de prueba
+                    currency_id: 'MXN'
+                }],
+                back_urls: { success: "https://www.google.com" },
+                auto_return: "approved",
+            }
         });
-        // Enviamos la respuesta de la IA
-        res.json(completion.choices[0].message.content);
+        res.json({ link: result.init_point });
     } catch (error) {
-        console.error(error);
-        res.status(500).json("Error en el cerebro: " + error.message);
+        res.status(500).json("Error al crear cobro: " + error.message);
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Nelly API corriendo en el puerto ${PORT}`);
+    console.log(`Servidor de Nelly en puerto ${PORT}`);
 });
