@@ -21,19 +21,20 @@ app.get('/', (req, res) => {
     res.json("¡Nelly está lista!");
 });
 
-// --- RUTA DEL CEREBRO (IA) ---
-app.get('/cerebro', async (req, res) => {
+// Ruta para chat dinámico
+app.post('/cerebro', async (req, res) => {
     try {
+        const { mensaje } = req.body; // Recibe la pregunta de la App
         const completion = await openai.chat.completions.create({
             messages: [
                 { role: "system", content: "Eres Nelly, una asistente de delivery amable en Tuxtla Gutiérrez." },
-                { role: "user", content: "Hola Nelly, preséntate brevemente." }
+                { role: "user", content: mensaje }
             ],
             model: "gpt-3.5-turbo",
         });
         res.json(completion.choices[0].message.content);
     } catch (error) {
-        res.status(500).json("Error en el cerebro: " + error.message);
+        res.status(500).json("Error: " + error.message);
     }
 });
 
@@ -64,3 +65,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Servidor de Nelly en puerto ${PORT}`);
 });
+
