@@ -1,7 +1,7 @@
 {
-  "name": "nelly-backend",
+  "name": "nelly-api",
   "version": "1.0.0",
-  "description": "API Core para Nelly Delivery - Tuxtla Gutiérrez",
+  "description": "",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -15,16 +15,10 @@
   ],
   "author": "Nelly Team",
   "license": "ISC",
- "dependencies": {
+  "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mercadopago": "^2.0.15",
     "openai": "^4.77.0"
   }
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
-
 }
-
-
