@@ -7,29 +7,50 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Configuración de OpenAI (Cerebro)
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Configuración de Mercado Pago (Billetera)
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
-
-app.get('/', (req, res) => {
-    res.json("¡Nelly está lista para cobrar y pensar!");
+// 1. Configuración de OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY 
 });
 
-// RUTA PARA COBRAR 💸
+// 2. Configuración de Mercado Pago
+const client = new MercadoPagoConfig({ 
+  accessToken: process.env.MP_ACCESS_TOKEN 
+});
+
+app.get('/', (req, res) => {
+    res.json("¡Nelly está lista!");
+});
+
+// --- RUTA DEL CEREBRO (IA) ---
+app.get('/cerebro', async (req, res) => {
+    try {
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: "Eres Nelly, una asistente de delivery amable en Tuxtla Gutiérrez." },
+                { role: "user", content: "Hola Nelly, preséntate brevemente." }
+            ],
+            model: "gpt-3.5-turbo",
+        });
+        res.json(completion.choices[0].message.content);
+    } catch (error) {
+        res.status(500).json("Error en el cerebro: " + error.message);
+    }
+});
+
+// --- RUTA DE PAGO ---
 app.get('/pagar', async (req, res) => {
     try {
         const preference = new Preference(client);
         const result = await preference.create({
             body: {
-                items: [{
-                    title: 'Pedido de Comida - Nelly Delivery',
-                    quantity: 1,
-                    unit_price: 150.00, // Precio de prueba
-                    currency_id: 'MXN'
-                }],
-                back_urls: { success: "https://www.google.com" },
+                items: [
+                    {
+                        title: 'Pedido de Comida - Nelly Delivery',
+                        quantity: 1,
+                        unit_price: 150.00,
+                        currency_id: 'MXN'
+                    }
+                ],
                 auto_return: "approved",
             }
         });
@@ -39,7 +60,7 @@ app.get('/pagar', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Servidor de Nelly en puerto ${PORT}`);
 });
