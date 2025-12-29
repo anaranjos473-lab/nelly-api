@@ -21,10 +21,10 @@ app.get('/', (req, res) => {
     res.json("¡Nelly está lista!");
 });
 
-// Ruta para chat dinámico
+// Ruta actualizada para recibir mensajes del usuario
 app.post('/cerebro', async (req, res) => {
     try {
-        const { mensaje } = req.body; // Recibe la pregunta de la App
+        const { mensaje } = req.body; // Aquí llega lo que el usuario escribe en el celular
         const completion = await openai.chat.completions.create({
             messages: [
                 { role: "system", content: "Eres Nelly, una asistente de delivery amable en Tuxtla Gutiérrez." },
@@ -65,4 +65,5 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Servidor de Nelly en puerto ${PORT}`);
 });
+
 
