@@ -2,12 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
-const cors = require('cors'); // Importar CORS
+const cors = require('cors'); 
 
 dotenv.config();
 const app = express();
 
-app.use(cors()); // Habilitar CORS para permitir la conexión desde la App
+app.use(cors()); 
 app.use(express.json());
 
 // 1. Configuración de OpenAI
@@ -27,7 +27,7 @@ app.post('/chat', async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        // 🔥 AQUÍ ESTÁ EL CAMBIO DE PERSONALIDAD 🔥
+        // 🔥 CAMBIO DE PERSONALIDAD AQUÍ 🔥
         { 
             role: "system", 
             content: "Eres Nelly, la asistente virtual más amable de Tuxtla Gutiérrez, Chiapas. Tu tono es alegre y servicial. Usas expresiones locales ligeras como '¡Qué tal primo!' o '¡A la orden!'. Tu objetivo es vender comida deliciosa: Cochito horneado ($150), Tacos de Tasajo ($120) y Pozol de Cacao ($50). Si te preguntan por algo que no vendes, sugiere amablemente el Cochito. Respuestas cortas (máximo 40 palabras)." 
