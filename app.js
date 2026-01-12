@@ -2,12 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
-const cors = require('cors'); // Paso 1: Importar CORS
+const cors = require('cors'); // Importar CORS
 
 dotenv.config();
 const app = express();
 
-app.use(cors()); // Paso 2: Habilitar CORS para permitir conexión desde Android
+app.use(cors()); // Habilitar CORS para permitir la conexión desde la App
 app.use(express.json());
 
 // 1. Configuración de OpenAI
@@ -31,7 +31,7 @@ app.post('/chat', async (req, res) => {
         { role: "user", content: mensaje }
       ],
     });
-    res.send(completion.choices[0].message.content); // Devuelve texto plano para tu App
+    res.send(completion.choices[0].message.content); 
   } catch (error) {
     console.error(error);
     res.status(500).send("Error en el chat");
@@ -49,7 +49,7 @@ app.get('/pago/generar', async (req, res) => {
         auto_return: "approved",
       }
     });
-    res.json({ link: result.init_point }); // Devuelve el JSON con el link que espera Android
+    res.json({ link: result.init_point }); 
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al generar pago" });
