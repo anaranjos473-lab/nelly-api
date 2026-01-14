@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
-const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); // Importamos Payment
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
 const cors = require('cors'); 
 const admin = require('firebase-admin');
 
@@ -13,6 +13,7 @@ app.use(express.json());
 
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
 try {
+  // Asegúrate de que el archivo nelly-admin.json exista en la misma carpeta
   const serviceAccount = require('./nelly-admin.json'); 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -54,7 +55,6 @@ app.post('/chat', async (req, res) => {
 
 // --- RUTA 2: COTIZAR ---
 app.post('/api/pedidos/cotizar', async (req, res) => {
-    // (Tu código de cotización sigue igual, resumido aquí por espacio)
     try {
         const { latRestaurante, lonRestaurante, latCliente, lonCliente, subtotalComida, propina } = req.body;
         let distanciaKm = 3.0; 
@@ -83,61 +83,73 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
 });
 
-// --- RUTA 3: GENERAR PAGO (Actualizada con Webhook) ---
+// --- RUTA 3: GENERAR PAGO (CORREGIDA) ---
 app.post('/pago/generar', async (req, res) => {
   try {
-    const { precio, titulo } = req.body;
-    const precioFinal = precio ? parseFloat(precio) : 150;
-    
+    console.log("📥 Solicitud de pago recibida:", req.body); // Log para ver qué llega
+
     const preference = new Preference(client);
     const result = await preference.create({
       body: {
-        items: [{ title: titulo || 'Pedido Nelly', quantity: 1, unit_price: precioFinal }],
-        // 🔥 AQUÍ ESTÁ LA MAGIA: Avisar a este servidor cuando paguen
-        // Render detecta automáticamente tu URL, pero mejor la forzamos si falla:
+        items: [
+            { 
+                title: req.body.titulo || 'Pedido Nelly', 
+                quantity: 1, 
+                // CORRECCIÓN CLAVE AQUÍ ABAJO 👇
+                unit_price: Number(req.body.precio) || 150, 
+                currency_id: "MXN" // Importante para evitar errores de divisa
+            }
+        ],
         notification_url: "https://nelly-api-8lh1.onrender.com/webhook", 
         back_urls: { success: "https://nelly-api-8lh1.onrender.com/success" },
         auto_return: "approved",
       }
     });
+    
+    console.log("✅ Link generado:", result.init_point);
     res.json({ link: result.init_point }); 
-  } catch (error) { res.status(500).json({ error: "Error pago" }); }
+  } catch (error) { 
+      console.error("❌ Error generando pago:", error); // Ver el error real en logs
+      res.status(500).json({ error: "Error pago", detalle: error.message }); 
+  }
 });
 
-// --- RUTA 4: EL WEBHOOK (Donde MercadoPago nos avisa) ---
+// --- RUTA 4: EL WEBHOOK ---
 app.post('/webhook', async (req, res) => {
-    const { type, data } = req.body; // MercadoPago nos manda esto
+    const { type, data } = req.body; 
     
     try {
         if (type === 'payment') {
-            // 1. Consultar el estado real del pago en MP
             const payment = new Payment(client);
             const infoPago = await payment.get({ id: data.id });
             
             if (infoPago.status === 'approved') {
                 console.log(`💰 PAGO APROBADO: $${infoPago.transaction_amount}`);
                 
-                // 2. ¡DESPERTAR AL REPARTIDOR! (Lógica automática)
-                // En un sistema real, buscaríamos al repartidor más cercano.
-                // Para el MVP, le avisamos siempre a "driver_123" (Emanuel).
-                
-                const snapshot = await admin.database().ref(`repartidores/driver_123/fcm_token`).once('value');
-                const fcmToken = snapshot.val();
+                // NOTIFICAR AL REPARTIDOR (DRIVER_123)
+                try {
+                    const snapshot = await admin.database().ref(`repartidores/driver_123/fcm_token`).once('value');
+                    const fcmToken = snapshot.val();
 
-                if (fcmToken) {
-                    const mensaje = {
-                        notification: {
-                            title: '¡PAGO RECIBIDO! 🤑',
-                            body: `Nuevo pedido pagado por $${infoPago.transaction_amount}. ¡A rodar!`
-                        },
-                        token: fcmToken
-                    };
-                    await admin.messaging().send(mensaje);
-                    console.log("🔔 Notificación enviada automáticamente");
+                    if (fcmToken) {
+                        const mensaje = {
+                            notification: {
+                                title: '¡PAGO RECIBIDO! 🤑',
+                                body: `Nuevo pedido pagado por $${infoPago.transaction_amount}. ¡A rodar!`
+                            },
+                            token: fcmToken
+                        };
+                        await admin.messaging().send(mensaje);
+                        console.log("🔔 Notificación enviada a driver_123");
+                    } else {
+                        console.log("⚠️ No se encontró token FCM para driver_123");
+                    }
+                } catch (errToken) {
+                    console.error("Error enviando notificación:", errToken);
                 }
             }
         }
-        res.sendStatus(200); // Responder "OK" a MercadoPago
+        res.sendStatus(200); 
     } catch (error) {
         console.error("Error en webhook:", error);
         res.sendStatus(500);
