@@ -11,6 +11,9 @@ const app = express();
 app.use(cors()); 
 app.use(express.json());
 
+// Servir archivos estáticos desde la carpeta "public" (panel.html, assets)
+app.use(express.static('public'));
+
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
 try {
   // Asegúrate de que el archivo nelly-admin.json exista en la misma carpeta
