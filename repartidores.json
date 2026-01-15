@@ -1,0 +1,13 @@
+{
+  "repartidores": {
+    "driver_123": {
+      "nombre": "Emanuel Alejandro",
+      "puntos_acumulados": 145.5,
+      "nivel": "Plata",
+      "billetera": {
+        "saldo_actual": 56.40,
+        "deuda_comision": 7.10
+      }
+    }
+  }
+}

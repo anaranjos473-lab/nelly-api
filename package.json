@@ -1,0 +1,26 @@
+{
+  "name": "nelly-api",
+  "version": "1.0.0",
+  "description": "API para Nelly Delivery Tuxtla",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "delivery",
+    "tuxtla",
+    "fintech",
+    "billetera"
+  ],
+  "author": "Nelly Team",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^12.0.0",
+    "mercadopago": "^2.1.0",
+    "openai": "^4.78.1"
+  }
+}
