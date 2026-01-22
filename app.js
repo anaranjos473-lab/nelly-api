@@ -5,6 +5,7 @@ const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const cors = require('cors'); 
 const admin = require('firebase-admin');
 const fs = require('fs');
+const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
 const app = express();
@@ -15,28 +16,26 @@ app.use(express.json());
 // Servir archivos estáticos desde la carpeta "public"
 app.use(express.static('public'));
 
+// --- CONFIGURACIONES ---
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
+
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
 try {
   let serviceAccount;
-  
-  // 1. Prioridad: Archivo Secreto en la ruta de Render (Recomendado)
   const secretPath = "/etc/secrets/nelly-admin.json"; 
 
   if (fs.existsSync(secretPath)) {
     serviceAccount = require(secretPath);
     console.log('✅ Firebase Admin: Cargado desde Secret File en Render');
-  } 
-  // 2. Segunda opción: Variable de entorno (JSON directo o Base64)
-  else if (process.env.FIREBASE_ADMIN_JSON) {
+  } else if (process.env.FIREBASE_ADMIN_JSON) {
     const rawEnv = process.env.FIREBASE_ADMIN_JSON;
-    const parsed = rawEnv.trim().startsWith('{') 
+    serviceAccount = rawEnv.trim().startsWith('{') 
       ? JSON.parse(rawEnv) 
       : JSON.parse(Buffer.from(rawEnv, 'base64').toString('utf8'));
-    serviceAccount = parsed;
     console.log('ℹ️ Firebase Admin: Cargado desde FIREBASE_ADMIN_JSON');
-  } 
-  // 3. Tercera opción: Local (PC de desarrollo)
-  else {
+  } else {
     serviceAccount = require('./nelly-admin.json');
     console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
   }
@@ -48,12 +47,7 @@ try {
   console.log('✅ Firebase Admin conectado exitosamente');
 } catch (error) {
   console.error("❌ Error Crítico Firebase:", error.message);
-  console.error("Sugerencia: Verifica que el archivo 'nelly-admin.json' esté en /etc/secrets/ o en la raíz.");
 }
-
-// --- CONFIGURACIONES ---
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
 // --- MATEMÁTICAS (Haversine) ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
@@ -65,14 +59,14 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
-// --- RUTA 1: CHAT IA ---
+// --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
 app.post('/chat', async (req, res) => {
   try {
     const { mensaje } = req.body;
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini", // Modelo más rápido y económico
       messages: [
-        { role: "system", content: "Eres Nelly, asistente de delivery en Tuxtla..." },
+        { role: "system", content: "Eres Nelly, la asistente de delivery más eficiente de Tuxtla. Amable y servicial." },
         { role: "user", content: mensaje }
       ],
     });
@@ -103,9 +97,7 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
                 propina: propina || 0,
                 total_pagar: totalCliente.toFixed(2)
             },
-            backend_data: {
-                ganancia_repartidor: gananciaRepartidor.toFixed(2)
-            }
+            backend_data: { ganancia_repartidor: gananciaRepartidor.toFixed(2) }
         });
     } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
 });
@@ -113,37 +105,22 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
 // --- RUTA 3: GENERAR PAGO ---
 app.post('/pago/generar', async (req, res) => {
   try {
-    console.log("📥 Solicitud de pago recibida:", req.body);
     const preference = new Preference(client);
     const result = await preference.create({
       body: {
-        items: [
-            { 
-                title: req.body.titulo || 'Pedido Nelly', 
-                quantity: 1, 
-                unit_price: Number(req.body.precio) || 150, 
-                currency_id: "MXN"
-            }
-        ],
+        items: [{ title: req.body.titulo || 'Pedido Nelly', quantity: 1, unit_price: Number(req.body.precio) || 150, currency_id: "MXN" }],
         notification_url: "https://nelly-api-8lh1.onrender.com/webhook", 
         back_urls: { success: "https://nelly-api-8lh1.onrender.com/success" },
         auto_return: "approved",
       }
     });
-    
-    console.log("✅ Link generado:", result.init_point);
     res.json({ link: result.init_point }); 
-  } catch (error) { 
-      console.error("❌ Error generando pago:", error);
-      res.status(500).json({ error: "Error pago", detalle: error.message }); 
-  }
+  } catch (error) { res.status(500).json({ error: "Error pago", detalle: error.message }); }
 });
 
-// --- RUTA 4: EL WEBHOOK (Corregido y Robusto) ---
+// --- RUTA 4: EL WEBHOOK (Con Resend y Notificaciones) ---
 app.post('/webhook', async (req, res) => {
     const { type, data } = req.body; 
-    
-    // Solo procesamos eventos de tipo pago
     if (type !== 'payment') return res.sendStatus(200);
 
     try {
@@ -152,33 +129,48 @@ app.post('/webhook', async (req, res) => {
         
         if (infoPago.status === 'approved') {
             const monto = infoPago.transaction_amount;
-            console.log(`💰 PAGO APROBADO: $${monto}`);
+            const emailCliente = infoPago.payer?.email || 'cliente@ejemplo.com';
+            console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente}`);
 
-            // 1. Registrar en la base de datos para respaldo
+            // 1. Registro en Firebase
             try {
                 await admin.database().ref(`pagos_confirmados/${data.id}`).set({
                     monto: monto,
+                    email: emailCliente,
                     fecha: new Date().toISOString(),
                     status: 'approved'
                 });
-            } catch (e) { console.error("Error guardando en DB:", e.message); }
+            } catch (e) { console.error("Error en DB:", e.message); }
 
-            // 2. Notificar al repartidor
+            // 2. Enviar Correo con Resend
+            try {
+                await resend.emails.send({
+                    from: 'Nelly Delivery <onboarding@resend.dev>',
+                    to: emailCliente,
+                    subject: '¡Tu pedido en Nelly está en camino! 🛵',
+                    html: `
+                        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                            <h2 style="color: #2ecc71;">¡Gracias por tu compra!</h2>
+                            <p>Hemos recibido tu pago de <strong>$${monto} MXN</strong>.</p>
+                            <p><strong>Folio:</strong> #${data.id}</p>
+                            <p>Nelly ya está coordinando con el repartidor. ¡Buen provecho!</p>
+                        </div>
+                    `
+                });
+                console.log("📧 Correo enviado a:", emailCliente);
+            } catch (mailError) { console.error("❌ Error correo:", mailError.message); }
+
+            // 3. Notificar al repartidor
             const snapshot = await admin.database().ref(`repartidores/driver_123/fcm_token`).once('value');
             const fcmToken = snapshot.val();
 
             if (fcmToken) {
                 const mensaje = {
-                    notification: {
-                        title: '¡PAGO RECIBIDO! 🤑',
-                        body: `Nuevo pedido por $${monto}. ¡A rodar!`
-                    },
+                    notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
                     token: fcmToken
                 };
                 await admin.messaging().send(mensaje);
-                console.log("🔔 Notificación enviada a driver_123");
-            } else {
-                console.log("⚠️ No se encontró token para driver_123");
+                console.log("🔔 Notificación enviada");
             }
         }
         res.sendStatus(200); 
