@@ -5,7 +5,7 @@ const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const cors = require('cors'); 
 const admin = require('firebase-admin');
 const fs = require('fs');
-const { Resend } = require('resend'); // 1. Importación de Resend
+const { Resend } = require('resend');
 
 dotenv.config();
 const app = express();
@@ -19,9 +19,9 @@ app.use(express.static('public'));
 // --- CONFIGURACIONES ---
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
-const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
+// --- CONFIGURACIÓN FIREBASE (Carga Segura) ---
 try {
   let serviceAccount;
   const secretPath = "/etc/secrets/nelly-admin.json"; 
@@ -59,14 +59,14 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     return R * c; 
 }
 
-// --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
+// --- RUTA 1: CHAT IA (GPT-4o-mini) ---
 app.post('/chat', async (req, res) => {
   try {
     const { mensaje } = req.body;
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Modelo más rápido y económico
+      model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "Eres Nelly, la asistente de delivery más eficiente de Tuxtla. Amable y servicial." },
+        { role: "system", content: "Eres Nelly, la asistente de delivery más eficiente de Tuxtla. Amable, servicial y conoces toda la ciudad." },
         { role: "user", content: mensaje }
       ],
     });
@@ -118,7 +118,7 @@ app.post('/pago/generar', async (req, res) => {
   } catch (error) { res.status(500).json({ error: "Error pago", detalle: error.message }); }
 });
 
-// --- RUTA 4: EL WEBHOOK (Con Resend y Notificaciones) ---
+// --- RUTA 4: EL WEBHOOK (Firebase + Resend Premium + Push) ---
 app.post('/webhook', async (req, res) => {
     const { type, data } = req.body; 
     if (type !== 'payment') return res.sendStatus(200);
@@ -132,7 +132,7 @@ app.post('/webhook', async (req, res) => {
             const emailCliente = infoPago.payer?.email || 'cliente@ejemplo.com';
             console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente}`);
 
-            // 1. Registro en Firebase
+            // 1. Registro en Firebase para Respaldo
             try {
                 await admin.database().ref(`pagos_confirmados/${data.id}`).set({
                     monto: monto,
@@ -140,27 +140,40 @@ app.post('/webhook', async (req, res) => {
                     fecha: new Date().toISOString(),
                     status: 'approved'
                 });
-            } catch (e) { console.error("Error en DB:", e.message); }
+            } catch (e) { console.error("Error DB:", e.message); }
 
-            // 2. Enviar Correo con Resend
+            // 2. Enviar Correo Premium con Resend
             try {
+                const htmlTicket = `
+                <div style="background-color: #f9f9f9; padding: 20px; font-family: sans-serif;">
+                    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <div style="background-color: #2ecc71; padding: 20px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0;">¡Pago Confirmado!</h1>
+                        </div>
+                        <div style="padding: 30px;">
+                            <p style="font-size: 16px; color: #34495e;">Hola, hemos recibido tu pago de <strong>$${monto} MXN</strong> con éxito.</p>
+                            <div style="background-color: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                                <p style="margin: 5px 0;"><strong>Folio:</strong> #${data.id}</p>
+                                <p style="margin: 5px 0;"><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-MX')}</p>
+                            </div>
+                            <p style="text-align: center;">Nelly ya está coordinando con el repartidor. ¡Buen provecho!</p>
+                        </div>
+                        <div style="background-color: #f1f2f6; padding: 15px; text-align: center; font-size: 12px; color: #95a5a6;">
+                            Nelly Delivery - Tuxtla Gutiérrez, Chiapas
+                        </div>
+                    </div>
+                </div>`;
+
                 await resend.emails.send({
                     from: 'Nelly Delivery <onboarding@resend.dev>',
                     to: emailCliente,
-                    subject: '¡Tu pedido en Nelly está en camino! 🛵',
-                    html: `
-                        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                            <h2 style="color: #2ecc71;">¡Gracias por tu compra!</h2>
-                            <p>Hemos recibido tu pago de <strong>$${monto} MXN</strong>.</p>
-                            <p><strong>Folio:</strong> #${data.id}</p>
-                            <p>Nelly ya está coordinando con el repartidor. ¡Buen provecho!</p>
-                        </div>
-                    `
+                    subject: `Confirmación de Pedido #${data.id} 🛵`,
+                    html: htmlTicket
                 });
-                console.log("📧 Correo enviado a:", emailCliente);
+                console.log("📧 Correo Premium enviado a:", emailCliente);
             } catch (mailError) { console.error("❌ Error correo:", mailError.message); }
 
-            // 3. Notificar al repartidor
+            // 3. Notificar al repartidor (Push)
             const snapshot = await admin.database().ref(`repartidores/driver_123/fcm_token`).once('value');
             const fcmToken = snapshot.val();
 
@@ -170,7 +183,7 @@ app.post('/webhook', async (req, res) => {
                     token: fcmToken
                 };
                 await admin.messaging().send(mensaje);
-                console.log("🔔 Notificación enviada");
+                console.log("🔔 Notificación Push enviada");
             }
         }
         res.sendStatus(200); 
