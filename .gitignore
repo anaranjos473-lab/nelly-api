@@ -6,3 +6,6 @@ archivo secreto.txt
 key google.txt
 *.txt
 *.json
+.env
+.env.example
+node_modules/

@@ -5,6 +5,7 @@ const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const cors = require('cors'); 
 const admin = require('firebase-admin');
 const fs = require('fs');
+const axios = require('axios');
 const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
@@ -49,6 +50,41 @@ try {
   console.error("❌ Error Crítico Firebase:", error.message);
 }
 
+// --- Verificación inmediata de Firebase Admin ---
+const checkFirebase = async () => {
+    try {
+        await admin.auth().listUsers(1); 
+        console.log('✅ Firebase Admin: Conexión verificada y activa');
+    } catch (error) {
+        console.error('❌ Error crítico en Firebase:', error.message);
+    }
+};
+checkFirebase();
+
+// --- LISTENER DE PEDIDOS (Panel de Cocina) ---
+const db = admin.database();
+const pedidosRef = db.ref('pedidos');
+
+pedidosRef.on('child_added', (snapshot) => {
+    const nuevoPedido = snapshot.val();
+    console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
+    // Aquí puedes disparar la lógica para actualizar el panel.html
+});
+
+// --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
+const URL_DE_TU_API = process.env.RENDER_URL || 'https://tu-url-de-render.onrender.com'; // Cambia con tu URL real o usa variable de entorno
+
+if (process.env.NODE_ENV === 'production') {
+    setInterval(async () => {
+        try {
+            await axios.get(`${URL_DE_TU_API}/healthcheck`);
+            console.log('📡 Keep-Alive: Ping enviado para evitar inactividad');
+        } catch (err) {
+            console.log('📡 Keep-Alive: Error en el ping, pero el servidor sigue intentando');
+        }
+    }, 14 * 60 * 1000); // 14 minutos en milisegundos
+}
+
 // --- MATEMÁTICAS (Haversine) ---
 function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371; 
@@ -57,6 +93,12 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c; 
+}
+
+// --- VALIDACIÓN DE CORREO ELECTRÓNICO ---
+function validarCorreo(email) {
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regexCorreo.test(email);
 }
 
 // --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
@@ -178,6 +220,11 @@ app.post('/webhook', async (req, res) => {
         console.error("❌ Error en webhook:", error.message);
         res.sendStatus(500);
     }
+});
+
+// --- RUTA: HEALTHCHECK (para Keep-Alive en Render) ---
+app.get('/healthcheck', (req, res) => {
+    res.status(200).send('OK');
 });
 
 const PORT = process.env.PORT || 3000;
