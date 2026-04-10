@@ -74,7 +74,7 @@
         </div>
 
     <script>
-        // 1. CONFIGURACIÓN (Tu configuración validada)
+        // 1. CONFIGURACIÓN
         const firebaseConfig = {
             apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
             authDomain: "nelly-delivery.firebaseapp.com",
@@ -100,13 +100,13 @@
             }
         });
 
-        // 3. MONITOR DE GANANCIAS (Actualización en tiempo real)
+        // 3. MONITOR DE GANANCIAS
         db.ref('ganancias_hoy').on('value', (snap) => {
             const total = snap.val() || 0;
             document.getElementById('ganancias-valor').innerText = `$${parseFloat(total).toFixed(2)}`;
         });
 
-        // 4. MONITOR DE PEDIDOS
+        // 4. MONITOR DE PEDIDOS (Vista de Cocina)
         db.ref('pedidos').on('value', (snapshot) => {
             const container = document.getElementById('lista-pedidos');
             const contador = document.getElementById('contador-pedidos');
@@ -126,12 +126,12 @@
                 
                 container.innerHTML += `
                     <div class="card">
-                        <h3>Folio: #${child.key.substring(0, 6)}</h3>
+                        <h3>Folio: #${child.key.substring(0, 4)}</h3>
                         <div class="info-row"><strong>👤 Cliente:</strong> ${p.cliente || 'Usuario Nelly'}</div>
                         <div class="info-row"><strong>📝 Nota:</strong> ${p.descripcion || 'Sin detalles adicionales'}</div>
                         <div class="price-tag">$${parseFloat(monto).toFixed(2)}</div>
                         <button class="btn-entregar" onclick="finalizarPedido('${child.key}', ${monto})">
-                            MARCAR ENTREGADO
+                            LISTO PARA REPARTO
                         </button>
                     </div>
                 `;
@@ -139,37 +139,45 @@
             contador.innerText = numPedidos;
         });
 
-        // 5. LÓGICA DE ACTUALIZACIÓN (Historial + Ganancias + Borrado)
+        // 5. LÓGICA DE CONEXIÓN CON REPARTIDORES
         async function finalizarPedido(id, monto) {
-            if (!confirm(`¿Confirmas la entrega del pedido #${id}?`)) return;
+            if (!confirm(`¿Confirmas que el pedido #${id} está listo para el repartidor?`)) return;
 
             const refPedido = db.ref('pedidos/' + id);
+            const refReparto = db.ref('pedidos_para_reparto/' + id); // Nodo para la App de Repartidores
             const refHistorial = db.ref('historial_ventas/' + id);
             const refGanancias = db.ref('ganancias_hoy');
 
             try {
-                // Obtener datos del pedido
                 const snap = await refPedido.once('value');
                 const datos = snap.val();
 
                 if (datos) {
-                    // Mover a historial con timestamp
+                    // 1. Enviamos a la cola de repartidores
+                    await refReparto.set({
+                        ...datos,
+                        estado: 'esperando_repartidor',
+                        hora_cocina_listo: new Date().toLocaleTimeString()
+                    });
+
+                    // 2. Guardamos en historial general
                     await refHistorial.set({
                         ...datos,
                         fecha_finalizado: new Date().toLocaleString(),
-                        estado: 'entregado'
+                        estado: 'cocina_terminada'
                     });
 
-                    // Sumar a ganancias usando transacción (evita errores si dos personas cobran a la vez)
+                    // 3. Sumar a ganancias
                     await refGanancias.transaction(actual => (actual || 0) + parseFloat(monto));
 
-                    // Eliminar de la cola activa
+                    // 4. Quitar de la pantalla de cocina
                     await refPedido.remove();
-                    console.log("Pedido entregado y registrado.");
+                    
+                    console.log("Pedido enviado a repartidores y registrado.");
                 }
             } catch (err) {
                 console.error("Error en la operación:", err);
-                alert("Hubo un problema al procesar la entrega. Revisa tu conexión.");
+                alert("Error al conectar con el sistema de reparto.");
             }
         }
     </script>
