@@ -43,9 +43,14 @@ try {
     console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
   }
 
+  const firebaseDatabaseUrl = process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com";
+  if (!process.env.FIREBASE_DATABASE_URL) {
+    console.warn('⚠️ FIREBASE_DATABASE_URL no está configurada. En Render, fija esta variable de entorno al URL de tu proyecto Firebase RTDB.');
+  }
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com"
+    databaseURL: firebaseDatabaseUrl
   });
   db = admin.database();
   firebaseAdminInitialized = true;
@@ -98,7 +103,7 @@ if (firebaseAdminInitialized) {
 }
 
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
-const URL_DE_TU_API = process.env.RENDER_URL || 'https://tu-url-de-render.onrender.com'; // Cambia con tu URL real o usa variable de entorno
+const URL_DE_TU_API = process.env.RENDER_URL || 'https://tu-app-nelly.onrender.com'; // Cambia con tu URL real de Render o usa la variable de entorno RENDER_URL
 
 if (process.env.NODE_ENV === 'production') {
     setInterval(async () => {
@@ -171,7 +176,7 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
 });
 
 // --- RUTA 2.1: PEDIDO LISTO ---
-app.post('/api/pedidos/listo', async (req, res) => {
+const handlePedidoListo = async (req, res) => {
     if (!requireFirebase(res)) return;
 
     const { pedidoId, restauranteId, mensaje } = req.body;
@@ -199,7 +204,10 @@ app.post('/api/pedidos/listo', async (req, res) => {
         console.error('Error al marcar pedido listo:', error);
         return res.status(500).json({ error: 'Error al procesar pedido listo' });
     }
-});
+};
+
+app.post('/api/pedidos/listo', handlePedidoListo);
+app.post('/pedido-listo', handlePedidoListo);
 
 // --- RUTA 2.2: ENVIAR NOTIFICACIÓN FCM DE PEDIDO LISTO ---
 app.post('/api/pedidos/notificar-listo', async (req, res) => {

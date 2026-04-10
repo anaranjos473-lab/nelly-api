@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Nelly Delivery - Panel de Cocina</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         body { font-family: sans-serif; background: #f4f7f6; margin: 0; }
@@ -50,30 +49,33 @@
             alert("Error: No se encontró el ID del restaurante en la URL.");
         }
 
-        // 2. Lógica de Conexión y Autenticación
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                const badge = document.getElementById('badge-estado');
-                badge.textContent = "Conectado: " + resID;
-                badge.classList.add('conectado');
+        // 2. Prueba de conexión rápida
+        db.ref('.info/connected').on('value', (snap) => {
+          if (snap.val() === true) {
+            console.log("✅ ¡Conectado a Nelly Delivery!");
+            const badge = document.getElementById('badge-estado');
+            badge.textContent = resID ? `Conectado: ${resID}` : 'Conectado';
+            badge.classList.add('conectado');
+          } else {
+            console.log("❌ Sin conexión...");
+            const badge = document.getElementById('badge-estado');
+            badge.textContent = 'Desconectado';
+            badge.classList.remove('conectado');
+          }
+        });
 
-                // 3. Escuchar pedidos específicos de este restaurante
-                const pedidosRef = db.ref(`pedidos/${resID}`);
-                pedidosRef.on('value', (snapshot) => {
-                    const pedidos = snapshot.val();
-                    actualizarInterfaz(pedidos);
-                });
+        // 3. Tu lógica de pedidos (Igual que antes pero usando 'db')
+        const pedidosRef = db.ref(`pedidos/${resID}`);
+        pedidosRef.on('value', (snapshot) => {
+          const pedidos = snapshot.val();
+          console.log("Datos recibidos:", pedidos);
+          actualizarInterfaz(pedidos);
+        });
 
-                // 4. Mostrar ganancias del día en tiempo real
-                const gananciasRef = db.ref(`ganancias_dia/${resID}`);
-                gananciasRef.on('value', (snapshot) => {
-                    const total = snapshot.val() || 0;
-                    document.getElementById('total-dinero').innerText = `Ganancias de hoy: $${total}`;
-                });
-            } else {
-                console.log("No autenticado. Redirigiendo...");
-                // Aquí podrías redirigir a una página de login
-            }
+        const gananciasRef = db.ref(`ganancias_dia/${resID}`);
+        gananciasRef.on('value', (snapshot) => {
+          const total = snapshot.val() || 0;
+          document.getElementById('total-dinero').innerText = `Ganancias de hoy: $${total}`;
         });
 
         function actualizarInterfaz(pedidos) {
@@ -92,7 +94,7 @@
                     <div class="pedido-card">
                         <h3>Pedido de: ${cliente}</h3>
                         <p>Total: $${total}</p>
-                        <p><span>Estado: ${p.estado}</span></p>
+                        <p><span>Estado: ${p.estado || 'Pendiente'}</span></p>
                         <button onclick="finalizarPedido('${id}', ${total})">
                             Marcar como Entregado
                         </button>

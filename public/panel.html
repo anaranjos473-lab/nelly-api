@@ -2,129 +2,85 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Nelly Delivery 🛵</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Nelly Delivery - Panel de Cocina</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { background-color: #f4f6f9; }
-        .card-header { background-color: #00ACC1; color: white; font-weight: bold; }
-        .btn-dispatch { background-color: #26C6DA; color: white; border: none; }
-        .btn-dispatch:hover { background-color: #00838F; color: white; }
-        .status-badge { padding: 5px 10px; border-radius: 12px; font-size: 0.9em; }
-        .status-new { background-color: #ffecb3; color: #ff6f00; }
-        .status-cooking { background-color: #fff9c4; color: #fbc02d; }
-        .status-way { background-color: #e0f7fa; color: #006064; }
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; }
+        .header { background: #34495e; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; background: #e74c3c; } /* Rojo por defecto */
+        .conectado { background: #2ecc71 !important; }
+        .pedido-card { background: white; margin: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-
-<div class="container mt-5">
-    <div class="card shadow">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h3>🤖 Nelly Delivery - Cocina</h3>
-            <span id="connection-status" class="badge bg-danger">Desconectado</span>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Folio</th>
-                        <th>Cliente</th>
-                        <th>Hora</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-pedidos">
-                    </tbody>
-            </table>
-            <div id="sin-pedidos" class="text-center text-muted py-4">
-                Esperando pedidos... 🕒
-            </div>
-        </div>
+    <div class="header">
+        <h1>Nelly Delivery - Cocina</h1>
+        <div id="badge-estado" class="status-badge">Desconectado</div>
     </div>
-</div>
 
-<audio id="notificacion" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+    <div id="contenedor-pedidos">
+        <p style="text-align:center;">Esperando pedidos... 🕒</p>
+    </div>
 
-<script type="module">
-  // Importamos desde URL para que funcione en el navegador sin instalar nada extra
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script>
+        // CONFIGURACIÓN: Pega aquí tus credenciales de la consola de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+            authDomain: "nelly-delivery.firebaseapp.com",
+            databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+            projectId: "nelly-delivery",
+            storageBucket: "nelly-delivery.firebasestorage.app",
+            messagingSenderId: "5451083162",
+            appId: "1:5451083162:web:06b03a76f50b74b60bde23"
+        };
+        firebase.initializeApp(firebaseConfig);
 
-  // --- TUS CREDENCIALES REALES (Ya configuradas) ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-    authDomain: "nelly-delivery.firebaseapp.com",
-    databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-    projectId: "nelly-delivery",
-    storageBucket: "nelly-delivery.firebasestorage.app",
-    messagingSenderId: "5451083162",
-    appId: "1:5451083162:web:06b03a76f50b74b60bde23",
-    measurementId: "G-0H2BKP1G8L"
-  };
+        // 1. Obtener ID del restaurante de la URL (?id=restaurante_01)
+        const params = new URLSearchParams(window.location.search);
+        const resID = params.get('id');
 
-  // Iniciar Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const statusBadge = document.getElementById("connection-status");
+        if (!resID) {
+            alert("Error: No se encontró el ID del restaurante en la URL.");
+        }
 
-  // Escuchar pedidos en tiempo real
-  const pedidosRef = ref(db, 'pedidos');
-  
-  onValue(pedidosRef, (snapshot) => {
-    // Confirmar conexión visualmente
-    statusBadge.className = "badge bg-success";
-    statusBadge.innerText = "En Línea 🟢";
+        // 2. Lógica de Conexión y Autenticación
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                const badge = document.getElementById('badge-estado');
+                badge.textContent = "Conectado: " + resID;
+                badge.classList.add('conectado');
 
-    const data = snapshot.val();
-    const tbody = document.getElementById("tabla-pedidos");
-    const sinPedidos = document.getElementById("sin-pedidos");
-    
-    tbody.innerHTML = ""; // Limpiar tabla antes de llenarla
-    
-    if (data) {
-        sinPedidos.style.display = "none";
-        
-        Object.keys(data).forEach((key) => {
-            const pedido = data[key];
-            // Formatear hora si existe, si no, poner hora actual
-            const fecha = pedido.timestamp ? new Date(pedido.timestamp).toLocaleTimeString() : "Ahora";
-            
-            let badgeClass = "bg-secondary";
-            if(pedido.estado === "Confirmado") badgeClass = "status-new";
-            if(pedido.estado === "Cocinando") badgeClass = "status-cooking";
-            if(pedido.estado === "En Camino") badgeClass = "status-way";
-
-            const row = `
-                <tr>
-                    <td class="fw-bold">#${pedido.folio}</td>
-                    <td>${pedido.cliente || "Cliente"}</td>
-                    <td>${fecha}</td>
-                    <td><span class="status-badge ${badgeClass}">${pedido.estado}</span></td>
-                    <td>
-                        ${pedido.estado === 'Confirmado' ? 
-                          `<button class="btn btn-warning btn-sm" onclick="window.cambiarEstado('${key}', 'Cocinando')">🔥 Cocinar</button>` : 
-                          pedido.estado === 'Cocinando' ?
-                          `<button class="btn btn-dispatch btn-sm" onclick="window.cambiarEstado('${key}', 'En Camino')">🛵 Despachar</button>` :
-                          `<span class="text-success">✅ Completado</span>`
-                        }
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
+                // 3. Escuchar pedidos específicos de este restaurante
+                const pedidosRef = firebase.database().ref(`pedidos/${resID}`);
+                pedidosRef.on('value', (snapshot) => {
+                    const pedidos = snapshot.val();
+                    actualizarInterfaz(pedidos);
+                });
+            } else {
+                console.log("No autenticado. Redirigiendo...");
+                // Aquí podrías redirigir a una página de login
+            }
         });
-    } else {
-        sinPedidos.style.display = "block";
-    }
-  });
 
-  // Función global para los botones de acción
-  window.cambiarEstado = (folio, nuevoEstado) => {
-      update(ref(db, 'pedidos/' + folio), {
-          estado: nuevoEstado
-      });
-  };
-</script>
-
+        function actualizarInterfaz(pedidos) {
+            const container = document.getElementById('contenedor-pedidos');
+            container.innerHTML = ""; // Limpiar
+            if (!pedidos) {
+                container.innerHTML = "<p style='text-align:center;'>No hay pedidos pendientes.</p>";
+                return;
+            }
+            // Lógica para listar pedidos...
+            Object.keys(pedidos).forEach(id => {
+                const p = pedidos[id];
+                container.innerHTML += `
+                    <div class="pedido-card">
+                        <b>Folio: ${id}</b> - $${p.monto} <br>
+                        <span>Estado: ${p.estado}</span>
+                    </div>`;
+            });
+        }
+    </script>
 </body>
 </html>
