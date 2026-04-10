@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Nelly Delivery - Panel de Cocina</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         body { font-family: sans-serif; background: #f4f7f6; margin: 0; }
         .header { background: #34495e; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -18,6 +18,10 @@
     <div class="header">
         <h1>Nelly Delivery - Cocina</h1>
         <div id="badge-estado" class="status-badge">Desconectado</div>
+    </div>
+
+    <div id="ganancias-container" style="padding: 1rem;">
+        <p id="total-dinero">Ganancias de hoy: $0</p>
     </div>
 
     <div id="contenedor-pedidos">
@@ -36,6 +40,7 @@
             appId: "1:5451083162:web:06b03a76f50b74b60bde23"
         };
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         // 1. Obtener ID del restaurante de la URL (?id=restaurante_01)
         const params = new URLSearchParams(window.location.search);
@@ -53,10 +58,17 @@
                 badge.classList.add('conectado');
 
                 // 3. Escuchar pedidos específicos de este restaurante
-                const pedidosRef = firebase.database().ref(`pedidos/${resID}`);
+                const pedidosRef = db.ref(`pedidos/${resID}`);
                 pedidosRef.on('value', (snapshot) => {
                     const pedidos = snapshot.val();
                     actualizarInterfaz(pedidos);
+                });
+
+                // 4. Mostrar ganancias del día en tiempo real
+                const gananciasRef = db.ref(`ganancias_dia/${resID}`);
+                gananciasRef.on('value', (snapshot) => {
+                    const total = snapshot.val() || 0;
+                    document.getElementById('total-dinero').innerText = `Ganancias de hoy: $${total}`;
                 });
             } else {
                 console.log("No autenticado. Redirigiendo...");
@@ -74,12 +86,82 @@
             // Lógica para listar pedidos...
             Object.keys(pedidos).forEach(id => {
                 const p = pedidos[id];
+                const cliente = p.cliente || "Cliente";
+                const total = p.total ?? p.monto ?? 0;
                 container.innerHTML += `
                     <div class="pedido-card">
-                        <b>Folio: ${id}</b> - $${p.monto} <br>
-                        <span>Estado: ${p.estado}</span>
+                        <h3>Pedido de: ${cliente}</h3>
+                        <p>Total: $${total}</p>
+                        <p><span>Estado: ${p.estado}</span></p>
+                        <button onclick="finalizarPedido('${id}', ${total})">
+                            Marcar como Entregado
+                        </button>
                     </div>`;
             });
+        }
+
+        async function finalizarPedido(idPedido, monto) {
+            const refOriginal = db.ref('pedidos/' + resID + '/' + idPedido);
+            const refHistorial = db.ref('historial_pedidos/' + resID + '/' + idPedido);
+            const refGanancias = db.ref('ganancias_dia/' + resID);
+
+            try {
+                // 1. Obtener los datos del pedido antes de borrarlo
+                const snapshot = await refOriginal.once('value');
+                const datos = snapshot.val();
+
+                if (datos) {
+                    // A. Mover al Historial con fecha de cierre
+                    datos.fecha_entrega = new Date().toLocaleString();
+                    await refHistorial.set(datos);
+
+                    // B. Sumar Ganancia de forma atómica (evita errores si hay varios pedidos)
+                    await refGanancias.transaction((valorActual) => {
+                        return (valorActual || 0) + monto;
+                    });
+
+                    // C. Avisar al backend que este pedido ya está listo
+                    const notified = await notifyPedidoListo(idPedido);
+                    if (!notified) {
+                        alert('No se pudo notificar el backend. El pedido no se finalizó completamente.');
+                        return;
+                    }
+
+                    // D. Eliminar de la lista de pendientes
+                    await refOriginal.remove();
+
+                    alert('¡Pedido entregado con éxito!');
+                } else {
+                    alert('No se encontró el pedido para finalizar.');
+                }
+            } catch (error) {
+                console.error('Error en el proceso:', error);
+            }
+        }
+
+        async function notifyPedidoListo(idPedido) {
+            try {
+                const response = await fetch('/api/pedidos/listo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pedidoId: idPedido,
+                        restauranteId: resID,
+                        mensaje: 'Pedido listo para entrega'
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.warn('No se pudo notificar el pedido listo:', error);
+                    return false;
+                }
+
+                return true;
+            } catch (err) {
+                console.error('Error al notificar pedido listo:', err);
+                return false;
+            }
         }
     </script>
 </body>

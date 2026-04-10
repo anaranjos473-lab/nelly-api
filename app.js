@@ -23,6 +23,8 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
 
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
+let firebaseAdminInitialized = false;
+let db = null;
 try {
   let serviceAccount;
   const secretPath = "/etc/secrets/nelly-admin.json"; 
@@ -45,15 +47,28 @@ try {
     credential: admin.credential.cert(serviceAccount),
     databaseURL: process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com"
   });
+  db = admin.database();
+  firebaseAdminInitialized = true;
   console.log('✅ Firebase Admin conectado exitosamente');
 } catch (error) {
   console.error("❌ Error Crítico Firebase:", error.message);
+  if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
+    console.error('⚠️ Verifica la clave de servicio de Firebase en nelly-admin.json o la variable FIREBASE_ADMIN_JSON.');
+    console.error('   - Asegúrate de que el archivo no esté revocado.');
+    console.error('   - Revisa que la clave JSON sea la correcta para el proyecto.');
+    console.error('   - Si usas env var, valida que sea JSON válido o base64 válido.');
+    console.error('   - Si el problema persiste, sincroniza el reloj del servidor.');
+  }
 }
 
 // --- Verificación inmediata de Firebase Admin ---
 const checkFirebase = async () => {
+    if (!firebaseAdminInitialized) {
+        console.error('❌ Firebase Admin no inicializado: omitiendo verificación.');
+        return;
+    }
     try {
-        await admin.auth().listUsers(1); 
+        await admin.auth().listUsers(1);
         console.log('✅ Firebase Admin: Conexión verificada y activa');
     } catch (error) {
         console.error('❌ Error crítico en Firebase:', error.message);
@@ -61,15 +76,26 @@ const checkFirebase = async () => {
 };
 checkFirebase();
 
-// --- LISTENER DE PEDIDOS (Panel de Cocina) ---
-const db = admin.database();
-const pedidosRef = db.ref('pedidos');
+const requireFirebase = (res) => {
+    if (!firebaseAdminInitialized) {
+        res.status(500).json({ error: 'Firebase Admin no está inicializado. Revisa las credenciales de servicio.' });
+        return false;
+    }
+    return true;
+};
 
-pedidosRef.on('child_added', (snapshot) => {
-    const nuevoPedido = snapshot.val();
-    console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
-    // Aquí puedes disparar la lógica para actualizar el panel.html
-});
+// --- LISTENER DE PEDIDOS (Panel de Cocina) ---
+if (firebaseAdminInitialized) {
+  const pedidosRef = db.ref('pedidos');
+
+  pedidosRef.on('child_added', (snapshot) => {
+      const nuevoPedido = snapshot.val();
+      console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
+      // Aquí puedes disparar la lógica para actualizar el panel.html
+  });
+} else {
+  console.log('⚠️ Omitiendo listener de pedidos porque Firebase Admin no está inicializado.');
+}
 
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
 const URL_DE_TU_API = process.env.RENDER_URL || 'https://tu-url-de-render.onrender.com'; // Cambia con tu URL real o usa variable de entorno
@@ -144,6 +170,70 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
 });
 
+// --- RUTA 2.1: PEDIDO LISTO ---
+app.post('/api/pedidos/listo', async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const { pedidoId, restauranteId, mensaje } = req.body;
+    if (!pedidoId || !restauranteId) {
+        return res.status(400).json({ error: 'pedidoId y restauranteId son requeridos' });
+    }
+
+    try {
+        const pedidoRef = db.ref(`pedidos/${restauranteId}/${pedidoId}`);
+        const snapshot = await pedidoRef.once('value');
+
+        if (!snapshot.exists()) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        await pedidoRef.update({
+            estado: 'Listo',
+            mensaje_listo: mensaje || 'Pedido listo para entrega',
+            fecha_listo: new Date().toISOString()
+        });
+
+        console.log(`✅ Pedido ${pedidoId} marcado como Listo en restaurante ${restauranteId}`);
+        return res.json({ ok: true, pedidoId, restauranteId });
+    } catch (error) {
+        console.error('Error al marcar pedido listo:', error);
+        return res.status(500).json({ error: 'Error al procesar pedido listo' });
+    }
+});
+
+// --- RUTA 2.2: ENVIAR NOTIFICACIÓN FCM DE PEDIDO LISTO ---
+app.post('/api/pedidos/notificar-listo', async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const { deviceToken, pedidoId, restauranteId } = req.body;
+    if (!deviceToken || !pedidoId || !restauranteId) {
+        return res.status(400).json({ error: 'deviceToken, pedidoId y restauranteId son requeridos' });
+    }
+
+    try {
+        const message = {
+            token: deviceToken,
+            notification: {
+                title: 'Pedido listo',
+                body: `Tu pedido #${pedidoId} ya está listo para entrega`
+            },
+            data: {
+                pedidoId,
+                restauranteId,
+                estado: 'Listo',
+                mensaje: 'Pedido listo para entrega'
+            }
+        };
+
+        await admin.messaging().send(message);
+        console.log(`🔔 Notificación FCM enviada para pedido ${pedidoId}`);
+        return res.json({ ok: true, pedidoId });
+    } catch (error) {
+        console.error('Error enviando notificación FCM:', error);
+        return res.status(500).json({ error: 'No se pudo enviar la notificación' });
+    }
+});
+
 // --- RUTA 3: GENERAR PAGO ---
 app.post('/pago/generar', async (req, res) => {
   try {
@@ -162,8 +252,9 @@ app.post('/pago/generar', async (req, res) => {
 
 // --- RUTA 4: EL WEBHOOK (Con Resend y Notificaciones) ---
 app.post('/webhook', async (req, res) => {
-    const { type, data } = req.body; 
+    const { type, data } = req.body;
     if (type !== 'payment') return res.sendStatus(200);
+    if (!requireFirebase(res)) return;
 
     try {
         const payment = new Payment(client);
@@ -203,16 +294,20 @@ app.post('/webhook', async (req, res) => {
             } catch (mailError) { console.error("❌ Error correo:", mailError.message); }
 
             // 3. Notificar al repartidor
-            const snapshot = await admin.database().ref(`repartidores/driver_123/fcm_token`).once('value');
-            const fcmToken = snapshot.val();
+                if (!firebaseAdminInitialized) {
+                console.warn('⚠️ Firebase Admin no inicializado, no se enviará notificación al repartidor.');
+            } else {
+                const snapshot = await db.ref(`repartidores/driver_123/fcm_token`).once('value');
+                const fcmToken = snapshot.val();
 
-            if (fcmToken) {
-                const mensaje = {
-                    notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
-                    token: fcmToken
-                };
-                await admin.messaging().send(mensaje);
-                console.log("🔔 Notificación enviada");
+                if (fcmToken) {
+                    const mensaje = {
+                        notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
+                        token: fcmToken
+                    };
+                    await admin.messaging().send(mensaje);
+                    console.log("🔔 Notificación enviada");
+                }
             }
         }
         res.sendStatus(200); 
