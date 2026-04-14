@@ -1,183 +1,111 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nelly Delivery - Panel de Cocina Pro</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    
-    <style>
-        :root { --primary: #1877f2; --success: #2ecc71; --dark: #1e293b; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
-        
-        .header { 
-            background: var(--primary); color: white; padding: 20px; border-radius: 12px; 
-            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+        authDomain: "nelly-delivery.firebaseapp.com",
+        databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+        projectId: "nelly-delivery",
+        storageBucket: "nelly-delivery.firebasestorage.app",
+        messagingSenderId: "5451083162",
+        appId: "1:5451083162:web:06b03a76f50b74b60bde23"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // VARIABLES DE CONTROL
+    const audioAlerta = new Audio('alerta.mp3'); 
+    let pedidosAnteriores = 0;
+
+    // 1. GESTIÓN DE AUTENTICACIÓN (Obligatorio para tus reglas)
+    auth.onAuthStateChanged((user) => {
+        const statusEl = document.getElementById('status');
+        if (user) {
+            statusEl.innerText = "SISTEMA ONLINE";
+            statusEl.classList.add('online');
+            iniciarMonitoreo();
+        } else {
+            statusEl.innerText = "AUTENTICANDO...";
+            // Login automático con tu cuenta de admin
+            auth.signInWithEmailAndPassword("admin@nelly.com", "Nelly2026!*")
+                .catch(err => {
+                    statusEl.innerText = "ERROR DE ACCESO";
+                    console.error("Error Auth:", err);
+                });
         }
+    });
 
-        .stats-bar { display: flex; gap: 20px; margin: 20px 0; }
-
-        .stat-card {
-            background: white; padding: 15px 25px; border-radius: 10px; flex: 1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid var(--success);
-        }
-
-        .stat-card h2 { margin: 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
-        .stat-card p { margin: 5px 0 0 0; font-size: 1.8rem; font-weight: bold; color: var(--dark); }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        
-        .card { 
-            background: white; padding: 20px; border-radius: 15px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 8px solid #fb7185; 
-            display: flex; flex-direction: column; transition: 0.3s;
-        }
-
-        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-        .card h3 { margin: 0 0 10px 0; font-size: 1.2rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-        .info-row { margin: 8px 0; font-size: 0.95rem; }
-        .price-tag { font-size: 1.4rem; color: var(--primary); font-weight: bold; margin: 15px 0; }
-        
-        .btn-entregar { 
-            background: var(--success); color: white; border: none; padding: 12px; 
-            width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; 
-            font-size: 1rem; transition: 0.2s;
-        }
-
-        .btn-entregar:hover { background: #27ae60; filter: brightness(1.1); }
-        .status-pill { background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
-        .online { background: #dcfce7; color: #166534; }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h1>Nelly Delivery - Cocina</h1>
-        <span id="status" class="status-pill">CONECTANDO...</span>
-    </div>
-
-    <div class="stats-bar">
-        <div class="stat-card">
-            <h2>Ganancias de Hoy</h2>
-            <p id="ganancias-valor">$0.00</p>
-        </div>
-        <div class="stat-card" style="border-left-color: var(--primary);">
-            <h2>Pedidos en Cola</h2>
-            <p id="contador-pedidos">0</p>
-        </div>
-    </div>
-
-    <div id="lista-pedidos" class="grid">
-        </div>
-
-    <script>
-        // CONFIGURACIÓN DE TU BASE DE DATOS
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-            authDomain: "nelly-delivery.firebaseapp.com",
-            databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-            projectId: "nelly-delivery",
-            storageBucket: "nelly-delivery.firebasestorage.app",
-            messagingSenderId: "5451083162",
-            appId: "1:5451083162:web:06b03a76f50b74b60bde23"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // MONITOR DE CONEXIÓN
-        db.ref('.info/connected').on('value', (snap) => {
-            const statusEl = document.getElementById('status');
-            if (snap.val()) {
-                statusEl.innerText = "SISTEMA ONLINE";
-                statusEl.classList.add('online');
-            } else {
-                statusEl.innerText = "SIN CONEXIÓN";
-                statusEl.classList.remove('online');
-            }
-        });
-
+    function iniciarMonitoreo() {
         // MONITOR DE GANANCIAS
         db.ref('ganancias_hoy').on('value', (snap) => {
             const total = snap.val() || 0;
             document.getElementById('ganancias-valor').innerText = `$${parseFloat(total).toFixed(2)}`;
         });
 
-        // MONITOR DE PEDIDOS (VISTA DE COCINA)
-        db.ref('pedidos').on('value', (snapshot) => {
+        // MONITOR DE PEDIDOS (Escuchando nodo "Pedidos" con Mayúscula según estructura)
+        db.ref('Pedidos').on('value', (snapshot) => {
             const container = document.getElementById('lista-pedidos');
             const contador = document.getElementById('contador-pedidos');
             container.innerHTML = "";
             
+            const numPedidos = snapshot.numChildren();
+            
+            // Lógica de Sonido: Si hay más pedidos que antes, sonar alerta
+            if (numPedidos > pedidosAnteriores && pedidosAnteriores !== 0) {
+                audioAlerta.play().catch(e => console.log("Permiso de audio requerido"));
+            }
+            pedidosAnteriores = numPedidos;
+            contador.innerText = numPedidos;
+
             if (!snapshot.exists()) {
-                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #94a3b8;">No hay pedidos pendientes hoy. 🍳</div>';
-                contador.innerText = "0";
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #94a3b8;">No hay pedidos hoy. 🍳</div>';
                 return;
             }
 
-            let numPedidos = 0;
             snapshot.forEach((child) => {
-                numPedidos++;
                 const p = child.val();
                 const monto = p.total || p.monto || 0;
-                
                 container.innerHTML += `
                     <div class="card">
                         <h3>Folio: #${child.key.substring(0, 4)}</h3>
-                        <div class="info-row"><strong>👤 Cliente:</strong> ${p.cliente || 'Usuario Nelly'}</div>
-                        <div class="info-row"><strong>📝 Nota:</strong> ${p.descripcion || 'Sin detalles adicionales'}</div>
+                        <div class="info-row"><strong>👤 Cliente:</strong> ${p.cliente_nombre || p.cliente || 'Usuario Nelly'}</div>
+                        <div class="info-row"><strong>📝 Nota:</strong> ${p.descripcion || 'Sin detalles'}</div>
                         <div class="price-tag">$${parseFloat(monto).toFixed(2)}</div>
                         <button class="btn-entregar" onclick="finalizarPedido('${child.key}', ${monto})">
                             LISTO PARA REPARTO
                         </button>
-                    </div>
-                `;
+                    </div>`;
             });
-            contador.innerText = numPedidos;
         });
+    }
 
-        // NUEVA LÓGICA: CONEXIÓN CON REPARTIDORES Y REGISTRO
-        async function finalizarPedido(id, monto) {
-            if (!confirm(`¿Confirmas que el pedido #${id} está listo para el repartidor?`)) return;
+    async function finalizarPedido(id, monto) {
+        if (!confirm(`¿Confirmas despacho del pedido #${id.substring(0,4)}?`)) return;
 
-            const refPedido = db.ref('pedidos/' + id);
-            const refReparto = db.ref('pedidos_para_reparto/' + id); // Para la App del repartidor
-            const refHistorial = db.ref('historial_ventas/' + id); // Para tu control
-            const refGanancias = db.ref('ganancias_hoy'); // Para el contador
+        try {
+            const snap = await db.ref('Pedidos/' + id).once('value');
+            const datos = snap.val();
 
-            try {
-                const snap = await refPedido.once('value');
-                const datos = snap.val();
+            if (datos) {
+                // Mover a reparto e historial
+                await db.ref('pedidos_para_reparto/' + id).set({
+                    ...datos,
+                    estado: 'esperando_repartidor',
+                    hora_cocina: new Date().toLocaleTimeString()
+                });
 
-                if (datos) {
-                    // 1. Enviar a pedidos_para_reparto (lo que escuchará Android Studio)
-                    await refReparto.set({
-                        ...datos,
-                        estado: 'esperando_repartidor',
-                        hora_cocina_listo: new Date().toLocaleTimeString()
-                    });
+                await db.ref('historial_ventas/' + id).set({
+                    ...datos,
+                    fecha_finalizado: new Date().toLocaleString(),
+                    estado: 'completado'
+                });
 
-                    // 2. Guardar en historial general
-                    await refHistorial.set({
-                        ...datos,
-                        fecha_finalizado: new Date().toLocaleString(),
-                        estado: 'cocina_terminada'
-                    });
-
-                    // 3. Sumar a ganancias
-                    await refGanancias.transaction(actual => (actual || 0) + parseFloat(monto));
-
-                    // 4. Quitar de la pantalla de cocina
-                    await refPedido.remove();
-                    
-                    console.log("Pedido enviado a reparto y registrado.");
-                }
-            } catch (err) {
-                console.error("Error en el proceso:", err);
-                alert("Hubo un error al conectar con el sistema de reparto.");
+                // Actualizar ganancias y borrar de cocina
+                await db.ref('ganancias_hoy').transaction(c => (c || 0) + parseFloat(monto));
+                await db.ref('Pedidos/' + id).remove();
             }
+        } catch (err) {
+            alert("Error al procesar: " + err.message);
         }
-    </script>
-</body>
-</html>
+    }
+</script>
