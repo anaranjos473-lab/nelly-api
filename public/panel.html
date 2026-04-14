@@ -7,25 +7,25 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; }
-        .header { background: #34495e; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; background: #e74c3c; } /* Rojo por defecto */
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; }
+        .header { background: #1877f2; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; background: #e74c3c; font-size: 0.8rem; } 
         .conectado { background: #2ecc71 !important; }
-        .pedido-card { background: white; margin: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .pedido-card { background: white; margin: 15px; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 6px solid #fb7185; }
+        .monto { color: #1877f2; font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Nelly Delivery - Cocina</h1>
-        <div id="badge-estado" class="status-badge">Desconectado</div>
+        <div id="badge-estado" class="status-badge">Iniciando...</div>
     </div>
 
     <div id="contenedor-pedidos">
-        <p style="text-align:center;">Esperando pedidos... 🕒</p>
+        <p style="text-align:center; padding-top: 50px; color: #64748b;">Esperando conexión con Firebase... 🕒</p>
     </div>
 
     <script>
-        // CONFIGURACIÓN: Pega aquí tus credenciales de la consola de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
             authDomain: "nelly-delivery.firebaseapp.com",
@@ -37,47 +37,60 @@
         };
         firebase.initializeApp(firebaseConfig);
 
-        // 1. Obtener ID del restaurante de la URL (?id=restaurante_01)
         const params = new URLSearchParams(window.location.search);
-        const resID = params.get('id');
+        const resID = params.get('id') || "General"; // Valor por defecto si no hay ID
 
-        if (!resID) {
-            alert("Error: No se encontró el ID del restaurante en la URL.");
-        }
-
-        // 2. Lógica de Conexión y Autenticación
+        // 1. Forzar Autenticación para cumplir con las reglas auth != null
         firebase.auth().onAuthStateChanged((user) => {
+            const badge = document.getElementById('badge-estado');
             if (user) {
-                const badge = document.getElementById('badge-estado');
-                badge.textContent = "Conectado: " + resID;
+                badge.textContent = "ONLINE: " + resID;
                 badge.classList.add('conectado');
-
-                // 3. Escuchar pedidos específicos de este restaurante
-                const pedidosRef = firebase.database().ref(`pedidos/${resID}`);
-                pedidosRef.on('value', (snapshot) => {
-                    const pedidos = snapshot.val();
-                    actualizarInterfaz(pedidos);
-                });
+                conectarBaseDeDatos();
             } else {
-                console.log("No autenticado. Redirigiendo...");
-                // Aquí podrías redirigir a una página de login
+                // Si no hay usuario, iniciamos sesión automáticamente
+                firebase.auth().signInWithEmailAndPassword("admin@nelly.com", "Nelly2026!*")
+                    .catch(err => {
+                        badge.textContent = "ERROR DE ACCESO";
+                        console.error("Error en login:", err);
+                    });
             }
         });
 
+        function conectarBaseDeDatos() {
+            // AJUSTE: Usamos 'Pedidos' con mayúscula para coincidir con tu DB
+            // Si resID existe, buscamos dentro de Pedidos/ID, si no, en la raíz de Pedidos
+            const path = params.get('id') ? `Pedidos/${resID}` : `Pedidos`;
+            const pedidosRef = firebase.database().ref(path);
+
+            pedidosRef.on('value', (snapshot) => {
+                actualizarInterfaz(snapshot.val());
+            });
+        }
+
         function actualizarInterfaz(pedidos) {
             const container = document.getElementById('contenedor-pedidos');
-            container.innerHTML = ""; // Limpiar
+            container.innerHTML = ""; 
+
             if (!pedidos) {
-                container.innerHTML = "<p style='text-align:center;'>No hay pedidos pendientes.</p>";
+                container.innerHTML = "<div style='text-align:center; margin-top:50px;'><p>No hay pedidos pendientes hoy. 🍳</p></div>";
                 return;
             }
-            // Lógica para listar pedidos...
+
             Object.keys(pedidos).forEach(id => {
                 const p = pedidos[id];
+                // Validamos que existan los campos para evitar errores de renderizado
+                const monto = p.monto || p.total || 0;
+                const cliente = p.cliente_nombre || p.cliente || "Cliente Nelly";
+
                 container.innerHTML += `
                     <div class="pedido-card">
-                        <b>Folio: ${id}</b> - $${p.monto} <br>
-                        <span>Estado: ${p.estado}</span>
+                        <div style="display:flex; justify-content:space-between;">
+                            <b>Folio: #${id.substring(0,6)}</b>
+                            <span class="monto">$${parseFloat(monto).toFixed(2)}</span>
+                        </div>
+                        <p><strong>👤 Cliente:</strong> ${cliente}</p>
+                        <p><strong>📝 Nota:</strong> ${p.descripcion || 'Sin nota'}</p>
                     </div>`;
             });
         }
