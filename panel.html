@@ -21,6 +21,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 8px solid #fb7185; }
         .btn-ready { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .price-tag { color: var(--primary); font-weight: bold; font-size: 1.2rem; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -41,7 +42,9 @@
         </div>
     </div>
 
-    <div id="contenedor-pedidos" class="grid"></div>
+    <div id="contenedor-pedidos" class="grid">
+        <p style="text-align:center; grid-column: 1/-1;">Iniciando sistema...</p>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -59,7 +62,7 @@
         const audio = new Audio('alerta.mp3');
         let contadorPrevio = 0;
 
-        // 1. AUTENTICACIÓN AUTOMÁTICA
+        // 1. AUTENTICACIÓN
         firebase.auth().onAuthStateChanged((user) => {
             const badge = document.getElementById('badge-estado');
             if (user) {
@@ -78,43 +81,67 @@
                 document.getElementById('ganancias').innerText = `$${parseFloat(snap.val() || 0).toFixed(2)}`;
             });
 
-            // Escuchar Pedidos (Nodo "Pedidos" con Mayúscula)
-            db.ref('Pedidos').on('value', (snapshot) => {
+            // Escuchar Pedidos (Uso 'pedidos' en minúscula para coincidir con tu DB)
+            db.ref('pedidos').on('value', (snapshot) => {
                 const container = document.getElementById('contenedor-pedidos');
-                const total = snapshot.numChildren();
-                
-                // Sonido de alerta si hay nuevos pedidos
-                if (total > contadorPrevio && contadorPrevio !== 0) {
-                    audio.play().catch(e => console.log("Se requiere interacción para sonar"));
-                }
-                contadorPrevio = total;
-                document.getElementById('contador').innerText = total;
+                console.log("Datos recibidos:", snapshot.val());
 
-                container.innerHTML = "";
                 if (!snapshot.exists()) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos pendientes hoy. 🍳</p>";
+                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos hoy. 🍳</p>";
+                    document.getElementById('contador').innerText = "0";
                     return;
                 }
 
+                container.innerHTML = "";
+                let totalActual = 0;
+
                 snapshot.forEach((child) => {
-                    const p = child.val();
-                    const monto = p.monto || p.total || 0;
-                    container.innerHTML += `
-                        <div class="card">
-                            <b>Folio: #${child.key.substring(0,6)}</b><br>
-                            <p>👤 ${p.cliente_nombre || p.cliente || 'Usuario'}</p>
-                            <p>📝 ${p.descripcion || 'Sin nota'}</p>
-                            <div style="color:var(--primary); font-weight:bold; font-size:1.2rem;">$${parseFloat(monto).toFixed(2)}</div>
-                            <button class="btn-ready" onclick="despachar('${child.key}', ${monto})">LISTO PARA REPARTO</button>
-                        </div>`;
+                    const data = child.val();
+                    
+                    // Si los pedidos están dentro de un sub-nodo (ej: pedidos/1/ID)
+                    if (data.monto === undefined && data.total === undefined) {
+                        child.forEach(subChild => {
+                            totalActual++;
+                            renderizarTarjeta(subChild.key, subChild.val(), child.key);
+                        });
+                    } else {
+                        totalActual++;
+                        renderizarTarjeta(child.key, data, 'pedidos');
+                    }
                 });
+
+                // Alerta sonora
+                if (totalActual > contadorPrevio && contadorPrevio !== 0) {
+                    audio.play().catch(e => console.log("Audio bloqueado por el navegador"));
+                }
+                contadorPrevio = totalActual;
+                document.getElementById('contador').innerText = totalActual;
             });
         }
 
-        async function despachar(id, monto) {
+        function renderizarTarjeta(id, p, parentPath) {
+            const container = document.getElementById('contenedor-pedidos');
+            const monto = p.monto || p.total || 0;
+            const cliente = p.cliente_nombre || p.cliente || 'Usuario Nelly';
+            
+            container.innerHTML += `
+                <div class="card">
+                    <b>Folio: #${id.substring(0,6)}</b><br>
+                    <p>👤 ${cliente}</p>
+                    <p>📝 ${p.descripcion || 'Sin nota'}</p>
+                    <div class="price-tag">$${parseFloat(monto).toFixed(2)}</div>
+                    <button class="btn-ready" onclick="despachar('${parentPath}', '${id}', ${monto})">LISTO PARA REPARTO</button>
+                </div>`;
+        }
+
+        async function despachar(parent, id, monto) {
             if (!confirm("¿Mover pedido a la flota de repartidores?")) return;
+            
+            // Ruta exacta del pedido para borrarlo
+            const rutaPedido = parent === 'pedidos' ? `pedidos/${id}` : `pedidos/${parent}/${id}`;
+            
             try {
-                const snap = await db.ref('Pedidos/' + id).once('value');
+                const snap = await db.ref(rutaPedido).once('value');
                 const datos = snap.val();
 
                 // 1. Mover a pedidos_para_reparto
@@ -124,11 +151,13 @@
                     hora_cocina: new Date().toLocaleTimeString()
                 });
 
-                // 2. Sumar ganancia y borrar de cocina
+                // 2. Sumar ganancia y borrar
                 await db.ref('ganancias_hoy').transaction(c => (c || 0) + parseFloat(monto));
-                await db.ref('Pedidos/' + id).remove();
+                await db.ref(rutaPedido).remove();
                 
-            } catch (e) { alert("Error: " + e.message); }
+            } catch (e) { 
+                alert("Error al despachar: " + e.message); 
+            }
         }
     </script>
 </body>
