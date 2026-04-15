@@ -71,6 +71,7 @@
         let contadorPrevio = 0;
         const firestorePedidos = new Map();
         const rtdbPedidos = new Map();
+        const rtdbRepartoPedidos = new Map();
 
         onAuthStateChanged(auth, (user) => {
             const badge = document.getElementById('badge-estado');
@@ -127,6 +128,30 @@
             }, (error) => {
                 console.error("Error detectado en la sincronización RTDB:", error);
             });
+
+            onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
+                rtdbRepartoPedidos.clear();
+                const raiz = snapshot.val();
+                if (raiz && typeof raiz === "object") {
+                    Object.entries(raiz).forEach(([key, value]) => {
+                        if (!value || typeof value !== "object") {
+                            return;
+                        }
+                        const pedidoId = value.id || key;
+                        rtdbRepartoPedidos.set(pedidoId, {
+                            id: pedidoId,
+                            ...value,
+                            __source: "rtdb_reparto",
+                            __enReparto: true
+                        });
+                    });
+                }
+
+                console.info(`[BRIDGE][RTDB_REPARTO] pedidos en reparto: ${rtdbRepartoPedidos.size}`);
+                renderizarFusion("rtdb_reparto");
+            }, (error) => {
+                console.error("Error detectado en pedidos_para_reparto:", error);
+            });
         }
 
         function recolectarPedidosRtdb(nodo, prefijo, destino) {
@@ -171,6 +196,10 @@
                 fusion.set(id, pedido);
             });
 
+            rtdbRepartoPedidos.forEach((pedido, id) => {
+                fusion.set(id, pedido);
+            });
+
             firestorePedidos.forEach((pedido, id) => {
                 fusion.set(id, pedido);
             });
@@ -183,7 +212,7 @@
             const container = document.getElementById('contenedor-pedidos');
             const inicio = Date.now();
 
-            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size}`);
+            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size} rtdb_reparto=${rtdbRepartoPedidos.size}`);
 
             if (pedidos.length === 0) {
                 container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos pendientes. 🍳</p>";
@@ -215,6 +244,9 @@
             const monto = Number(pedido.monto || pedido.total || 0);
             const cliente = pedido.cliente_nombre || pedido.cliente || 'Usuario Nelly';
             const fuente = pedido.__source === "firestore" ? "FIRESTORE" : "RTDB";
+            const botonAccion = pedido.__enReparto
+                ? "<button class='btn-ready' disabled style='opacity:0.6; cursor:not-allowed;'>YA EN REPARTO</button>"
+                : `<button class="btn-ready" data-id="${id}" data-source="${pedido.__source}" data-monto="${monto}">LISTO PARA REPARTO</button>`;
 
             container.innerHTML += `
                 <div class="card">
@@ -223,11 +255,13 @@
                     <p>📝 ${pedido.descripcion || 'Sin nota'}</p>
                     <p style="font-size:0.8rem; color:#475569;">Fuente: ${fuente}</p>
                     <div class="price-tag">$${monto.toFixed(2)}</div>
-                    <button class="btn-ready" data-id="${id}" data-source="${pedido.__source}" data-monto="${monto}">LISTO PARA REPARTO</button>
+                    ${botonAccion}
                 </div>`;
 
-            const button = container.querySelector(`button[data-id="${id}"]`);
-            button.addEventListener('click', () => despachar(pedido, monto));
+            if (!pedido.__enReparto) {
+                const button = container.querySelector(`button[data-id="${id}"]`);
+                button.addEventListener('click', () => despachar(pedido, monto));
+            }
         }
 
         function limpiarPedido(pedido) {
