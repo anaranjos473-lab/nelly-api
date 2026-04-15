@@ -1,0 +1,40 @@
+package com.nelly.driver.ui.pedidos
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.nelly.driver.data.repository.PedidoRepository
+import com.nelly.driver.model.PedidoEntity
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+
+class PedidoViewModel(
+    private val repository: PedidoRepository
+) : ViewModel() {
+
+    private val _syncEstado = MutableStateFlow("IDLE")
+    val syncEstado: StateFlow<String> = _syncEstado.asStateFlow()
+
+    val pedidos: StateFlow<List<PedidoEntity>> = repository
+        .observarPedidos()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun iniciarSincronizacion() {
+        _syncEstado.value = "RUNNING"
+        repository.iniciarSincronizacion { mensaje, error ->
+            _syncEstado.value = "ERROR: $mensaje ${error?.message ?: ""}".trim()
+        }
+    }
+
+    fun detenerSincronizacion() {
+        repository.detenerSincronizacion()
+        _syncEstado.value = "STOPPED"
+    }
+
+    override fun onCleared() {
+        detenerSincronizacion()
+        super.onCleared()
+    }
+}
