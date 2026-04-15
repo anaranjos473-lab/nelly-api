@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nelly Delivery - Panel de Cocina Central</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
         :root { --primary: #1877f2; --success: #2ecc71; --dark: #1e293b; --bg: #f4f7f6; }
@@ -46,117 +43,248 @@
         <p style="text-align:center; grid-column: 1/-1;">Iniciando sistema...</p>
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-            authDomain: "nelly-delivery.firebaseapp.com",
-            databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-            projectId: "nelly-delivery",
-            storageBucket: "nelly-delivery.firebasestorage.app",
-            messagingSenderId: "5451083162",
-            appId: "1:5451083162:web:06b03a76f50b74b60bde23"
-        };
-        firebase.initializeApp(firebaseConfig);
+    <script type="module">
+        import { db, auth, rtdb } from "./firebase.js";
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            query,
+            serverTimestamp,
+            setDoc,
+            updateDoc,
+            where,
+            increment
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        import {
+            onAuthStateChanged,
+            signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            onValue,
+            ref,
+            remove,
+            set
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-        const db = firebase.database();
         const audio = new Audio('alerta.mp3');
         let contadorPrevio = 0;
+        const firestorePedidos = new Map();
+        const rtdbPedidos = new Map();
 
-        // 1. AUTENTICACIÓN
-        firebase.auth().onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             const badge = document.getElementById('badge-estado');
             if (user) {
                 badge.textContent = "SISTEMA ONLINE";
                 badge.classList.add('online');
                 iniciarSincronizacion();
             } else {
-                firebase.auth().signInWithEmailAndPassword("admin@nelly.com", "Nelly2026!*")
-                    .catch(err => console.error("Error de acceso:", err));
+                signInWithEmailAndPassword(auth, "admin@nelly.com", "Nelly2026!*")
+                    .catch((err) => {
+                        badge.textContent = "ERROR DE ACCESO";
+                        console.error("Error de acceso:", err);
+                    });
             }
         });
 
         function iniciarSincronizacion() {
-            // Escuchar Ganancias
-            db.ref('ganancias_hoy').on('value', snap => {
-                document.getElementById('ganancias').innerText = `$${parseFloat(snap.val() || 0).toFixed(2)}`;
+            const pedidosQuery = query(collection(db, "pedidos"), where("estado", "==", "pendiente"));
+            const gananciasRef = doc(db, "metricas", "ganancias_hoy");
+
+            onSnapshot(gananciasRef, (snap) => {
+                const total = snap.exists() ? Number(snap.data().total || 0) : 0;
+                document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             });
 
-            // Escuchar Pedidos (Uso 'pedidos' en minúscula para coincidir con tu DB)
-            db.ref('pedidos').on('value', (snapshot) => {
-                const container = document.getElementById('contenedor-pedidos');
-                console.log("Datos recibidos:", snapshot.val());
-
-                if (!snapshot.exists()) {
-                    container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos hoy. 🍳</p>";
-                    document.getElementById('contador').innerText = "0";
-                    return;
-                }
-
-                container.innerHTML = "";
-                let totalActual = 0;
-
-                snapshot.forEach((child) => {
-                    const data = child.val();
-                    
-                    // Si los pedidos están dentro de un sub-nodo (ej: pedidos/1/ID)
-                    if (data.monto === undefined && data.total === undefined) {
-                        child.forEach(subChild => {
-                            totalActual++;
-                            renderizarTarjeta(subChild.key, subChild.val(), child.key);
-                        });
-                    } else {
-                        totalActual++;
-                        renderizarTarjeta(child.key, data, 'pedidos');
-                    }
+            onSnapshot(pedidosQuery, (querySnapshot) => {
+                firestorePedidos.clear();
+                querySnapshot.forEach((pedidoDoc) => {
+                    const data = pedidoDoc.data();
+                    firestorePedidos.set(pedidoDoc.id, {
+                        id: pedidoDoc.id,
+                        ...data,
+                        __source: "firestore"
+                    });
                 });
 
-                // Alerta sonora
-                if (totalActual > contadorPrevio && contadorPrevio !== 0) {
-                    audio.play().catch(e => console.log("Audio bloqueado por el navegador"));
+                console.info(`[BRIDGE][FIRESTORE] pedidos pendientes: ${firestorePedidos.size}`);
+                renderizarFusion("firestore");
+            }, (error) => {
+                const container = document.getElementById('contenedor-pedidos');
+                container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#b91c1c;'>Error de sincronización Firestore. Revisa la consola.</p>";
+                console.error("Error detectado en la sincronización Firestore:", error);
+            });
+
+            onValue(ref(rtdb, "pedidos"), (snapshot) => {
+                rtdbPedidos.clear();
+                const raiz = snapshot.val();
+                if (raiz) {
+                    recolectarPedidosRtdb(raiz, "", rtdbPedidos);
                 }
-                contadorPrevio = totalActual;
-                document.getElementById('contador').innerText = totalActual;
+
+                console.info(`[BRIDGE][RTDB] pedidos legado: ${rtdbPedidos.size}`);
+                renderizarFusion("rtdb");
+            }, (error) => {
+                console.error("Error detectado en la sincronización RTDB:", error);
             });
         }
 
-        function renderizarTarjeta(id, p, parentPath) {
+        function recolectarPedidosRtdb(nodo, prefijo, destino) {
+            if (!nodo || typeof nodo !== "object") {
+                return;
+            }
+
+            Object.entries(nodo).forEach(([key, value]) => {
+                if (!value || typeof value !== "object") {
+                    return;
+                }
+
+                const pathActual = prefijo ? `${prefijo}/${key}` : key;
+                const parecePedido = value.monto !== undefined
+                    || value.total !== undefined
+                    || value.cliente !== undefined
+                    || value.cliente_nombre !== undefined
+                    || value.estado !== undefined;
+
+                if (parecePedido) {
+                    const pedidoId = value.id || key;
+                    if (destino.has(pedidoId)) {
+                        console.warn(`[BRIDGE][RTDB] ID duplicado detectado en legado: ${pedidoId}. Se conserva la última ocurrencia.`);
+                    }
+
+                    destino.set(pedidoId, {
+                        id: pedidoId,
+                        ...value,
+                        __source: "rtdb",
+                        __legacyPath: pathActual
+                    });
+                    return;
+                }
+
+                recolectarPedidosRtdb(value, pathActual, destino);
+            });
+        }
+
+        function fusionarPedidos() {
+            const fusion = new Map();
+            rtdbPedidos.forEach((pedido, id) => {
+                fusion.set(id, pedido);
+            });
+
+            firestorePedidos.forEach((pedido, id) => {
+                fusion.set(id, pedido);
+            });
+
+            return Array.from(fusion.values());
+        }
+
+        function renderizarFusion(disparador) {
+            const pedidos = fusionarPedidos();
             const container = document.getElementById('contenedor-pedidos');
-            const monto = p.monto || p.total || 0;
-            const cliente = p.cliente_nombre || p.cliente || 'Usuario Nelly';
-            
+            const inicio = Date.now();
+
+            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size}`);
+
+            if (pedidos.length === 0) {
+                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos pendientes. 🍳</p>";
+                document.getElementById('contador').innerText = "0";
+                contadorPrevio = 0;
+                return;
+            }
+
+            container.innerHTML = "";
+            pedidos.forEach((pedido) => {
+                console.log(`[PEDIDO][${pedido.__source}] id=${pedido.id}`);
+                renderizarTarjeta(pedido);
+            });
+
+            if (pedidos.length > contadorPrevio && contadorPrevio !== 0) {
+                audio.play().catch(() => {
+                    console.log("Audio bloqueado por el navegador");
+                });
+            }
+
+            contadorPrevio = pedidos.length;
+            document.getElementById('contador').innerText = String(pedidos.length);
+            console.info(`[BRIDGE][LATENCY] render_ms=${Date.now() - inicio}`);
+        }
+
+        function renderizarTarjeta(pedido) {
+            const container = document.getElementById('contenedor-pedidos');
+            const id = pedido.id;
+            const monto = Number(pedido.monto || pedido.total || 0);
+            const cliente = pedido.cliente_nombre || pedido.cliente || 'Usuario Nelly';
+            const fuente = pedido.__source === "firestore" ? "FIRESTORE" : "RTDB";
+
             container.innerHTML += `
                 <div class="card">
                     <b>Folio: #${id.substring(0,6)}</b><br>
                     <p>👤 ${cliente}</p>
-                    <p>📝 ${p.descripcion || 'Sin nota'}</p>
-                    <div class="price-tag">$${parseFloat(monto).toFixed(2)}</div>
-                    <button class="btn-ready" onclick="despachar('${parentPath}', '${id}', ${monto})">LISTO PARA REPARTO</button>
+                    <p>📝 ${pedido.descripcion || 'Sin nota'}</p>
+                    <p style="font-size:0.8rem; color:#475569;">Fuente: ${fuente}</p>
+                    <div class="price-tag">$${monto.toFixed(2)}</div>
+                    <button class="btn-ready" data-id="${id}" data-source="${pedido.__source}" data-monto="${monto}">LISTO PARA REPARTO</button>
                 </div>`;
+
+            const button = container.querySelector(`button[data-id="${id}"]`);
+            button.addEventListener('click', () => despachar(pedido, monto));
         }
 
-        async function despachar(parent, id, monto) {
-            if (!confirm("¿Mover pedido a la flota de repartidores?")) return;
-            
-            // Ruta exacta del pedido para borrarlo
-            const rutaPedido = parent === 'pedidos' ? `pedidos/${id}` : `pedidos/${parent}/${id}`;
-            
+        function limpiarPedido(pedido) {
+            const limpio = { ...pedido };
+            delete limpio.__source;
+            delete limpio.__legacyPath;
+            return limpio;
+        }
+
+        async function sumarGanancias(monto) {
+            const gananciasRef = doc(db, "metricas", "ganancias_hoy");
+            await updateDoc(gananciasRef, { total: increment(Number(monto || 0)) }).catch(async () => {
+                await setDoc(gananciasRef, { total: Number(monto || 0) });
+            });
+        }
+
+        async function despachar(pedido, monto) {
+            if (!confirm("¿Mover pedido a la flota de repartidores?")) {
+                return;
+            }
+
             try {
-                const snap = await db.ref(rutaPedido).once('value');
-                const datos = snap.val();
+                const datos = limpiarPedido(pedido);
+                const repartoRefFs = doc(db, "pedidos_para_reparto", pedido.id);
 
-                // 1. Mover a pedidos_para_reparto
-                await db.ref('pedidos_para_reparto/' + id).set({
+                await setDoc(repartoRefFs, {
                     ...datos,
-                    estado: 'esperando_repartidor',
-                    hora_cocina: new Date().toLocaleTimeString()
-                });
+                    estado: "esperando_repartidor",
+                    hora_cocina: new Date().toISOString(),
+                    actualizado_en: serverTimestamp(),
+                    fuente_origen: pedido.__source
+                }, { merge: true });
 
-                // 2. Sumar ganancia y borrar
-                await db.ref('ganancias_hoy').transaction(c => (c || 0) + parseFloat(monto));
-                await db.ref(rutaPedido).remove();
-                
-            } catch (e) { 
-                alert("Error al despachar: " + e.message); 
+                if (pedido.__source === "firestore") {
+                    const pedidoRefFs = doc(db, "pedidos", pedido.id);
+                    await updateDoc(pedidoRefFs, {
+                        estado: "listo_para_reparto",
+                        atendido_por: "cocina_web",
+                        atendido_en: serverTimestamp()
+                    });
+                } else {
+                    const legacyPath = pedido.__legacyPath || pedido.id;
+                    const pedidoRefRtdb = ref(rtdb, `pedidos/${legacyPath}`);
+                    const repartoRefRtdb = ref(rtdb, `pedidos_para_reparto/${pedido.id}`);
+
+                    await set(repartoRefRtdb, {
+                        ...datos,
+                        estado: "esperando_repartidor",
+                        hora_cocina: new Date().toISOString(),
+                        fuente_origen: "rtdb"
+                    });
+                    await remove(pedidoRefRtdb);
+                }
+
+                await sumarGanancias(monto);
+            } catch (e) {
+                alert("Error al despachar: " + e.message);
             }
         }
     </script>
