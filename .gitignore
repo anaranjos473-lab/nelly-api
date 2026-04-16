@@ -17,6 +17,15 @@ servidor.txt
 
 # Variables de entorno
 .env
+.env.*
+!.env.example
+
+# Patrones estrictos de credenciales
+*service-account*.json
+*firebase*admin*.json
+*credentials*.json
+*.pem
+*.p12
 
 # Dependencias
 node_modules/
