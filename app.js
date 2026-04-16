@@ -325,6 +325,27 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
+// --- RUTA: TOKEN SEGURO PARA PANEL DE COCINA ---
+app.get('/api/auth/panel-token', async (req, res) => {
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const uid = 'panel-cocina-nelly';
+        const additionalClaims = {
+            admin: true,
+            role: 'panel_cocina'
+        };
+
+        const customToken = await admin.auth().createCustomToken(uid, additionalClaims);
+        return res.json({ token: customToken });
+    } catch (error) {
+        console.error('Error generando token de panel:', error.message);
+        return res.status(500).json({ error: 'Error generando token' });
+    }
+});
+
 // --- RUTA: HEALTHCHECK (para Keep-Alive en Render) ---
 app.get('/healthcheck', (req, res) => {
     res.status(200).send('OK');

@@ -58,7 +58,7 @@
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
         import {
             onAuthStateChanged,
-            signInWithEmailAndPassword
+            signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import {
             onValue,
@@ -69,24 +69,71 @@
 
         const audio = new Audio('alerta.mp3');
         let contadorPrevio = 0;
+        let sincronizacionIniciada = false;
+        let authRequestInFlight = false;
         const firestorePedidos = new Map();
         const rtdbPedidos = new Map();
         const rtdbRepartoPedidos = new Map();
+        const PANEL_TOKEN_ENDPOINTS = [
+            "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
+            "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
+        ];
 
         onAuthStateChanged(auth, (user) => {
             const badge = document.getElementById('badge-estado');
             if (user) {
                 badge.textContent = "SISTEMA ONLINE";
                 badge.classList.add('online');
-                iniciarSincronizacion();
+                if (!sincronizacionIniciada) {
+                    sincronizacionIniciada = true;
+                    iniciarSincronizacion();
+                }
             } else {
-                signInWithEmailAndPassword(auth, "admin@nelly.com", "Nelly2026!*")
-                    .catch((err) => {
-                        badge.textContent = "ERROR DE ACCESO";
-                        console.error("Error de acceso:", err);
-                    });
+                autenticarPanelConBackend();
             }
         });
+
+        async function autenticarPanelConBackend() {
+            if (authRequestInFlight) {
+                return;
+            }
+
+            authRequestInFlight = true;
+            const badge = document.getElementById('badge-estado');
+
+            try {
+                let response = null;
+                for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
+                    try {
+                        const candidate = await fetch(endpoint, { method: "GET" });
+                        if (candidate.ok) {
+                            response = candidate;
+                            break;
+                        }
+                    } catch (networkError) {
+                        console.warn("Endpoint de token no disponible:", endpoint, networkError.message);
+                    }
+                }
+
+                if (!response) {
+                    throw new Error("token_request_failed_all_endpoints");
+                }
+
+                const data = await response.json();
+                if (!data?.token) {
+                    throw new Error("token_invalido");
+                }
+
+                await signInWithCustomToken(auth, data.token);
+                console.log("Panel validado por backend.");
+            } catch (error) {
+                badge.textContent = "ERROR DE ACCESO";
+                console.error("Error en validacion segura:", error.message);
+                document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
+            } finally {
+                authRequestInFlight = false;
+            }
+        }
 
         function iniciarSincronizacion() {
             const pedidosQuery = query(collection(db, "pedidos"), where("estado", "==", "pendiente"));
