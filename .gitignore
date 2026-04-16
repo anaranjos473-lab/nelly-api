@@ -1,11 +1,33 @@
-key nelly 2.txt
+﻿# Archivos sensibles - credenciales
 nelly-admin.json
+nelly-admin.json.bak
 firebase_admin_base64.txt
 key gogle.txt
-archivo secreto.txt
 key google.txt
-*.txt
-*.json
+key nelly 2.txt
+archivo secreto.txt
+archivo secreto.js
+billetera.js
+billetera.txt
+cerebro.js
+cerebro.txt
+estructura.js
+estructura.txt
+servidor.txt
+
+# Variables de entorno
 .env
-.env.example
+
+# Dependencias
 node_modules/
+
+# Archivos de respaldo
+*.bak
+
+# IDE y sistema
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store

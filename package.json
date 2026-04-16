@@ -5,7 +5,10 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "firebase:check": "node scripts/verificar-firebase-admin.js",
+    "pedido:test:rtdb": "node scripts/generar-pedido-prueba-rtdb.js",
+    "pedido:test:reparto": "node scripts/generar-pedido-directo-reparto-rtdb.js"
   },
   "keywords": [
     "delivery",

@@ -33,6 +33,17 @@ class PedidoViewModel(
         _syncEstado.value = "STOPPED"
     }
 
+    fun aceptarPedido(
+        pedidoId: String,
+        repartidorUid: String,
+        onResultado: (ok: Boolean, mensaje: String) -> Unit
+    ) {
+        repository.aceptarPedido(pedidoId, repartidorUid) { ok, mensaje ->
+            _syncEstado.value = if (ok) "ACEPTADO" else "ERROR: $mensaje"
+            onResultado(ok, mensaje)
+        }
+    }
+
     override fun onCleared() {
         detenerSincronizacion()
         super.onCleared()

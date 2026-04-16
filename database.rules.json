@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "repartidores": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        "billetera": {
+          ".write": false,
+          "saldo_actual": {
+            ".read": "auth != null && auth.uid == $uid"
+          }
+        },
+        "nombre": {
+          ".write": "auth != null && auth.uid == $uid"
+        }
+      }
+    },
+    "ubicacion_nelly": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "pedidos_para_reparto": {
+      "$pedidoId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.admin === true || (data.exists() && newData.exists() && data.child('estado').val() == 'esperando_repartidor' && newData.child('repartidor').val() == auth.uid && newData.child('estado').val() == 'en_camino') || (data.exists() && !newData.exists() && data.child('repartidor').val() == auth.uid))"
+      }
+    },
+    "pedidos_en_camino": {
+      "$pedidoId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.child('repartidor').val() == auth.uid)"
+      }
+    }
+  }
+}

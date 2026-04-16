@@ -286,14 +286,23 @@
             try {
                 const datos = limpiarPedido(pedido);
                 const repartoRefFs = doc(db, "pedidos_para_reparto", pedido.id);
-
-                await setDoc(repartoRefFs, {
+                const repartoRefRtdb = ref(rtdb, `pedidos_para_reparto/${pedido.id}`);
+                const payloadReparto = {
                     ...datos,
+                    id: pedido.id,
+                    id_pedido: pedido.id,
                     estado: "esperando_repartidor",
                     hora_cocina: new Date().toISOString(),
-                    actualizado_en: serverTimestamp(),
                     fuente_origen: pedido.__source
+                };
+
+                await setDoc(repartoRefFs, {
+                    ...payloadReparto,
+                    actualizado_en: serverTimestamp(),
                 }, { merge: true });
+
+                // Mantiene compatibilidad con la app repartidor basada en RTDB.
+                await set(repartoRefRtdb, payloadReparto);
 
                 if (pedido.__source === "firestore") {
                     const pedidoRefFs = doc(db, "pedidos", pedido.id);
@@ -305,14 +314,6 @@
                 } else {
                     const legacyPath = pedido.__legacyPath || pedido.id;
                     const pedidoRefRtdb = ref(rtdb, `pedidos/${legacyPath}`);
-                    const repartoRefRtdb = ref(rtdb, `pedidos_para_reparto/${pedido.id}`);
-
-                    await set(repartoRefRtdb, {
-                        ...datos,
-                        estado: "esperando_repartidor",
-                        hora_cocina: new Date().toISOString(),
-                        fuente_origen: "rtdb"
-                    });
                     await remove(pedidoRefRtdb);
                 }
 
