@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
 const cors = require('cors'); 
+const rateLimit = require('express-rate-limit');
 const admin = require('firebase-admin');
 const fs = require('fs');
 const axios = require('axios');
@@ -11,7 +12,31 @@ const { Resend } = require('resend'); // 1. Importación de Resend
 dotenv.config();
 const app = express();
 
-app.use(cors()); 
+app.set('trust proxy', 1);
+
+const corsOptions = {
+    origin: 'https://nelly-delivery.web.app',
+    optionsSuccessStatus: 200
+};
+
+app.use('/api/auth', cors(corsOptions));
+
+const openCors = cors();
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/auth')) {
+        return next();
+    }
+    return openCors(req, res, next);
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: 'Demasiados intentos. Intenta mas tarde.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 app.use(express.json());
 
 // Servir archivos estáticos desde la carpeta "public"
@@ -326,8 +351,14 @@ app.post('/webhook', async (req, res) => {
 });
 
 // --- RUTA: TOKEN SEGURO PARA PANEL DE COCINA ---
-app.get('/api/auth/panel-token', async (req, res) => {
+app.get('/api/auth/panel-token', authLimiter, async (req, res) => {
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const ip = Array.isArray(forwardedFor)
+        ? forwardedFor[0]
+        : (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0].trim() : req.socket.remoteAddress);
+
     if (!firebaseAdminInitialized) {
+        console.error(`[ERROR AUTH] Firebase Admin no inicializado para IP ${ip}`);
         return res.status(503).json({ error: 'Firebase Admin no inicializado' });
     }
 
@@ -339,10 +370,11 @@ app.get('/api/auth/panel-token', async (req, res) => {
         };
 
         const customToken = await admin.auth().createCustomToken(uid, additionalClaims);
+        console.log(`[AUTH] Token generado exitosamente para IP: ${ip} a las ${new Date().toISOString()}`);
         return res.json({ token: customToken });
     } catch (error) {
-        console.error('Error generando token de panel:', error.message);
-        return res.status(500).json({ error: 'Error generando token' });
+        console.error(`[ERROR AUTH] Fallo al generar token para IP ${ip}:`, error.message);
+        return res.status(500).json({ error: 'Error interno de seguridad' });
     }
 });
 

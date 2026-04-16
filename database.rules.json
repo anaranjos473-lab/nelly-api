@@ -20,6 +20,12 @@
         ".write": "auth != null && auth.uid == $uid"
       }
     },
+    "repartidores_activos": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
     "pedidos_para_reparto": {
       "$pedidoId": {
         ".read": "auth != null",
@@ -31,6 +37,14 @@
         ".read": "auth != null",
         ".write": "auth != null && (!data.exists() || data.child('repartidor').val() == auth.uid)"
       }
+    },
+    "pedidos": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "configuracion": {
+      ".read": true,
+      ".write": "auth != null"
     }
   }
 }

@@ -318,6 +318,40 @@
             return limpio;
         }
 
+        function numeroSeguro(valor) {
+            const n = Number(valor);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function construirPayloadReparto(pedido, datos) {
+            const clienteNombre = pedido.cliente_nombre || pedido.cliente || "Usuario Nelly";
+            const lat = numeroSeguro(pedido.cliente_lat ?? pedido.lat_cliente ?? pedido.lat ?? pedido.latitude);
+            const lng = numeroSeguro(pedido.cliente_lng ?? pedido.lng_cliente ?? pedido.lng ?? pedido.longitude ?? pedido.lon);
+            const tiempoEstimado = String(pedido.tiempo_estimado || "25 min");
+
+            return {
+                ...datos,
+                id: pedido.id,
+                id_pedido: pedido.id,
+                pedido_id: pedido.id,
+                estado: "esperando_repartidor",
+                hora_cocina: new Date().toISOString(),
+                fuente_origen: pedido.__source,
+                cliente: {
+                    nombre: clienteNombre,
+                    coords: {
+                        lat,
+                        lng
+                    }
+                },
+                logistica: {
+                    estado: "disponible",
+                    repartidor_id: null,
+                    tiempo_estimado: tiempoEstimado
+                }
+            };
+        }
+
         async function sumarGanancias(monto) {
             const gananciasRef = doc(db, "metricas", "ganancias_hoy");
             await updateDoc(gananciasRef, { total: increment(Number(monto || 0)) }).catch(async () => {
@@ -334,14 +368,7 @@
                 const datos = limpiarPedido(pedido);
                 const repartoRefFs = doc(db, "pedidos_para_reparto", pedido.id);
                 const repartoRefRtdb = ref(rtdb, `pedidos_para_reparto/${pedido.id}`);
-                const payloadReparto = {
-                    ...datos,
-                    id: pedido.id,
-                    id_pedido: pedido.id,
-                    estado: "esperando_repartidor",
-                    hora_cocina: new Date().toISOString(),
-                    fuente_origen: pedido.__source
-                };
+                const payloadReparto = construirPayloadReparto(pedido, datos);
 
                 await setDoc(repartoRefFs, {
                     ...payloadReparto,
