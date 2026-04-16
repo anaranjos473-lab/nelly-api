@@ -11,11 +11,12 @@ const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
 const app = express();
+const PANEL_ALLOWED_ORIGIN = 'https://nelly-delivery.web.app';
 
 app.set('trust proxy', 1);
 
 const corsOptions = {
-    origin: 'https://nelly-delivery.web.app',
+    origin: PANEL_ALLOWED_ORIGIN,
     optionsSuccessStatus: 200
 };
 
@@ -352,6 +353,12 @@ app.post('/webhook', async (req, res) => {
 
 // --- RUTA: TOKEN SEGURO PARA PANEL DE COCINA ---
 app.get('/api/auth/panel-token', authLimiter, async (req, res) => {
+    const origin = req.headers.origin;
+    if (origin !== PANEL_ALLOWED_ORIGIN) {
+        console.warn(`[AUTH BLOCK] Origen no autorizado: ${origin || 'sin-origin'}`);
+        return res.status(403).json({ error: 'Origen no autorizado' });
+    }
+
     const forwardedFor = req.headers['x-forwarded-for'];
     const ip = Array.isArray(forwardedFor)
         ? forwardedFor[0]
