@@ -44,6 +44,9 @@ repartidores.json
 /panel.html
 /firebase.js
 
+# Archivos de audio con extensión incorrecta (renombrar a .mp3)
+public/alerta.mp3.mpeg
+
 # IDE y sistema
 .idea/
 .vscode/
