@@ -12,7 +12,7 @@ const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
 const app = express();
-const PANEL_ALLOWED_ORIGIN = 'https://nelly-delivery.web.app';
+const PANEL_ALLOWED_ORIGIN = process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app';
 
 app.set('trust proxy', 1);
 

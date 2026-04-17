@@ -1,4 +1,4 @@
-﻿# Archivos sensibles - credenciales
+# Archivos sensibles - credenciales
 nelly-admin.json
 nelly-admin.json.bak
 firebase_admin_base64.txt
@@ -32,6 +32,13 @@ node_modules/
 
 # Archivos de respaldo
 *.bak
+
+# Archivos temporales / salidas de scripts
+deploy_output.txt
+*.log
+
+# Datos de prueba con PII / datos financieros reales
+repartidores.json
 
 # IDE y sistema
 .idea/
