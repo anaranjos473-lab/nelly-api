@@ -1,5 +1,6 @@
 package com.nelly.driver.ui.pedidos
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.nelly.driver.R
 import com.nelly.driver.di.PedidoSyncModule
+import com.nelly.driver.service.DeliveryTrackingService
 import com.nelly.driver.ui.pedidos.adapter.PedidoAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +50,12 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
             viewModel.aceptarPedido(pedido.id, uid) { ok, mensaje ->
                 val text = if (ok) "Pedido aceptado" else mensaje
                 runOnUiThread {
+                    if (ok) {
+                        val trackingIntent = Intent(this, DeliveryTrackingService::class.java).apply {
+                            putExtra(DeliveryTrackingService.EXTRA_PEDIDO_ID, pedido.id)
+                        }
+                        startService(trackingIntent)
+                    }
                     Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
                 }
             }

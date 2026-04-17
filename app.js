@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const admin = require('firebase-admin');
 const fs = require('fs');
 const axios = require('axios');
+const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
 const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
@@ -38,6 +39,14 @@ const authLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+const etaLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    message: { error: 'Demasiadas consultas de ETA. Intenta en unos segundos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 app.use(express.json());
 
 // Servir archivos estáticos desde la carpeta "public"
@@ -47,6 +56,7 @@ app.use(express.static('public'));
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
+const googleMapsClient = new GoogleMapsClient({});
 
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
 let firebaseAdminInitialized = false;
@@ -115,6 +125,33 @@ const requireFirebase = (res) => {
     return true;
 };
 
+// --- MIDDLEWARE: VALIDACION DE IDENTIDAD DEL REPARTIDOR ---
+const requireDriverAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.driver === true || decodedToken.role === 'repartidor') {
+            req.user = decodedToken;
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Acceso denegado: No es un perfil de repartidor' });
+    } catch (error) {
+        console.error('[AUTH ERROR Driver]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+};
+
 // --- LISTENER DE PEDIDOS (Panel de Cocina) ---
 if (firebaseAdminInitialized) {
   const pedidosRef = db.ref('pedidos');
@@ -156,6 +193,45 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 function validarCorreo(email) {
     const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regexCorreo.test(email);
+}
+
+function esCoordenadaValida(lat, lng) {
+    return Number.isFinite(lat)
+        && Number.isFinite(lng)
+        && lat >= -90
+        && lat <= 90
+        && lng >= -180
+        && lng <= 180;
+}
+
+function distanciaMetrosHaversine(lat1, lng1, lat2, lng2) {
+    const R = 6371e3;
+    const p1 = lat1 * Math.PI / 180;
+    const p2 = lat2 * Math.PI / 180;
+    const dp = (lat2 - lat1) * Math.PI / 180;
+    const dl = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function parseCoordInput(value) {
+    if (typeof value === 'string') {
+        const parts = value.split(',').map((p) => Number(p.trim()));
+        if (parts.length === 2) {
+            const [lat, lng] = parts;
+            return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
+        }
+        return null;
+    }
+
+    if (value && typeof value === 'object') {
+        const lat = Number(value.lat ?? value.latitude);
+        const lng = Number(value.lng ?? value.lon ?? value.longitude);
+        return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
+    }
+
+    return null;
 }
 
 // --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
@@ -351,6 +427,220 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
+// --- ENDPOINT: ACTUALIZACION DE UBICACION GPS ---
+app.post('/api/delivery/update-location', requireDriverAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const { lat, lng, pedidoId } = req.body;
+    const uid = req.user.uid;
+    const updatedAt = Date.now();
+
+    if (
+        typeof lat !== 'number' ||
+        lat < -90 ||
+        lat > 90 ||
+        typeof lng !== 'number' ||
+        lng < -180 ||
+        lng > 180
+    ) {
+        return res.status(400).json({ error: 'Coordenadas invalidas' });
+    }
+
+    try {
+        const updates = {};
+        updates[`repartidores/${uid}/currentLocation`] = { lat, lng, updatedAt };
+
+        if (pedidoId) {
+            updates[`pedidos_en_camino/${pedidoId}/driverLocation`] = {
+                lat,
+                lng,
+                driverUid: uid,
+                updatedAt
+            };
+        }
+
+        await db.ref().update(updates);
+        return res.status(200).json({ status: 'Location updated' });
+    } catch (error) {
+        console.error('[DB ERROR Location]:', error.message);
+        return res.status(500).json({ error: 'Error al escribir en base de datos' });
+    }
+});
+
+// --- ENDPOINT: ETA CON TRAFICO REAL (DISTANCE MATRIX) ---
+app.post('/api/delivery/eta', etaLimiter, async (req, res) => {
+    const {
+        originLat,
+        originLng,
+        destinationLat,
+        destinationLng
+    } = req.body || {};
+
+    const oLat = Number(originLat);
+    const oLng = Number(originLng);
+    const dLat = Number(destinationLat);
+    const dLng = Number(destinationLng);
+
+    if (!esCoordenadaValida(oLat, oLng) || !esCoordenadaValida(dLat, dLng)) {
+        return res.status(400).json({ error: 'Coordenadas invalidas para calcular ETA' });
+    }
+
+    const googleMapsApiKey = process.env.GOOGLE_DISTANCE_MATRIX_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+    if (!googleMapsApiKey) {
+        return res.status(503).json({ error: 'GOOGLE_DISTANCE_MATRIX_API_KEY no configurada' });
+    }
+
+    try {
+        const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+            params: {
+                origins: `${oLat},${oLng}`,
+                destinations: `${dLat},${dLng}`,
+                departure_time: 'now',
+                traffic_model: 'best_guess',
+                mode: 'driving',
+                language: 'es-MX',
+                units: 'metric',
+                key: googleMapsApiKey
+            },
+            timeout: 10000
+        });
+
+        const payload = response.data;
+        if (payload?.status !== 'OK') {
+            console.error('[ETA ERROR] Google status:', payload?.status);
+            return res.status(502).json({ error: 'Google Distance Matrix no disponible', providerStatus: payload?.status || 'UNKNOWN' });
+        }
+
+        const element = payload.rows?.[0]?.elements?.[0];
+        if (!element || element.status !== 'OK') {
+            return res.status(422).json({ error: 'No se pudo calcular ruta para este pedido', providerElementStatus: element?.status || 'UNKNOWN' });
+        }
+
+        const distanceMeters = Number(element.distance?.value || 0);
+        const durationSec = Number(element.duration?.value || 0);
+        const durationInTrafficSec = Number(element.duration_in_traffic?.value || durationSec);
+        const etaSeconds = Math.max(0, durationInTrafficSec);
+        const etaMinutes = Math.ceil(etaSeconds / 60);
+        const arrivesAtMs = Date.now() + etaSeconds * 1000;
+
+        return res.json({
+            ok: true,
+            distanceMeters,
+            distanceText: element.distance?.text || `${(distanceMeters / 1000).toFixed(1)} km`,
+            durationSec,
+            durationInTrafficSec,
+            etaSeconds,
+            etaMinutes,
+            etaText: `${etaMinutes} min`,
+            arrivesAtMs
+        });
+    } catch (error) {
+        console.error('[ETA ERROR] Fallo consultando Distance Matrix:', error.message);
+        return res.status(500).json({ error: 'Error calculando ETA', detail: error.message });
+    }
+});
+
+// --- ENDPOINT: ETA LOGISTICO PARA EN_CAMINO ---
+app.post('/api/logistics/eta', requireDriverAuth, etaLimiter, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const { origin, destination, pedidoId } = req.body || {};
+    if (!pedidoId || typeof pedidoId !== 'string') {
+        return res.status(400).json({ error: 'pedidoId es requerido' });
+    }
+
+    const originCoords = parseCoordInput(origin);
+    const destinationCoords = parseCoordInput(destination);
+    if (!originCoords || !destinationCoords) {
+        return res.status(400).json({ error: 'origin y destination deben ser coordenadas validas (lat,lng)' });
+    }
+
+    const mapsApiKey = process.env.GOOGLE_DISTANCE_MATRIX_API_KEY
+        || process.env.GOOGLE_MAPS_API_KEY
+        || process.env.MAPS_API_KEY;
+
+    if (!mapsApiKey) {
+        return res.status(503).json({ error: 'MAPS API key no configurada' });
+    }
+
+    try {
+        const pedidoRef = db.ref(`pedidos_en_camino/${pedidoId}`);
+        const pedidoSnap = await pedidoRef.once('value');
+
+        if (!pedidoSnap.exists()) {
+            return res.status(404).json({ error: 'Pedido EN_CAMINO no encontrado' });
+        }
+
+        const pedido = pedidoSnap.val() || {};
+        const estado = String(pedido.estado || '').toLowerCase();
+        if (estado && estado !== 'en_camino') {
+            return res.status(409).json({ error: 'El pedido no esta en estado EN_CAMINO' });
+        }
+
+        const pedidoDriverUid = pedido.driverLocation?.driverUid || pedido.repartidor;
+        if (pedidoDriverUid && pedidoDriverUid !== req.user.uid) {
+            return res.status(403).json({ error: 'No autorizado para actualizar ETA de este pedido' });
+        }
+
+        const prevEta = pedido.eta;
+        const prevOrigin = prevEta?.origin;
+        if (prevEta && prevOrigin && esCoordenadaValida(Number(prevOrigin.lat), Number(prevOrigin.lng))) {
+            const movedMeters = distanciaMetrosHaversine(
+                Number(prevOrigin.lat),
+                Number(prevOrigin.lng),
+                originCoords.lat,
+                originCoords.lng
+            );
+
+            if (movedMeters < 50) {
+                return res.json({
+                    ...prevEta,
+                    cached: true,
+                    movedMeters: Math.round(movedMeters)
+                });
+            }
+        }
+
+        const dmResponse = await googleMapsClient.distancematrix({
+            params: {
+                origins: [`${originCoords.lat},${originCoords.lng}`],
+                destinations: [`${destinationCoords.lat},${destinationCoords.lng}`],
+                mode: 'driving',
+                departure_time: 'now',
+                traffic_model: 'best_guess',
+                language: 'es-MX',
+                units: 'metric',
+                key: mapsApiKey
+            },
+            timeout: 10000
+        });
+
+        const element = dmResponse?.data?.rows?.[0]?.elements?.[0];
+        if (!element || element.status !== 'OK') {
+            return res.status(422).json({
+                error: 'No se pudo calcular ETA para esta ruta',
+                providerElementStatus: element?.status || 'UNKNOWN'
+            });
+        }
+
+        const etaData = {
+            durationText: element.duration_in_traffic?.text || element.duration?.text || '--',
+            durationValue: Number(element.duration_in_traffic?.value || element.duration?.value || 0),
+            distanceText: element.distance?.text || '--',
+            distanceValue: Number(element.distance?.value || 0),
+            origin: originCoords,
+            destination: destinationCoords,
+            updatedAt: Date.now()
+        };
+
+        await db.ref(`pedidos_en_camino/${pedidoId}/eta`).set(etaData);
+        return res.json({ ...etaData, cached: false });
+    } catch (e) {
+        console.error('[ETA ERROR]:', e.message);
+        return res.status(500).json({ error: 'No se pudo calcular el tiempo' });
+    }
+});
+
 // --- RUTA: TOKEN SEGURO PARA PANEL DE COCINA ---
 app.get('/api/auth/panel-token', authLimiter, async (req, res) => {
     const origin = req.headers.origin;
@@ -391,6 +681,15 @@ app.get('/healthcheck', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor Nelly v3.0 listo en puerto ${PORT}`);
+});
+
+server.on('error', (err) => {
+  console.error('❌ Error crítico del servidor:', err.message);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Promesa rechazada no manejada:', reason);
 });

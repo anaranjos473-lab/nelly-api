@@ -1,0 +1,58 @@
+name: "Admin: Respaldo Semanal de Datos"
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Firebase Admin
+        run: npm install firebase-admin
+
+      - name: Run Backup Script
+        env:
+          FIREBASE_ADMIN_JSON: ${{ secrets.FIREBASE_ADMIN_JSON }}
+          FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
+        run: node scripts/backup-firebase.js
+
+      - name: Prune Old Backups (keep 8)
+        run: |
+          mkdir -p backups
+          mapfile -t files < <(ls -1 backups/backup-rtdb-*.json 2>/dev/null | sort)
+          count=${#files[@]}
+          if [ "$count" -le 8 ]; then
+            echo "No pruning needed. Current backups: $count"
+            exit 0
+          fi
+
+          to_delete=$((count - 8))
+          echo "Pruning $to_delete old backup(s)..."
+          for ((i=0; i<to_delete; i++)); do
+            echo "Removing ${files[$i]}"
+            rm -f "${files[$i]}"
+          done
+
+      - name: Commit & Push Backup
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Backup"
+          git add backups/*.json
+          if git diff --cached --quiet; then
+            echo "Sin cambios en backups; no hay commit"
+            exit 0
+          fi
+          git commit -m "Respaldo semanal automatico: $(date +'%Y-%m-%d')"
+          git push

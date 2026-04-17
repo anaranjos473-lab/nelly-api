@@ -1,0 +1,29 @@
+name: "Admin: Asignar Claims de Repartidor"
+
+on:
+  workflow_dispatch:
+    inputs:
+      uids:
+        description: "Lista de UIDs de repartidores (separados por comas)"
+        required: true
+        type: string
+
+jobs:
+  assign-claims:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Dependencies
+        run: npm install firebase-admin
+
+      - name: Execute Claims Script
+        env:
+          FIREBASE_ADMIN_JSON: ${{ secrets.FIREBASE_ADMIN_JSON }}
+          DRIVER_UIDS: ${{ github.event.inputs.uids }}
+        run: node scripts/set-driver-claims.js
