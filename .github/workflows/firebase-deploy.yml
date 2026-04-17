@@ -9,6 +9,13 @@ on:
       - "firestore.rules"
       - "database.rules.json"
       - "firebase.json"
+      - ".github/workflows/firebase-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Razón del deploy manual"
+        required: false
+        default: "Deploy manual"
 
 jobs:
   validate-and-deploy:

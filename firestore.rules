@@ -1,5 +1,9 @@
 rules_version = '2';
 
+// Nelly Delivery v1.0 — Reglas de Firestore
+// Desplegadas via GitHub Actions (firebase-deploy.yml)
+// auth != null requerido para todas las colecciones operativas
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
