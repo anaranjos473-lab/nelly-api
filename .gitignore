@@ -40,6 +40,10 @@ deploy_output.txt
 # Datos de prueba con PII / datos financieros reales
 repartidores.json
 
+# Archivos duplicados de raíz (el contenido real está en public/)
+/panel.html
+/firebase.js
+
 # IDE y sistema
 .idea/
 .vscode/
