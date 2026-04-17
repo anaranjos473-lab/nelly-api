@@ -166,9 +166,9 @@
         const rtdbDrivers = new Map();
         const rtdbPedidosEnCamino = new Map();
         const PANEL_TOKEN_ENDPOINTS = [
-            "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
-            "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
+            "https://nelly-api-81h1.onrender.com/api/auth/panel-token"
         ];
+        const PANEL_TOKEN_TIMEOUT_MS = 25000;
 
         let map = null;
         const markers = new Map();
@@ -246,18 +246,27 @@
 
             authRequestInFlight = true;
             const badge = document.getElementById('badge-estado');
+            badge.textContent = "AUTENTICANDO...";
 
             try {
                 let response = null;
                 for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
                     try {
-                        const candidate = await fetch(endpoint, { method: "GET" });
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), PANEL_TOKEN_TIMEOUT_MS);
+                        const candidate = await fetch(endpoint, {
+                            method: "GET",
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
                         if (candidate.ok) {
                             response = candidate;
                             break;
                         }
+                        console.warn("Endpoint respondio con error:", endpoint, candidate.status);
                     } catch (networkError) {
-                        console.warn("Endpoint de token no disponible:", endpoint, networkError.message);
+                        const reason = networkError.name === "AbortError" ? "timeout" : networkError.message;
+                        console.warn("Endpoint no disponible:", endpoint, reason);
                     }
                 }
 
@@ -273,12 +282,18 @@
                 await signInWithCustomToken(auth, data.token);
                 console.log("Panel validado por backend.");
             } catch (error) {
-                badge.textContent = "ERROR DE ACCESO";
+                badge.textContent = "SIN CONEXION";
+                badge.classList.remove("online");
                 console.error("Error en validacion segura:", error.message);
-                document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
-            } finally {
-                authRequestInFlight = false;
+                // Reintento automatico en 20s en lugar de romper el panel
+                setTimeout(() => {
+                    authRequestInFlight = false;
+                    autenticarPanelConBackend();
+                }, 20000);
+                return;
             }
+
+            authRequestInFlight = false;
         }
 
         function iniciarSincronizacion() {

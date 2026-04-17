@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Solo usuarios autenticados pueden leer/escribir pedidos
+    match /pedidos/{pedidoId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Métricas de ganancias — solo lectura autenticada
+    match /metricas/{metricaId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.admin == true;
+    }
+
+    // Bloquear todo lo demás por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
