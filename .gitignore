@@ -19,6 +19,7 @@ servidor.txt
 .env
 .env.*
 !.env.example
+local.properties
 
 # Patrones estrictos de credenciales
 *service-account*.json
