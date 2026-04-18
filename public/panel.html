@@ -165,8 +165,9 @@
         const rtdbRepartoPedidos = new Map();
         const rtdbDrivers = new Map();
         const rtdbPedidosEnCamino = new Map();
+        const API_BASE_URL = "https://nelly-api-81h1.onrender.com";
         const PANEL_TOKEN_ENDPOINTS = [
-            "https://nelly-api-81h1.onrender.com/api/auth/panel-token"
+            `${API_BASE_URL}/api/auth/panel-token`
         ];
         const PANEL_TOKEN_TIMEOUT_MS = 25000;
 

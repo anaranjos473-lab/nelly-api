@@ -12,16 +12,36 @@ const { Resend } = require('resend'); // 1. Importación de Resend
 
 dotenv.config();
 const app = express();
-const PANEL_ALLOWED_ORIGIN = process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app';
+
+function normalizeOrigin(originValue) {
+    return String(originValue || '').trim().replace(/\/$/, '').toLowerCase();
+}
+
+const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
 
 app.set('trust proxy', 1);
 
 const corsOptions = {
-    origin: PANEL_ALLOWED_ORIGIN,
+    origin: (origin, callback) => {
+        if (!origin) {
+            return callback(null, false);
+        }
+
+        const normalizedOrigin = normalizeOrigin(origin);
+        if (normalizedOrigin === PANEL_ALLOWED_ORIGIN) {
+            return callback(null, true);
+        }
+
+        return callback(null, false);
+    },
+    methods: ['GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
     optionsSuccessStatus: 200
 };
 
 app.use('/api/auth', cors(corsOptions));
+app.options('/api/auth/panel-token', cors(corsOptions));
 
 const openCors = cors();
 app.use((req, res, next) => {
@@ -166,7 +186,7 @@ if (firebaseAdminInitialized) {
 }
 
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
-const URL_DE_TU_API = process.env.RENDER_URL || 'https://tu-app-nelly.onrender.com'; // Cambia con tu URL real de Render o usa la variable de entorno RENDER_URL
+const URL_DE_TU_API = process.env.RENDER_URL || 'https://nelly-api-81h1.onrender.com'; // Base URL canónica para keep-alive
 
 if (process.env.NODE_ENV === 'production') {
     setInterval(async () => {
@@ -641,10 +661,11 @@ app.post('/api/logistics/eta', requireDriverAuth, etaLimiter, async (req, res) =
     }
 });
 
-// --- RUTA: TOKEN SEGURO PARA PANEL DE COCINA ---
-app.get('/api/auth/panel-token', authLimiter, async (req, res) => {
-    const origin = req.headers.origin;
-    if (origin !== PANEL_ALLOWED_ORIGIN) {
+// --- CONTROLADOR: TOKEN SEGURO PARA PANEL DE COCINA ---
+const panelTokenController = async (req, res) => {
+    const origin = req.headers.origin || '';
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (normalizedOrigin !== PANEL_ALLOWED_ORIGIN) {
         console.warn(`[AUTH BLOCK] Origen no autorizado: ${origin || 'sin-origin'}`);
         return res.status(403).json({ error: 'Origen no autorizado' });
     }
@@ -673,12 +694,22 @@ app.get('/api/auth/panel-token', authLimiter, async (req, res) => {
         console.error(`[ERROR AUTH] Fallo al generar token para IP ${ip}:`, error.message);
         return res.status(500).json({ error: 'Error interno de seguridad' });
     }
-});
+};
 
-// --- RUTA: HEALTHCHECK (para Keep-Alive en Render) ---
-app.get('/healthcheck', (req, res) => {
-    res.status(200).send('OK');
-});
+// --- CONTROLADOR: HEALTHCHECK (para Keep-Alive en Render) ---
+const healthcheckController = (req, res) => {
+    return res.status(200).json({
+        status: 'ok',
+        service: 'nelly-api',
+        timestamp: new Date().toISOString(),
+    });
+};
+
+// --- RUTAS EXPUESTAS ---
+app.get('/api/auth/panel-token', authLimiter, panelTokenController);
+app.get('/healthcheck', healthcheckController);
+app.get('/api/healthcheck', healthcheckController);
+app.get('/health', healthcheckController);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
