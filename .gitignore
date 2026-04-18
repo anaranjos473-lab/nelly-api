@@ -36,6 +36,7 @@ node_modules/
 # Archivos temporales / salidas de scripts
 deploy_output.txt
 *.log
+logs_pruebas/
 
 # Datos de prueba con PII / datos financieros reales
 repartidores.json

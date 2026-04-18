@@ -85,6 +85,28 @@
         .btn-danger:hover { background-color: #c0392b; }
         .btn-success { background-color: #2ecc71; }
         .btn-success:hover { background-color: #27ae60; }
+        .btn-header-action {
+            border: none;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            color: #0f172a;
+            background: #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-header-action.primary {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .card-body p {
+            margin: 8px 0;
+            line-height: 1.35;
+            word-break: break-word;
+        }
         .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-filtro, .btn-download {
             border: none;
@@ -116,6 +138,78 @@
             border-radius: 999px;
             font-weight: 700;
             font-size: 0.8rem;
+        }
+        .top-productos-card {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            padding: 14px;
+            margin: 0 0 20px 0;
+        }
+        .top-productos-card h4 {
+            margin: 0 0 12px;
+            color: #1f2937;
+        }
+        .top-productos-layout {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .donut-chart {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .donut-center {
+            position: absolute;
+            inset: 24px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.2;
+            padding: 8px;
+        }
+        .top-productos-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+        .top-productos-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eef2f7;
+            gap: 12px;
+        }
+        .top-productos-item:last-child { border-bottom: none; }
+        .producto-nombre {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #334155;
+            font-weight: 600;
+        }
+        .producto-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+        .producto-valor {
+            color: #0f172a;
+            font-weight: 700;
+            white-space: nowrap;
         }
         .debug-btn {
             position: fixed;
@@ -171,10 +265,17 @@
         .toast.ok { background: #166534; }
         .toast.err { background: #991b1b; }
         @media (max-width: 900px) {
+            body { padding: 10px; }
             .stats, .stats-grid, .dashboard-container { flex-direction: column; }
             .header { flex-direction: column; align-items: flex-start; gap: 12px; }
             #seccion-historial { top: 90px !important; }
             .debug-panel { width: calc(100% - 20px); }
+            .top-productos-layout { flex-direction: column; align-items: flex-start; }
+            .card-pedido { padding: 12px; margin-bottom: 10px; }
+            .card-header strong { font-size: 1rem; }
+            .monto { font-size: 1rem; }
+            .btn-action { padding: 12px 8px; font-size: 0.95rem; }
+            .pedidos-grid { padding: 8px; }
         }
     </style>
 </head>
@@ -182,7 +283,11 @@
 
     <div class="header">
         <h1>Nelly Delivery - Cocina</h1>
-        <div id="badge-estado" class="status-badge">CONECTANDO...</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+            <a href="./repartidor.html" class="btn-header-action primary">📱 Repartidores</a>
+            <button id="btn-notificaciones" class="btn-header-action">🔔 Alertas</button>
+            <div id="badge-estado" class="status-badge">CONECTANDO...</div>
+        </div>
     </div>
 
     <div class="stats">
@@ -225,6 +330,7 @@
                     <div class="filtros">
                         <button onclick="filtrarVentas('hoy')" class="btn-filtro">Hoy</button>
                         <button onclick="filtrarVentas('semana')" class="btn-filtro">7 Días</button>
+                        <button onclick="filtrarVentas('mes')" class="btn-filtro">Mes</button>
                         <button onclick="descargarCSV()" class="btn-download">📥 Exportar CSV</button>
                     </div>
 
@@ -248,6 +354,37 @@
                         <span id="cantidad-pedidos" class="value">0</span>
                     </div>
                 </div>
+
+                <div class="top-productos-card">
+                    <h4>Top 5 Productos</h4>
+                    <div class="top-productos-layout">
+                        <div id="top-productos-chart" class="donut-chart">
+                            <div id="top-productos-total" class="donut-center">Sin datos</div>
+                        </div>
+                        <ul id="top-productos-list" class="top-productos-list">
+                            <li class="top-productos-item">
+                                <span class="producto-nombre">Sin productos en el rango</span>
+                                <span class="producto-valor">0%</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="display:flex;gap:20px;margin:0 0 20px 0;">
+                    <div class="stat-card">
+                        <span class="label">Semana Actual (7d)</span>
+                        <span id="semana-actual" class="value">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="label">Semana Anterior (7d)</span>
+                        <span id="semana-anterior" class="value">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="label">Variación Semanal</span>
+                        <span id="variacion-semanal" class="value">0.0%</span>
+                    </div>
+                </div>
+
                 <div class="tabla-container" style="overflow-x:auto;">
                     <table id="tabla-historial" style="width:100%;background:white;border-radius:8px;">
                         <thead>
@@ -294,13 +431,18 @@
                 const btn = document.getElementById('btn-historial');
                 const seccion = document.getElementById('seccion-historial');
                 const btnDebug = document.getElementById('btn-debug');
+                const btnNotificaciones = document.getElementById('btn-notificaciones');
                 const debugPanel = document.getElementById('debug-panel');
                 btn.onclick = () => {
                     seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+                    if (seccion.style.display === 'block') {
+                        window.filtrarVentas('hoy');
+                    }
                 };
                 btnDebug.onclick = () => {
                     debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
                 };
+                btnNotificaciones.onclick = () => solicitarPermisoNotificaciones();
             });
 
             function logDebug(mensaje, tipo = 'ok') {
@@ -331,6 +473,73 @@
                 }, 2200);
             }
 
+            window.renderizarTopProductos = (top5) => {
+                const chart = document.getElementById('top-productos-chart');
+                const list = document.getElementById('top-productos-list');
+                const totalLabel = document.getElementById('top-productos-total');
+                if (!chart || !list || !totalLabel) {
+                    return;
+                }
+
+                const colores = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+                const totalProductos = top5.reduce((acc, item) => acc + item[1], 0);
+
+                if (!top5.length || totalProductos === 0) {
+                    chart.style.background = '#e5e7eb';
+                    totalLabel.textContent = 'Sin datos';
+                    list.innerHTML = `
+                        <li class="top-productos-item">
+                            <span class="producto-nombre">Sin productos en el rango</span>
+                            <span class="producto-valor">0%</span>
+                        </li>
+                    `;
+                    return;
+                }
+
+                let acumulado = 0;
+                const segmentos = top5.map((item, index) => {
+                    const inicio = (acumulado / totalProductos) * 360;
+                    acumulado += item[1];
+                    const fin = (acumulado / totalProductos) * 360;
+                    return `${colores[index % colores.length]} ${inicio}deg ${fin}deg`;
+                }).join(', ');
+
+                chart.style.background = `conic-gradient(${segmentos})`;
+                totalLabel.textContent = `${totalProductos} items`;
+
+                list.innerHTML = top5.map((item, index) => {
+                    const porcentaje = ((item[1] / totalProductos) * 100).toFixed(1);
+                    return `
+                        <li class="top-productos-item">
+                            <span class="producto-nombre">
+                                <span class="producto-dot" style="background:${colores[index % colores.length]};"></span>
+                                ${item[0]}
+                            </span>
+                            <span class="producto-valor">${item[1]} (${porcentaje}%)</span>
+                        </li>
+                    `;
+                }).join('');
+            };
+
+            window.renderizarComparativoSemanal = (semanaActual, semanaAnterior) => {
+                const elActual = document.getElementById('semana-actual');
+                const elAnterior = document.getElementById('semana-anterior');
+                const elVariacion = document.getElementById('variacion-semanal');
+                if (!elActual || !elAnterior || !elVariacion) {
+                    return;
+                }
+
+                elActual.textContent = `$${Number(semanaActual || 0).toFixed(2)}`;
+                elAnterior.textContent = `$${Number(semanaAnterior || 0).toFixed(2)}`;
+
+                const variacion = semanaAnterior > 0
+                    ? ((semanaActual - semanaAnterior) / semanaAnterior) * 100
+                    : (semanaActual > 0 ? 100 : 0);
+                const signo = variacion > 0 ? '+' : '';
+                elVariacion.textContent = `${signo}${variacion.toFixed(1)}%`;
+                elVariacion.style.color = variacion >= 0 ? '#166534' : '#b91c1c';
+            };
+
             // Lógica para el Historial de Ventas
             window.filtrarVentas = (rango) => {
                 const pedidosRef = ref(rtdb, 'pedidos');
@@ -339,42 +548,79 @@
                 const inicioSemana = new Date();
                 inicioSemana.setDate(hoy.getDate() - 6);
                 inicioSemana.setHours(0, 0, 0, 0);
+                const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).getTime();
+                const inicioSemanaAnterior = inicioSemana.getTime() - (7 * 24 * 60 * 60 * 1000);
+                const finSemanaAnterior = inicioSemana.getTime();
 
                 onValue(pedidosRef, (snapshot) => {
                     let total = 0;
                     let count = 0;
                     let html = '';
+                    const conteoProductos = {};
+                    let totalSemanaActual = 0;
+                    let totalSemanaAnterior = 0;
                     snapshot.forEach((child) => {
                         const pedido = child.val();
                         const fechaPedido = new Date(pedido.fecha_finalizado || pedido.fecha_creacion).getTime();
+                        if (!Number.isFinite(fechaPedido)) {
+                            return;
+                        }
                         let incluir = false;
                         if (pedido.estado === 'entregado') {
+                            const montoNumero = Number(pedido.monto || pedido.total || 0);
+                            if (fechaPedido >= inicioSemana.getTime()) {
+                                totalSemanaActual += montoNumero;
+                            } else if (fechaPedido >= inicioSemanaAnterior && fechaPedido < finSemanaAnterior) {
+                                totalSemanaAnterior += montoNumero;
+                            }
+
                             if (rango === 'hoy') {
                                 incluir = fechaPedido >= hoy.getTime();
                             } else if (rango === 'semana') {
                                 incluir = fechaPedido >= inicioSemana.getTime();
+                            } else if (rango === 'mes') {
+                                incluir = fechaPedido >= inicioMes;
                             } else {
                                 incluir = true;
                             }
                         }
                         if (incluir) {
-                            total += parseFloat(pedido.monto || 0);
+                            const montoNumero = Number(pedido.monto || pedido.total || 0);
+                            total += montoNumero;
                             count++;
+
+                            const descripcion = String(pedido.descripcion || pedido.productos || '');
+                            const productos = descripcion
+                                .split(/,|\n|\+/)
+                                .map((p) => p.trim())
+                                .filter(Boolean);
+
+                            productos.forEach((nombre) => {
+                                conteoProductos[nombre] = (conteoProductos[nombre] || 0) + 1;
+                            });
+
                             html += `
                                 <tr>
                                     <td>${pedido.id_pedido || ''}</td>
-                                    <td>${pedido.cliente_nombre || ''}</td>
-                                    <td>$${pedido.monto || '0.00'}</td>
+                                    <td>${pedido.cliente_nombre || pedido.cliente || ''}</td>
+                                    <td>$${montoNumero.toFixed(2)}</td>
                                     <td>${new Date(fechaPedido).toLocaleString()}</td>
                                     <td><span class="badge-success">Entregado</span></td>
                                 </tr>
                             `;
                         }
                     });
+
+                    const top5 = Object.entries(conteoProductos)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5);
+
                     document.getElementById('body-historial').innerHTML = html;
                     document.getElementById('total-ventas').innerText = `$${total.toFixed(2)}`;
                     document.getElementById('total-comisiones').innerText = `$${(total * 0.15).toFixed(2)}`;
                     document.getElementById('cantidad-pedidos').innerText = count;
+                    window.renderizarTopProductos(top5);
+                    window.renderizarComparativoSemanal(totalSemanaActual, totalSemanaAnterior);
                 }, { onlyOnce: true });
             };
 
@@ -398,12 +644,87 @@
 
         let sincronizacionIniciada = false;
         let authRequestInFlight = false;
+        let primeraCargaPendientes = true;
+        let notificacionesHabilitadas = false;
+        const pendientesPrevios = new Set();
         const pedidosPendientes = new Map();
         const pedidosReparto = new Map();
         const PANEL_TOKEN_ENDPOINTS = [
             "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
+
+        function solicitarPermisoNotificaciones() {
+            if (!('Notification' in window)) {
+                showToast('Este navegador no soporta notificaciones', 'err');
+                return;
+            }
+
+            Notification.requestPermission().then((permission) => {
+                notificacionesHabilitadas = permission === 'granted';
+                if (notificacionesHabilitadas) {
+                    showToast('Alertas activadas', 'ok');
+                } else {
+                    showToast('Permiso de alertas denegado', 'err');
+                }
+            });
+        }
+
+        function notificarNuevoPedido(pedido, key) {
+            if (!notificacionesHabilitadas || !('Notification' in window)) {
+                return;
+            }
+
+            const cliente = pedido.cliente_nombre || pedido.cliente || 'Cliente';
+            const monto = Number(pedido.monto || pedido.total || 0).toFixed(2);
+            try {
+                new Notification('Nuevo pedido en cocina', {
+                    body: `${cliente} · $${monto}`,
+                    tag: `pedido-${key}`,
+                });
+            } catch (_err) {
+                // No bloquear el flujo principal por fallo de notificacion.
+            }
+        }
+
+        // Utilidades de consola para depuración operativa.
+        window.listarPedidosPendientes = () => {
+            return Array.from(pedidosPendientes.entries()).map(([key, pedido]) => ({
+                key,
+                id_pedido: pedido.id_pedido || pedido.id || key,
+                estado: pedido.estado || "pendiente",
+                cliente: pedido.cliente_nombre || pedido.cliente || ""
+            }));
+        };
+
+        window.listarPedidosReparto = () => {
+            return Array.from(pedidosReparto.entries()).map(([key, pedido]) => ({
+                key,
+                id_pedido: pedido.id_pedido || pedido.id || key,
+                estado: pedido.estado || "en_reparto",
+                cliente: pedido.cliente_nombre || pedido.cliente || ""
+            }));
+        };
+
+        function resolverKeyPedido(identificador) {
+            if (pedidosPendientes.has(identificador) || pedidosReparto.has(identificador)) {
+                return identificador;
+            }
+
+            for (const [key, pedido] of pedidosPendientes.entries()) {
+                if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
+                    return key;
+                }
+            }
+
+            for (const [key, pedido] of pedidosReparto.entries()) {
+                if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
+                    return key;
+                }
+            }
+
+            return identificador;
+        }
 
         // Desbloqueo de audio tras la primera interacción del operador.
         document.addEventListener('click', () => {
@@ -482,6 +803,8 @@
 
             onValue(ref(rtdb, "pedidos"), (snapshot) => {
                 pedidosPendientes.clear();
+                const pendientesActuales = new Set();
+                const nuevosPendientes = [];
                 const raiz = snapshot.val();
                 if (raiz && typeof raiz === "object") {
                     Object.entries(raiz).forEach(([key, value]) => {
@@ -495,8 +818,24 @@
                             _rtdbKey: key,
                             __source: "rtdb"
                         });
+
+                        if (String(value.estado || 'pendiente') === 'pendiente') {
+                            pendientesActuales.add(key);
+                            if (!primeraCargaPendientes && !pendientesPrevios.has(key)) {
+                                nuevosPendientes.push({ key, pedido: value });
+                            }
+                        }
                     });
                 }
+
+                pendientesPrevios.clear();
+                pendientesActuales.forEach((key) => pendientesPrevios.add(key));
+
+                if (!primeraCargaPendientes && nuevosPendientes.length > 0) {
+                    nuevosPendientes.forEach(({ key, pedido }) => notificarNuevoPedido(pedido, key));
+                }
+
+                primeraCargaPendientes = false;
                 actualizarPanel();
             }, (error) => {
                 console.error("Error detectado en la sincronización RTDB:", error);
@@ -587,29 +926,47 @@
                 return;
             }
 
-            const pedido = pedidosPendientes.get(id);
+            const keyResuelta = resolverKeyPedido(id);
+            const pedido = pedidosPendientes.get(keyResuelta);
             if (!pedido) {
                 alert('Pedido no encontrado en cocina.');
                 return;
             }
 
             try {
-                const rtdbKey = pedido._rtdbKey || id;
+                const rtdbKey = pedido._rtdbKey || keyResuelta;
+                const estadoOriginal = pedido.estado || 'pendiente';
+
+                // Reflejo inmediato en UI mientras se persiste en backend.
+                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'en_reparto' });
+                actualizarPanel();
+
                 const datos = limpiarPedido(pedido);
                 const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);
-                await setDoc(doc(db, 'pedidos_para_reparto', rtdbKey), {
-                    ...payloadReparto,
-                    actualizado_en: serverTimestamp(),
-                }, { merge: true });
-                logDebug(`setDoc pedidos_para_reparto/${rtdbKey}`);
+
+                // Primero RTDB (flujo critico del panel).
                 await set(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`), payloadReparto);
                 logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
                 await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'en_reparto');
                 logDebug(`set RTDB pedidos/${rtdbKey}/estado=en_reparto`);
+
+                // Firestore es sincronizacion secundaria: no debe bloquear el despacho.
+                try {
+                    await setDoc(doc(db, 'pedidos_para_reparto', rtdbKey), {
+                        ...payloadReparto,
+                        actualizado_en: serverTimestamp(),
+                    }, { merge: true });
+                    logDebug(`setDoc pedidos_para_reparto/${rtdbKey}`);
+                } catch (firestoreError) {
+                    logDebug(`setDoc warning (no bloqueante): ${firestoreError.message}`, 'err');
+                }
+
                 await sumarGanancias(Number(pedido.monto || pedido.total || 0));
                 showToast('Pedido movido a reparto', 'ok');
             } catch (error) {
+                pedidosPendientes.set(keyResuelta, { ...pedido, estado: estadoOriginal });
+                actualizarPanel();
                 logDebug(`MOVE error: ${error.message}`, 'err');
                 showToast(`Error mover a reparto: ${error.message}`, 'err');
                 alert('Error en despacho: ' + error.message);
@@ -622,8 +979,9 @@
             }
 
             try {
-                const pedido = pedidosReparto.get(id) || pedidosPendientes.get(id);
-                const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : id;
+                const keyResuelta = resolverKeyPedido(id);
+                const pedido = pedidosReparto.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
+                const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : keyResuelta;
                 logDebug(`FINISH start key=${rtdbKey}`);
                 await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'entregado');
                 logDebug(`set RTDB pedidos/${rtdbKey}/estado=entregado`);
