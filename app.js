@@ -1,7 +1,11 @@
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 // --- DEPENDENCIAS Y VARIABLES GLOBALES ---
 const axios = require('axios');
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
 
 // --- FUNCIONES DE ALERTA ---
 async function notificarAlertaConexion(mensaje) {
@@ -98,7 +102,6 @@ function inicializarDependientesFirebase() {
     }
 }
 const express = require('express');
-const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
 const cors = require('cors'); 
@@ -108,8 +111,23 @@ const fs = require('fs');
 const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
 const { Resend } = require('resend'); // 1. Importación de Resend
 
-dotenv.config();
 const app = express();
+
+function requireOrderApiKey(req, res, next) {
+    if (!ORDER_INGEST_API_KEY) {
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(503).json({ error: 'ORDER_INGEST_API_KEY no configurada en servidor' });
+        }
+        return next();
+    }
+
+    const provided = String(req.headers['x-api-key'] || '').trim();
+    if (!provided || provided !== ORDER_INGEST_API_KEY) {
+        return res.status(401).json({ error: 'API key invalida' });
+    }
+
+    return next();
+}
 
 function normalizeOrigin(originValue) {
     return String(originValue || '').trim().replace(/\/$/, '').toLowerCase();
@@ -396,7 +414,7 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
 });
 
 // --- RUTA 2.0: CREAR PEDIDO (SMOKE TEST / API) ---
-app.post('/api/pedidos', async (req, res) => {
+app.post('/api/pedidos', requireOrderApiKey, async (req, res) => {
     if (!requireFirebase(res)) return;
 
     try {

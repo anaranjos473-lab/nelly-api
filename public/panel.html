@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Animate.css para animaciones de entrada elegantes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nelly Delivery - Panel de Cocina Central</title>
@@ -11,69 +13,74 @@
         .header { background: var(--primary); color: white; padding: 15px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .status-badge { padding: 6px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; background: #e74c3c; }
         .online { background: #2ecc71 !important; }
-        
         .stats { display: flex; gap: 20px; margin: 20px 0; }
         .stat-card { background: white; padding: 15px; border-radius: 10px; flex: 1; border-left: 5px solid var(--success); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
-        .map-wrapper { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin: 20px 0; }
-        .map-shell { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 12px; align-items: start; }
-        #map { height: 400px; width: 100%; border-radius: 8px; }
-        .map-legend { display: flex; gap: 12px; margin-bottom: 10px; font-size: 0.85rem; color: #334155; }
-        .map-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        .legend-chip { display: inline-flex; align-items: center; gap: 6px; }
-        .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .dot-gray { background: #64748b; }
-        .dot-green { background: #16a34a; }
-        .map-btn { border: 1px solid #cbd5e1; background: white; color: #0f172a; border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; }
-        .map-btn:hover { border-color: #0ea5e9; }
-        .btn-snooze { border: 1px solid #cbd5e1; background: white; color: #0f172a; border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-snooze.active-snooze { background-color: #ff4444; color: white; border-color: #cc0000; }
-        .map-toast { position: fixed; right: 20px; bottom: 20px; background: #0f172a; color: #f8fafc; padding: 10px 12px; border-radius: 8px; font-size: 0.8rem; box-shadow: 0 8px 20px rgba(15,23,42,0.25); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 999; }
-        .map-toast.visible { opacity: 1; transform: translateY(0); }
-        .badge-contador { font-weight: 700; margin-left: 5px; font-size: 0.9em; opacity: 0.5; transition: all 0.3s ease; }
-        .badge-pulse { animation: pulse-badge 0.5s ease-out; }
-
-        .drivers-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; }
-        .drivers-title { margin: 0 0 8px; font-size: 0.95rem; color: #0f172a; }
-        .drivers-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-        .drivers-stat { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 8px; }
-        .drivers-stat small { display: block; color: #64748b; font-size: 0.72rem; }
-        .drivers-stat b { font-size: 1rem; color: #0f172a; }
-        .drivers-feed { list-style: none; margin: 0; padding: 0; max-height: 248px; overflow: auto; }
-        .drivers-feed li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 4px; border-bottom: 1px dashed #cbd5e1; font-size: 0.8rem; }
-        .drivers-feed li:last-child { border-bottom: none; }
-        .driver-uid { color: #0f172a; font-weight: 600; max-width: 145px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .driver-meta { color: #475569; text-align: right; }
-        .drivers-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-        .drivers-filter-btn { border: 1px solid #cbd5e1; background: white; color: #334155; border-radius: 999px; padding: 4px 9px; font-size: 0.75rem; cursor: pointer; }
-        .drivers-filter-btn.active { border-color: #0ea5e9; background: #e0f2fe; color: #0c4a6e; }
-        .state-active { color: #15803d; }
-        .state-free { color: #334155; }
-        .state-offline { color: #b91c1c; }
-        .folio-near { color: #b8860b; font-weight: 800; }
-        .eta-badge { margin-top: 8px; background: #f1f1f1; padding: 4px 8px; border-radius: 12px; font-size: 0.85em; color: #333; display: inline-block; }
-        .eta-badge.inminente { background: #ffd700; color: #000; font-weight: 700; animation: blinker 1.5s linear infinite; }
-        .eta-badge .distancia { margin-left: 6px; opacity: 0.9; }
-
-        @keyframes pulse-badge {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); color: #16a34a; }
-            100% { transform: scale(1); }
+        .dashboard-container {
+            display: flex;
+            gap: 20px;
+            min-height: calc(100vh - 220px);
+            background-color: #f4f7f6;
         }
-
-        @keyframes blinker {
-            50% { opacity: 0.6; }
+        .column {
+            flex: 1;
+            background: #ebedef;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-
-        @media (max-width: 900px) {
-            .map-shell { grid-template-columns: 1fr; }
-            .drivers-feed { max-height: 180px; }
+        .column-header {
+            padding: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 8px solid #fb7185; }
-        .btn-ready { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        .price-tag { color: var(--primary); font-weight: bold; font-size: 1.2rem; margin: 10px 0; }
+        .pendientes { background-color: #e74c3c; }
+        .reparto { background-color: #2ecc71; }
+        .pedidos-grid {
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .badge {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .card-pedido {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+            transition: transform 0.2s ease;
+        }
+        .card-pedido:hover { transform: translateY(-3px); }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .monto { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+        .btn-action {
+            width: 100%;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-success { background-color: #2ecc71; }
+        .btn-success:hover { background-color: #27ae60; }
     </style>
 </head>
 <body>
@@ -94,55 +101,33 @@
         </div>
     </div>
 
-    <div class="map-wrapper">
-        <div class="map-toolbar">
-            <div class="map-legend">
-                <span class="legend-chip"><span class="legend-dot dot-gray"></span>Repartidor libre</span>
-                <span class="legend-chip"><span class="legend-dot dot-green"></span>Repartidor con pedido activo</span>
+    <div class="dashboard-container">
+        <div class="column">
+            <div class="column-header pendientes">
+                <h3>EN COCINA</h3>
+                <span id="count-pendientes" class="badge">0</span>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button id="btnSnoozeProximidad" class="btn-snooze"><span id="iconSnooze">🔔</span><span id="labelSnooze">Silenciar Avisos</span></button>
-                <button id="btnCentrarActivos" class="map-btn">Centrar Activos <span id="contadorActivos" class="badge-contador">(0)</span></button>
-            </div>
+            <div id="contenedor-pendientes" class="pedidos-grid"></div>
         </div>
-        <div class="map-shell">
-            <div id="map"></div>
-            <aside class="drivers-panel">
-                <h3 class="drivers-title">Monitoreo de Flota</h3>
-                <div class="drivers-stats">
-                    <div class="drivers-stat"><small>Total</small><b id="drivers-total">0</b></div>
-                    <div class="drivers-stat"><small>Activos</small><b id="drivers-active">0</b></div>
-                    <div class="drivers-stat"><small>Libres</small><b id="drivers-free">0</b></div>
-                    <div class="drivers-stat"><small>Offline</small><b id="drivers-offline">0</b></div>
-                </div>
-                <div class="drivers-filters" id="drivers-filters">
-                    <button class="drivers-filter-btn active" data-filter="all">Todos</button>
-                    <button class="drivers-filter-btn" data-filter="active">Activos</button>
-                    <button class="drivers-filter-btn" data-filter="free">Libres</button>
-                    <button class="drivers-filter-btn" data-filter="offline">Offline</button>
-                </div>
-                <ul id="drivers-feed" class="drivers-feed"></ul>
-            </aside>
+        <div class="column">
+            <div class="column-header reparto">
+                <h3>EN REPARTO</h3>
+                <span id="count-reparto" class="badge">0</span>
+            </div>
+            <div id="contenedor-reparto" class="pedidos-grid"></div>
         </div>
     </div>
 
-    <div id="contenedor-pedidos" class="grid">
-        <p style="text-align:center; grid-column: 1/-1;">Iniciando sistema...</p>
-    </div>
-
-    <div id="map-toast" class="map-toast"></div>
+    <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
     <script type="module">
         import { db, auth, rtdb } from "./firebase.js";
         import {
-            collection,
             doc,
             onSnapshot,
-            query,
             serverTimestamp,
             setDoc,
             updateDoc,
-            where,
             increment
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
         import {
@@ -150,82 +135,32 @@
             signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import {
-            get,
             onValue,
             ref,
             remove,
             set
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-        const audio = new Audio('alerta.mp3');
-        let contadorPrevio = 0;
         let sincronizacionIniciada = false;
         let authRequestInFlight = false;
-        const firestorePedidos = new Map();
-        const rtdbPedidos = new Map();
-        const rtdbRepartoPedidos = new Map();
-        const rtdbDrivers = new Map();
-        const rtdbPedidosEnCamino = new Map();
-        const API_BASE_URL = "https://nelly-api-81h1.onrender.com";
+        const pedidosPendientes = new Map();
+        const pedidosReparto = new Map();
         const PANEL_TOKEN_ENDPOINTS = [
-            `${API_BASE_URL}/api/auth/panel-token`
+            "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
+            "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
-        const PANEL_TOKEN_TIMEOUT_MS = 25000;
 
-        let map = null;
-        const markers = new Map();
-        let mapReady = false;
-        let pendingFocusPedidoId = null;
-        const STALE_DRIVER_MS = 5 * 60 * 1000;
-        const DRIVER_PANEL_REFRESH_MS = 60 * 1000;
-        const NEAR_DISTANCE_METERS = 500;
-        let driverPanelTickerStarted = false;
-        let etaTickerStarted = false;
-
-        const ICON_GREEN = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
-        const ICON_GRAY = "https://maps.google.com/mapfiles/ms/icons/grey-dot.png";
-        let currentDriversFilter = "all";
-        let mapToastTimer = null;
-        let previousActiveBadgeCount = 0;
-        const etaByPedido = new Map();
-        const notificacionesEnviadas = new Set();
-        const proximityAudioBase = new Audio('alerta.mp3');
-        proximityAudioBase.preload = 'auto';
-        let silencioHasta = 0;
-        let snoozeTimeout = null;
-        let snoozeUiTicker = null;
-
-        window.initMap = initMap;
-
-        document.addEventListener("click", (event) => {
-            const snoozeBtn = event.target?.closest("#btnSnoozeProximidad");
-            if (snoozeBtn) {
-                activarSilencioTemporal();
-                return;
+        // Desbloqueo de audio tras la primera interacción del operador.
+        document.addEventListener('click', () => {
+            const audio = document.getElementById('audio-notificacion');
+            if (audio) {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    console.log("Audio desbloqueado y listo para alertas.");
+                }).catch(() => console.log("Esperando interacción..."));
             }
-
-            const centerBtn = event.target?.closest("#btnCentrarActivos");
-            if (centerBtn) {
-                centrarActivosEnMapa();
-                return;
-            }
-
-            const button = event.target?.closest(".drivers-filter-btn");
-            if (!button) return;
-
-            const filter = button.getAttribute("data-filter") || "all";
-            currentDriversFilter = filter;
-
-            const container = document.getElementById("drivers-filters");
-            container?.querySelectorAll(".drivers-filter-btn").forEach((el) => {
-                el.classList.toggle("active", el.getAttribute("data-filter") === currentDriversFilter);
-            });
-
-            renderDriverOpsPanel();
-            actualizarMapaRepartidores();
-        });
-
-        actualizarUISnooze();
+        }, { once: true });
 
         onAuthStateChanged(auth, (user) => {
             const badge = document.getElementById('badge-estado');
@@ -248,27 +183,18 @@
 
             authRequestInFlight = true;
             const badge = document.getElementById('badge-estado');
-            badge.textContent = "AUTENTICANDO...";
 
             try {
                 let response = null;
                 for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
                     try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), PANEL_TOKEN_TIMEOUT_MS);
-                        const candidate = await fetch(endpoint, {
-                            method: "GET",
-                            signal: controller.signal
-                        });
-                        clearTimeout(timeoutId);
+                        const candidate = await fetch(endpoint, { method: "GET" });
                         if (candidate.ok) {
                             response = candidate;
                             break;
                         }
-                        console.warn("Endpoint respondio con error:", endpoint, candidate.status);
                     } catch (networkError) {
-                        const reason = networkError.name === "AbortError" ? "timeout" : networkError.message;
-                        console.warn("Endpoint no disponible:", endpoint, reason);
+                        console.warn("Endpoint de token no disponible:", endpoint, networkError.message);
                     }
                 }
 
@@ -282,80 +208,25 @@
                 }
 
                 await signInWithCustomToken(auth, data.token);
-                console.log("Panel validado por backend.");
             } catch (error) {
-                badge.textContent = "SIN CONEXION";
-                badge.classList.remove("online");
+                badge.textContent = "ERROR DE ACCESO";
                 console.error("Error en validacion segura:", error.message);
-                // Reintento automatico en 20s en lugar de romper el panel
-                setTimeout(() => {
-                    authRequestInFlight = false;
-                    autenticarPanelConBackend();
-                }, 20000);
-                return;
+                document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
+            } finally {
+                authRequestInFlight = false;
             }
-
-            authRequestInFlight = false;
         }
 
         function iniciarSincronizacion() {
-            const pedidosQuery = query(collection(db, "pedidos"), where("estado", "==", "pendiente"));
             const gananciasRef = doc(db, "metricas", "ganancias_hoy");
-
-            if (!driverPanelTickerStarted) {
-                driverPanelTickerStarted = true;
-                setInterval(() => {
-                    renderDriverOpsPanel();
-                    actualizarMapaRepartidores();
-                }, DRIVER_PANEL_REFRESH_MS);
-            }
-
-            if (!etaTickerStarted) {
-                etaTickerStarted = true;
-                setInterval(() => {
-                    actualizarCountdownETAs();
-                }, 1000);
-            }
 
             onSnapshot(gananciasRef, (snap) => {
                 const total = snap.exists() ? Number(snap.data().total || 0) : 0;
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             });
 
-            onSnapshot(pedidosQuery, (querySnapshot) => {
-                firestorePedidos.clear();
-                querySnapshot.forEach((pedidoDoc) => {
-                    const data = pedidoDoc.data();
-                    firestorePedidos.set(pedidoDoc.id, {
-                        id: pedidoDoc.id,
-                        ...data,
-                        __source: "firestore"
-                    });
-                });
-
-                console.info(`[BRIDGE][FIRESTORE] pedidos pendientes: ${firestorePedidos.size}`);
-                renderizarFusion("firestore");
-            }, (error) => {
-                const container = document.getElementById('contenedor-pedidos');
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#b91c1c;'>Error de sincronización Firestore. Revisa la consola.</p>";
-                console.error("Error detectado en la sincronización Firestore:", error);
-            });
-
             onValue(ref(rtdb, "pedidos"), (snapshot) => {
-                rtdbPedidos.clear();
-                const raiz = snapshot.val();
-                if (raiz) {
-                    recolectarPedidosRtdb(raiz, "", rtdbPedidos);
-                }
-
-                console.info(`[BRIDGE][RTDB] pedidos legado: ${rtdbPedidos.size}`);
-                renderizarFusion("rtdb");
-            }, (error) => {
-                console.error("Error detectado en la sincronización RTDB:", error);
-            });
-
-            onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
-                rtdbRepartoPedidos.clear();
+                pedidosPendientes.clear();
                 const raiz = snapshot.val();
                 if (raiz && typeof raiz === "object") {
                     Object.entries(raiz).forEach(([key, value]) => {
@@ -363,707 +234,137 @@
                             return;
                         }
                         const pedidoId = value.id || key;
-                        rtdbRepartoPedidos.set(pedidoId, {
+                        pedidosPendientes.set(pedidoId, {
                             id: pedidoId,
                             ...value,
-                            __source: "rtdb_reparto",
-                            __enReparto: true
+                            __source: "rtdb"
                         });
                     });
                 }
+                actualizarPanel();
+            }, (error) => {
+                console.error("Error detectado en la sincronización RTDB:", error);
+            });
 
-                console.info(`[BRIDGE][RTDB_REPARTO] pedidos en reparto: ${rtdbRepartoPedidos.size}`);
-                renderizarFusion("rtdb_reparto");
+            onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
+                pedidosReparto.clear();
+                const raiz = snapshot.val();
+                if (raiz && typeof raiz === "object") {
+                    Object.entries(raiz).forEach(([key, value]) => {
+                        if (!value || typeof value !== "object") {
+                            return;
+                        }
+                        const pedidoId = value.id || key;
+                        pedidosReparto.set(pedidoId, {
+                            id: pedidoId,
+                            ...value,
+                            __source: "rtdb_reparto"
+                        });
+                    });
+                }
+                actualizarPanel();
             }, (error) => {
                 console.error("Error detectado en pedidos_para_reparto:", error);
-                alert("No se pudo mover el pedido. Revisa los permisos de Firebase.");
-                mostrarToast("No se pudo mover el pedido. Revisa permisos RTDB.", true);
-            });
-
-            onValue(ref(rtdb, "repartidores"), (snapshot) => {
-                rtdbDrivers.clear();
-                const raiz = snapshot.val();
-
-                if (raiz && typeof raiz === "object") {
-                    Object.entries(raiz).forEach(([uid, value]) => {
-                        if (!value || typeof value !== "object") return;
-                        rtdbDrivers.set(uid, value);
-                    });
-                }
-
-                renderDriverOpsPanel();
-                actualizarMapaRepartidores();
-            }, (error) => {
-                console.error("Error detectado en repartidores:", error);
-            });
-
-            onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
-                rtdbPedidosEnCamino.clear();
-                const raiz = snapshot.val();
-
-                if (raiz && typeof raiz === "object") {
-                    Object.entries(raiz).forEach(([pedidoId, value]) => {
-                        if (!value || typeof value !== "object") return;
-                        const etaRaw = value.eta;
-                        if (etaRaw && typeof etaRaw === "object") {
-                            const durationValue = Number(etaRaw.durationValue || 0);
-                            const updatedAt = Number(etaRaw.updatedAt || Date.now());
-                            etaByPedido.set(pedidoId, {
-                                durationText: etaRaw.durationText || `${Math.ceil(durationValue / 60)} min`,
-                                durationValue,
-                                distanceText: etaRaw.distanceText || "--",
-                                updatedAt,
-                                arrivalAtMs: updatedAt + durationValue * 1000
-                            });
-                        }
-
-                        rtdbPedidosEnCamino.set(pedidoId, {
-                            id: value.id || value.id_pedido || pedidoId,
-                            ...value,
-                            __source: "rtdb_en_camino",
-                            __enCamino: true
-                        });
-                    });
-                }
-
-                renderDriverOpsPanel();
-                actualizarMapaRepartidores();
-                limpiarEtasHuerfanas();
-                renderizarFusion("rtdb_en_camino");
-            }, (error) => {
-                console.error("Error detectado en pedidos_en_camino:", error);
             });
         }
 
-        function recolectarPedidosRtdb(nodo, prefijo, destino) {
-            if (!nodo || typeof nodo !== "object") {
-                return;
-            }
+        /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
+        function actualizarPanel() {
+            const contenedorPendientes = document.getElementById('contenedor-pendientes');
+            const contenedorReparto = document.getElementById('contenedor-reparto');
+            contenedorPendientes.innerHTML = '';
+            contenedorReparto.innerHTML = '';
 
-            Object.entries(nodo).forEach(([key, value]) => {
-                if (!value || typeof value !== "object") {
+            let cPendientes = 0;
+            let cReparto = 0;
+
+            pedidosPendientes.forEach((pedido, id) => {
+                const estado = String(pedido.estado || 'pendiente');
+                if (estado === 'pendiente') {
+                    contenedorPendientes.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, true));
+                    cPendientes++;
+                } else if (estado === 'en_reparto' || estado === 'listo_para_reparto') {
+                    contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
+                    cReparto++;
+                }
+            });
+
+            pedidosReparto.forEach((pedido, id) => {
+                if (pedidosPendientes.has(id)) {
                     return;
                 }
-
-                const pathActual = prefijo ? `${prefijo}/${key}` : key;
-                const parecePedido = value.monto !== undefined
-                    || value.total !== undefined
-                    || value.cliente !== undefined
-                    || value.cliente_nombre !== undefined
-                    || value.estado !== undefined;
-
-                if (parecePedido) {
-                    const pedidoId = value.id || key;
-                    if (destino.has(pedidoId)) {
-                        console.warn(`[BRIDGE][RTDB] ID duplicado detectado en legado: ${pedidoId}. Se conserva la última ocurrencia.`);
-                    }
-
-                    destino.set(pedidoId, {
-                        id: pedidoId,
-                        ...value,
-                        __source: "rtdb",
-                        __legacyPath: pathActual
-                    });
-                    return;
-                }
-
-                recolectarPedidosRtdb(value, pathActual, destino);
+                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'en_reparto' }, id, false));
+                cReparto++;
             });
+
+            document.getElementById('count-pendientes').innerText = String(cPendientes);
+            document.getElementById('count-reparto').innerText = String(cReparto);
+            document.getElementById('contador').innerText = String(cPendientes + cReparto);
         }
 
-        function fusionarPedidos() {
-            const fusion = new Map();
-            rtdbPedidos.forEach((pedido, id) => {
-                fusion.set(id, pedido);
-            });
-
-            rtdbRepartoPedidos.forEach((pedido, id) => {
-                fusion.set(id, pedido);
-            });
-
-            rtdbPedidosEnCamino.forEach((pedido, id) => {
-                fusion.set(id, pedido);
-            });
-
-            firestorePedidos.forEach((pedido, id) => {
-                fusion.set(id, pedido);
-            });
-
-            return Array.from(fusion.values());
-        }
-
-        function mostrarEnCocina(pedido) {
-            const estado = String(pedido?.estado || '').trim().toLowerCase();
-            if (pedido?.__enReparto || pedido?.__source === 'rtdb_reparto') {
-                return false;
-            }
-
-            // Oculta pedidos que ya salieron de la cola de cocina.
-            if (estado === 'en_reparto' || estado === 'esperando_repartidor') {
-                return false;
-            }
-
-            return true;
-        }
-
-        function renderizarFusion(disparador) {
-            const pedidosFusionados = fusionarPedidos();
-            const pedidos = pedidosFusionados.filter(mostrarEnCocina);
-            const container = document.getElementById('contenedor-pedidos');
-            const inicio = Date.now();
-
-            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidosFusionados.length} visibles_cocina=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size} rtdb_reparto=${rtdbRepartoPedidos.size} rtdb_en_camino=${rtdbPedidosEnCamino.size}`);
-
-            if (pedidos.length === 0) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos activos. 🍳</p>";
-                document.getElementById('contador').innerText = "0";
-                contadorPrevio = 0;
-                return;
-            }
-
-            container.innerHTML = "";
-            pedidos.forEach((pedido) => {
-                console.log(`[PEDIDO][${pedido.__source}] id=${pedido.id}`);
-                renderizarTarjeta(pedido);
-            });
-
-            if (pedidos.length > contadorPrevio && contadorPrevio !== 0) {
-                audio.play().catch(() => {
-                    console.log("Audio bloqueado por el navegador");
-                });
-            }
-
-            contadorPrevio = pedidos.length;
-            document.getElementById('contador').innerText = String(pedidos.length);
-            console.info(`[BRIDGE][LATENCY] render_ms=${Date.now() - inicio}`);
-        }
-
-        function renderizarTarjeta(pedido) {
-            const container = document.getElementById('contenedor-pedidos');
-            const id = pedido.id;
+        function generarHTMLTarjeta(pedido, id, esPendiente) {
             const monto = Number(pedido.monto || pedido.total || 0);
-            const cliente = pedido.cliente_nombre || pedido.cliente || 'Usuario Nelly';
-            const fuente = pedido.__source === "firestore"
-                ? "FIRESTORE"
-                : (pedido.__source === "rtdb_en_camino" ? "RTDB EN CAMINO" : "RTDB");
-            const botonAccion = pedido.__enCamino
-                ? "<button class='btn-ready' disabled style='opacity:0.75; cursor:not-allowed; background:#f59e0b;'>EN CAMINO</button>"
-                : (pedido.__enReparto
-                ? "<button class='btn-ready' disabled style='opacity:0.6; cursor:not-allowed;'>YA EN REPARTO</button>"
-                : `<button class="btn-ready" data-id="${id}" data-source="${pedido.__source}" data-monto="${monto}">LISTO PARA REPARTO</button>`);
+            const config = esPendiente
+                ? { texto: 'LISTO PARA REPARTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')` }
+                : { texto: 'ENTREGA COMPLETADA', clase: 'btn-success', funcion: `window.finalizarPedido('${id}')` };
 
-            const distanciaClienteM = distanciaPedidoACliente(pedido);
-            const cercaCliente = pedido.__enCamino && Number.isFinite(distanciaClienteM) && distanciaClienteM <= NEAR_DISTANCE_METERS;
-            const folioClass = cercaCliente ? "folio-near" : "";
-            const etaData = etaByPedido.get(id);
-            const distanciaText = Number.isFinite(distanciaClienteM)
-                ? formatearDistancia(distanciaClienteM)
-                : (etaData?.distanceText || "Sin posicion");
-            const etaInfo = pedido.__enCamino
-                ? `<div id="eta-${id}" class="eta-badge">Moto: ETA pendiente <span class="distancia">(${distanciaText})</span></div>
-                   <div style="margin-top:4px; font-size:0.8rem; color:#92400e;">Llegada: <b class="eta-countdown" data-pedido-id="${id}">--:--</b></div>`
-                : "";
-
-            container.innerHTML += `
-                <div class="card" data-pedido-id="${id}">
-                    <b class="${folioClass}">Folio: #${id.substring(0,6)}</b><br>
-                    <p>👤 ${cliente}</p>
-                    <p>📝 ${pedido.descripcion || 'Sin nota'}</p>
-                    <p style="font-size:0.8rem; color:#475569;">Fuente: ${fuente}</p>
-                    <div class="price-tag">$${monto.toFixed(2)}</div>
-                    ${etaInfo}
-                    ${botonAccion}
-                </div>`;
-
-            if (!pedido.__enReparto) {
-                const button = container.querySelector(`button[data-id="${id}"]`);
-                button.addEventListener('click', () => despachar(pedido, monto));
-            }
-
-            const card = container.querySelector(`.card[data-pedido-id="${id}"]`);
-            card?.addEventListener("click", () => enfocarPedidoEnMapa(id));
-            if (pedido.__enCamino) {
-                renderizarETA(id, etaData);
-            }
-            actualizarCountdownETAs();
-        }
-
-        function renderizarETA(pedidoId, etaData) {
-            const container = document.getElementById(`eta-${pedidoId}`);
-            if (!container || !etaData) return;
-
-            const durationValue = Number(etaData.durationValue || 0);
-            const esInminente = durationValue > 0 && durationValue < 180;
-
-            verificarAlertaProximidad(pedidoId, durationValue);
-
-            container.className = `eta-badge ${esInminente ? 'inminente' : ''}`.trim();
-            container.innerHTML = `
-                Moto: ${etaData.durationText || '--'}
-                <span class="distancia">(${etaData.distanceText || '--'})</span>
+            return `
+                <div class="card-pedido animate__animated animate__fadeIn">
+                    <div class="card-header">
+                        <strong>#${pedido.id_pedido || id.substring(0, 8)}</strong>
+                        <span class="monto">$${monto.toFixed(2)}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="cliente">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
+                        <p class="desc">${pedido.descripcion || 'Sin descripción'}</p>
+                    </div>
+                    <button onclick="${config.funcion}" class="btn-action ${config.clase}">
+                        ${config.texto}
+                    </button>
+                </div>
             `;
         }
 
-        function verificarAlertaProximidad(pedidoId, etaValue) {
-            if (!(etaValue > 0 && etaValue < 180)) {
+        window.moverAReparto = async function(id) {
+            if (!confirm('¿Enviar pedido a la flota de reparto?')) {
                 return;
             }
 
-            if (notificacionesEnviadas.has(pedidoId)) {
+            const pedido = pedidosPendientes.get(id);
+            if (!pedido) {
+                alert('Pedido no encontrado en cocina.');
                 return;
             }
 
-            reproducirSonidoProximidad();
-            notificacionesEnviadas.add(pedidoId);
+            try {
+                const datos = limpiarPedido(pedido);
+                const payloadReparto = construirPayloadReparto({ ...pedido, id }, datos);
+                await setDoc(doc(db, 'pedidos_para_reparto', id), {
+                    ...payloadReparto,
+                    actualizado_en: serverTimestamp(),
+                }, { merge: true });
+                await set(ref(rtdb, `pedidos_para_reparto/${id}`), payloadReparto);
+                await set(ref(rtdb, `pedidos/${id}/estado`), 'en_reparto');
+                await sumarGanancias(Number(pedido.monto || pedido.total || 0));
+            } catch (error) {
+                alert('Error en despacho: ' + error.message);
+            }
+        };
 
-            setTimeout(() => {
-                notificacionesEnviadas.delete(pedidoId);
-            }, 10 * 60 * 1000);
-        }
-
-        function reproducirSonidoProximidad() {
-            if (Date.now() < silencioHasta) {
-                console.log("Aviso de proximidad silenciado por el usuario.");
+        window.finalizarPedido = async function(id) {
+            if (!confirm('¿Confirmar entrega final al cliente?')) {
                 return;
             }
 
-            const disparar = () => {
-                const fx = proximityAudioBase.cloneNode();
-                fx.volume = 0.5;
-                fx.play().catch(() => {
-                    console.warn('Audio bloqueado por el navegador hasta interaccion del usuario.');
-                });
-            };
-
-            disparar();
-            setTimeout(disparar, 260);
-        }
-
-        function activarSilencioTemporal() {
-            silencioHasta = Date.now() + 5 * 60 * 1000;
-            actualizarUISnooze();
-
-            if (snoozeTimeout) {
-                clearTimeout(snoozeTimeout);
+            try {
+                await set(ref(rtdb, `pedidos/${id}/estado`), 'entregado');
+                await set(ref(rtdb, `pedidos/${id}/fecha_finalizado`), Date.now());
+                await remove(ref(rtdb, `pedidos_para_reparto/${id}`));
+            } catch (error) {
+                alert('Error al finalizar: ' + error.message);
             }
-
-            snoozeTimeout = setTimeout(() => {
-                actualizarUISnooze();
-                snoozeTimeout = null;
-            }, 5 * 60 * 1000);
-
-            if (!snoozeUiTicker) {
-                snoozeUiTicker = setInterval(() => {
-                    if (Date.now() >= silencioHasta) {
-                        clearInterval(snoozeUiTicker);
-                        snoozeUiTicker = null;
-                    }
-                    actualizarUISnooze();
-                }, 1000);
-            }
-        }
-
-        function actualizarUISnooze() {
-            const isSilenciado = Date.now() < silencioHasta;
-            const btn = document.getElementById("btnSnoozeProximidad");
-            const icon = document.getElementById("iconSnooze");
-            const label = document.getElementById("labelSnooze");
-            if (!btn || !icon || !label) {
-                return;
-            }
-
-            if (isSilenciado) {
-                const remainingMs = Math.max(0, silencioHasta - Date.now());
-                const remainingSec = Math.ceil(remainingMs / 1000);
-                const min = Math.floor(remainingSec / 60);
-                const sec = remainingSec % 60;
-
-                btn.classList.add("active-snooze");
-                icon.textContent = "🔕";
-                label.textContent = `Silenciado (${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")})`;
-            } else {
-                btn.classList.remove("active-snooze");
-                icon.textContent = "🔔";
-                label.textContent = "Silenciar Avisos";
-            }
-        }
-
-        function obtenerClienteCoords(pedido) {
-            const cliente = pedido?.cliente?.coords || {};
-            const lat = Number(
-                pedido?.cliente_lat
-                ?? pedido?.lat_cliente
-                ?? pedido?.latCliente
-                ?? cliente.lat
-            );
-            const lng = Number(
-                pedido?.cliente_lng
-                ?? pedido?.lng_cliente
-                ?? pedido?.lngCliente
-                ?? cliente.lng
-                ?? pedido?.cliente_lon
-            );
-
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-            return { lat, lng };
-        }
-
-        function obtenerDriverCoords(pedido) {
-            const dl = pedido?.driverLocation || {};
-            const lat = Number(dl.lat);
-            const lng = Number(dl.lng);
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-            return { lat, lng };
-        }
-
-        function distanciaPedidoACliente(pedido) {
-            const driver = obtenerDriverCoords(pedido);
-            const cliente = obtenerClienteCoords(pedido);
-            if (!driver || !cliente) return null;
-
-            const R = 6371e3;
-            const phi1 = driver.lat * Math.PI / 180;
-            const phi2 = cliente.lat * Math.PI / 180;
-            const dPhi = (cliente.lat - driver.lat) * Math.PI / 180;
-            const dLambda = (cliente.lng - driver.lng) * Math.PI / 180;
-
-            const a = Math.sin(dPhi / 2) ** 2
-                + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
-
-        function formatearDistancia(metros) {
-            if (!Number.isFinite(metros)) return "--";
-            if (metros < 1000) return `${Math.round(metros)} m`;
-            return `${(metros / 1000).toFixed(2)} km`;
-        }
-
-        function formatearCountdown(ms) {
-            if (!Number.isFinite(ms)) return "--:--";
-            const totalSec = Math.max(0, Math.floor(ms / 1000));
-            const min = Math.floor(totalSec / 60);
-            const sec = totalSec % 60;
-            return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-        }
-
-        function limpiarEtasHuerfanas() {
-            for (const pedidoId of etaByPedido.keys()) {
-                if (!rtdbPedidosEnCamino.has(pedidoId)) {
-                    etaByPedido.delete(pedidoId);
-                    notificacionesEnviadas.delete(pedidoId);
-                }
-            }
-        }
-
-        function actualizarCountdownETAs() {
-            const nodes = document.querySelectorAll(".eta-countdown");
-            const now = Date.now();
-
-            nodes.forEach((node) => {
-                const pedidoId = node.getAttribute("data-pedido-id");
-                if (!pedidoId) {
-                    node.textContent = "--:--";
-                    return;
-                }
-
-                const eta = etaByPedido.get(pedidoId);
-                if (!eta) {
-                    node.textContent = "--:--";
-                    return;
-                }
-
-                const remainingMs = Number(eta.arrivalAtMs || 0) - now;
-                node.textContent = formatearCountdown(remainingMs);
-            });
-        }
-
-        function initMap() {
-            if (!window.google || !window.google.maps) {
-                console.warn("Google Maps no esta disponible.");
-                return;
-            }
-
-            const mapElement = document.getElementById("map");
-            if (!mapElement) {
-                return;
-            }
-
-            map = new google.maps.Map(mapElement, {
-                zoom: 13,
-                center: { lat: 16.7527, lng: -93.1167 },
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true
-            });
-
-            mapReady = true;
-            actualizarMapaRepartidores();
-        }
-
-        function obtenerCoordenadasDriver(driverData) {
-            if (!driverData || typeof driverData !== "object") return null;
-            const loc = driverData.currentLocation;
-            if (!loc || typeof loc !== "object") return null;
-
-            const lat = Number(loc.lat);
-            const lng = Number(loc.lng);
-            const updatedAt = Number(loc.updatedAt || 0);
-
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-            if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-
-            return { lat, lng, updatedAt };
-        }
-
-        function pedidoActivoParaDriver(uid) {
-            for (const [, pedido] of rtdbPedidosEnCamino) {
-                if (!pedido || typeof pedido !== "object") continue;
-
-                const driverLocationUid = pedido.driverLocation?.driverUid;
-                const repartidorUid = pedido.repartidor;
-
-                if (driverLocationUid === uid || repartidorUid === uid) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        function formatAgo(updatedAt) {
-            if (!Number.isFinite(updatedAt) || updatedAt <= 0) {
-                return "sin ping";
-            }
-
-            const delta = Math.max(0, Date.now() - updatedAt);
-            const sec = Math.floor(delta / 1000);
-            if (sec < 60) return `${sec}s`;
-            const min = Math.floor(sec / 60);
-            if (min < 60) return `${min}m`;
-            const hr = Math.floor(min / 60);
-            return `${hr}h`;
-        }
-
-        function getDriverState(uid, driverData, now) {
-            const coords = obtenerCoordenadasDriver(driverData);
-            const updatedAt = coords?.updatedAt || 0;
-            const stale = !coords || (updatedAt > 0 && now - updatedAt > STALE_DRIVER_MS);
-
-            let state = "offline";
-            if (!stale) {
-                state = pedidoActivoParaDriver(uid) ? "active" : "free";
-            }
-
-            return { state, coords, updatedAt, stale };
-        }
-
-        function renderDriverOpsPanel() {
-            const totalEl = document.getElementById("drivers-total");
-            const activeEl = document.getElementById("drivers-active");
-            const freeEl = document.getElementById("drivers-free");
-            const offlineEl = document.getElementById("drivers-offline");
-            const feedEl = document.getElementById("drivers-feed");
-
-            if (!totalEl || !activeEl || !freeEl || !offlineEl || !feedEl) {
-                return;
-            }
-
-            const now = Date.now();
-            let total = 0;
-            let active = 0;
-            let free = 0;
-            let offline = 0;
-            const rows = [];
-
-            for (const [uid, driverData] of rtdbDrivers) {
-                total += 1;
-                const { state, updatedAt } = getDriverState(uid, driverData, now);
-
-                if (state === "active") active += 1;
-                else if (state === "free") free += 1;
-                else offline += 1;
-
-                rows.push({ uid, state, updatedAt });
-            }
-
-            totalEl.textContent = String(total);
-            activeEl.textContent = String(active);
-            freeEl.textContent = String(free);
-            offlineEl.textContent = String(offline);
-            actualizarContadorBotonActivos(active);
-
-            rows.sort((a, b) => b.updatedAt - a.updatedAt);
-            const filteredRows = currentDriversFilter === "all"
-                ? rows
-                : rows.filter((row) => row.state === currentDriversFilter);
-
-            const view = filteredRows.slice(0, 10).map((row) => {
-                const stateLabel = row.state === "active"
-                    ? "Activo"
-                    : (row.state === "free" ? "Libre" : "Offline");
-
-                return `<li>
-                    <span class="driver-uid" title="${row.uid}">${row.uid}</span>
-                    <span class="driver-meta">
-                        <b class="state-${row.state}">${stateLabel}</b><br>
-                        <small>Ping: ${formatAgo(row.updatedAt)}</small>
-                    </span>
-                </li>`;
-            });
-
-            feedEl.innerHTML = view.join("") || "<li>Sin repartidores para este filtro.</li>";
-        }
-
-        function actualizarContadorBotonActivos(totalActivos) {
-            const contador = document.getElementById("contadorActivos");
-            if (!contador) {
-                return;
-            }
-
-            contador.textContent = `(${totalActivos})`;
-            contador.style.opacity = totalActivos > 0 ? "1" : "0.5";
-
-            if (totalActivos > previousActiveBadgeCount) {
-                contador.classList.remove("badge-pulse");
-                void contador.offsetWidth;
-                contador.classList.add("badge-pulse");
-                setTimeout(() => {
-                    contador.classList.remove("badge-pulse");
-                }, 550);
-            }
-
-            previousActiveBadgeCount = totalActivos;
-        }
-
-        function centrarActivosEnMapa() {
-            if (!mapReady || !map || !window.google || !window.google.maps) {
-                mostrarMapToast("El mapa aun no esta listo.");
-                return;
-            }
-
-            const now = Date.now();
-            const bounds = new google.maps.LatLngBounds();
-            let totalActivos = 0;
-
-            for (const [uid, driverData] of rtdbDrivers) {
-                const { state, coords, stale } = getDriverState(uid, driverData, now);
-                if (state !== "active" || !coords || stale) {
-                    continue;
-                }
-
-                bounds.extend({ lat: coords.lat, lng: coords.lng });
-                totalActivos += 1;
-            }
-
-            if (totalActivos === 0) {
-                mostrarMapToast("No hay repartidores activos con ubicacion vigente.");
-                return;
-            }
-
-            if (totalActivos === 1) {
-                map.panTo(bounds.getCenter());
-                map.setZoom(15);
-                return;
-            }
-
-            map.fitBounds(bounds, 40);
-        }
-
-        function mostrarMapToast(mensaje) {
-            const toast = document.getElementById("map-toast");
-            if (!toast) return;
-
-            toast.textContent = mensaje;
-            toast.classList.add("visible");
-
-            if (mapToastTimer) {
-                clearTimeout(mapToastTimer);
-            }
-
-            mapToastTimer = setTimeout(() => {
-                toast.classList.remove("visible");
-                mapToastTimer = null;
-            }, 2200);
-        }
-
-        function actualizarMapaRepartidores() {
-            renderDriverOpsPanel();
-
-            if (!mapReady || !map) {
-                return;
-            }
-
-            const now = Date.now();
-            const presentes = new Set();
-
-            for (const [uid, driverData] of rtdbDrivers) {
-                const { state, coords, stale } = getDriverState(uid, driverData, now);
-                if (!coords || stale) {
-                    continue;
-                }
-
-                if (currentDriversFilter !== "all" && state !== currentDriversFilter) {
-                    continue;
-                }
-
-                const pos = { lat: coords.lat, lng: coords.lng };
-                const icon = state === "active" ? ICON_GREEN : ICON_GRAY;
-                presentes.add(uid);
-
-                if (markers.has(uid)) {
-                    const marker = markers.get(uid);
-                    marker.setPosition(pos);
-                    marker.setIcon(icon);
-                } else {
-                    const marker = new google.maps.Marker({
-                        position: pos,
-                        map,
-                        title: `Repartidor: ${uid}`,
-                        icon
-                    });
-                    markers.set(uid, marker);
-                }
-            }
-
-            for (const [uid, marker] of markers) {
-                if (!presentes.has(uid)) {
-                    marker.setMap(null);
-                    markers.delete(uid);
-                }
-            }
-
-            if (pendingFocusPedidoId) {
-                enfocarPedidoEnMapa(pendingFocusPedidoId);
-            }
-        }
-
-        function enfocarPedidoEnMapa(pedidoId) {
-            pendingFocusPedidoId = pedidoId;
-            if (!mapReady || !map) {
-                return;
-            }
-
-            const pedido = rtdbPedidosEnCamino.get(pedidoId);
-            if (!pedido || typeof pedido !== "object") {
-                return;
-            }
-
-            const dl = pedido.driverLocation;
-            if (!dl || typeof dl !== "object") {
-                return;
-            }
-
-            const lat = Number(dl.lat);
-            const lng = Number(dl.lng);
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                return;
-            }
-
-            map.panTo({ lat, lng });
-            map.setZoom(15);
-        }
+        };
+        /* === [FIN BLOQUE NUEVO] === */
 
         function limpiarPedido(pedido) {
             const limpio = { ...pedido };
@@ -1113,94 +414,7 @@
             });
         }
 
-        async function despachar(pedido, monto) {
-            if (!confirm("¿Mover pedido a la flota de repartidores?")) {
-                return;
-            }
 
-            try {
-                // --- RTDB: flujo robusto ---
-                const pedidoId = pedido.id;
-                let pedidoSnap;
-                console.info(`[DESPACHAR] Intentando leer pedido: ${pedido.__legacyPath || pedidoId}`);
-                if (pedido.__legacyPath) {
-                    pedidoSnap = await get(ref(rtdb, `pedidos/${pedido.__legacyPath}`));
-                } else {
-                    pedidoSnap = await get(ref(rtdb, `pedidos/${pedidoId}`));
-                }
-                if (!pedidoSnap.exists()) {
-                    alert("El pedido ya no existe.");
-                    console.warn(`[DESPACHAR] Pedido no existe en RTDB: ${pedido.__legacyPath || pedidoId}`);
-                    return;
-                }
-                const pedidoRtdb = pedidoSnap.val();
-
-                // 2. Crear el nodo en pedidos_para_reparto
-                console.info(`[DESPACHAR] Moviendo a pedidos_para_reparto/${pedidoId}`);
-                await set(ref(rtdb, `pedidos_para_reparto/${pedidoId}`), {
-                    ...pedidoRtdb,
-                    estado: "esperando_repartidor",
-                    hora_cocina: new Date().toISOString(),
-                    fuente_origen: "panel_web"
-                });
-                console.info(`[DESPACHAR] Pedido movido a pedidos_para_reparto/${pedidoId}`);
-
-                // 3. Eliminar el pedido original
-                console.info(`[DESPACHAR] Eliminando de pedidos/${pedido.__legacyPath || pedidoId}`);
-                if (pedido.__legacyPath) {
-                    await remove(ref(rtdb, `pedidos/${pedido.__legacyPath}`));
-                } else {
-                    await remove(ref(rtdb, `pedidos/${pedidoId}`));
-                }
-                console.info(`[DESPACHAR] Pedido eliminado de pedidos/${pedido.__legacyPath || pedidoId}`);
-
-                // 4. Ganancias (Firestore)
-                await sumarGanancias(monto);
-
-                // 5. Forzar render si el listener no lo hace (opcional)
-                // renderizarFusion("rtdb");
-
-                // 6. Log visual
-                mostrarToast("Pedido despachado correctamente.");
-            } catch (e) {
-                alert("No se pudo mover el pedido. Revisa los permisos de Firebase. Detalle: " + (e?.message || e));
-                mostrarToast("Error al despachar: " + (e?.message || e), true);
-                console.error("[DESPACHAR][ERROR]", e);
-                if (e?.code) {
-                    console.error("[DESPACHAR][ERROR_CODE]", e.code);
-                }
-                if (e?.stack) {
-                    console.error("[DESPACHAR][STACK]", e.stack);
-                }
-            }
-        }
-
-        // Toast visual para feedback
-        function mostrarToast(mensaje, error = false) {
-            let toast = document.getElementById("panel-toast");
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "panel-toast";
-                toast.style.position = "fixed";
-                toast.style.bottom = "30px";
-                toast.style.right = "30px";
-                toast.style.zIndex = "9999";
-                toast.style.background = error ? "#b91c1c" : "#16a34a";
-                toast.style.color = "#fff";
-                toast.style.padding = "14px 22px";
-                toast.style.borderRadius = "10px";
-                toast.style.fontSize = "1rem";
-                toast.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
-                document.body.appendChild(toast);
-            }
-            toast.textContent = mensaje;
-            toast.style.background = error ? "#b91c1c" : "#16a34a";
-            toast.style.opacity = "1";
-            setTimeout(() => {
-                toast.style.opacity = "0";
-            }, 3200);
-        }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_MAPS&callback=initMap" async defer></script>
 </body>
 </html>
