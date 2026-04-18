@@ -1,3 +1,102 @@
+
+// --- DEPENDENCIAS Y VARIABLES GLOBALES ---
+const axios = require('axios');
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+// --- FUNCIONES DE ALERTA ---
+async function notificarAlertaConexion(mensaje) {
+    if (!DISCORD_WEBHOOK_URL) return;
+    try {
+        await axios.post(DISCORD_WEBHOOK_URL, {
+            content: `🚨 **ALERTA NELLY**: ${mensaje}`
+        });
+    } catch (e) {
+        console.error('[ALERTA][WEBHOOK] Fallo al notificar:', e.message);
+    }
+}
+async function notificarAlertaCritica(mensaje) {
+    if (!DISCORD_WEBHOOK_URL) return;
+    try {
+        await axios.post(DISCORD_WEBHOOK_URL, {
+            content: `🚨 **ALERTA NELLY**: ${mensaje}`
+        });
+    } catch (e) {
+        console.error('[ALERTA][WEBHOOK] Fallo al notificar:', e.message);
+    }
+}
+
+// Log global de errores y rechazos no capturados
+process.on('uncaughtException', async (err) => {
+    console.error('❌ [GLOBAL][uncaughtException]', err);
+    await notificarAlertaCritica(`Error crítico en producción: ${err.message}`);
+    process.exit(1);
+});
+process.on('unhandledRejection', async (reason, promise) => {
+    console.error('❌ [GLOBAL][unhandledRejection]', reason);
+    await notificarAlertaCritica(`Rechazo no capturado: ${reason}`);
+});
+
+// Pulso local para mantener logs y actividad (también fuera de producción)
+setInterval(() => {
+    console.log("💓 Pulso local: Nelly sigue activa...");
+}, 30000); // Cada 30 segundos
+// --- INICIALIZACIÓN DE FIREBASE Y BLOQUES DEPENDIENTES ---
+let firebaseAdminInitialized = false;
+let db = null;
+
+// ...código de inicialización de Firebase y db...
+
+// --- BLOQUES QUE DEPENDEN DE FIREBASE ---
+function inicializarDependientesFirebase() {
+    // Monitor de salud de Firebase
+    if (firebaseAdminInitialized && db) {
+        const dbStatusRef = db.ref(".info/connected");
+        dbStatusRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                console.log("✅ Conectado a Firebase RTDB");
+            } else {
+                const msg = "Nelly perdió conexión con la base de datos.";
+                console.error("🚨 ALERTA: " + msg);
+                notificarAlertaConexion(msg);
+            }
+        });
+
+        // Limpieza automática de pedidos de prueba al arrancar
+        (async function limpiarPruebas() {
+            try {
+                console.log("🧹 Iniciando limpieza de pedidos de prueba...");
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.once('value');
+                snapshot.forEach((child) => {
+                    if (child.key.startsWith('test_') || child.key.startsWith('AUTO_')) {
+                        child.ref.remove();
+                    }
+                });
+                console.log("✨ Base de datos limpia de logs de prueba.");
+            } catch (e) {
+                console.error("❌ Error limpiando pruebas:", e.message);
+            }
+        })();
+
+        // Ejecución periódica del smoke test
+        try {
+            const cron = require('node-cron');
+            cron.schedule('*/15 * * * *', () => {
+                console.log('⏱️ Ejecutando smoke-test.js (cada 15 minutos)...');
+                require('child_process').exec('node smoke-test.js', (err, stdout, stderr) => {
+                    if (err) {
+                        console.error('❌ Error ejecutando smoke-test.js:', err.message);
+                    } else {
+                        console.log(stdout);
+                        if (stderr) console.error(stderr);
+                    }
+                });
+            });
+        } catch (e) {
+            console.error('No se pudo cargar node-cron para el smoke test automático:', e.message);
+        }
+    }
+}
 const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
@@ -6,7 +105,6 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const admin = require('firebase-admin');
 const fs = require('fs');
-const axios = require('axios');
 const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
 const { Resend } = require('resend'); // 1. Importación de Resend
 
@@ -78,48 +176,48 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN 
 const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
 const googleMapsClient = new GoogleMapsClient({});
 
+
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
-let firebaseAdminInitialized = false;
-let db = null;
 try {
-  let serviceAccount;
-  const secretPath = "/etc/secrets/nelly-admin.json"; 
+    let serviceAccount;
+    const secretPath = "/etc/secrets/nelly-admin.json"; 
 
-  if (fs.existsSync(secretPath)) {
-    serviceAccount = require(secretPath);
-    console.log('✅ Firebase Admin: Cargado desde Secret File en Render');
-  } else if (process.env.FIREBASE_ADMIN_JSON) {
-    const rawEnv = process.env.FIREBASE_ADMIN_JSON;
-    serviceAccount = rawEnv.trim().startsWith('{') 
-      ? JSON.parse(rawEnv) 
-      : JSON.parse(Buffer.from(rawEnv, 'base64').toString('utf8'));
-    console.log('ℹ️ Firebase Admin: Cargado desde FIREBASE_ADMIN_JSON');
-  } else {
-    serviceAccount = require('./nelly-admin.json');
-    console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
-  }
+    if (fs.existsSync(secretPath)) {
+        serviceAccount = require(secretPath);
+        console.log('✅ Firebase Admin: Cargado desde Secret File en Render');
+    } else if (process.env.FIREBASE_ADMIN_JSON) {
+        const rawEnv = process.env.FIREBASE_ADMIN_JSON;
+        serviceAccount = rawEnv.trim().startsWith('{') 
+            ? JSON.parse(rawEnv) 
+            : JSON.parse(Buffer.from(rawEnv, 'base64').toString('utf8'));
+        console.log('ℹ️ Firebase Admin: Cargado desde FIREBASE_ADMIN_JSON');
+    } else {
+        serviceAccount = require('./nelly-admin.json');
+        console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
+    }
 
-  const firebaseDatabaseUrl = process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com";
-  if (!process.env.FIREBASE_DATABASE_URL) {
-    console.warn('⚠️ FIREBASE_DATABASE_URL no está configurada. En Render, fija esta variable de entorno al URL de tu proyecto Firebase RTDB.');
-  }
+    const firebaseDatabaseUrl = process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com";
+    if (!process.env.FIREBASE_DATABASE_URL) {
+        console.warn('⚠️ FIREBASE_DATABASE_URL no está configurada. En Render, fija esta variable de entorno al URL de tu proyecto Firebase RTDB.');
+    }
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: firebaseDatabaseUrl
-  });
-  db = admin.database();
-  firebaseAdminInitialized = true;
-  console.log('✅ Firebase Admin conectado exitosamente');
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: firebaseDatabaseUrl
+    });
+    db = admin.database();
+    firebaseAdminInitialized = true;
+    console.log('✅ Firebase Admin conectado exitosamente');
+    inicializarDependientesFirebase();
 } catch (error) {
-  console.error("❌ Error Crítico Firebase:", error.message);
-  if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
-    console.error('⚠️ Verifica la clave de servicio de Firebase en nelly-admin.json o la variable FIREBASE_ADMIN_JSON.');
-    console.error('   - Asegúrate de que el archivo no esté revocado.');
-    console.error('   - Revisa que la clave JSON sea la correcta para el proyecto.');
-    console.error('   - Si usas env var, valida que sea JSON válido o base64 válido.');
-    console.error('   - Si el problema persiste, sincroniza el reloj del servidor.');
-  }
+    console.error("❌ Error Crítico Firebase:", error.message);
+    if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
+        console.error('⚠️ Verifica la clave de servicio de Firebase en nelly-admin.json o la variable FIREBASE_ADMIN_JSON.');
+        console.error('   - Asegúrate de que el archivo no esté revocado.');
+        console.error('   - Revisa que la clave JSON sea la correcta para el proyecto.');
+        console.error('   - Si usas env var, valida que sea JSON válido o base64 válido.');
+        console.error('   - Si el problema persiste, sincroniza el reloj del servidor.');
+    }
 }
 
 // --- Verificación inmediata de Firebase Admin ---
@@ -295,6 +393,40 @@ app.post('/api/pedidos/cotizar', async (req, res) => {
             backend_data: { ganancia_repartidor: gananciaRepartidor.toFixed(2) }
         });
     } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
+});
+
+// --- RUTA 2.0: CREAR PEDIDO (SMOKE TEST / API) ---
+app.post('/api/pedidos', async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    try {
+        const payload = req.body || {};
+        const baseId = payload.id_pedido || payload.id || `test_${Date.now()}`;
+        const pedidoId = String(baseId).trim();
+
+        if (!pedidoId) {
+            return res.status(400).json({ error: 'id_pedido es requerido' });
+        }
+
+        const nuevoPedido = {
+            id: pedidoId,
+            id_pedido: pedidoId,
+            cliente_nombre: payload.cliente_nombre || payload.cliente || 'Cliente Anonimo',
+            descripcion: payload.descripcion || payload.items || 'Sin descripcion',
+            monto: Number(payload.monto || payload.total || 0),
+            estado: 'pendiente',
+            timestamp: Date.now(),
+            fecha_creacion: new Date().toISOString()
+        };
+
+        await db.ref(`pedidos/${pedidoId}`).set(nuevoPedido);
+        console.log(`✅ Pedido inyectado con exito: ${pedidoId}`);
+
+        return res.status(201).json({ mensaje: 'Pedido creado', data: nuevoPedido });
+    } catch (error) {
+        console.error('❌ Error en POST /api/pedidos:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
 });
 
 // --- RUTA 2.1: PEDIDO LISTO ---
