@@ -150,6 +150,7 @@
             signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import {
+            get,
             onValue,
             ref,
             remove,
@@ -375,6 +376,8 @@
                 renderizarFusion("rtdb_reparto");
             }, (error) => {
                 console.error("Error detectado en pedidos_para_reparto:", error);
+                alert("No se pudo mover el pedido. Revisa los permisos de Firebase.");
+                mostrarToast("No se pudo mover el pedido. Revisa permisos RTDB.", true);
             });
 
             onValue(ref(rtdb, "repartidores"), (snapshot) => {
@@ -489,12 +492,27 @@
             return Array.from(fusion.values());
         }
 
+        function mostrarEnCocina(pedido) {
+            const estado = String(pedido?.estado || '').trim().toLowerCase();
+            if (pedido?.__enReparto || pedido?.__source === 'rtdb_reparto') {
+                return false;
+            }
+
+            // Oculta pedidos que ya salieron de la cola de cocina.
+            if (estado === 'en_reparto' || estado === 'esperando_repartidor') {
+                return false;
+            }
+
+            return true;
+        }
+
         function renderizarFusion(disparador) {
-            const pedidos = fusionarPedidos();
+            const pedidosFusionados = fusionarPedidos();
+            const pedidos = pedidosFusionados.filter(mostrarEnCocina);
             const container = document.getElementById('contenedor-pedidos');
             const inicio = Date.now();
 
-            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size} rtdb_reparto=${rtdbRepartoPedidos.size} rtdb_en_camino=${rtdbPedidosEnCamino.size}`);
+            console.info(`[BRIDGE][MERGE] trigger=${disparador} total=${pedidosFusionados.length} visibles_cocina=${pedidos.length} firestore=${firestorePedidos.size} rtdb=${rtdbPedidos.size} rtdb_reparto=${rtdbRepartoPedidos.size} rtdb_en_camino=${rtdbPedidosEnCamino.size}`);
 
             if (pedidos.length === 0) {
                 container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay pedidos activos. 🍳</p>";
@@ -1101,36 +1119,86 @@
             }
 
             try {
-                const datos = limpiarPedido(pedido);
-                const repartoRefFs = doc(db, "pedidos_para_reparto", pedido.id);
-                const repartoRefRtdb = ref(rtdb, `pedidos_para_reparto/${pedido.id}`);
-                const payloadReparto = construirPayloadReparto(pedido, datos);
-
-                await setDoc(repartoRefFs, {
-                    ...payloadReparto,
-                    actualizado_en: serverTimestamp(),
-                }, { merge: true });
-
-                // Mantiene compatibilidad con la app repartidor basada en RTDB.
-                await set(repartoRefRtdb, payloadReparto);
-
-                if (pedido.__source === "firestore") {
-                    const pedidoRefFs = doc(db, "pedidos", pedido.id);
-                    await updateDoc(pedidoRefFs, {
-                        estado: "listo_para_reparto",
-                        atendido_por: "cocina_web",
-                        atendido_en: serverTimestamp()
-                    });
+                // --- RTDB: flujo robusto ---
+                const pedidoId = pedido.id;
+                let pedidoSnap;
+                console.info(`[DESPACHAR] Intentando leer pedido: ${pedido.__legacyPath || pedidoId}`);
+                if (pedido.__legacyPath) {
+                    pedidoSnap = await get(ref(rtdb, `pedidos/${pedido.__legacyPath}`));
                 } else {
-                    const legacyPath = pedido.__legacyPath || pedido.id;
-                    const pedidoRefRtdb = ref(rtdb, `pedidos/${legacyPath}`);
-                    await remove(pedidoRefRtdb);
+                    pedidoSnap = await get(ref(rtdb, `pedidos/${pedidoId}`));
                 }
+                if (!pedidoSnap.exists()) {
+                    alert("El pedido ya no existe.");
+                    console.warn(`[DESPACHAR] Pedido no existe en RTDB: ${pedido.__legacyPath || pedidoId}`);
+                    return;
+                }
+                const pedidoRtdb = pedidoSnap.val();
 
+                // 2. Crear el nodo en pedidos_para_reparto
+                console.info(`[DESPACHAR] Moviendo a pedidos_para_reparto/${pedidoId}`);
+                await set(ref(rtdb, `pedidos_para_reparto/${pedidoId}`), {
+                    ...pedidoRtdb,
+                    estado: "esperando_repartidor",
+                    hora_cocina: new Date().toISOString(),
+                    fuente_origen: "panel_web"
+                });
+                console.info(`[DESPACHAR] Pedido movido a pedidos_para_reparto/${pedidoId}`);
+
+                // 3. Eliminar el pedido original
+                console.info(`[DESPACHAR] Eliminando de pedidos/${pedido.__legacyPath || pedidoId}`);
+                if (pedido.__legacyPath) {
+                    await remove(ref(rtdb, `pedidos/${pedido.__legacyPath}`));
+                } else {
+                    await remove(ref(rtdb, `pedidos/${pedidoId}`));
+                }
+                console.info(`[DESPACHAR] Pedido eliminado de pedidos/${pedido.__legacyPath || pedidoId}`);
+
+                // 4. Ganancias (Firestore)
                 await sumarGanancias(monto);
+
+                // 5. Forzar render si el listener no lo hace (opcional)
+                // renderizarFusion("rtdb");
+
+                // 6. Log visual
+                mostrarToast("Pedido despachado correctamente.");
             } catch (e) {
-                alert("Error al despachar: " + e.message);
+                alert("No se pudo mover el pedido. Revisa los permisos de Firebase. Detalle: " + (e?.message || e));
+                mostrarToast("Error al despachar: " + (e?.message || e), true);
+                console.error("[DESPACHAR][ERROR]", e);
+                if (e?.code) {
+                    console.error("[DESPACHAR][ERROR_CODE]", e.code);
+                }
+                if (e?.stack) {
+                    console.error("[DESPACHAR][STACK]", e.stack);
+                }
             }
+        }
+
+        // Toast visual para feedback
+        function mostrarToast(mensaje, error = false) {
+            let toast = document.getElementById("panel-toast");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "panel-toast";
+                toast.style.position = "fixed";
+                toast.style.bottom = "30px";
+                toast.style.right = "30px";
+                toast.style.zIndex = "9999";
+                toast.style.background = error ? "#b91c1c" : "#16a34a";
+                toast.style.color = "#fff";
+                toast.style.padding = "14px 22px";
+                toast.style.borderRadius = "10px";
+                toast.style.fontSize = "1rem";
+                toast.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)";
+                document.body.appendChild(toast);
+            }
+            toast.textContent = mensaje;
+            toast.style.background = error ? "#b91c1c" : "#16a34a";
+            toast.style.opacity = "1";
+            setTimeout(() => {
+                toast.style.opacity = "0";
+            }, 3200);
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY_MAPS&callback=initMap" async defer></script>
