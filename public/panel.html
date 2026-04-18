@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Animate.css para animaciones de entrada elegantes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nelly Delivery - Panel de Cocina Central</title>
@@ -59,6 +57,12 @@
             transition: transform 0.2s ease;
         }
         .card-pedido:hover { transform: translateY(-3px); }
+        .animate__animated { animation-duration: 450ms; animation-fill-mode: both; }
+        .animate__fadeIn { animation-name: fadeInNelly; }
+        @keyframes fadeInNelly {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -81,6 +85,97 @@
         .btn-danger:hover { background-color: #c0392b; }
         .btn-success { background-color: #2ecc71; }
         .btn-success:hover { background-color: #27ae60; }
+        .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-filtro, .btn-download {
+            border: none;
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-filtro { background: #ecf0f1; color: #2c3e50; }
+        .btn-download { background: #16a085; color: #fff; }
+        #tabla-historial th, #tabla-historial td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.95rem;
+        }
+        #tabla-historial thead th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .badge-success {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .debug-btn {
+            position: fixed;
+            right: 10px;
+            top: 54px;
+            z-index: 1001;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 10px;
+            background: #111827;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .debug-panel {
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+            width: 360px;
+            max-height: 240px;
+            overflow: auto;
+            z-index: 1002;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            font-size: 12px;
+            display: none;
+        }
+        .debug-row { margin-bottom: 6px; line-height: 1.35; }
+        .debug-row.ok { color: #86efac; }
+        .debug-row.err { color: #fca5a5; }
+        .toast-wrap {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .toast {
+            background: #1f2937;
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .toast.ok { background: #166534; }
+        .toast.err { background: #991b1b; }
+        @media (max-width: 900px) {
+            .stats, .stats-grid, .dashboard-container { flex-direction: column; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            #seccion-historial { top: 90px !important; }
+            .debug-panel { width: calc(100% - 20px); }
+        }
     </style>
 </head>
 <body>
@@ -118,6 +213,59 @@
         </div>
     </div>
 
+        <!-- Botón para mostrar historial -->
+        <button id="btn-historial" class="btn-filtro" style="position:fixed;top:10px;right:10px;z-index:1001;">📊 Corte de Caja</button>
+        <button id="btn-debug" class="debug-btn">DEBUG</button>
+
+        <!-- Sección oculta de historial de ventas/corte de caja -->
+        <div id="seccion-historial" class="dashboard-container" style="display:none;flex-direction:column;gap:0;min-height:unset;background:#f4f7f6;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
+            <div class="column-full" style="width:100%;">
+                <div class="column-header" style="background-color: #34495e;">
+                    <h3>📊 CORTE DE CAJA Y VENTAS</h3>
+                    <div class="filtros">
+                        <button onclick="filtrarVentas('hoy')" class="btn-filtro">Hoy</button>
+                        <button onclick="filtrarVentas('semana')" class="btn-filtro">7 Días</button>
+                        <button onclick="descargarCSV()" class="btn-download">📥 Exportar CSV</button>
+                    </div>
+
+                    <div id="toast-wrap" class="toast-wrap"></div>
+                    <div id="debug-panel" class="debug-panel">
+                        <strong>Debug RTDB</strong>
+                        <div id="debug-log" style="margin-top:8px;"></div>
+                    </div>
+                </div>
+                <div class="stats-grid" style="display:flex;gap:20px;margin:20px 0;">
+                    <div class="stat-card">
+                        <span class="label">Ventas Totales</span>
+                        <span id="total-ventas" class="value">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="label">Comisiones (15%)</span>
+                        <span id="total-comisiones" class="value">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="label">Pedidos Finalizados</span>
+                        <span id="cantidad-pedidos" class="value">0</span>
+                    </div>
+                </div>
+                <div class="tabla-container" style="overflow-x:auto;">
+                    <table id="tabla-historial" style="width:100%;background:white;border-radius:8px;">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Cliente</th>
+                                <th>Monto</th>
+                                <th>Fecha/Hora</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-historial">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
     <script type="module">
@@ -141,6 +289,113 @@
             set
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
+            // Mostrar/ocultar sección historial
+            window.addEventListener('DOMContentLoaded', () => {
+                const btn = document.getElementById('btn-historial');
+                const seccion = document.getElementById('seccion-historial');
+                const btnDebug = document.getElementById('btn-debug');
+                const debugPanel = document.getElementById('debug-panel');
+                btn.onclick = () => {
+                    seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+                };
+                btnDebug.onclick = () => {
+                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                };
+            });
+
+            function logDebug(mensaje, tipo = 'ok') {
+                const debugLog = document.getElementById('debug-log');
+                if (!debugLog) {
+                    return;
+                }
+                const hora = new Date().toLocaleTimeString();
+                const row = document.createElement('div');
+                row.className = `debug-row ${tipo}`;
+                row.textContent = `[${hora}] ${mensaje}`;
+                debugLog.prepend(row);
+            }
+
+            function showToast(mensaje, tipo = 'ok') {
+                const wrap = document.getElementById('toast-wrap');
+                if (!wrap) {
+                    return;
+                }
+                const toast = document.createElement('div');
+                toast.className = `toast ${tipo}`;
+                toast.textContent = mensaje;
+                wrap.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 2200);
+            }
+
+            // Lógica para el Historial de Ventas
+            window.filtrarVentas = (rango) => {
+                const pedidosRef = ref(rtdb, 'pedidos');
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const inicioSemana = new Date();
+                inicioSemana.setDate(hoy.getDate() - 6);
+                inicioSemana.setHours(0, 0, 0, 0);
+
+                onValue(pedidosRef, (snapshot) => {
+                    let total = 0;
+                    let count = 0;
+                    let html = '';
+                    snapshot.forEach((child) => {
+                        const pedido = child.val();
+                        const fechaPedido = new Date(pedido.fecha_finalizado || pedido.fecha_creacion).getTime();
+                        let incluir = false;
+                        if (pedido.estado === 'entregado') {
+                            if (rango === 'hoy') {
+                                incluir = fechaPedido >= hoy.getTime();
+                            } else if (rango === 'semana') {
+                                incluir = fechaPedido >= inicioSemana.getTime();
+                            } else {
+                                incluir = true;
+                            }
+                        }
+                        if (incluir) {
+                            total += parseFloat(pedido.monto || 0);
+                            count++;
+                            html += `
+                                <tr>
+                                    <td>${pedido.id_pedido || ''}</td>
+                                    <td>${pedido.cliente_nombre || ''}</td>
+                                    <td>$${pedido.monto || '0.00'}</td>
+                                    <td>${new Date(fechaPedido).toLocaleString()}</td>
+                                    <td><span class="badge-success">Entregado</span></td>
+                                </tr>
+                            `;
+                        }
+                    });
+                    document.getElementById('body-historial').innerHTML = html;
+                    document.getElementById('total-ventas').innerText = `$${total.toFixed(2)}`;
+                    document.getElementById('total-comisiones').innerText = `$${(total * 0.15).toFixed(2)}`;
+                    document.getElementById('cantidad-pedidos').innerText = count;
+                }, { onlyOnce: true });
+            };
+
+            // Exportar tabla a CSV
+            window.descargarCSV = () => {
+                let csvContent = "data:text/csv;charset=utf-8,Folio,Cliente,Monto,Fecha\n";
+                const filas = document.querySelectorAll("#body-historial tr");
+                filas.forEach(fila => {
+                    const cols = fila.querySelectorAll("td");
+                    const row = Array.from(cols).map(c => c.innerText).join(",");
+                    csvContent += row + "\n";
+                });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `Corte_Nelly_${new Date().toLocaleDateString()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
         let sincronizacionIniciada = false;
         let authRequestInFlight = false;
         const pedidosPendientes = new Map();
@@ -158,7 +413,7 @@
                     audio.pause();
                     audio.currentTime = 0;
                     console.log("Audio desbloqueado y listo para alertas.");
-                }).catch(() => console.log("Esperando interacción..."));
+                }).catch(() => {});
             }
         }, { once: true });
 
@@ -233,10 +488,11 @@
                         if (!value || typeof value !== "object") {
                             return;
                         }
-                        const pedidoId = value.id || key;
-                        pedidosPendientes.set(pedidoId, {
-                            id: pedidoId,
+                        const pedidoId = value.id || value.id_pedido || key;
+                        pedidosPendientes.set(key, {
                             ...value,
+                            id: pedidoId,
+                            _rtdbKey: key,
                             __source: "rtdb"
                         });
                     });
@@ -254,10 +510,11 @@
                         if (!value || typeof value !== "object") {
                             return;
                         }
-                        const pedidoId = value.id || key;
-                        pedidosReparto.set(pedidoId, {
-                            id: pedidoId,
+                        const pedidoId = value.id || value.id_pedido || key;
+                        pedidosReparto.set(key, {
                             ...value,
+                            id: pedidoId,
+                            _rtdbKey: key,
                             __source: "rtdb_reparto"
                         });
                     });
@@ -337,16 +594,24 @@
             }
 
             try {
+                const rtdbKey = pedido._rtdbKey || id;
                 const datos = limpiarPedido(pedido);
-                const payloadReparto = construirPayloadReparto({ ...pedido, id }, datos);
-                await setDoc(doc(db, 'pedidos_para_reparto', id), {
+                const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
+                logDebug(`MOVE start key=${rtdbKey}`);
+                await setDoc(doc(db, 'pedidos_para_reparto', rtdbKey), {
                     ...payloadReparto,
                     actualizado_en: serverTimestamp(),
                 }, { merge: true });
-                await set(ref(rtdb, `pedidos_para_reparto/${id}`), payloadReparto);
-                await set(ref(rtdb, `pedidos/${id}/estado`), 'en_reparto');
+                logDebug(`setDoc pedidos_para_reparto/${rtdbKey}`);
+                await set(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`), payloadReparto);
+                logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'en_reparto');
+                logDebug(`set RTDB pedidos/${rtdbKey}/estado=en_reparto`);
                 await sumarGanancias(Number(pedido.monto || pedido.total || 0));
+                showToast('Pedido movido a reparto', 'ok');
             } catch (error) {
+                logDebug(`MOVE error: ${error.message}`, 'err');
+                showToast(`Error mover a reparto: ${error.message}`, 'err');
                 alert('Error en despacho: ' + error.message);
             }
         };
@@ -357,10 +622,19 @@
             }
 
             try {
-                await set(ref(rtdb, `pedidos/${id}/estado`), 'entregado');
-                await set(ref(rtdb, `pedidos/${id}/fecha_finalizado`), Date.now());
-                await remove(ref(rtdb, `pedidos_para_reparto/${id}`));
+                const pedido = pedidosReparto.get(id) || pedidosPendientes.get(id);
+                const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : id;
+                logDebug(`FINISH start key=${rtdbKey}`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'entregado');
+                logDebug(`set RTDB pedidos/${rtdbKey}/estado=entregado`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/fecha_finalizado`), Date.now());
+                logDebug(`set RTDB pedidos/${rtdbKey}/fecha_finalizado`);
+                await remove(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`));
+                logDebug(`remove RTDB pedidos_para_reparto/${rtdbKey}`);
+                showToast('Pedido completado', 'ok');
             } catch (error) {
+                logDebug(`FINISH error: ${error.message}`, 'err');
+                showToast(`Error completar pedido: ${error.message}`, 'err');
                 alert('Error al finalizar: ' + error.message);
             }
         };
@@ -370,6 +644,7 @@
             const limpio = { ...pedido };
             delete limpio.__source;
             delete limpio.__legacyPath;
+            delete limpio._rtdbKey;
             return limpio;
         }
 

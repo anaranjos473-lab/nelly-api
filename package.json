@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "sync:panel": "node scripts/sync-panel.js",
+    "deploy:hosting": "npm run sync:panel && firebase deploy --only hosting",
     "firebase:check": "node scripts/verificar-firebase-admin.js",
     "precommit:agents": "npm run test:agents",
     "pedido:test:rtdb": "node scripts/generar-pedido-prueba-rtdb.js",
