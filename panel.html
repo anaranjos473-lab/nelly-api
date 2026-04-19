@@ -293,6 +293,7 @@
                     <button onclick="exportarMetricasJSON()" class="dropdown-item">⬇️ Exportar métricas JSON</button>
                     <button onclick="exportarMetricasCSV()" class="dropdown-item">⬇️ Exportar métricas CSV</button>
                     <button onclick="enviarSnapshotDiscord()" class="dropdown-item">📤 Enviar snapshot Discord</button>
+                    <button onclick="ejecutarProtocoloRescate()" class="dropdown-item">🛟 Rescate pedidos fantasma</button>
                     <button onclick="dispararAlertaManual()" class="dropdown-item" style="color:#b91c1c;">🚨 Disparar alerta manual</button>
                 </div>
             </div>
@@ -827,6 +828,47 @@
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
 
+        function esErrorPermisoFirebase(error) {
+            const codigo = String(error?.code || '').toUpperCase();
+            const texto = String(error?.message || '').toUpperCase();
+            return codigo.includes('PERMISSION_DENIED') || texto.includes('PERMISSION_DENIED');
+        }
+
+        function reportarErrorListener(contexto, error) {
+            const detalle = error?.message || String(error || 'error desconocido');
+            console.error(`Error detectado en ${contexto}:`, detalle);
+            logDebug(`${contexto}: ${detalle}`, 'err');
+            if (esErrorPermisoFirebase(error)) {
+                showToast('PERMISSION_DENIED en Firebase. Revisar reglas.', 'err');
+            }
+        }
+
+        function sincronizarPendientesDesdeSnapshot(snapshot, origen = 'snapshot-pendientes') {
+            pedidosPendientes.clear();
+            snapshot.forEach((child) => {
+                const pedido = child.val();
+                if (!pedido || typeof pedido !== 'object') {
+                    return;
+                }
+                const key = child.key;
+                agregarPedidoATablaVisual(key, pedido, { origen });
+            });
+            solicitarRenderPanel(origen);
+        }
+
+        window.ejecutarProtocoloRescate = () => {
+            const consultaPendientes = query(ref(rtdb, 'pedidos'), orderByChild('estado'), equalTo('pendiente'));
+            showToast('Ejecutando rescate de pedidos...', 'ok');
+            onValue(consultaPendientes, (snapshot) => {
+                sincronizarPendientesDesdeSnapshot(snapshot, 'rescate-manual');
+                const total = snapshot.exists() ? snapshot.size : 0;
+                logDebug(`Rescate manual completado. Pendientes: ${total}`);
+                showToast(`Rescate completado (${total} pendientes)`, 'ok');
+            }, {
+                onlyOnce: true
+            });
+        };
+
         function refrescarMetricasDebug() {
             const panel = document.getElementById('debug-stats');
             if (!panel) {
@@ -1237,11 +1279,14 @@
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             });
 
-            // Carga inicial para consulta filtrada (sin disparar notificaciones retroactivas).
-            onValue(consultaPendientes, () => {
-                primeraCargaPendientes = false;
-            }, {
-                onlyOnce: true
+            // Respaldo de caja negra: mantiene UI sincronizada si onChildAdded falla al inicializar.
+            onValue(consultaPendientes, (snapshot) => {
+                sincronizarPendientesDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pendientes' : 'snapshot-resync-pendientes');
+                if (primeraCargaPendientes) {
+                    primeraCargaPendientes = false;
+                }
+            }, (error) => {
+                reportarErrorListener('onValue(consultaPendientes)', error);
             });
 
             // Escucha incremental: solo pedidos pendientes nuevos.
@@ -1264,7 +1309,7 @@
                     origen: 'onChildAdded-pedidos'
                 });
             }, (error) => {
-                console.error("Error detectado en onChildAdded(pedidos pendientes):", error);
+                reportarErrorListener('onChildAdded(pedidos pendientes)', error);
             });
 
             // Reacciona a cambios de estado sin releer toda la rama de pedidos.
@@ -1287,7 +1332,7 @@
                 }
                 registrarEvento('pendienteChanged');
             }, (error) => {
-                console.error("Error detectado en onChildChanged(pedidos):", error);
+                reportarErrorListener('onChildChanged(pedidos)', error);
             });
 
             onChildRemoved(dbRef, (snapshot) => {
@@ -1295,7 +1340,7 @@
                 registrarEvento('pendienteRemoved');
                 eliminarFilaVisual(key, { origen: 'onChildRemoved-pedidos' });
             }, (error) => {
-                console.error("Error detectado en onChildRemoved(pedidos):", error);
+                reportarErrorListener('onChildRemoved(pedidos)', error);
             });
 
             onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
@@ -1318,7 +1363,7 @@
                 registrarEvento('repartoSnapshot');
                 solicitarRenderPanel('onValue-pedidos_para_reparto');
             }, (error) => {
-                console.error("Error detectado en pedidos_para_reparto:", error);
+                reportarErrorListener('onValue(pedidos_para_reparto)', error);
             });
 
             onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
@@ -1341,7 +1386,7 @@
                 registrarEvento('caminoSnapshot');
                 solicitarRenderPanel('onValue-pedidos_en_camino');
             }, (error) => {
-                console.error("Error detectado en pedidos_en_camino:", error);
+                reportarErrorListener('onValue(pedidos_en_camino)', error);
             });
 
             onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
@@ -1376,9 +1421,14 @@
                         showToast(detalle, tipo);
                     });
             }, (error) => {
-                console.error("Error detectado en liquidaciones_auditoria:", error);
+                reportarErrorListener('onValue(liquidaciones_auditoria)', error);
             });
         }
+
+        window.addEventListener('online', () => {
+            logDebug('Conexión restaurada. Ejecutando rescate automático.');
+            window.ejecutarProtocoloRescate();
+        });
 
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {

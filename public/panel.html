@@ -321,6 +321,7 @@
         <!-- Botón para mostrar historial -->
         <button id="btn-historial" class="btn-filtro" style="position:fixed;top:10px;right:10px;z-index:1001;">📊 Corte de Caja</button>
         <button id="btn-debug" class="debug-btn">DEBUG</button>
+        <button id="btn-rescate" class="btn-filtro" style="position:fixed;top:50px;right:10px;z-index:1001;">🛟 Rescate</button>
 
         <!-- Sección oculta de historial de ventas/corte de caja -->
         <div id="seccion-historial" class="dashboard-container" style="display:none;flex-direction:column;gap:0;min-height:unset;background:#f4f7f6;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
@@ -438,6 +439,7 @@
                 const btn = document.getElementById('btn-historial');
                 const seccion = document.getElementById('seccion-historial');
                 const btnDebug = document.getElementById('btn-debug');
+                const btnRescate = document.getElementById('btn-rescate');
                 const btnNotificaciones = document.getElementById('btn-notificaciones');
                 const debugPanel = document.getElementById('debug-panel');
                 btn.onclick = () => {
@@ -449,6 +451,9 @@
                 btnDebug.onclick = () => {
                     debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
                 };
+                if (btnRescate) {
+                    btnRescate.onclick = () => window.ejecutarProtocoloRescate();
+                }
                 btnNotificaciones.onclick = () => solicitarPermisoNotificaciones();
             });
 
@@ -683,6 +688,47 @@
             "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
+
+        function esErrorPermisoFirebase(error) {
+            const codigo = String(error?.code || '').toUpperCase();
+            const texto = String(error?.message || '').toUpperCase();
+            return codigo.includes('PERMISSION_DENIED') || texto.includes('PERMISSION_DENIED');
+        }
+
+        function reportarErrorListener(contexto, error) {
+            const detalle = error?.message || String(error || 'error desconocido');
+            console.error(`Error detectado en ${contexto}:`, detalle);
+            logDebug(`${contexto}: ${detalle}`, 'err');
+            if (esErrorPermisoFirebase(error)) {
+                showToast('PERMISSION_DENIED en Firebase. Revisar reglas.', 'err');
+            }
+        }
+
+        function sincronizarPendientesDesdeSnapshot(snapshot, origen = 'snapshot-pendientes') {
+            pedidosPendientes.clear();
+            snapshot.forEach((child) => {
+                const pedido = child.val();
+                if (!pedido || typeof pedido !== 'object') {
+                    return;
+                }
+                const key = child.key;
+                agregarPedidoATablaVisual(key, pedido, { origen });
+            });
+            solicitarRenderPanel(origen);
+        }
+
+        window.ejecutarProtocoloRescate = () => {
+            const consultaPendientes = query(ref(rtdb, 'pedidos'), orderByChild('estado'), equalTo('pendiente'));
+            showToast('Ejecutando rescate de pedidos...', 'ok');
+            onValue(consultaPendientes, (snapshot) => {
+                sincronizarPendientesDesdeSnapshot(snapshot, 'rescate-manual');
+                const total = snapshot.exists() ? snapshot.size : 0;
+                logDebug(`Rescate manual completado. Pendientes: ${total}`);
+                showToast(`Rescate completado (${total} pendientes)`, 'ok');
+            }, {
+                onlyOnce: true
+            });
+        };
 
         function refrescarMetricasDebug() {
             const panel = document.getElementById('debug-stats');
@@ -1094,11 +1140,14 @@
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             });
 
-            // Carga inicial para consulta filtrada (sin disparar notificaciones retroactivas).
-            onValue(consultaPendientes, () => {
-                primeraCargaPendientes = false;
-            }, {
-                onlyOnce: true
+            // Respaldo de caja negra: mantiene UI sincronizada si onChildAdded falla al inicializar.
+            onValue(consultaPendientes, (snapshot) => {
+                sincronizarPendientesDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pendientes' : 'snapshot-resync-pendientes');
+                if (primeraCargaPendientes) {
+                    primeraCargaPendientes = false;
+                }
+            }, (error) => {
+                reportarErrorListener('onValue(consultaPendientes)', error);
             });
 
             // Escucha incremental: solo pedidos pendientes nuevos.
@@ -1121,7 +1170,7 @@
                     origen: 'onChildAdded-pedidos'
                 });
             }, (error) => {
-                console.error("Error detectado en onChildAdded(pedidos pendientes):", error);
+                reportarErrorListener('onChildAdded(pedidos pendientes)', error);
             });
 
             // Reacciona a cambios de estado sin releer toda la rama de pedidos.
@@ -1144,7 +1193,7 @@
                 }
                 registrarEvento('pendienteChanged');
             }, (error) => {
-                console.error("Error detectado en onChildChanged(pedidos):", error);
+                reportarErrorListener('onChildChanged(pedidos)', error);
             });
 
             onChildRemoved(dbRef, (snapshot) => {
@@ -1152,7 +1201,7 @@
                 registrarEvento('pendienteRemoved');
                 eliminarFilaVisual(key, { origen: 'onChildRemoved-pedidos' });
             }, (error) => {
-                console.error("Error detectado en onChildRemoved(pedidos):", error);
+                reportarErrorListener('onChildRemoved(pedidos)', error);
             });
 
             onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
@@ -1175,7 +1224,7 @@
                 registrarEvento('repartoSnapshot');
                 solicitarRenderPanel('onValue-pedidos_para_reparto');
             }, (error) => {
-                console.error("Error detectado en pedidos_para_reparto:", error);
+                reportarErrorListener('onValue(pedidos_para_reparto)', error);
             });
 
             onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
@@ -1198,7 +1247,7 @@
                 registrarEvento('caminoSnapshot');
                 solicitarRenderPanel('onValue-pedidos_en_camino');
             }, (error) => {
-                console.error("Error detectado en pedidos_en_camino:", error);
+                reportarErrorListener('onValue(pedidos_en_camino)', error);
             });
 
             onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
@@ -1233,9 +1282,14 @@
                         showToast(detalle, tipo);
                     });
             }, (error) => {
-                console.error("Error detectado en liquidaciones_auditoria:", error);
+                reportarErrorListener('onValue(liquidaciones_auditoria)', error);
             });
         }
+
+        window.addEventListener('online', () => {
+            logDebug('Conexión restaurada. Ejecutando rescate automático.');
+            window.ejecutarProtocoloRescate();
+        });
 
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {
