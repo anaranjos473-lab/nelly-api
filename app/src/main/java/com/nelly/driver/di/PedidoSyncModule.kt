@@ -9,7 +9,7 @@ object PedidoSyncModule {
 
     fun providePedidoRepository(context: Context): PedidoRepository {
         val dao = AppDatabase.getInstance(context).pedidoDao()
-        val pedidosRef = FirebaseDatabase.getInstance().getReference("pedidos_para_reparto")
+        val pedidosRef = FirebaseDatabase.getInstance().getReference("pedidos_en_camino")
         return PedidoRepository(dao, pedidosRef, context)
     }
 }

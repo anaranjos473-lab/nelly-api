@@ -134,6 +134,8 @@ function normalizeOrigin(originValue) {
 }
 
 const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
+const PANEL_LIQUIDACIONES_API_KEY = String(process.env.PANEL_LIQUIDACIONES_API_KEY || '').trim();
+const ECOSYSTEM_VERSION = process.env.ECOSYSTEM_VERSION || '4.0.0-PRO';
 
 app.set('trust proxy', 1);
 
@@ -286,6 +288,19 @@ const requireDriverAuth = async (req, res, next) => {
         console.error('[AUTH ERROR Driver]:', error.message);
         return res.status(401).json({ error: 'Token invalido o expirado' });
     }
+};
+
+const requirePanelApiKey = (req, res, next) => {
+    if (!PANEL_LIQUIDACIONES_API_KEY) {
+        return next();
+    }
+
+    const provided = String(req.headers['x-panel-key'] || '').trim();
+    if (!provided || provided !== PANEL_LIQUIDACIONES_API_KEY) {
+        return res.status(401).json({ error: 'x-panel-key invalido' });
+    }
+
+    return next();
 };
 
 // --- LISTENER DE PEDIDOS (Panel de Cocina) ---
@@ -811,6 +826,157 @@ app.post('/api/logistics/eta', requireDriverAuth, etaLimiter, async (req, res) =
     }
 });
 
+// --- ENDPOINT: LIQUIDACIONES DE BILLETERA (NELLY ECONOMICS) ---
+app.post('/api/liquidaciones', async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const {
+        action,
+        liquidacionId,
+        monto,
+        evidencia,
+        observaciones,
+        repartidorUid,
+        aprobadoPor,
+        rechazadoPor,
+        motivo
+    } = req.body || {};
+
+    const accion = String(action || 'reportar').trim().toLowerCase();
+    const idNormalizado = String(liquidacionId || '').trim();
+
+    if (accion === 'reportar') {
+        const authHeader = req.headers.authorization || '';
+        const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+        if (!idToken) {
+            return res.status(401).json({ error: 'No se proporciono token' });
+        }
+
+        try {
+            const decodedToken = await admin.auth().verifyIdToken(idToken);
+            if (!(decodedToken.driver === true || decodedToken.role === 'repartidor')) {
+                return res.status(403).json({ error: 'Acceso denegado: No es un perfil de repartidor' });
+            }
+
+            const uid = repartidorUid || decodedToken.uid;
+            const nuevoId = idNormalizado || `liq_${Date.now()}`;
+            const montoNumero = Number(monto || 0);
+            if (!Number.isFinite(montoNumero) || montoNumero <= 0) {
+                return res.status(400).json({ error: 'monto debe ser numerico y mayor a 0' });
+            }
+
+            const payload = {
+                id: nuevoId,
+                repartidorUid: uid,
+                monto: Number(montoNumero.toFixed(2)),
+                evidencia: evidencia || null,
+                observaciones: observaciones || '',
+                estado: 'PENDIENTE',
+                versionSistema: ECOSYSTEM_VERSION,
+                creadoEn: Date.now(),
+                actualizadoEn: Date.now()
+            };
+
+            const updates = {};
+            updates[`liquidaciones/${nuevoId}`] = payload;
+            updates[`liquidaciones_auditoria/${nuevoId}_${Date.now()}`] = {
+                liquidacionId: nuevoId,
+                estado: 'PENDIENTE',
+                evento: 'LIQUIDACION_REPORTADA',
+                repartidorUid: uid,
+                monto: payload.monto,
+                versionSistema: ECOSYSTEM_VERSION,
+                timestamp: Date.now()
+            };
+
+            await db.ref().update(updates);
+            return res.status(201).json({ ok: true, liquidacion: payload });
+        } catch (error) {
+            console.error('[LIQUIDACION][REPORTAR] Error:', error.message);
+            return res.status(401).json({ error: 'Token invalido o expirado' });
+        }
+    }
+
+    if (accion !== 'autorizar' && accion !== 'rechazar') {
+        return res.status(400).json({ error: 'action debe ser reportar, autorizar o rechazar' });
+    }
+
+    return requirePanelApiKey(req, res, async () => {
+        if (!idNormalizado) {
+            return res.status(400).json({ error: 'liquidacionId es requerido para autorizar/rechazar' });
+        }
+
+        try {
+            const liqRef = db.ref(`liquidaciones/${idNormalizado}`);
+            const snap = await liqRef.once('value');
+            if (!snap.exists()) {
+                return res.status(404).json({ error: 'Liquidacion no encontrada' });
+            }
+
+            const actual = snap.val() || {};
+            if (String(actual.estado || '').toUpperCase() !== 'PENDIENTE') {
+                return res.status(409).json({ error: 'La liquidacion ya fue resuelta' });
+            }
+
+            const nuevoEstado = accion === 'autorizar' ? 'AUTORIZADA' : 'RECHAZADA';
+            const actualizacion = {
+                estado: nuevoEstado,
+                actualizadoEn: Date.now(),
+                versionSistema: ECOSYSTEM_VERSION,
+                motivo: motivo || actual.motivo || null
+            };
+
+            if (accion === 'autorizar') {
+                actualizacion.aprobadoPor = aprobadoPor || 'panel_cocina';
+            } else {
+                actualizacion.rechazadoPor = rechazadoPor || 'panel_cocina';
+            }
+
+            await liqRef.update(actualizacion);
+            await db.ref(`liquidaciones_auditoria/${idNormalizado}_${Date.now()}`).set({
+                liquidacionId: idNormalizado,
+                estado: nuevoEstado,
+                evento: accion === 'autorizar' ? 'LIQUIDACION_AUTORIZADA' : 'LIQUIDACION_RECHAZADA',
+                repartidorUid: actual.repartidorUid || null,
+                monto: Number(actual.monto || 0),
+                aprobadoPor: actualizacion.aprobadoPor || null,
+                rechazadoPor: actualizacion.rechazadoPor || null,
+                motivo: actualizacion.motivo,
+                versionSistema: ECOSYSTEM_VERSION,
+                timestamp: Date.now()
+            });
+
+            return res.json({
+                ok: true,
+                liquidacionId: idNormalizado,
+                estado: nuevoEstado
+            });
+        } catch (error) {
+            console.error('[LIQUIDACION][RESOLVER] Error:', error.message);
+            return res.status(500).json({ error: 'No se pudo resolver la liquidacion' });
+        }
+    });
+});
+
+app.get('/api/liquidaciones', requirePanelApiKey, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    try {
+        const estadoFiltro = String(req.query.estado || '').trim().toUpperCase();
+        const snap = await db.ref('liquidaciones').once('value');
+        const raiz = snap.val() || {};
+        const items = Object.values(raiz)
+            .filter((item) => item && typeof item === 'object')
+            .filter((item) => !estadoFiltro || String(item.estado || '').toUpperCase() === estadoFiltro)
+            .sort((a, b) => Number(b.actualizadoEn || 0) - Number(a.actualizadoEn || 0));
+
+        return res.json({ ok: true, total: items.length, items });
+    } catch (error) {
+        console.error('[LIQUIDACION][LISTA] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo listar liquidaciones' });
+    }
+});
+
 // --- CONTROLADOR: TOKEN SEGURO PARA PANEL DE COCINA ---
 const panelTokenController = async (req, res) => {
     const origin = req.headers.origin || '';
@@ -851,6 +1017,7 @@ const healthcheckController = (req, res) => {
     return res.status(200).json({
         status: 'ok',
         service: 'nelly-api',
+        versionSistema: ECOSYSTEM_VERSION,
         timestamp: new Date().toISOString(),
     });
 };

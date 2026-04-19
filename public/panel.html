@@ -649,10 +649,31 @@
         const pendientesPrevios = new Set();
         const pedidosPendientes = new Map();
         const pedidosReparto = new Map();
+        const pedidosEnCamino = new Map();
+        const liquidacionesAuditProcesadas = new Set();
         const PANEL_TOKEN_ENDPOINTS = [
             "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
+
+        function normalizarEstado(valor) {
+            const raw = String(valor || '').trim().toLowerCase();
+            if (!raw) return 'PREPARANDO';
+            if (raw === 'pendiente' || raw === 'preparando' || raw === 'cocina') return 'PREPARANDO';
+            if (raw === 'listo' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
+            if (raw === 'en_camino' || raw === 'en_reparto' || raw === 'reparto') return 'EN_CAMINO';
+            if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
+            return raw.toUpperCase();
+        }
+
+        function obtenerFasePanel(valorEstado) {
+            const estado = normalizarEstado(valorEstado);
+            if (estado === 'PREPARANDO') return 'COCINA';
+            if (estado === 'LISTO') return 'DESPACHO';
+            if (estado === 'EN_CAMINO') return 'EN_REPARTO';
+            if (estado === 'ENTREGADO') return 'FINALIZADO';
+            return 'COCINA';
+        }
 
         function solicitarPermisoNotificaciones() {
             if (!('Notification' in window)) {
@@ -701,7 +722,7 @@
             return Array.from(pedidosReparto.entries()).map(([key, pedido]) => ({
                 key,
                 id_pedido: pedido.id_pedido || pedido.id || key,
-                estado: pedido.estado || "en_reparto",
+                estado: normalizarEstado(pedido.estado || "EN_CAMINO"),
                 cliente: pedido.cliente_nombre || pedido.cliente || ""
             }));
         };
@@ -862,6 +883,63 @@
             }, (error) => {
                 console.error("Error detectado en pedidos_para_reparto:", error);
             });
+
+            onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
+                pedidosEnCamino.clear();
+                const raiz = snapshot.val();
+                if (raiz && typeof raiz === "object") {
+                    Object.entries(raiz).forEach(([key, value]) => {
+                        if (!value || typeof value !== "object") {
+                            return;
+                        }
+                        const pedidoId = value.id || value.id_pedido || key;
+                        pedidosEnCamino.set(key, {
+                            ...value,
+                            id: pedidoId,
+                            _rtdbKey: key,
+                            __source: "rtdb_en_camino"
+                        });
+                    });
+                }
+                actualizarPanel();
+            }, (error) => {
+                console.error("Error detectado en pedidos_en_camino:", error);
+            });
+
+            onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
+                const raiz = snapshot.val();
+                if (!raiz || typeof raiz !== "object") {
+                    return;
+                }
+
+                const novedades = [];
+                Object.entries(raiz).forEach(([key, value]) => {
+                    if (!value || typeof value !== "object") {
+                        return;
+                    }
+                    if (liquidacionesAuditProcesadas.has(key)) {
+                        return;
+                    }
+                    liquidacionesAuditProcesadas.add(key);
+                    novedades.push(value);
+                });
+
+                novedades
+                    .sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0))
+                    .forEach((evento) => {
+                        const estado = normalizarEstado(evento.estado);
+                        const texto = estado === 'AUTORIZADA'
+                            ? 'Liquidacion autorizada'
+                            : (estado === 'RECHAZADA'
+                                ? 'Liquidacion rechazada'
+                                : (estado === 'PENDIENTE' ? 'Liquidacion reportada' : `Liquidacion ${estado}`));
+                        const detalle = `${texto} · ${evento.repartidorUid || evento.driverUid || 'driver'}`;
+                        const tipo = estado === 'AUTORIZADA' ? 'ok' : (estado === 'RECHAZADA' ? 'err' : 'ok');
+                        showToast(detalle, tipo);
+                    });
+            }, (error) => {
+                console.error("Error detectado en liquidaciones_auditoria:", error);
+            });
         }
 
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
@@ -875,11 +953,11 @@
             let cReparto = 0;
 
             pedidosPendientes.forEach((pedido, id) => {
-                const estado = String(pedido.estado || 'pendiente');
-                if (estado === 'pendiente') {
+                const fase = obtenerFasePanel(pedido.estado);
+                if (fase === 'COCINA') {
                     contenedorPendientes.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, true));
                     cPendientes++;
-                } else if (estado === 'en_reparto' || estado === 'listo_para_reparto') {
+                } else if (fase === 'DESPACHO' || fase === 'EN_REPARTO') {
                     contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
                     cReparto++;
                 }
@@ -889,7 +967,19 @@
                 if (pedidosPendientes.has(id)) {
                     return;
                 }
-                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'en_reparto' }, id, false));
+                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
+                cReparto++;
+            });
+
+            pedidosEnCamino.forEach((pedido, id) => {
+                if (pedidosPendientes.has(id) || pedidosReparto.has(id)) {
+                    return;
+                }
+                const estado = normalizarEstado(pedido.estado);
+                if (estado === 'ENTREGADO') {
+                    return;
+                }
+                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado }, id, false));
                 cReparto++;
             });
 
@@ -900,8 +990,10 @@
 
         function generarHTMLTarjeta(pedido, id, esPendiente) {
             const monto = Number(pedido.monto || pedido.total || 0);
-            const config = esPendiente
-                ? { texto: 'LISTO PARA REPARTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')` }
+            const estadoNormalizado = normalizarEstado(pedido.estado);
+            const fase = obtenerFasePanel(estadoNormalizado);
+            const config = esPendiente || fase === 'COCINA' || fase === 'DESPACHO'
+                ? { texto: 'DESPACHAR', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')` }
                 : { texto: 'ENTREGA COMPLETADA', clase: 'btn-success', funcion: `window.finalizarPedido('${id}')` };
 
             return `
@@ -945,11 +1037,13 @@
                 const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);
 
-                // Primero RTDB (flujo critico del panel).
+                // Doble escritura: compatibilidad historica + nuevo puente hacia pedidos_en_camino.
                 await set(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`), payloadReparto);
                 logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'en_reparto');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=en_reparto`);
+                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}`), payloadReparto);
+                logDebug(`set RTDB pedidos_en_camino/${rtdbKey}`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'LISTO');
+                logDebug(`set RTDB pedidos/${rtdbKey}/estado=LISTO`);
 
                 // Firestore es sincronizacion secundaria: no debe bloquear el despacho.
                 try {
@@ -958,6 +1052,12 @@
                         actualizado_en: serverTimestamp(),
                     }, { merge: true });
                     logDebug(`setDoc pedidos_para_reparto/${rtdbKey}`);
+
+                    await setDoc(doc(db, 'pedidos_en_camino', rtdbKey), {
+                        ...payloadReparto,
+                        actualizado_en: serverTimestamp(),
+                    }, { merge: true });
+                    logDebug(`setDoc pedidos_en_camino/${rtdbKey}`);
                 } catch (firestoreError) {
                     logDebug(`setDoc warning (no bloqueante): ${firestoreError.message}`, 'err');
                 }
@@ -983,10 +1083,13 @@
                 const pedido = pedidosReparto.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
                 const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : keyResuelta;
                 logDebug(`FINISH start key=${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'entregado');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=entregado`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'ENTREGADO');
+                logDebug(`set RTDB pedidos/${rtdbKey}/estado=ENTREGADO`);
                 await set(ref(rtdb, `pedidos/${rtdbKey}/fecha_finalizado`), Date.now());
                 logDebug(`set RTDB pedidos/${rtdbKey}/fecha_finalizado`);
+                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}/estado`), 'ENTREGADO');
+                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}/entregado_en`), Date.now());
+                logDebug(`set RTDB pedidos_en_camino/${rtdbKey}/estado=ENTREGADO`);
                 await remove(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`));
                 logDebug(`remove RTDB pedidos_para_reparto/${rtdbKey}`);
                 showToast('Pedido completado', 'ok');
@@ -1022,9 +1125,10 @@
                 id: pedido.id,
                 id_pedido: pedido.id,
                 pedido_id: pedido.id,
-                estado: "esperando_repartidor",
+                estado: "LISTO",
                 hora_cocina: new Date().toISOString(),
                 fuente_origen: pedido.__source,
+                fase_panel: "Despacho",
                 cliente: {
                     nombre: clienteNombre,
                     coords: {

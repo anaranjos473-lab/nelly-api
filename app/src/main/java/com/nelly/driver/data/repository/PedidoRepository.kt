@@ -43,7 +43,9 @@ class PedidoRepository(
 
         listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val pedidos = snapshot.children.mapNotNull { child -> child.toPedidoEntity() }
+                val pedidos = snapshot.children
+                    .mapNotNull { child -> child.toPedidoEntity() }
+                    .filter { pedido -> esEstadoDisponibleParaDriver(pedido.estado) }
                 val idsActuales = pedidos.map { it.id }.toSet()
 
                 if (cargaInicialCompletada) {
@@ -101,10 +103,13 @@ class PedidoRepository(
         pedidoRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
                 val actual = currentData.value as? Map<*, *> ?: return Transaction.abort()
-                val estadoActual = actual["estado"]?.toString()?.lowercase() ?: ""
+                val estadoActual = normalizarEstado(actual["estado"]?.toString())
                 val repartidorActual = actual["repartidor"]?.toString()
 
-                val puedeTomar = estadoActual == "esperando_repartidor" || repartidorActual == repartidorUid
+                val puedeTomar = estadoActual == "LISTO"
+                    || estadoActual == "ESPERANDO_REPARTIDOR"
+                    || estadoActual == "LISTO_PARA_REPARTO"
+                    || repartidorActual == repartidorUid
                 if (!puedeTomar) {
                     return Transaction.abort()
                 }
@@ -118,7 +123,7 @@ class PedidoRepository(
 
                 actualizado["id"] = actualizado["id"] ?: pedidoId
                 actualizado["id_pedido"] = actualizado["id_pedido"] ?: pedidoId
-                actualizado["estado"] = "en_camino"
+                actualizado["estado"] = "EN_CAMINO"
                 actualizado["repartidor"] = repartidorUid
                 actualizado["aceptado_en"] = System.currentTimeMillis()
                 currentData.value = actualizado
@@ -192,8 +197,23 @@ class PedidoRepository(
             id = id,
             clienteNombre = clienteNombre,
             montoTotal = montoTotal,
-            estado = estado,
+            estado = normalizarEstado(estado),
             timestamp = timestamp
         )
+    }
+
+    private fun normalizarEstado(estadoRaw: String?): String {
+        return when (estadoRaw?.trim()?.lowercase()) {
+            "pendiente", "preparando", "cocina" -> "PREPARANDO"
+            "listo", "listo_para_reparto", "esperando_repartidor", "despacho" -> "LISTO"
+            "en_camino", "en_reparto", "reparto" -> "EN_CAMINO"
+            "entregado", "finalizado" -> "ENTREGADO"
+            null, "" -> "PREPARANDO"
+            else -> estadoRaw.trim().uppercase()
+        }
+    }
+
+    private fun esEstadoDisponibleParaDriver(estado: String): Boolean {
+        return estado == "LISTO"
     }
 }

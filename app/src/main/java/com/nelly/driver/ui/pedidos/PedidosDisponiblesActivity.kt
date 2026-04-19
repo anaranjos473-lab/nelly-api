@@ -2,6 +2,7 @@ package com.nelly.driver.ui.pedidos
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -23,6 +24,11 @@ import kotlinx.coroutines.launch
 
 class PedidosDisponiblesActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "PedidosDisponibles"
+        private const val ECOSYSTEM_VERSION = "4.0.0-PRO"
+    }
+
     private val uiScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private lateinit var viewModel: PedidoViewModel
@@ -33,6 +39,7 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pedidos_disponibles)
+        validarVersionEcosistema()
 
         txtEstadoSync = findViewById(R.id.txtEstadoSync)
         txtVacio = findViewById(R.id.txtVacio)
@@ -100,5 +107,16 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
                 txtEstadoSync.text = "Estado: $estado"
             }
         }
+    }
+
+    private fun validarVersionEcosistema() {
+        val versionSistema = intent.getStringExtra("ecosystem_version") ?: ECOSYSTEM_VERSION
+        if (versionSistema != ECOSYSTEM_VERSION) {
+            Log.e(TAG, "Version del ecosistema invalida: $versionSistema")
+            Toast.makeText(this, "Version incompatible del ecosistema", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+        Log.i(TAG, "Version del ecosistema validada: $versionSistema")
     }
 }
