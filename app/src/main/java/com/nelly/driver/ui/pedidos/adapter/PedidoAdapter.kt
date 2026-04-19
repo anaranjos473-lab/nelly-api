@@ -1,5 +1,6 @@
 package com.nelly.driver.ui.pedidos.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,16 @@ class PedidoAdapter(
     private val onAceptarClick: (PedidoEntity) -> Unit
 ) : ListAdapter<PedidoEntity, PedidoAdapter.PedidoViewHolder>(DiffCallback) {
 
+    private var bloqueadoPorDeuda: Boolean = false
+
+    fun setBloqueadoPorDeuda(value: Boolean) {
+        if (bloqueadoPorDeuda == value) {
+            return
+        }
+        bloqueadoPorDeuda = value
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PedidoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_pedido_disponible, parent, false)
@@ -22,7 +33,7 @@ class PedidoAdapter(
     }
 
     override fun onBindViewHolder(holder: PedidoViewHolder, position: Int) {
-        holder.bind(getItem(position), onAceptarClick)
+        holder.bind(getItem(position), bloqueadoPorDeuda, onAceptarClick)
     }
 
     class PedidoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -32,12 +43,22 @@ class PedidoAdapter(
         private val txtEstado: TextView = itemView.findViewById(R.id.txtEstado)
         private val btnAceptar: Button = itemView.findViewById(R.id.btnAceptar)
 
-        fun bind(pedido: PedidoEntity, onAceptarClick: (PedidoEntity) -> Unit) {
+        fun bind(pedido: PedidoEntity, bloqueadoPorDeuda: Boolean, onAceptarClick: (PedidoEntity) -> Unit) {
             txtId.text = "Pedido #${pedido.id.take(8)}"
             txtCliente.text = if (pedido.clienteNombre.isBlank()) "Cliente Nelly" else pedido.clienteNombre
             txtMonto.text = String.format("$%.2f", pedido.montoTotal)
             txtEstado.text = pedido.estado
-            btnAceptar.setOnClickListener { onAceptarClick(pedido) }
+            if (bloqueadoPorDeuda) {
+                btnAceptar.isEnabled = false
+                btnAceptar.text = "BLOQUEADO"
+                btnAceptar.setBackgroundColor(Color.parseColor("#9CA3AF"))
+                btnAceptar.setOnClickListener(null)
+            } else {
+                btnAceptar.isEnabled = true
+                btnAceptar.text = "ACEPTAR"
+                btnAceptar.setBackgroundColor(Color.parseColor("#16A34A"))
+                btnAceptar.setOnClickListener { onAceptarClick(pedido) }
+            }
         }
     }
 

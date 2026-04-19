@@ -75,6 +75,7 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
         observarPedidos()
         observarEstadoSync()
+        observarBloqueoDeuda()
     }
 
     override fun onStart() {
@@ -105,6 +106,17 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         uiScope.launch {
             viewModel.syncEstado.collect { estado ->
                 txtEstadoSync.text = "Estado: $estado"
+            }
+        }
+    }
+
+    private fun observarBloqueoDeuda() {
+        uiScope.launch {
+            viewModel.bloqueoDeuda.collect { bloqueado ->
+                pedidoAdapter.setBloqueadoPorDeuda(bloqueado)
+                if (bloqueado) {
+                    txtEstadoSync.text = "Estado: BLOQUEADO POR DEUDA"
+                }
             }
         }
     }

@@ -138,6 +138,8 @@ function normalizeOrigin(originValue) {
 const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
 const PANEL_LIQUIDACIONES_API_KEY = String(process.env.PANEL_LIQUIDACIONES_API_KEY || '').trim();
 const ECOSYSTEM_VERSION = process.env.ECOSYSTEM_VERSION || '4.0.0-PRO';
+const UMBRAL_ALERTA_PREVENTIVA_DIAMANTE = 800;
+const COOLDOWN_ALERTA_PREVENTIVA_MS = 12 * 60 * 60 * 1000;
 const LIMITE_DEUDA_POR_NIVEL = {
     BRONCE: 300,
     PLATA: 500,
@@ -471,6 +473,26 @@ function numeroSeguro(value, fallback = 0) {
     return Number.isFinite(n) ? n : fallback;
 }
 
+async function enviarAlertaPreventivaDiamante(uid, deudaActual, limite) {
+    if (!DISCORD_WEBHOOK_URL || !firebaseAdminInitialized) {
+        return;
+    }
+
+    const alertaRef = db.ref(`repartidores/${uid}/alertas/deuda_diamante_800_at`);
+    const snap = await alertaRef.once('value');
+    const ultimaAlerta = numeroSeguro(snap.val(), 0);
+    const ahora = Date.now();
+    if (ahora - ultimaAlerta < COOLDOWN_ALERTA_PREVENTIVA_MS) {
+        return;
+    }
+
+    const faltante = Math.max(0, limite - deudaActual);
+    await axios.post(DISCORD_WEBHOOK_URL, {
+        content: `⚠️ Atención: Repartidor ${uid} está a $${faltante.toFixed(2)} de su límite de crédito DIAMANTE.`
+    });
+    await alertaRef.set(ahora);
+}
+
 async function verificarCapacidadReparto(uid) {
     const snap = await db.ref(`repartidores/${uid}`).once('value');
     if (!snap.exists()) {
@@ -517,6 +539,14 @@ async function verificarCapacidadReparto(uid) {
     const nivel = nuevoNivel;
     const limite = LIMITE_DEUDA_POR_NIVEL[nivel] || 300;
     const deudaActual = numeroSeguro(perfil?.billetera?.deuda_comision, 0);
+
+    if (nivel === 'DIAMANTE' && deudaActual >= UMBRAL_ALERTA_PREVENTIVA_DIAMANTE && deudaActual < limite) {
+        try {
+            await enviarAlertaPreventivaDiamante(uid, deudaActual, limite);
+        } catch (error) {
+            console.error('[DEUDA][ALERTA_PREVENTIVA_DIAMANTE] Error:', error.message);
+        }
+    }
 
     if (deudaActual >= limite) {
         return {
