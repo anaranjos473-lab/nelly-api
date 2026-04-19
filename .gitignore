@@ -43,7 +43,6 @@ logs_pruebas/
 repartidores.json
 
 # Archivos duplicados de raíz (el contenido real está en public/)
-/panel.html
 /firebase.js
 
 # Archivos de audio con extensión incorrecta (renombrar a .mp3)
