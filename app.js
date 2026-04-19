@@ -55,10 +55,16 @@ function inicializarDependientesFirebase() {
     // Monitor de salud de Firebase
     if (firebaseAdminInitialized && db) {
         const dbStatusRef = db.ref(".info/connected");
+        let huboConexionPrevia = false;
         dbStatusRef.on("value", (snap) => {
             if (snap.val() === true) {
+                huboConexionPrevia = true;
                 console.log("✅ Conectado a Firebase RTDB");
             } else {
+                if (!huboConexionPrevia) {
+                    console.log('ℹ️ Firebase RTDB aun no establece sesion inicial.');
+                    return;
+                }
                 const msg = "Nelly perdió conexión con la base de datos.";
                 console.error("🚨 ALERTA: " + msg);
                 notificarAlertaConexion(msg);

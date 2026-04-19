@@ -1467,7 +1467,7 @@
                 if (pedidosPendientes.has(id)) {
                     return;
                 }
-                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
+                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'EN_CAMINO' }, id, false));
                 cReparto++;
             });
 
@@ -1521,6 +1521,13 @@
             const keyResuelta = resolverKeyPedido(id);
             const pedido = pedidosPendientes.get(keyResuelta);
             if (!pedido) {
+                const yaEnReparto = pedidosReparto.has(keyResuelta) || pedidosEnCamino.has(keyResuelta);
+                if (yaEnReparto) {
+                    showToast('Pedido ya en reparto, cerrando entrega...', 'ok');
+                    await window.finalizarPedido(keyResuelta);
+                    return;
+                }
+
                 alert('Pedido no encontrado en cocina.');
                 return;
             }
