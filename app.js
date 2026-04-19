@@ -142,7 +142,7 @@ const LIMITE_DEUDA_POR_NIVEL = {
     BRONCE: 300,
     PLATA: 500,
     ORO: 600,
-    DIAMANTE: 1000
+    DIAMANTE: 900
 };
 
 app.set('trust proxy', 1);
