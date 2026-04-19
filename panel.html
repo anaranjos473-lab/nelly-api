@@ -500,7 +500,6 @@
             orderByChild,
             query,
             ref,
-            remove,
             set
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
@@ -824,9 +823,10 @@
         };
         let metricasInicioMs = Date.now();
         const PANEL_TOKEN_ENDPOINTS = [
-            "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
+        const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
+            .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -1267,6 +1267,18 @@
             }
         }
 
+        async function obtenerIdTokenPanel() {
+            if (!auth.currentUser) {
+                await autenticarPanelConBackend();
+            }
+
+            if (!auth.currentUser) {
+                throw new Error('panel_session_not_ready');
+            }
+
+            return auth.currentUser.getIdToken();
+        }
+
         function iniciarSincronizacion() {
             const gananciasRef = doc(db, "metricas", "ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
@@ -1571,15 +1583,37 @@
                 const pedido = pedidosReparto.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
                 const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : keyResuelta;
                 logDebug(`FINISH start key=${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'ENTREGADO');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=ENTREGADO`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/fecha_finalizado`), Date.now());
-                logDebug(`set RTDB pedidos/${rtdbKey}/fecha_finalizado`);
-                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}/estado`), 'ENTREGADO');
-                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}/entregado_en`), Date.now());
-                logDebug(`set RTDB pedidos_en_camino/${rtdbKey}/estado=ENTREGADO`);
-                await remove(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`));
-                logDebug(`remove RTDB pedidos_para_reparto/${rtdbKey}`);
+                const idToken = await obtenerIdTokenPanel();
+                let completado = false;
+
+                for (const endpoint of COMPLETE_ORDER_ENDPOINTS) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({ orderId: rtdbKey })
+                        });
+
+                        if (!response.ok) {
+                            const detalle = await response.text();
+                            throw new Error(`${response.status} ${detalle}`);
+                        }
+
+                        completado = true;
+                        logDebug(`FINISH backend ok endpoint=${endpoint}`);
+                        break;
+                    } catch (networkError) {
+                        logDebug(`FINISH backend fail endpoint=${endpoint} err=${networkError.message}`, 'err');
+                    }
+                }
+
+                if (!completado) {
+                    throw new Error('complete_order_failed_all_endpoints');
+                }
+
                 showToast('Pedido completado', 'ok');
             } catch (error) {
                 logDebug(`FINISH error: ${error.message}`, 'err');

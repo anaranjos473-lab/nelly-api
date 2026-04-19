@@ -300,6 +300,32 @@ const requireDriverAuth = async (req, res, next) => {
     }
 };
 
+const requirePanelSessionAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.admin === true || decodedToken.role === 'panel_cocina') {
+            req.user = decodedToken;
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Acceso denegado: sesion de panel invalida' });
+    } catch (error) {
+        console.error('[AUTH ERROR Panel]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+};
+
 const requirePanelApiKey = (req, res, next) => {
     if (!PANEL_LIQUIDACIONES_API_KEY) {
         return next();
@@ -948,6 +974,44 @@ app.post('/api/delivery/accept-order', requireDriverAuth, async (req, res) => {
     } catch (error) {
         console.error('[DELIVERY][ACCEPT_ORDER] Error:', error.message);
         return res.status(500).json({ error: 'No se pudo aceptar pedido' });
+    }
+});
+
+// --- ENDPOINT: COMPLETAR PEDIDO (SERVER-AUTHORITATIVE PANEL) ---
+app.post('/api/delivery/complete-order', requirePanelSessionAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const orderId = String(req.body?.orderId || req.body?.pedidoId || '').trim();
+    if (!orderId) {
+        return res.status(400).json({ error: 'orderId es requerido' });
+    }
+
+    try {
+        const pedidoRef = db.ref(`pedidos/${orderId}`);
+        const pedidoSnap = await pedidoRef.once('value');
+        if (!pedidoSnap.exists()) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        const now = Date.now();
+        const updates = {};
+        updates[`pedidos/${orderId}/estado`] = 'entregado';
+        updates[`pedidos/${orderId}/fecha_finalizado`] = now;
+        updates[`pedidos_en_camino/${orderId}/estado`] = 'entregado';
+        updates[`pedidos_en_camino/${orderId}/entregado_en`] = now;
+        updates[`pedidos_para_reparto/${orderId}`] = null;
+
+        await db.ref().update(updates);
+
+        return res.json({
+            ok: true,
+            orderId,
+            estado: 'entregado',
+            finalizedAt: now
+        });
+    } catch (error) {
+        console.error('[DELIVERY][COMPLETE_ORDER] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo completar pedido' });
     }
 });
 
