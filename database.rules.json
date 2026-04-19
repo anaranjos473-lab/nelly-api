@@ -1,24 +1,9 @@
 {
   "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
     "pedidos": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "pedidos_para_reparto": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "pedidos_en_camino": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "liquidaciones": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "liquidaciones_auditoria": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".indexOn": ["estado"]
     }
   }
 }
