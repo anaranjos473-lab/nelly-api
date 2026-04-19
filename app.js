@@ -138,6 +138,12 @@ function normalizeOrigin(originValue) {
 const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
 const PANEL_LIQUIDACIONES_API_KEY = String(process.env.PANEL_LIQUIDACIONES_API_KEY || '').trim();
 const ECOSYSTEM_VERSION = process.env.ECOSYSTEM_VERSION || '4.0.0-PRO';
+const LIMITE_DEUDA_POR_NIVEL = {
+    BRONCE: 300,
+    PLATA: 500,
+    ORO: 600,
+    DIAMANTE: 1000
+};
 
 app.set('trust proxy', 1);
 
@@ -348,6 +354,71 @@ function validarCorreo(email) { // eslint-disable-line no-unused-vars
     return regexCorreo.test(email);
 }
 
+// === ENDPOINT: Resumen Semanal Estratégico (solo canal privado, requiere API key panel) ===
+app.post('/api/auditoria/resumen-semanal', requirePanelApiKey, async (req, res) => {
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+    try {
+        const LIMITE_DIAS = 7;
+        const COMISION_PCT = 0.18;
+        const ahora = Date.now();
+        const limite = ahora - LIMITE_DIAS * 24 * 60 * 60 * 1000;
+        // 1. Pedidos últimos 7 días
+        const pedidosSnap = await db.ref('pedidos').once('value');
+        const pedidosSemana = [];
+        pedidosSnap.forEach(child => {
+            const pedido = child.val();
+            const fecha = pedido.fecha_finalizado || pedido.fecha_creacion || pedido.creado || 0;
+            if (pedido.estado === 'entregado' && fecha >= limite) {
+                pedidosSemana.push({ ...pedido, fecha });
+            }
+        });
+        // 2. Masa financiera
+        const totalVentas = pedidosSemana.reduce((acc, p) => acc + Number(p.monto || p.total || 0), 0);
+        const comisionTotal = totalVentas * COMISION_PCT;
+        // 3. Ranking repartidores
+        const ranking = {};
+        pedidosSemana.forEach(p => {
+            const rep = p.repartidorUid || p.driverUid || 'SIN_UID';
+            if (!ranking[rep]) ranking[rep] = { uid: rep, pedidos: 0, monto: 0 };
+            ranking[rep].pedidos++;
+            ranking[rep].monto += Number(p.monto || p.total || 0);
+        });
+        const rankingArr = Object.values(ranking).sort((a, b) => b.monto - a.monto);
+        // 4. Deuda total
+        const repSnap = await db.ref('repartidores').once('value');
+        let deudaTotal = 0;
+        repSnap.forEach(child => {
+            deudaTotal += Number(child.val().deuda || 0);
+        });
+        // 5. Armar reporte
+        const reporte = {
+            periodo: 'Semana Actual',
+            ingresos_brutos: totalVentas,
+            comisiones_nelly: comisionTotal,
+            top_performers: rankingArr.slice(0, 3),
+            estado_deuda_calle: deudaTotal
+        };
+        // 6. Enviar solo a canal privado (Discord webhook)
+        if (DISCORD_WEBHOOK_URL) {
+            const content = `\n**Resumen Semanal Nelly**\n\n` +
+                `Periodo: ${reporte.periodo}\n` +
+                `Ingresos brutos: $${reporte.ingresos_brutos.toFixed(2)}\n` +
+                `Comisiones Nelly (18%): $${reporte.comisiones_nelly.toFixed(2)}\n` +
+                `Top repartidores:\n` +
+                reporte.top_performers.map((r, i) => `${i + 1}. ${r.uid} · $${r.monto.toFixed(2)} · ${r.pedidos} pedidos`).join('\n') +
+                `\nDeuda total en sistema: $${reporte.estado_deuda_calle.toFixed(2)}`;
+            await axios.post(DISCORD_WEBHOOK_URL, { content });
+        }
+        // 7. Nunca exponer datos sensibles en respuesta
+        res.json({ ok: true, enviado: true, resumen: 'Reporte semanal enviado a canal privado.' });
+    } catch (e) {
+        console.error('[AUDITORIA][RESUMEN_SEMANAL] Error:', e.message);
+        res.status(500).json({ error: 'No se pudo generar el resumen semanal' });
+    }
+});
+
 function esCoordenadaValida(lat, lng) {
     return Number.isFinite(lat)
         && Number.isFinite(lng)
@@ -386,6 +457,116 @@ function parseCoordInput(value) {
 
     return null;
 }
+
+function normalizarNivelRepartidor(nivelRaw) {
+    const nivel = String(nivelRaw || 'BRONCE').trim().toUpperCase();
+    if (Object.prototype.hasOwnProperty.call(LIMITE_DEUDA_POR_NIVEL, nivel)) {
+        return nivel;
+    }
+    return 'BRONCE';
+}
+
+function numeroSeguro(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+async function verificarCapacidadReparto(uid) {
+    const snap = await db.ref(`repartidores/${uid}`).once('value');
+    if (!snap.exists()) {
+        return {
+            permitir: false,
+            mensaje: 'Perfil de repartidor no encontrado',
+            nivel: null,
+            deudaActual: null,
+            limite: null
+        };
+    }
+
+    const perfil = snap.val() || {};
+    if (perfil.activo === false) {
+        return {
+            permitir: false,
+            mensaje: 'Perfil de repartidor inactivo',
+            nivel: null,
+            deudaActual: null,
+            limite: null
+        };
+    }
+
+    // --- Motor de Ascenso Automático (Level-Up) ---
+    const entregas = Number(perfil.entregas || 0);
+    let nuevoNivel = normalizarNivelRepartidor(perfil.nivel);
+    if (entregas >= 500 && nuevoNivel !== 'DIAMANTE') {
+        nuevoNivel = 'DIAMANTE';
+    } else if (entregas >= 150 && nuevoNivel !== 'ORO' && nuevoNivel !== 'DIAMANTE') {
+        nuevoNivel = 'ORO';
+    } else if (entregas >= 50 && nuevoNivel === 'BRONCE') {
+        nuevoNivel = 'PLATA';
+    }
+    if (nuevoNivel !== perfil.nivel) {
+        await db.ref(`repartidores/${uid}/nivel`).set(nuevoNivel);
+        // (Opcional) Notificar ascenso por Discord
+        if (DISCORD_WEBHOOK_URL) {
+            await axios.post(DISCORD_WEBHOOK_URL, {
+                content: `🎉 Repartidor ${uid} ascendió a nivel ${nuevoNivel} con ${entregas} entregas.`
+            });
+        }
+    }
+
+    const nivel = nuevoNivel;
+    const limite = LIMITE_DEUDA_POR_NIVEL[nivel] || 300;
+    const deudaActual = numeroSeguro(perfil?.billetera?.deuda_comision, 0);
+
+    if (deudaActual >= limite) {
+        return {
+            permitir: false,
+            mensaje: 'Limite de deuda alcanzado. Favor de liquidar comisiones.',
+            nivel,
+            deudaActual,
+            limite
+        };
+    }
+
+    return {
+        permitir: true,
+        nivel,
+        deudaActual,
+        limite
+    };
+}
+
+// === ENDPOINT: Heatmap de pedidos entregados en Tuxtla ===
+app.get('/api/auditoria/heatmap-tuxtla', requirePanelApiKey, async (req, res) => {
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+    try {
+        // Coordenadas aproximadas de Tuxtla Gutiérrez
+        const TUXTLA_BOUNDS = {
+            minLat: 16.65,
+            maxLat: 16.85,
+            minLng: -93.25,
+            maxLng: -93.05
+        };
+        const pedidosSnap = await db.ref('pedidos').once('value');
+        const puntos = [];
+        pedidosSnap.forEach(child => {
+            const pedido = child.val();
+            if (pedido.estado !== 'entregado') return;
+            // Extraer lat/lng del cliente
+            const lat = numeroSeguro(pedido.cliente_lat ?? pedido.lat_cliente ?? pedido.lat ?? pedido.latitude);
+            const lng = numeroSeguro(pedido.cliente_lng ?? pedido.lng_cliente ?? pedido.lng ?? pedido.longitude ?? pedido.lon);
+            if (!esCoordenadaValida(lat, lng)) return;
+            if (lat < TUXTLA_BOUNDS.minLat || lat > TUXTLA_BOUNDS.maxLat || lng < TUXTLA_BOUNDS.minLng || lng > TUXTLA_BOUNDS.maxLng) return;
+            puntos.push({ lat, lng });
+        });
+        res.json({ ok: true, puntos });
+    } catch (e) {
+        console.error('[HEATMAP][ERROR]:', e.message);
+        res.status(500).json({ error: 'No se pudo generar el heatmap' });
+    }
+});
 
 // --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
 app.post('/chat', async (req, res) => {
@@ -651,6 +832,92 @@ app.post('/api/delivery/update-location', requireDriverAuth, async (req, res) =>
     } catch (error) {
         console.error('[DB ERROR Location]:', error.message);
         return res.status(500).json({ error: 'Error al escribir en base de datos' });
+    }
+});
+
+// --- ENDPOINT: ACEPTAR PEDIDO (SERVER-AUTHORITATIVE) ---
+app.post('/api/delivery/accept-order', requireDriverAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const pedidoId = String(req.body?.pedidoId || '').trim();
+    const uid = req.user.uid;
+
+    if (!pedidoId) {
+        return res.status(400).json({ error: 'pedidoId es requerido' });
+    }
+
+    try {
+        const capacidad = await verificarCapacidadReparto(uid);
+        if (!capacidad.permitir) {
+            return res.status(403).json({
+                error: capacidad.mensaje,
+                nivel: capacidad.nivel,
+                deudaActual: capacidad.deudaActual,
+                limite: capacidad.limite
+            });
+        }
+
+        const pedidoRef = db.ref(`pedidos_para_reparto/${pedidoId}`);
+        const acceptedAt = Date.now();
+
+        const tx = await pedidoRef.transaction((actual) => {
+            if (!actual || typeof actual !== 'object') {
+                return;
+            }
+
+            const logistica = actual.logistica && typeof actual.logistica === 'object'
+                ? actual.logistica
+                : {};
+
+            const estado = String(logistica.estado || actual.estado || '').trim().toLowerCase();
+            const repartidorActual = String(logistica.repartidor_id || actual.repartidor || '').trim();
+            const disponible = !repartidorActual
+                || repartidorActual === uid
+                || estado === ''
+                || estado === 'disponible'
+                || estado === 'esperando_repartidor'
+                || estado === 'listo'
+                || estado === 'listo_para_reparto';
+
+            if (!disponible) {
+                return;
+            }
+
+            return {
+                ...actual,
+                estado: 'en_camino',
+                repartidor: uid,
+                aceptado_en: acceptedAt,
+                logistica: {
+                    ...logistica,
+                    estado: 'tomado',
+                    repartidor_id: uid,
+                    tomado_en: acceptedAt
+                }
+            };
+        });
+
+        if (!tx.committed || !tx.snapshot.exists()) {
+            return res.status(409).json({ error: 'El pedido ya fue tomado por otro repartidor' });
+        }
+
+        const pedidoTomado = tx.snapshot.val() || {};
+        const updates = {};
+        updates[`pedidos/${pedidoId}/estado`] = 'en_reparto';
+        updates[`pedidos/${pedidoId}/repartidor_asignado`] = uid;
+        updates[`pedidos_en_camino/${pedidoId}`] = pedidoTomado;
+
+        await db.ref().update(updates);
+
+        return res.json({
+            ok: true,
+            pedidoId,
+            estado: 'en_reparto',
+            repartidorUid: uid
+        });
+    } catch (error) {
+        console.error('[DELIVERY][ACCEPT_ORDER] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo aceptar pedido' });
     }
 });
 
@@ -1014,6 +1281,48 @@ const panelTokenController = async (req, res) => {
     }
 };
 
+// --- CONTROLADOR: TOKEN PARA MODULO WEB DE REPARTIDOR ---
+const driverTokenController = async (req, res) => {
+    const origin = req.headers.origin || '';
+    const normalizedOrigin = normalizeOrigin(origin);
+    if (normalizedOrigin !== PANEL_ALLOWED_ORIGIN) {
+        console.warn(`[AUTH BLOCK][DRIVER] Origen no autorizado: ${origin || 'sin-origin'}`);
+        return res.status(403).json({ error: 'Origen no autorizado' });
+    }
+
+    const uid = String(req.query.uid || '').trim();
+    if (!uid || !/^[A-Za-z0-9_-]{4,128}$/.test(uid)) {
+        return res.status(400).json({ error: 'uid de repartidor invalido' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const repartidorSnap = await db.ref(`repartidores/${uid}`).once('value');
+        if (!repartidorSnap.exists()) {
+            return res.status(404).json({ error: 'Repartidor no registrado' });
+        }
+
+        const repartidor = repartidorSnap.val() || {};
+        if (repartidor.activo === false) {
+            return res.status(403).json({ error: 'Repartidor inactivo' });
+        }
+
+        const additionalClaims = {
+            driver: true,
+            role: 'repartidor'
+        };
+
+        const customToken = await admin.auth().createCustomToken(uid, additionalClaims);
+        return res.json({ token: customToken, uid });
+    } catch (error) {
+        console.error('[ERROR AUTH][DRIVER TOKEN]:', error.message);
+        return res.status(500).json({ error: 'No se pudo generar token de repartidor' });
+    }
+};
+
 // --- CONTROLADOR: HEALTHCHECK (para Keep-Alive en Render) ---
 const healthcheckController = (req, res) => {
     return res.status(200).json({
@@ -1026,6 +1335,7 @@ const healthcheckController = (req, res) => {
 
 // --- RUTAS EXPUESTAS ---
 app.get('/api/auth/panel-token', authLimiter, panelTokenController);
+app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 app.get('/healthcheck', healthcheckController);
 app.get('/api/healthcheck', healthcheckController);
 app.get('/health', healthcheckController);

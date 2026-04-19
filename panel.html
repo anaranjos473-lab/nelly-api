@@ -331,6 +331,17 @@
         <button id="btn-historial" class="btn-filtro" style="position:fixed;top:10px;right:10px;z-index:1001;">📊 Corte de Caja</button>
         <button id="btn-debug" class="debug-btn">DEBUG</button>
 
+    <!-- Botón para mostrar Heatmap -->
+    <button id="btn-heatmap" class="btn-filtro" style="position:fixed;top:50px;right:10px;z-index:1001;">🗺️ Mapa de Calor</button>
+
+    <!-- Sección oculta de Heatmap -->
+    <div id="seccion-heatmap" style="display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;background:#f4f7f6;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
+        <div style="width:100%;height:100%;position:relative;">
+            <div id="mapa-heatmap" style="width:100%;height:100%;min-height:400px;"></div>
+            <button id="btn-cerrar-heatmap" class="btn-filtro" style="position:absolute;top:10px;right:10px;z-index:1002;">Cerrar</button>
+        </div>
+    </div>
+
         <!-- Sección oculta de historial de ventas/corte de caja -->
         <div id="seccion-historial" class="dashboard-container" style="display:none;flex-direction:column;gap:0;min-height:unset;background:#f4f7f6;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
             <div class="column-full" style="width:100%;">
@@ -416,6 +427,56 @@
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
     <script type="module">
+
+                // --- Cargar Leaflet y Heatmap.js dinámicamente ---
+                function cargarLeafletYHeatmap(cb) {
+                    if (window.L && window.L.heatLayer) return cb();
+                    const leafletCss = document.createElement('link');
+                    leafletCss.rel = 'stylesheet';
+                    leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(leafletCss);
+                    const leafletJs = document.createElement('script');
+                    leafletJs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                    leafletJs.onload = () => {
+                        const heatmapJs = document.createElement('script');
+                        heatmapJs.src = 'https://unpkg.com/leaflet.heat/dist/leaflet-heat.js';
+                        heatmapJs.onload = cb;
+                        document.body.appendChild(heatmapJs);
+                    };
+                    document.body.appendChild(leafletJs);
+                }
+
+                // --- Mostrar/ocultar Heatmap ---
+                window.addEventListener('DOMContentLoaded', () => {
+                    const btnHeatmap = document.getElementById('btn-heatmap');
+                    const seccionHeatmap = document.getElementById('seccion-heatmap');
+                    const btnCerrarHeatmap = document.getElementById('btn-cerrar-heatmap');
+                    let mapa = null;
+                    let capaHeat = null;
+                    btnHeatmap.onclick = () => {
+                        seccionHeatmap.style.display = 'block';
+                        cargarLeafletYHeatmap(() => {
+                            if (!mapa) {
+                                mapa = L.map('mapa-heatmap').setView([16.75, -93.12], 13);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '© OpenStreetMap contributors'
+                                }).addTo(mapa);
+                            }
+                            fetch('/api/auditoria/heatmap-tuxtla', { headers: { 'x-panel-key': localStorage.getItem('NELLY_PANEL_KEY') || '' } })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (!data.ok) throw new Error('No se pudo cargar heatmap');
+                                    const puntos = data.puntos.map(p => [p.lat, p.lng, 0.5]);
+                                    if (capaHeat) capaHeat.remove();
+                                    capaHeat = L.heatLayer(puntos, { radius: 25, blur: 18, maxZoom: 16 }).addTo(mapa);
+                                })
+                                .catch(() => alert('Error al cargar mapa de calor.'));
+                        });
+                    };
+                    btnCerrarHeatmap.onclick = () => {
+                        seccionHeatmap.style.display = 'none';
+                    };
+                });
         import { db, auth, rtdb } from "./firebase.js";
         import {
             doc,

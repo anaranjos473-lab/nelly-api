@@ -10,11 +10,11 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-class LocationUpdateClient(
-    private val endpoint: String = "https://nelly-api-8lh1.onrender.com/api/delivery/update-location"
+class OrderAcceptClient(
+    private val endpoint: String = "https://nelly-api-8lh1.onrender.com/api/delivery/accept-order"
 ) {
 
-    data class UpdateResult(
+    data class AcceptResult(
         val ok: Boolean,
         val statusCode: Int,
         val body: String
@@ -22,15 +22,13 @@ class LocationUpdateClient(
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    fun updateLocation(
-        lat: Double,
-        lng: Double,
-        pedidoId: String?,
-        onResult: (UpdateResult) -> Unit
+    fun acceptOrder(
+        pedidoId: String,
+        onResult: (AcceptResult) -> Unit
     ) {
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
-            onMain(onResult, UpdateResult(false, 401, "Usuario no autenticado"))
+            onMain(onResult, AcceptResult(false, 401, "Usuario no autenticado"))
             return
         }
 
@@ -38,13 +36,11 @@ class LocationUpdateClient(
             .addOnSuccessListener { result ->
                 val token = result.token
                 if (token.isNullOrBlank()) {
-                    onMain(onResult, UpdateResult(false, 401, "Token vacio"))
+                    onMain(onResult, AcceptResult(false, 401, "Token vacio"))
                     return@addOnSuccessListener
                 }
 
                 sendWithRetry(
-                    lat = lat,
-                    lng = lng,
                     pedidoId = pedidoId,
                     userToken = token,
                     user = user,
@@ -53,21 +49,19 @@ class LocationUpdateClient(
                 )
             }
             .addOnFailureListener { error ->
-                onMain(onResult, UpdateResult(false, 401, "No se pudo obtener token: ${error.message}"))
+                onMain(onResult, AcceptResult(false, 401, "No se pudo obtener token: ${error.message}"))
             }
     }
 
     private fun sendWithRetry(
-        lat: Double,
-        lng: Double,
-        pedidoId: String?,
+        pedidoId: String,
         userToken: String,
         user: com.google.firebase.auth.FirebaseUser,
         allowRefreshRetry: Boolean,
-        onResult: (UpdateResult) -> Unit
+        onResult: (AcceptResult) -> Unit
     ) {
         Thread {
-            val response = postLocation(lat, lng, pedidoId, userToken)
+            val response = postAccept(pedidoId, userToken)
 
             if (response.statusCode == 403 && allowRefreshRetry) {
                 Log.w("NellyAuth", "Claim no detectado, refrescando token y reintentando una vez...")
@@ -75,19 +69,19 @@ class LocationUpdateClient(
                     .addOnSuccessListener { refreshed ->
                         val refreshedToken = refreshed.token
                         if (refreshedToken.isNullOrBlank()) {
-                            onMain(onResult, UpdateResult(false, 401, "Token refrescado vacio"))
+                            onMain(onResult, AcceptResult(false, 401, "Token refrescado vacio"))
                             return@addOnSuccessListener
                         }
 
                         Thread {
-                            val retryResponse = postLocation(lat, lng, pedidoId, refreshedToken)
+                            val retryResponse = postAccept(pedidoId, refreshedToken)
                             onMain(onResult, retryResponse)
                         }.start()
                     }
                     .addOnFailureListener { refreshError ->
                         onMain(
                             onResult,
-                            UpdateResult(false, 401, "No se pudo refrescar token: ${refreshError.message}")
+                            AcceptResult(false, 401, "No se pudo refrescar token: ${refreshError.message}")
                         )
                     }
                 return@Thread
@@ -97,21 +91,12 @@ class LocationUpdateClient(
         }.start()
     }
 
-    private fun postLocation(
-        lat: Double,
-        lng: Double,
-        pedidoId: String?,
-        token: String
-    ): UpdateResult {
+    private fun postAccept(pedidoId: String, token: String): AcceptResult {
         var connection: HttpURLConnection? = null
 
         return try {
             val payload = JSONObject().apply {
-                put("lat", lat)
-                put("lng", lng)
-                if (!pedidoId.isNullOrBlank()) {
-                    put("pedidoId", pedidoId)
-                }
+                put("pedidoId", pedidoId)
             }
 
             connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
@@ -134,16 +119,16 @@ class LocationUpdateClient(
                 BufferedReader(InputStreamReader(input)).readText()
             }.orEmpty()
 
-            UpdateResult(statusCode in 200..299, statusCode, body)
+            AcceptResult(statusCode in 200..299, statusCode, body)
         } catch (error: Exception) {
-            Log.e("NellyLocation", "Error enviando ubicacion", error)
-            UpdateResult(false, 500, "Error enviando ubicacion: ${error.message}")
+            Log.e("NellyAccept", "Error aceptando pedido en backend", error)
+            AcceptResult(false, 500, "Error aceptando pedido: ${error.message}")
         } finally {
             connection?.disconnect()
         }
     }
 
-    private fun onMain(onResult: (UpdateResult) -> Unit, result: UpdateResult) {
+    private fun onMain(onResult: (AcceptResult) -> Unit, result: AcceptResult) {
         mainHandler.post {
             onResult(result)
         }

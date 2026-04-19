@@ -31,7 +31,7 @@
         <div class="head">
             <h1>📱 Módulo Repartidores</h1>
             <div class="row">
-                <input id="nombre-repartidor" class="input" placeholder="Tu nombre de repartidor" />
+                <input id="nombre-repartidor" class="input" placeholder="Tu UID de repartidor" />
                 <button id="btn-guardar" class="btn btn-save">Guardar</button>
                 <a href="./panel" class="btn btn-back">Volver a Cocina</a>
             </div>
@@ -50,10 +50,9 @@
     </div>
 
     <script type="module">
-        import { db, auth, rtdb } from './firebase.js';
-        import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+        import { auth, rtdb } from './firebase.js';
         import { onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-        import { ref, onValue, update, set } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
+        import { ref, onValue } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
 
         const statusEl = document.getElementById('status');
         const nombreInput = document.getElementById('nombre-repartidor');
@@ -61,33 +60,46 @@
         const listaDisponibles = document.getElementById('lista-disponibles');
         const listaMios = document.getElementById('lista-mios');
 
-        const PANEL_TOKEN_ENDPOINTS = [
-            'https://nelly-api-81h1.onrender.com/api/auth/panel-token',
-            'https://nelly-api-8lh1.onrender.com/api/auth/panel-token'
+        const DRIVER_TOKEN_ENDPOINTS = [
+            'https://nelly-api-8lh1.onrender.com/api/auth/driver-token',
+            'https://nelly-api-81h1.onrender.com/api/auth/driver-token'
+        ];
+
+        const DELIVERY_ACCEPT_ENDPOINTS = [
+            'https://nelly-api-8lh1.onrender.com/api/delivery/accept-order',
+            'https://nelly-api-81h1.onrender.com/api/delivery/accept-order'
         ];
 
         let authRequestInFlight = false;
-        let nombreRepartidor = localStorage.getItem('nelly_repartidor_nombre') || '';
-        nombreInput.value = nombreRepartidor;
+        let repartidorUid = localStorage.getItem('nelly_repartidor_uid') || '';
+        nombreInput.value = repartidorUid;
 
         btnGuardar.onclick = () => {
-            nombreRepartidor = String(nombreInput.value || '').trim();
-            if (!nombreRepartidor) {
-                statusEl.textContent = 'Escribe tu nombre para tomar pedidos.';
+            repartidorUid = String(nombreInput.value || '').trim();
+            if (!repartidorUid) {
+                statusEl.textContent = 'Escribe tu UID para tomar pedidos.';
                 return;
             }
-            localStorage.setItem('nelly_repartidor_nombre', nombreRepartidor);
-            statusEl.textContent = `Identidad guardada: ${nombreRepartidor}`;
+            localStorage.setItem('nelly_repartidor_uid', repartidorUid);
+            statusEl.textContent = `UID guardado: ${repartidorUid}`;
+            autenticar();
         };
 
         async function autenticar() {
             if (authRequestInFlight) return;
+
+            if (!repartidorUid) {
+                statusEl.textContent = 'Captura tu UID de repartidor para autenticar.';
+                return;
+            }
+
             authRequestInFlight = true;
             try {
                 let response = null;
-                for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
+                for (const endpoint of DRIVER_TOKEN_ENDPOINTS) {
                     try {
-                        const candidate = await fetch(endpoint, { method: 'GET' });
+                        const tokenUrl = `${endpoint}?uid=${encodeURIComponent(repartidorUid)}`;
+                        const candidate = await fetch(tokenUrl, { method: 'GET' });
                         if (candidate.ok) {
                             response = candidate;
                             break;
@@ -123,29 +135,74 @@
             `;
         }
 
+        function extraerMensajeError(errorBody, statusCode) {
+            const raw = String(errorBody || '').trim();
+            const lower = raw.toLowerCase();
+
+            if (!raw && statusCode === 403) {
+                return 'Perfil no autorizado como repartidor. Inicia sesion con cuenta de repartidor.';
+            }
+            if (lower.includes('limite de deuda')) {
+                return 'Limite de deuda alcanzado. Favor de liquidar comisiones.';
+            }
+            if (lower.includes('ya fue tomado')) {
+                return 'Este pedido ya fue tomado por otro repartidor.';
+            }
+            if (lower.includes('token') || statusCode === 401) {
+                return 'Sesion invalida. Cierra sesion y vuelve a entrar.';
+            }
+
+            return raw || 'No se pudo tomar el pedido.';
+        }
+
         window.tomarPedido = async (id) => {
-            if (!nombreRepartidor) {
-                statusEl.textContent = 'Primero guarda tu nombre.';
+            if (!repartidorUid) {
+                statusEl.textContent = 'Primero guarda tu UID.';
                 return;
             }
 
             try {
-                await update(ref(rtdb, `pedidos_para_reparto/${id}/logistica`), {
-                    estado: 'tomado',
-                    repartidor_id: nombreRepartidor,
-                    tomado_en: Date.now()
-                });
-                await set(ref(rtdb, `pedidos/${id}/estado`), 'en_reparto');
-                await set(ref(rtdb, `pedidos/${id}/repartidor_asignado`), nombreRepartidor);
+                const user = auth.currentUser;
+                if (!user) {
+                    statusEl.textContent = 'Sesion no activa. Reintenta autenticacion.';
+                    return;
+                }
 
-                // Sincronizacion secundaria en Firestore.
-                await setDoc(doc(db, 'pedidos_para_reparto', id), {
-                    logistica: {
-                        estado: 'tomado',
-                        repartidor_id: nombreRepartidor,
-                    },
-                    actualizado_en: serverTimestamp(),
-                }, { merge: true }).catch(() => {});
+                const idToken = await user.getIdToken();
+                let success = false;
+                let lastError = 'No se pudo contactar al servidor de reparto.';
+
+                for (const endpoint of DELIVERY_ACCEPT_ENDPOINTS) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({ pedidoId: id })
+                        });
+
+                        if (response.ok) {
+                            success = true;
+                            break;
+                        }
+
+                        const body = await response.text();
+                        lastError = extraerMensajeError(body, response.status);
+
+                        if (response.status === 400 || response.status === 401 || response.status === 403 || response.status === 409) {
+                            break;
+                        }
+                    } catch (_networkError) {
+                        lastError = 'Servidor no disponible temporalmente. Intenta nuevamente.';
+                    }
+                }
+
+                if (!success) {
+                    statusEl.textContent = lastError;
+                    return;
+                }
 
                 statusEl.textContent = `Pedido tomado: ${id}`;
             } catch (error) {
@@ -164,7 +221,7 @@
                 const repartidorId = String(logistica.repartidor_id || '');
                 const estado = String(logistica.estado || value.estado || 'disponible');
 
-                if (nombreRepartidor && repartidorId === nombreRepartidor) {
+                if (repartidorUid && repartidorId === repartidorUid) {
                     mios.push({ key, pedido: value });
                     return;
                 }
@@ -185,7 +242,7 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                statusEl.textContent = nombreRepartidor ? `Activo como ${nombreRepartidor}` : 'Conectado. Guarda tu nombre para tomar pedidos.';
+                statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
                 onValue(ref(rtdb, 'pedidos_para_reparto'), (snapshot) => {
                     renderListas(snapshot.val());
                 }, (error) => {
