@@ -35,8 +35,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Security check (branch-aware)
+        run: |
+          TARGET_BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF_NAME}}"
+          echo "Audit target branch: ${TARGET_BRANCH}"
+          if [[ "${TARGET_BRANCH}" == "main" || "${TARGET_BRANCH}" == release/* ]]; then
+            npm audit --audit-level=high
+          else
+            npm audit --audit-level=critical
+          fi
+
       - name: Run agent validation suite
         run: npm run test:agents
+
+      - name: Integration check (strict gate)
+        run: node final_test.js
+        env:
+          NELLY_STRICT: 'true'
+          NELLY_RETRIES: '5'
+          NELLY_INTERVAL_MS: '1500'
+          ORDER_INGEST_API_KEY: ${{ secrets.ORDER_INGEST_API_KEY }}
+          RENDER_URL: ${{ secrets.RENDER_URL }}
+          FIREBASE_DATABASE_URL: ${{ secrets.FIREBASE_DATABASE_URL }}
+          FIREBASE_ADMIN_JSON: ${{ secrets.FIREBASE_ADMIN_JSON }}
 
       - name: Deploy to Firebase (rules + hosting)
         run: |
@@ -51,3 +72,37 @@ jobs:
           firebase deploy --only firestore:rules,database:rules,hosting --project nelly-delivery --non-interactive --token "$CLEAN_TOKEN"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Notify on Failure (enriched)
+        if: failure() && secrets.WEBHOOK_URL != ''
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          GH_REF_NAME: ${{ github.ref_name }}
+          GH_ACTOR: ${{ github.actor }}
+          GH_COMMIT_MSG: ${{ github.event.head_commit.message }}
+          GH_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [
+              {
+                "title": "FALLO DE DESPLIEGUE - NELLY 4.0.0-PRO",
+                "description": "El despliegue a produccion fue bloqueado por un fallo critico en el pipeline.",
+                "color": 15158332,
+                "fields": [
+                  {"name": "Entorno", "value": "Produccion / Render", "inline": true},
+                  {"name": "Severidad", "value": "MEDIA", "inline": true},
+                  {"name": "Rama", "value": "${GH_REF_NAME}", "inline": true},
+                  {"name": "Autor", "value": "${GH_ACTOR}", "inline": true},
+                  {"name": "Commit", "value": "${GH_COMMIT_MSG:-N/A}", "inline": false},
+                  {"name": "Run", "value": "${GH_RUN_URL}", "inline": false},
+                  {"name": "¿Necesitas ajustar la frecuencia de esta alerta?", "value": "Consulta el [Runbook de Escalamiento](https://github.com/${{ github.repository }}/blob/main/RUNBOOK_AJUSTE_POLITICA_ESCALAMIENTO.md)", "inline": false}
+                ],
+                "footer": {"text": "Nelly Logistics Sentinel v4.0"}
+              }
+            ]
+          }
+          EOF
+          )
+
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK_URL" || true

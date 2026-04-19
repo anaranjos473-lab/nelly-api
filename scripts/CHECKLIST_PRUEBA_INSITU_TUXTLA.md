@@ -24,7 +24,7 @@ node scripts/set-driver-claims.js --service-account=./serviceAccountKey.json UID
 ## 3) Probar endpoint de ubicacion
 
 ```bash
-curl -X POST https://nelly-api-81h1.onrender.com/api/delivery/update-location \
+curl -X POST https://nelly-api-8lh1.onrender.com/api/delivery/update-location \
 -H "Authorization: Bearer INSERTA_TU_ID_TOKEN_AQUI" \
 -H "Content-Type: application/json" \
 -d '{

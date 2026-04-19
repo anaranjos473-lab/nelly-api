@@ -1,0 +1,114 @@
+name: Alert Escalation
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  escalate-media-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Evaluate unresolved deploy failures
+        id: evaluate
+        uses: actions/github-script@v7
+        env:
+          ESCALATION_HOURS: ${{ secrets.ALERT_ESCALATION_HOURS }}
+        with:
+          script: |
+            const rawHours = String(process.env.ESCALATION_HOURS || '').trim();
+            const parsedHours = Number(rawHours);
+            const escalationHours = Number.isFinite(parsedHours) && parsedHours > 0 ? parsedHours : 6;
+            const cutoffMs = Date.now() - escalationHours * 60 * 60 * 1000;
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRuns,
+              {
+                owner,
+                repo,
+                workflow_id: 'firebase-deploy.yml',
+                branch: 'main',
+                status: 'completed',
+                per_page: 50
+              }
+            );
+
+            if (!runs.length) {
+              core.setOutput('should_notify', 'false');
+              core.setOutput('reason', 'No workflow runs found');
+              return;
+            }
+
+            const latest = runs[0];
+            const latestConclusion = String(latest.conclusion || '').toLowerCase();
+
+            if (latestConclusion === 'success') {
+              core.setOutput('should_notify', 'false');
+              core.setOutput('reason', 'Latest deploy run is healthy');
+              return;
+            }
+
+            const latestTs = new Date(latest.created_at).getTime();
+            if (Number.isNaN(latestTs) || latestTs > cutoffMs) {
+              core.setOutput('should_notify', 'false');
+              core.setOutput('reason', 'Failure is recent and still inside grace window');
+              return;
+            }
+
+            core.setOutput('should_notify', 'true');
+            core.setOutput('run_url', latest.html_url);
+            core.setOutput('run_id', String(latest.id));
+            core.setOutput('branch', latest.head_branch || 'main');
+            core.setOutput('actor', latest.actor?.login || 'unknown');
+            core.setOutput('conclusion', latestConclusion || 'failure');
+            core.setOutput('hours', String(escalationHours));
+
+      - name: Notify escalation (ALTA)
+        if: steps.evaluate.outputs.should_notify == 'true' && secrets.WEBHOOK_URL != ''
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          BRANCH: ${{ steps.evaluate.outputs.branch }}
+          ACTOR: ${{ steps.evaluate.outputs.actor }}
+          RUN_URL: ${{ steps.evaluate.outputs.run_url }}
+          CONCLUSION: ${{ steps.evaluate.outputs.conclusion }}
+          HOURS: ${{ steps.evaluate.outputs.hours }}
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [
+              {
+                "title": "ESCALACION AUTOMATICA - NELLY 4.0.0-PRO",
+                "description": "Fallo de despliegue MEDIA sin resolver dentro de la ventana operativa. Se eleva a ALTA.",
+                "color": 15158332,
+                "fields": [
+                  {"name": "Entorno", "value": "Produccion / Firebase Deploy", "inline": true},
+                  {"name": "Severidad", "value": "ALTA", "inline": true},
+                  {"name": "Ventana", "value": "${HOURS}h", "inline": true},
+                  {"name": "Rama", "value": "${BRANCH}", "inline": true},
+                  {"name": "Autor", "value": "${ACTOR}", "inline": true},
+                  {"name": "Estado", "value": "${CONCLUSION}", "inline": true},
+                  {"name": "Run", "value": "${RUN_URL}", "inline": false}
+                ],
+                "footer": {"text": "Nelly Logistics Sentinel v4.0"},
+                "fields": [
+                  {"name": "Entorno", "value": "Produccion / Firebase Deploy", "inline": true},
+                  {"name": "Severidad", "value": "ALTA", "inline": true},
+                  {"name": "Ventana", "value": "${HOURS}h", "inline": true},
+                  {"name": "Rama", "value": "${BRANCH}", "inline": true},
+                  {"name": "Autor", "value": "${ACTOR}", "inline": true},
+                  {"name": "Estado", "value": "${CONCLUSION}", "inline": true},
+                  {"name": "Run", "value": "${RUN_URL}", "inline": false},
+                  {"name": "¿Necesitas ajustar la frecuencia de esta alerta?", "value": "Consulta el [Runbook de Escalamiento](https://github.com/${{ github.repository }}/blob/main/RUNBOOK_AJUSTE_POLITICA_ESCALAMIENTO.md)", "inline": false}
+                ],
+              }
+            ]
+          }
+          EOF
+          )
+
+          curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK_URL" || true

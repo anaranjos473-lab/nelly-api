@@ -2,9 +2,11 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const { resolveTestConfig } = require('./scripts/resolve-test-config');
 
-const rawUrls = process.env.SMOKE_TEST_URLS || 'http://localhost:10000';
-const API_KEY = process.env.ORDER_INGEST_API_KEY || process.env.SMOKE_TEST_API_KEY || '';
+const { apiKey, baseUrl } = resolveTestConfig();
+const rawUrls = process.env.SMOKE_TEST_URLS || baseUrl;
+const API_KEY = apiKey;
 
 const BASE_URLS = rawUrls
     .split(',')

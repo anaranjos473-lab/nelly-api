@@ -1,0 +1,42 @@
+name: Security Gate
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/**
+      - release/**
+  pull_request:
+    branches:
+      - main
+      - develop
+      - release/**
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Security Audit (branch-aware)
+        run: |
+          TARGET_BRANCH="${GITHUB_BASE_REF:-${GITHUB_REF_NAME}}"
+          echo "Audit target branch: ${TARGET_BRANCH}"
+          if [[ "${TARGET_BRANCH}" == "main" || "${TARGET_BRANCH}" == release/* ]]; then
+            npm audit --audit-level=high
+          else
+            npm audit --audit-level=critical
+          fi

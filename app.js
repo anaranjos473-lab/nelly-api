@@ -35,7 +35,7 @@ process.on('uncaughtException', async (err) => {
     await notificarAlertaCritica(`Error crítico en producción: ${err.message}`);
     process.exit(1);
 });
-process.on('unhandledRejection', async (reason, promise) => {
+process.on('unhandledRejection', async (reason, _promise) => {
     console.error('❌ [GLOBAL][unhandledRejection]', reason);
     await notificarAlertaCritica(`Rechazo no capturado: ${reason}`);
 });
@@ -317,7 +317,7 @@ if (firebaseAdminInitialized) {
 }
 
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
-const URL_DE_TU_API = process.env.RENDER_URL || 'https://nelly-api-81h1.onrender.com'; // Base URL canónica para keep-alive
+const URL_DE_TU_API = process.env.RENDER_URL || 'https://nelly-api-8lh1.onrender.com'; // Base URL canónica para keep-alive
 
 if (process.env.NODE_ENV === 'production') {
     setInterval(async () => {
@@ -341,7 +341,7 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 // --- VALIDACIÓN DE CORREO ELECTRÓNICO ---
-function validarCorreo(email) {
+function validarCorreo(email) { // eslint-disable-line no-unused-vars
     const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regexCorreo.test(email);
 }
@@ -536,8 +536,8 @@ app.post('/pago/generar', async (req, res) => {
     const result = await preference.create({
       body: {
         items: [{ title: req.body.titulo || 'Pedido Nelly', quantity: 1, unit_price: Number(req.body.precio) || 150, currency_id: "MXN" }],
-        notification_url: "https://nelly-api-8lh1.onrender.com/webhook", 
-        back_urls: { success: "https://nelly-api-8lh1.onrender.com/success" },
+        notification_url: `${URL_DE_TU_API}/webhook`, 
+        back_urls: { success: `${URL_DE_TU_API}/success` },
         auto_return: "approved",
       }
     });
@@ -1041,3 +1041,5 @@ server.on('error', (err) => {
 process.on('unhandledRejection', (reason) => {
   console.error('⚠️ Promesa rechazada no manejada:', reason);
 });
+
+

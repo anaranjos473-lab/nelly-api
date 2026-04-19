@@ -1,0 +1,13 @@
+node_modules/
+app/
+logs_pruebas/
+public/
+*.md
+*.json
+firebase_admin_base64.txt
+nelly-admin.json
+nelly-admin.json.bak
+
+README.js
+firebase.js
+scripts/commission-engine.js
