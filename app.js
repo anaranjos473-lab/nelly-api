@@ -112,6 +112,8 @@ const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-j
 const { Resend } = require('resend'); // 1. Importación de Resend
 
 const app = express();
+// Montar rutas de monitoreo externo
+app.use('/api', require('./router.js'));
 
 function requireOrderApiKey(req, res, next) {
     if (!ORDER_INGEST_API_KEY) {
