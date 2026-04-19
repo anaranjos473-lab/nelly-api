@@ -999,6 +999,16 @@ app.post('/api/delivery/complete-order', requirePanelSessionAuth, async (req, re
             return res.status(404).json({ error: 'Pedido no encontrado' });
         }
 
+        const pedidoActual = pedidoSnap.val() || {};
+        const estadoActual = String(pedidoActual.estado || '').trim().toLowerCase();
+        const puedeFinalizar = estadoActual === 'en_reparto' || estadoActual === 'en_camino' || estadoActual === 'reparto';
+        if (!puedeFinalizar) {
+            return res.status(409).json({
+                error: 'Transicion invalida: el pedido aun no esta en reparto',
+                estadoActual
+            });
+        }
+
         const now = Date.now();
         const updates = {};
         updates[`pedidos/${orderId}/estado`] = 'entregado';

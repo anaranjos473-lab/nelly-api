@@ -1549,8 +1549,8 @@
                 logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
                 await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}`), payloadReparto);
                 logDebug(`set RTDB pedidos_en_camino/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'LISTO');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=LISTO`);
+                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'listo');
+                logDebug(`set RTDB pedidos/${rtdbKey}/estado=listo`);
 
                 // Firestore es sincronizacion secundaria: no debe bloquear el despacho.
                 try {
