@@ -1,0 +1,9 @@
+Se generó el archivo resumen-cambios.patch con todos los cambios del último commit. Puedes usarlo con:
+
+patch -p1 < resumen-cambios.patch
+
+o
+
+git apply resumen-cambios.patch
+
+Incluye todos los archivos validados y versionados hasta este punto.
