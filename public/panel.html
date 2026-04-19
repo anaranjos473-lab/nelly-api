@@ -337,6 +337,7 @@
                     <div id="toast-wrap" class="toast-wrap"></div>
                     <div id="debug-panel" class="debug-panel">
                         <strong>Debug RTDB</strong>
+                        <div id="debug-stats" style="margin-top:8px;font-size:11px;line-height:1.3;"></div>
                         <div id="debug-log" style="margin-top:8px;"></div>
                     </div>
                 </div>
@@ -420,7 +421,13 @@
             signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import {
+            equalTo,
+            onChildAdded,
+            onChildChanged,
+            onChildRemoved,
             onValue,
+            orderByChild,
+            query,
             ref,
             remove,
             set
@@ -646,15 +653,219 @@
         let authRequestInFlight = false;
         let primeraCargaPendientes = true;
         let notificacionesHabilitadas = false;
-        const pendientesPrevios = new Set();
+        const RENDER_DEBOUNCE_MS = 90;
+        const METRICAS_REFRESH_MS = 10000;
+        let eficienciaMinimaPct = 35;
+        let alertaMinIntervalMs = 120000;
+        let alertaMinEventos = 20;
+        let alertasDebounceSilenciadas = false;
+        let renderDebounceTimer = null;
+        let metricasTickerId = null;
+        let ultimaAlertaDebounceMs = 0;
         const pedidosPendientes = new Map();
         const pedidosReparto = new Map();
         const pedidosEnCamino = new Map();
         const liquidacionesAuditProcesadas = new Set();
+        const metricasEventos = {
+            total: 0,
+            pendienteAdded: 0,
+            pendienteChanged: 0,
+            pendienteRemoved: 0,
+            repartoSnapshot: 0,
+            caminoSnapshot: 0,
+            simulacionEventos: 0,
+            renderSolicitudes: 0,
+            renderEjecutados: 0,
+            ultimoEvento: '-'
+        };
+        let metricasInicioMs = Date.now();
         const PANEL_TOKEN_ENDPOINTS = [
             "https://nelly-api-81h1.onrender.com/api/auth/panel-token",
             "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
         ];
+
+        function refrescarMetricasDebug() {
+            const panel = document.getElementById('debug-stats');
+            if (!panel) {
+                return;
+            }
+
+            const rendersEvitados = Math.max(
+                0,
+                metricasEventos.renderSolicitudes - metricasEventos.renderEjecutados
+            );
+            const eficienciaRender = metricasEventos.renderSolicitudes > 0
+                ? ((rendersEvitados / metricasEventos.renderSolicitudes) * 100).toFixed(1)
+                : '0.0';
+            const eficienciaNum = Number(eficienciaRender);
+            const minutosActivos = Math.max((Date.now() - metricasInicioMs) / 60000, 1 / 60);
+            const eventosPorMin = (metricasEventos.total / minutosActivos).toFixed(1);
+            const rendersPorMin = (metricasEventos.renderEjecutados / minutosActivos).toFixed(1);
+            const saludTexto = eficienciaNum < eficienciaMinimaPct ? 'BAJA' : 'OK';
+            const saludColor = eficienciaNum < eficienciaMinimaPct ? '#fca5a5' : '#86efac';
+
+            evaluarAlertaDebounce(eficienciaNum);
+
+            panel.innerHTML = [
+                `Eventos: ${metricasEventos.total}`,
+                `pendiente+ ${metricasEventos.pendienteAdded} | pendiente~ ${metricasEventos.pendienteChanged} | pendiente- ${metricasEventos.pendienteRemoved}`,
+                `snap reparto ${metricasEventos.repartoSnapshot} | snap camino ${metricasEventos.caminoSnapshot}`,
+                `simulacion ${metricasEventos.simulacionEventos}`,
+                `render req ${metricasEventos.renderSolicitudes} | render ok ${metricasEventos.renderEjecutados}`,
+                `ahorro estimado ${rendersEvitados} renders (${eficienciaRender}%)`,
+                `salud debounce <span style="color:${saludColor};font-weight:700;">${saludTexto}</span>`,
+                `umbral ${eficienciaMinimaPct}% | min eventos ${alertaMinEventos} | cooldown ${Math.round(alertaMinIntervalMs / 1000)}s`,
+                `cadencia ${eventosPorMin} ev/min | ${rendersPorMin} render/min`,
+                `ultimo: ${metricasEventos.ultimoEvento}`
+            ].join('<br>');
+        }
+
+        function evaluarAlertaDebounce(eficienciaNum) {
+            if (alertasDebounceSilenciadas) {
+                return;
+            }
+            if (metricasEventos.renderSolicitudes < alertaMinEventos) {
+                return;
+            }
+            if (eficienciaNum >= eficienciaMinimaPct) {
+                return;
+            }
+
+            const ahora = Date.now();
+            if (ahora - ultimaAlertaDebounceMs < alertaMinIntervalMs) {
+                return;
+            }
+
+            ultimaAlertaDebounceMs = ahora;
+            const msg = `Salud debounce BAJA (${eficienciaNum.toFixed(1)}%)`;
+            showToast(msg, 'err');
+            logDebug(msg, 'err');
+        }
+
+        function iniciarMonitorMetricas() {
+            if (metricasTickerId) {
+                return;
+            }
+            metricasTickerId = setInterval(() => {
+                refrescarMetricasDebug();
+            }, METRICAS_REFRESH_MS);
+        }
+
+        function detenerMonitorMetricas() {
+            if (!metricasTickerId) {
+                return;
+            }
+            clearInterval(metricasTickerId);
+            metricasTickerId = null;
+        }
+
+        window.verMetricasSync = () => {
+            const rendersEvitados = Math.max(
+                0,
+                metricasEventos.renderSolicitudes - metricasEventos.renderEjecutados
+            );
+            const eficienciaRender = metricasEventos.renderSolicitudes > 0
+                ? Number(((rendersEvitados / metricasEventos.renderSolicitudes) * 100).toFixed(1))
+                : 0;
+            const minutosActivos = Math.max((Date.now() - metricasInicioMs) / 60000, 1 / 60);
+
+            return {
+                ...metricasEventos,
+                rendersEvitados,
+                eficienciaRender,
+                eficienciaMinimaPct,
+                alertaMinIntervalMs,
+                alertaMinEventos,
+                alertasDebounceSilenciadas,
+                eventosPorMin: Number((metricasEventos.total / minutosActivos).toFixed(1)),
+                rendersPorMin: Number((metricasEventos.renderEjecutados / minutosActivos).toFixed(1))
+            };
+        };
+
+        window.resetMetricasSync = () => {
+            Object.keys(metricasEventos).forEach((key) => {
+                if (typeof metricasEventos[key] === 'number') {
+                    metricasEventos[key] = 0;
+                }
+            });
+            metricasEventos.ultimoEvento = '-';
+            metricasInicioMs = Date.now();
+            ultimaAlertaDebounceMs = 0;
+            refrescarMetricasDebug();
+            return window.verMetricasSync();
+        };
+
+        window.configurarAlertasDebounce = (opts = {}) => {
+            const siguienteUmbral = Number(opts.minPct);
+            const siguienteMinEventos = Number(opts.minEventos);
+            const siguienteCooldown = Number(opts.minIntervalMs);
+
+            if (Number.isFinite(siguienteUmbral) && siguienteUmbral >= 0 && siguienteUmbral <= 100) {
+                eficienciaMinimaPct = siguienteUmbral;
+            }
+            if (Number.isFinite(siguienteMinEventos) && siguienteMinEventos >= 1) {
+                alertaMinEventos = Math.round(siguienteMinEventos);
+            }
+            if (Number.isFinite(siguienteCooldown) && siguienteCooldown >= 1000) {
+                alertaMinIntervalMs = Math.round(siguienteCooldown);
+            }
+            if (typeof opts.silenciar === 'boolean') {
+                alertasDebounceSilenciadas = opts.silenciar;
+            }
+
+            refrescarMetricasDebug();
+            return window.verMetricasSync();
+        };
+
+        window.simularRafagaEventos = async (cantidad = 30, intervaloMs = 8) => {
+            const totalEventos = Math.max(1, Number(cantidad) || 1);
+            const pausa = Math.max(0, Number(intervaloMs) || 0);
+
+            for (let i = 0; i < totalEventos; i += 1) {
+                registrarEvento('simulacionEventos');
+                solicitarRenderPanel('simulacion-rafaga');
+                if (pausa > 0) {
+                    await new Promise((resolve) => setTimeout(resolve, pausa));
+                }
+            }
+
+            return window.verMetricasSync();
+        };
+
+        window.detenerMonitorMetricas = () => {
+            detenerMonitorMetricas();
+            return window.verMetricasSync();
+        };
+
+        window.addEventListener('beforeunload', () => {
+            detenerMonitorMetricas();
+        });
+
+        function registrarEvento(nombre) {
+            metricasEventos.total += 1;
+            if (typeof metricasEventos[nombre] === 'number') {
+                metricasEventos[nombre] += 1;
+            }
+            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString()} · ${nombre}`;
+            refrescarMetricasDebug();
+        }
+
+        function solicitarRenderPanel(origen = 'desconocido') {
+            metricasEventos.renderSolicitudes += 1;
+            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString()} · render:${origen}`;
+            refrescarMetricasDebug();
+
+            if (renderDebounceTimer) {
+                clearTimeout(renderDebounceTimer);
+            }
+
+            renderDebounceTimer = setTimeout(() => {
+                renderDebounceTimer = null;
+                metricasEventos.renderEjecutados += 1;
+                refrescarMetricasDebug();
+                actualizarPanel();
+            }, RENDER_DEBOUNCE_MS);
+        }
 
         function normalizarEstado(valor) {
             const raw = String(valor || '').trim().toLowerCase();
@@ -706,6 +917,63 @@
             } catch (_err) {
                 // No bloquear el flujo principal por fallo de notificacion.
             }
+        }
+
+        function reproducirSonido(nombre = 'alerta.mp3') {
+            const audio = document.getElementById('audio-notificacion');
+            if (!audio) {
+                return;
+            }
+
+            if (nombre && !audio.src.endsWith(nombre) && nombre !== 'notificacion_nueva.mp3') {
+                audio.src = nombre;
+            }
+
+            audio.currentTime = 0;
+            audio.play().catch(() => {
+                // Puede fallar si no hubo interacción de usuario; no rompe el flujo.
+            });
+        }
+
+        function agregarPedidoATablaVisual(key, data, opciones = {}) {
+            if (!key || !data || typeof data !== 'object') {
+                return false;
+            }
+
+            const estado = String(data.estado || '').trim().toLowerCase();
+            if (estado && estado !== 'pendiente') {
+                return false;
+            }
+
+            const pedidoId = data.id || data.id_pedido || key;
+            pedidosPendientes.set(key, {
+                ...data,
+                id: pedidoId,
+                _rtdbKey: key,
+                __source: 'rtdb'
+            });
+
+            if (opciones.notificar) {
+                notificarNuevoPedido(data, key);
+            }
+            if (opciones.sonido) {
+                reproducirSonido(opciones.sonido);
+            }
+
+            solicitarRenderPanel(opciones.origen || 'agregarPedidoATablaVisual');
+            return true;
+        }
+
+        function eliminarFilaVisual(key, opciones = {}) {
+            if (!key) {
+                return false;
+            }
+
+            const eliminado = pedidosPendientes.delete(key);
+            if (eliminado) {
+                solicitarRenderPanel(opciones.origen || 'eliminarFilaVisual');
+            }
+            return eliminado;
         }
 
         // Utilidades de consola para depuración operativa.
@@ -816,50 +1084,75 @@
 
         function iniciarSincronizacion() {
             const gananciasRef = doc(db, "metricas", "ganancias_hoy");
+            const dbRef = ref(rtdb, "pedidos");
+            const consultaPendientes = query(dbRef, orderByChild("estado"), equalTo("pendiente"));
+            iniciarMonitorMetricas();
+            refrescarMetricasDebug();
 
             onSnapshot(gananciasRef, (snap) => {
                 const total = snap.exists() ? Number(snap.data().total || 0) : 0;
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             });
 
-            onValue(ref(rtdb, "pedidos"), (snapshot) => {
-                pedidosPendientes.clear();
-                const pendientesActuales = new Set();
-                const nuevosPendientes = [];
-                const raiz = snapshot.val();
-                if (raiz && typeof raiz === "object") {
-                    Object.entries(raiz).forEach(([key, value]) => {
-                        if (!value || typeof value !== "object") {
-                            return;
-                        }
-                        const pedidoId = value.id || value.id_pedido || key;
-                        pedidosPendientes.set(key, {
-                            ...value,
-                            id: pedidoId,
-                            _rtdbKey: key,
-                            __source: "rtdb"
-                        });
-
-                        if (String(value.estado || 'pendiente') === 'pendiente') {
-                            pendientesActuales.add(key);
-                            if (!primeraCargaPendientes && !pendientesPrevios.has(key)) {
-                                nuevosPendientes.push({ key, pedido: value });
-                            }
-                        }
-                    });
-                }
-
-                pendientesPrevios.clear();
-                pendientesActuales.forEach((key) => pendientesPrevios.add(key));
-
-                if (!primeraCargaPendientes && nuevosPendientes.length > 0) {
-                    nuevosPendientes.forEach(({ key, pedido }) => notificarNuevoPedido(pedido, key));
-                }
-
+            // Carga inicial para consulta filtrada (sin disparar notificaciones retroactivas).
+            onValue(consultaPendientes, () => {
                 primeraCargaPendientes = false;
-                actualizarPanel();
+            }, {
+                onlyOnce: true
+            });
+
+            // Escucha incremental: solo pedidos pendientes nuevos.
+            onChildAdded(consultaPendientes, (snapshot) => {
+                const pedido = snapshot.val();
+                if (!pedido || typeof pedido !== "object") {
+                    return;
+                }
+
+                const key = snapshot.key;
+                const tieneMonto = pedido.monto !== undefined || pedido.total !== undefined;
+                if (!tieneMonto) {
+                    return;
+                }
+
+                registrarEvento('pendienteAdded');
+                agregarPedidoATablaVisual(key, pedido, {
+                    notificar: !primeraCargaPendientes,
+                    sonido: !primeraCargaPendientes ? 'notificacion_nueva.mp3' : null,
+                    origen: 'onChildAdded-pedidos'
+                });
             }, (error) => {
-                console.error("Error detectado en la sincronización RTDB:", error);
+                console.error("Error detectado en onChildAdded(pedidos pendientes):", error);
+            });
+
+            // Reacciona a cambios de estado sin releer toda la rama de pedidos.
+            onChildChanged(dbRef, (snapshot) => {
+                const pedidoActualizado = snapshot.val();
+                if (!pedidoActualizado || typeof pedidoActualizado !== "object") {
+                    return;
+                }
+
+                const key = snapshot.key;
+                const estado = String(pedidoActualizado.estado || "").trim().toLowerCase();
+                if (estado === "pendiente") {
+                    agregarPedidoATablaVisual(key, pedidoActualizado, {
+                        origen: 'onChildChanged-pedidos-pendiente'
+                    });
+                } else {
+                    if (eliminarFilaVisual(key, { origen: 'onChildChanged-pedidos-remover' })) {
+                        console.log(`Pedido ${key} paso a: ${pedidoActualizado.estado}`);
+                    }
+                }
+                registrarEvento('pendienteChanged');
+            }, (error) => {
+                console.error("Error detectado en onChildChanged(pedidos):", error);
+            });
+
+            onChildRemoved(dbRef, (snapshot) => {
+                const key = snapshot.key;
+                registrarEvento('pendienteRemoved');
+                eliminarFilaVisual(key, { origen: 'onChildRemoved-pedidos' });
+            }, (error) => {
+                console.error("Error detectado en onChildRemoved(pedidos):", error);
             });
 
             onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
@@ -879,7 +1172,8 @@
                         });
                     });
                 }
-                actualizarPanel();
+                registrarEvento('repartoSnapshot');
+                solicitarRenderPanel('onValue-pedidos_para_reparto');
             }, (error) => {
                 console.error("Error detectado en pedidos_para_reparto:", error);
             });
@@ -901,7 +1195,8 @@
                         });
                     });
                 }
-                actualizarPanel();
+                registrarEvento('caminoSnapshot');
+                solicitarRenderPanel('onValue-pedidos_en_camino');
             }, (error) => {
                 console.error("Error detectado en pedidos_en_camino:", error);
             });
