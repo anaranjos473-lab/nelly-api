@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        "rol": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+    "repartidores": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        "estatus": {
+          ".write": false,
+          "nivel": {
+            ".validate": "newData.val() == 'BRONCE' || newData.val() == 'PLATA' || newData.val() == 'ORO' || newData.val() == 'DIAMANTE'"
+          },
+          "bloqueado_por_deuda": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "perfil": {
+          "bloqueado_por_deuda": {
+            ".write": false
+          }
+        },
+        "finanzas": {
+          ".write": false,
+          "deuda_actual": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "limite_deuda": {
+            ".validate": "newData.isNumber() && (newData.val() == 300 || newData.val() == 500 || newData.val() == 600 || newData.val() == 900)"
+          },
+          "saldo_ganancias": {
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
+    },
+    "pedidos_activos": {
+      ".read": "auth != null",
+      "$pedido_id": {
+        ".write": "auth != null && root.child('repartidores').child(auth.uid).child('estatus').child('bloqueado_por_deuda').val() == false && root.child('repartidores').child(auth.uid).child('finanzas').child('deuda_actual').val() <= root.child('repartidores').child(auth.uid).child('finanzas').child('limite_deuda').val() && (!data.exists() || data.child('repartidor_id').val() == auth.uid) && (!newData.exists() || newData.child('repartidor_id').val() == auth.uid)"
+      }
+    }
+  }
+}

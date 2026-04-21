@@ -1,0 +1,220 @@
+{
+  "info": {
+    "name": "Nelly - Bloqueo Automático por Deuda",
+    "description": "Bateria operativa para validar cobro efectivo, bloqueo por deuda y desbloqueo por pago en backend Node.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1) Driver - Registrar Cobro Efectivo (TX)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver_id_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pedidoId\": \"{{pedido_id}}\",\n  \"monto_efectivo\": {{monto_cobro_efectivo}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/delivery/finanzas/registrar-cobro-efectivo",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "finanzas",
+            "registrar-cobro-efectivo"
+          ]
+        },
+        "description": "Suma deuda_actual y saldo_ganancias en transaccion atomica. Si supera limite, debe marcar bloqueado_por_deuda=true."
+      }
+    },
+    {
+      "name": "2) Driver - Intentar Aceptar Pedido (esperado 403 si bloqueado)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver_id_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pedidoId\": \"{{pedido_para_reparto_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/delivery/accept-order",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "accept-order"
+          ]
+        },
+        "description": "Debe responder 403 cuando el repartidor esta bloqueado por deuda."
+      }
+    },
+    {
+      "name": "3) Panel - Registrar Pago Deuda (TX)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{panel_id_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"uid\": \"{{driver_uid}}\",\n  \"monto_pago\": {{monto_pago_deuda}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/panel/finanzas/registrar-pago-deuda",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "panel",
+            "finanzas",
+            "registrar-pago-deuda"
+          ]
+        },
+        "description": "Resta deuda_actual en transaccion atomica y puede levantar bloqueo cuando deuda <= limite."
+      }
+    },
+    {
+      "name": "4) Driver - Aceptar Pedido (esperado 200 si desbloqueado)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver_id_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pedidoId\": \"{{pedido_para_reparto_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/delivery/accept-order",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "accept-order"
+          ]
+        },
+        "description": "Despues de liquidar deuda, debe permitir aceptar pedido si no hay otras restricciones de estado/disponibilidad."
+      }
+    },
+    {
+      "name": "5) Driver - Registrar Cobro Excesivo (prueba tope por nivel)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{driver_id_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pedidoId\": \"{{pedido_id}}\",\n  \"monto_efectivo\": {{monto_cobro_excesivo}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/delivery/finanzas/registrar-cobro-efectivo",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "delivery",
+            "finanzas",
+            "registrar-cobro-efectivo"
+          ]
+        },
+        "description": "Fuerza superacion de limite para confirmar bloqueo inmediato."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://nelly-api-8lh1.onrender.com"
+    },
+    {
+      "key": "driver_uid",
+      "value": "driver_bronce_001"
+    },
+    {
+      "key": "driver_id_token",
+      "value": ""
+    },
+    {
+      "key": "panel_id_token",
+      "value": ""
+    },
+    {
+      "key": "pedido_id",
+      "value": "pedido_cash_001"
+    },
+    {
+      "key": "pedido_para_reparto_id",
+      "value": "pedido_disponible_001"
+    },
+    {
+      "key": "monto_cobro_efectivo",
+      "value": "250"
+    },
+    {
+      "key": "monto_cobro_excesivo",
+      "value": "120"
+    },
+    {
+      "key": "monto_pago_deuda",
+      "value": "300"
+    }
+  ]
+}

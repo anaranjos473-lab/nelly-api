@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.nelly.driver.BuildConfig
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -70,7 +71,9 @@ class LocationUpdateClient(
             val response = postLocation(lat, lng, pedidoId, userToken)
 
             if (response.statusCode == 403 && allowRefreshRetry) {
-                Log.w("NellyAuth", "Claim no detectado, refrescando token y reintentando una vez...")
+                if (BuildConfig.DEBUG) {
+                    Log.w("NellyAuth", "Claim no detectado, refrescando token y reintentando una vez...")
+                }
                 user.getIdToken(true)
                     .addOnSuccessListener { refreshed ->
                         val refreshedToken = refreshed.token
@@ -136,7 +139,11 @@ class LocationUpdateClient(
 
             UpdateResult(statusCode in 200..299, statusCode, body)
         } catch (error: Exception) {
-            Log.e("NellyLocation", "Error enviando ubicacion", error)
+            if (BuildConfig.DEBUG) {
+                Log.e("NellyLocation", "Error enviando ubicacion", error)
+            } else {
+                Log.e("NellyLocation", "Error enviando ubicacion")
+            }
             UpdateResult(false, 500, "Error enviando ubicacion: ${error.message}")
         } finally {
             connection?.disconnect()

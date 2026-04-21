@@ -11,6 +11,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.nelly.driver.BuildConfig
 import com.nelly.driver.data.remote.LocationUpdateClient
 
 class DeliveryTrackingService : Service() {
@@ -27,9 +28,11 @@ class DeliveryTrackingService : Service() {
             if (location != null) {
                 client.updateLocation(location.latitude, location.longitude, pedidoIdActivo) { result ->
                     if (result.ok) {
-                        Log.d(TAG, "Ubicacion actualizada correctamente")
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "Ubicacion actualizada correctamente")
+                        }
                     } else {
-                        Log.e(TAG, "Error actualizando ubicacion: ${result.statusCode} ${result.body}")
+                        Log.e(TAG, "Error actualizando ubicacion en backend: status=${result.statusCode}")
                     }
                 }
             } else {

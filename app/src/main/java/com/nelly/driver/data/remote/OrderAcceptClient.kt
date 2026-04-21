@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.nelly.driver.BuildConfig
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -64,7 +65,9 @@ class OrderAcceptClient(
             val response = postAccept(pedidoId, userToken)
 
             if (response.statusCode == 403 && allowRefreshRetry) {
-                Log.w("NellyAuth", "Claim no detectado, refrescando token y reintentando una vez...")
+                if (BuildConfig.DEBUG) {
+                    Log.w("NellyAuth", "Claim no detectado, refrescando token y reintentando una vez...")
+                }
                 user.getIdToken(true)
                     .addOnSuccessListener { refreshed ->
                         val refreshedToken = refreshed.token
@@ -121,7 +124,11 @@ class OrderAcceptClient(
 
             AcceptResult(statusCode in 200..299, statusCode, body)
         } catch (error: Exception) {
-            Log.e("NellyAccept", "Error aceptando pedido en backend", error)
+            if (BuildConfig.DEBUG) {
+                Log.e("NellyAccept", "Error aceptando pedido en backend", error)
+            } else {
+                Log.e("NellyAccept", "Error aceptando pedido en backend")
+            }
             AcceptResult(false, 500, "Error aceptando pedido: ${error.message}")
         } finally {
             connection?.disconnect()

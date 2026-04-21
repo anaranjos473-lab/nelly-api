@@ -1,52 +1,57 @@
 {
-    "name":  "nelly-api",
-    "version":  "1.0.0",
-    "description":  "API para Nelly Delivery Tuxtla",
-    "main":  "app.js",
-    "scripts":  {
-                    "start":  "node server.js",
-                    "dev":  "nodemon server.js",
-                    "sync:panel":  "node scripts/sync-panel.js",
-                    "deploy:hosting":  "npm run sync:panel \u0026\u0026 firebase deploy --only hosting",
-                    "firebase:check":  "node scripts/verificar-firebase-admin.js",
-                    "precommit:agents":  "npm run test:agents",
-                    "pedido:test:rtdb":  "node scripts/generar-pedido-prueba-rtdb.js",
-                    "pedido:test:reparto":  "node scripts/generar-pedido-directo-reparto-rtdb.js",
-                    "test:agents":  "node tests/agents/auditor-runner.mjs",
-                    "test:agents:arch":  "node tests/agents/lint/architecture-lint.mjs",
-                    "test:agents:biz":  "node tests/agents/business/commission-blackbox.test.mjs",
-                    "test:agents:host":  "node tests/agents/hosting/deploy-checklist.mjs",
-                    "prepare-commit:agents":  "node tests/agents/auditor-runner.mjs",
-                    "lint":  "eslint .",
-                    "test":  "node final_test.js",
-                    "audit":  "npm audit --audit-level=critical",
-                    "security-check":  "npm audit --audit-level=high"
-                },
-    "keywords":  [
-                     "delivery",
-                     "tuxtla",
-                     "fintech",
-                     "billetera"
-                 ],
-    "author":  "Nelly Team",
-    "license":  "ISC",
-    "devDependencies":  {
-                            "eslint":  "^8.57.1",
-                            "nodemon":  "^3.1.0"
-                        },
-    "dependencies":  {
-                         "@googlemaps/google-maps-services-js":  "^3.4.2",
-                         "axios":  "^1.7.9",
-                         "cors":  "^2.8.5",
-                         "dotenv":  "^16.4.7",
-                         "express":  "^4.21.2",
-                         "express-rate-limit":  "^7.5.0",
-                         "firebase":  "^12.12.0",
-                         "firebase-admin":  "^13.8.0",
-                         "mercadopago":  "^2.1.0",
-                         "node-cron":  "^4.2.1",
-                         "openai":  "^4.78.1",
-                         "resend":  "^4.0.1"
-                     }
-
+    "name": "nelly-api",
+    "version": "1.0.0",
+    "description": "API para Nelly Delivery Tuxtla",
+    "main": "app.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "sync:panel": "node scripts/sync-panel.js",
+        "deploy:hosting": "npm run sync:panel && firebase deploy --only hosting",
+        "firebase:check": "node scripts/verificar-firebase-admin.js",
+        "precommit:agents": "npm run test:agents",
+        "pedido:test:rtdb": "node scripts/generar-pedido-prueba-rtdb.js",
+        "pedido:test:reparto": "node scripts/generar-pedido-directo-reparto-rtdb.js",
+        "test:agents": "node tests/agents/auditor-runner.mjs",
+        "test:agents:arch": "node tests/agents/lint/architecture-lint.mjs",
+        "test:agents:biz": "node tests/agents/business/commission-blackbox.test.mjs",
+        "test:agents:host": "node tests/agents/hosting/deploy-checklist.mjs",
+        "prepare-commit:agents": "node tests/agents/auditor-runner.mjs",
+        "lint": "eslint .",
+        "test": "node final_test.js",
+        "test:security:deuda": "node tests/security/rtdb-deuda-permission.integration.js",
+        "test:security:allow": "node tests/security/rtdb-deuda-allow.integration.js",
+        "test:security:prod": "node tests/security/run-prod-certification.js",
+        "test:security:deuda:emulator": "npx firebase emulators:exec --project demo-nelly-security --only database \"node tests/security/rtdb-deuda-permission.integration.js\"",
+        "audit": "npm audit --audit-level=critical",
+        "security-check": "npm audit --audit-level=high"
+    },
+    "keywords": [
+        "delivery",
+        "tuxtla",
+        "fintech",
+        "billetera"
+    ],
+    "author": "Nelly Team",
+    "license": "ISC",
+    "devDependencies": {
+        "@firebase/rules-unit-testing": "^5.0.0",
+        "eslint": "^8.57.1",
+        "firebase-tools": "^15.15.0",
+        "nodemon": "^3.1.0"
+    },
+    "dependencies": {
+        "@googlemaps/google-maps-services-js": "^3.4.2",
+        "axios": "^1.7.9",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "express-rate-limit": "^7.5.0",
+        "firebase": "^12.12.0",
+        "firebase-admin": "^13.8.0",
+        "mercadopago": "^2.1.0",
+        "node-cron": "^4.2.1",
+        "openai": "^4.78.1",
+        "resend": "^4.0.1"
+    }
 }
