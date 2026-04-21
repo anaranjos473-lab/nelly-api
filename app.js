@@ -1045,6 +1045,52 @@ app.post('/api/panel/finanzas/registrar-pago-deuda', requirePanelSessionAuth, as
 });
 
 // --- ENDPOINT: BLOQUEO MANUAL DE REPARTIDOR (PANEL ADMIN WEB) ---
+app.get('/api/admin/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    try {
+        const [usuariosSnap, repartidoresSnap] = await Promise.all([
+            db.ref('usuarios/repartidores').once('value'),
+            db.ref('repartidores').once('value'),
+        ]);
+
+        const usuarios = usuariosSnap.val();
+        const repartidores = repartidoresSnap.val();
+        const source = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0
+            ? 'usuarios/repartidores'
+            : 'repartidores';
+        const drivers = source === 'usuarios/repartidores'
+            ? (usuarios || {})
+            : (repartidores || {});
+
+        return res.status(200).json({
+            ok: true,
+            source,
+            drivers,
+        });
+    } catch (error) {
+        console.error('[ADMIN][DRIVERS_LIST] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo obtener la lista de repartidores' });
+    }
+});
+
+app.get('/api/admin/pedidos/metricas', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    try {
+        const snapshot = await db.ref('pedidos_activos').once('value');
+        const orders = snapshot.val() || {};
+
+        return res.status(200).json({
+            ok: true,
+            activos: Object.keys(orders).length,
+        });
+    } catch (error) {
+        console.error('[ADMIN][ORDERS_METRICS] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudieron obtener las metricas de pedidos' });
+    }
+});
+
 app.post('/api/admin/repartidores/manual-lock', requirePanelAdminEmailAuth, async (req, res) => {
     if (!requireFirebase(res)) return;
 

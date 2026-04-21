@@ -48,6 +48,7 @@ const ui = {
 let currentDrivers = {};
 let activeDriversBasePath = "usuarios/repartidores";
 let dashboardListenersAttached = false;
+let dashboardPollingId = null;
 
 function escapeHtml(value) {
   return String(value || "")
@@ -112,6 +113,10 @@ function switchToLogin() {
   ui.metricDrivers.textContent = "0";
   ui.metricBlocked.textContent = "0";
   ui.metricOrders.textContent = "0";
+}
+
+function setDriversTableMessage(message) {
+  ui.tableBody.innerHTML = `<tr><td class="px-3 py-3 text-sm text-slate-400" colspan="5">${escapeHtml(message)}</td></tr>`;
 }
 
 function renderDriversTable(drivers) {
@@ -218,37 +223,90 @@ function bindToggleEvents() {
   });
 }
 
-function attachDriversListener() {
-  const primaryRef = ref(rtdb, "usuarios/repartidores");
-  const secondaryRef = ref(rtdb, "repartidores");
+async function fetchAdminApi(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("Sesion no activa");
+  }
 
-  onValue(primaryRef, (snapshot) => {
-    const val = snapshot.val();
-    if (val && typeof val === "object" && Object.keys(val).length > 0) {
-      activeDriversBasePath = "usuarios/repartidores";
-      currentDrivers = val;
-      renderDriversTable(currentDrivers);
-      bindToggleEvents();
-    }
-  });
+  const idToken = await user.getIdToken();
+  let lastError = new Error("Sin respuesta valida del backend");
 
-  onValue(secondaryRef, (snapshot) => {
-    const val = snapshot.val() || {};
-    if (activeDriversBasePath === "usuarios/repartidores" && Object.keys(currentDrivers).length > 0) {
-      return;
+  for (const baseUrl of ADMIN_API_ENDPOINTS) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+          ...(options.headers || {})
+        }
+      });
+
+      if (!response.ok) {
+        let message = `HTTP ${response.status}`;
+        try {
+          const payload = await response.json();
+          message = payload?.error || message;
+        } catch (_parseError) {}
+        throw new Error(message);
+      }
+
+      return response.json();
+    } catch (error) {
+      lastError = error;
     }
-    activeDriversBasePath = "repartidores";
-    currentDrivers = val;
-    renderDriversTable(currentDrivers);
-    bindToggleEvents();
-  });
+  }
+
+  throw lastError;
 }
 
-function attachOrdersCounterListener() {
-  onValue(ref(rtdb, "pedidos_activos"), (snapshot) => {
-    const data = snapshot.val() || {};
-    ui.metricOrders.textContent = String(Object.keys(data).length);
-  });
+async function refreshDriversFromBackend() {
+  const payload = await fetchAdminApi("/api/admin/repartidores");
+  activeDriversBasePath = payload?.source || "repartidores";
+  currentDrivers = payload?.drivers || {};
+  renderDriversTable(currentDrivers);
+  bindToggleEvents();
+}
+
+async function refreshOrdersMetricsFromBackend() {
+  const payload = await fetchAdminApi("/api/admin/pedidos/metricas");
+  ui.metricOrders.textContent = String(Number(payload?.activos || 0));
+}
+
+async function syncDashboardData() {
+  try {
+    await Promise.all([
+      refreshDriversFromBackend(),
+      refreshOrdersMetricsFromBackend()
+    ]);
+  } catch (error) {
+    currentDrivers = {};
+    ui.metricDrivers.textContent = "0";
+    ui.metricBlocked.textContent = "0";
+    ui.metricOrders.textContent = "0";
+    setDriversTableMessage(`No se pudo cargar el dashboard: ${error.message}`);
+  }
+}
+
+function startDashboardPolling() {
+  if (dashboardPollingId) {
+    return;
+  }
+
+  syncDashboardData();
+  dashboardPollingId = window.setInterval(() => {
+    syncDashboardData();
+  }, 5000);
+}
+
+function stopDashboardPolling() {
+  if (!dashboardPollingId) {
+    return;
+  }
+
+  window.clearInterval(dashboardPollingId);
+  dashboardPollingId = null;
 }
 
 async function createManualOrder(event) {
@@ -364,6 +422,7 @@ ui.orderForm.addEventListener("submit", createManualOrder);
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     dashboardListenersAttached = false;
+    stopDashboardPolling();
     switchToLogin();
     return;
   }
@@ -378,8 +437,7 @@ onAuthStateChanged(auth, async (user) => {
 
   switchToDashboard(email);
   if (!dashboardListenersAttached) {
-    attachDriversListener();
-    attachOrdersCounterListener();
+    startDashboardPolling();
     dashboardListenersAttached = true;
   }
 });
