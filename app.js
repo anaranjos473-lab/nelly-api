@@ -116,6 +116,11 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
 const { Resend } = require('resend'); // 1. Importación de Resend
+const {
+    LIMITES_DEUDA_POR_NIVEL,
+    registrarCobroEfectivoTx,
+    registrarPagoDeudaTx,
+} = require('./services/debt-lock.service');
 
 const app = express();
 // Montar rutas de monitoreo externo
@@ -143,15 +148,16 @@ function normalizeOrigin(originValue) {
 
 const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
 const PANEL_LIQUIDACIONES_API_KEY = String(process.env.PANEL_LIQUIDACIONES_API_KEY || '').trim();
+const PANEL_ADMIN_EMAILS = new Set(
+    String(process.env.PANEL_ADMIN_EMAILS || 'admin@nellydelivery.com,operaciones@nellydelivery.com')
+        .split(',')
+        .map((email) => String(email || '').trim().toLowerCase())
+        .filter(Boolean)
+);
 const ECOSYSTEM_VERSION = process.env.ECOSYSTEM_VERSION || '4.0.0-PRO';
 const UMBRAL_ALERTA_PREVENTIVA_DIAMANTE = 800;
 const COOLDOWN_ALERTA_PREVENTIVA_MS = 12 * 60 * 60 * 1000;
-const LIMITE_DEUDA_POR_NIVEL = {
-    BRONCE: 300,
-    PLATA: 500,
-    ORO: 600,
-    DIAMANTE: 900
-};
+const LIMITE_DEUDA_POR_NIVEL = LIMITES_DEUDA_POR_NIVEL;
 
 app.set('trust proxy', 1);
 
@@ -328,6 +334,34 @@ const requirePanelSessionAuth = async (req, res, next) => {
         return res.status(403).json({ error: 'Acceso denegado: sesion de panel invalida' });
     } catch (error) {
         console.error('[AUTH ERROR Panel]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+};
+
+const requirePanelAdminEmailAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const email = String(decodedToken.email || '').trim().toLowerCase();
+
+        if (!email || !PANEL_ADMIN_EMAILS.has(email)) {
+            return res.status(403).json({ error: 'Acceso denegado: correo no autorizado' });
+        }
+
+        req.user = decodedToken;
+        return next();
+    } catch (error) {
+        console.error('[AUTH ERROR Panel Admin Email]:', error.message);
         return res.status(401).json({ error: 'Token invalido o expirado' });
     }
 };
@@ -548,9 +582,9 @@ async function verificarCapacidadReparto(uid) {
         };
     }
 
-    // --- Motor de Ascenso Automático (Level-Up) ---
+    // Motor de ascenso: se conserva la progresion historica y se sincroniza en estatus.
     const entregas = Number(perfil.entregas || 0);
-    let nuevoNivel = normalizarNivelRepartidor(perfil.nivel);
+    let nuevoNivel = normalizarNivelRepartidor(perfil?.estatus?.nivel || perfil.nivel);
     if (entregas >= 500 && nuevoNivel !== 'DIAMANTE') {
         nuevoNivel = 'DIAMANTE';
     } else if (entregas >= 150 && nuevoNivel !== 'ORO' && nuevoNivel !== 'DIAMANTE') {
@@ -558,8 +592,14 @@ async function verificarCapacidadReparto(uid) {
     } else if (entregas >= 50 && nuevoNivel === 'BRONCE') {
         nuevoNivel = 'PLATA';
     }
-    if (nuevoNivel !== perfil.nivel) {
-        await db.ref(`repartidores/${uid}/nivel`).set(nuevoNivel);
+    if (nuevoNivel !== perfil.nivel || nuevoNivel !== perfil?.estatus?.nivel) {
+        await db.ref(`repartidores/${uid}`).update({
+            nivel: nuevoNivel,
+            estatus: {
+                ...(perfil.estatus || {}),
+                nivel: nuevoNivel,
+            },
+        });
         // (Opcional) Notificar ascenso por Discord
         if (DISCORD_WEBHOOK_URL) {
             await axios.post(DISCORD_WEBHOOK_URL, {
@@ -570,7 +610,36 @@ async function verificarCapacidadReparto(uid) {
 
     const nivel = nuevoNivel;
     const limite = LIMITE_DEUDA_POR_NIVEL[nivel] || 300;
-    const deudaActual = numeroSeguro(perfil?.billetera?.deuda_comision, 0);
+    const deudaActual = numeroSeguro(
+        perfil?.finanzas?.deuda_actual,
+        numeroSeguro(perfil?.billetera?.deuda_comision, 0)
+    );
+    const bloqueadoPorFlag = perfil?.estatus?.bloqueado_por_deuda === true || perfil?.perfil?.bloqueado_por_deuda === true;
+    const excedeLimite = deudaActual > limite;
+    const bloqueadoPorDeuda = bloqueadoPorFlag || excedeLimite;
+
+    // Auto-healing del estado de bloqueo para mantener cliente, reglas y backend sincronizados.
+    if ((perfil?.estatus?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
+        || (perfil?.perfil?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
+        || numeroSeguro(perfil?.finanzas?.limite_deuda, -1) !== limite) {
+        await db.ref(`repartidores/${uid}`).update({
+            estatus: {
+                ...(perfil.estatus || {}),
+                nivel,
+                bloqueado_por_deuda: bloqueadoPorDeuda,
+                actualizado_en: Date.now(),
+            },
+            perfil: {
+                ...(perfil.perfil || {}),
+                bloqueado_por_deuda: bloqueadoPorDeuda,
+            },
+            finanzas: {
+                ...(perfil.finanzas || {}),
+                deuda_actual: deudaActual,
+                limite_deuda: limite,
+            },
+        });
+    }
 
     if (nivel === 'DIAMANTE' && deudaActual >= UMBRAL_ALERTA_PREVENTIVA_DIAMANTE && deudaActual < limite) {
         try {
@@ -580,7 +649,7 @@ async function verificarCapacidadReparto(uid) {
         }
     }
 
-    if (deudaActual >= limite) {
+    if (bloqueadoPorDeuda) {
         return {
             permitir: false,
             mensaje: 'Limite de deuda alcanzado. Favor de liquidar comisiones.',
@@ -894,6 +963,165 @@ app.post('/api/delivery/update-location', requireDriverAuth, async (req, res) =>
     } catch (error) {
         console.error('[DB ERROR Location]:', error.message);
         return res.status(500).json({ error: 'Error al escribir en base de datos' });
+    }
+});
+
+// --- ENDPOINT: REGISTRAR COBRO EN EFECTIVO (TX ATOMICA + BLOQUEO REALTIME) ---
+app.post('/api/delivery/finanzas/registrar-cobro-efectivo', requireDriverAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const uid = req.user.uid;
+    const montoEfectivo = Number(req.body?.monto_efectivo);
+    const pedidoId = String(req.body?.pedidoId || '').trim() || null;
+
+    if (!Number.isFinite(montoEfectivo) || montoEfectivo <= 0) {
+        return res.status(400).json({ error: 'monto_efectivo debe ser un numero mayor a cero' });
+    }
+
+    try {
+        const finanzas = await registrarCobroEfectivoTx(db, {
+            uid,
+            montoEfectivo,
+            pedidoId,
+            origen: 'driver_app',
+        });
+
+        return res.status(200).json({
+            ok: true,
+            uid,
+            nivel: finanzas.nivel,
+            deudaActual: finanzas.deudaActual,
+            limiteDeuda: finanzas.limiteDeuda,
+            saldoGanancias: finanzas.saldoGanancias,
+            bloqueadoPorDeuda: finanzas.bloqueadoPorDeuda,
+            mensaje: finanzas.bloqueadoPorDeuda
+                ? 'Bloqueo por deuda aplicado automaticamente'
+                : 'Cobro registrado correctamente',
+        });
+    } catch (error) {
+        console.error('[FINANZAS][COBRO_EFECTIVO] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo registrar el cobro en efectivo' });
+    }
+});
+
+// --- ENDPOINT: REGISTRAR LIQUIDACION/PAGO DE DEUDA (TX ATOMICA) ---
+app.post('/api/panel/finanzas/registrar-pago-deuda', requirePanelSessionAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const uid = String(req.body?.uid || '').trim();
+    const montoPago = Number(req.body?.monto_pago);
+
+    if (!uid) {
+        return res.status(400).json({ error: 'uid es requerido' });
+    }
+
+    if (!Number.isFinite(montoPago) || montoPago <= 0) {
+        return res.status(400).json({ error: 'monto_pago debe ser un numero mayor a cero' });
+    }
+
+    try {
+        const finanzas = await registrarPagoDeudaTx(db, {
+            uid,
+            montoPago,
+            origen: 'panel_cocina',
+        });
+
+        return res.status(200).json({
+            ok: true,
+            uid,
+            nivel: finanzas.nivel,
+            deudaActual: finanzas.deudaActual,
+            limiteDeuda: finanzas.limiteDeuda,
+            saldoGanancias: finanzas.saldoGanancias,
+            bloqueadoPorDeuda: finanzas.bloqueadoPorDeuda,
+            mensaje: finanzas.bloqueadoPorDeuda
+                ? 'Pago aplicado, pero el repartidor sigue bloqueado por deuda'
+                : 'Pago aplicado y repartidor habilitado para nuevos pedidos',
+        });
+    } catch (error) {
+        console.error('[FINANZAS][PAGO_DEUDA] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo registrar el pago de deuda' });
+    }
+});
+
+// --- ENDPOINT: BLOQUEO MANUAL DE REPARTIDOR (PANEL ADMIN WEB) ---
+app.post('/api/admin/repartidores/manual-lock', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const uid = String(req.body?.uid || '').trim();
+    const bloqueado = req.body?.bloqueado === true;
+
+    if (!uid) {
+        return res.status(400).json({ error: 'uid es requerido' });
+    }
+
+    try {
+        const now = Date.now();
+        const updates = {};
+        updates[`repartidores/${uid}/bloqueado_por_deuda`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/bloqueado_por_deuda`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/bloqueo_manual`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/updated_at`] = now;
+        updates[`repartidores/${uid}/perfil/bloqueado_por_deuda`] = bloqueado;
+
+        updates[`usuarios/repartidores/${uid}/bloqueado_por_deuda`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/bloqueado_por_deuda`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/bloqueo_manual`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/updated_at`] = now;
+        updates[`usuarios/repartidores/${uid}/perfil/bloqueado_por_deuda`] = bloqueado;
+
+        await db.ref().update(updates);
+
+        return res.status(200).json({ ok: true, uid, bloqueado });
+    } catch (error) {
+        console.error('[ADMIN][MANUAL_LOCK] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo actualizar bloqueo manual' });
+    }
+});
+
+// --- ENDPOINT: CREACION MANUAL DE PEDIDO (PANEL ADMIN WEB) ---
+app.post('/api/admin/pedidos/manual', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const clienteNombre = String(req.body?.cliente_nombre || '').trim();
+    const telefono = String(req.body?.telefono || '').trim();
+    const direccion = String(req.body?.direccion || '').trim();
+    const descripcion = String(req.body?.descripcion || 'Pedido telefonico').trim();
+    const repartidorId = String(req.body?.repartidor_id || '').trim() || null;
+    const monto = Number(req.body?.monto || 0);
+
+    if (!clienteNombre || !telefono || !direccion) {
+        return res.status(400).json({ error: 'cliente_nombre, telefono y direccion son requeridos' });
+    }
+
+    if (!Number.isFinite(monto) || monto <= 0) {
+        return res.status(400).json({ error: 'monto debe ser un numero mayor a cero' });
+    }
+
+    try {
+        const pedidoRef = db.ref('pedidos_activos').push();
+        const now = Date.now();
+        const payload = {
+            id_pedido: pedidoRef.key,
+            cliente_nombre: clienteNombre,
+            telefono,
+            direccion,
+            monto: Number(monto.toFixed(2)),
+            descripcion,
+            origen: 'panel_admin',
+            created_at: now,
+            logistica: {
+                estado: repartidorId ? 'en_reparto' : 'pendiente',
+                repartidor_id: repartidorId,
+                manual: true,
+            },
+        };
+
+        await pedidoRef.set(payload);
+        return res.status(201).json({ ok: true, pedidoId: pedidoRef.key, pedido: payload });
+    } catch (error) {
+        console.error('[ADMIN][PEDIDO_MANUAL] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo crear el pedido manual' });
     }
 });
 
