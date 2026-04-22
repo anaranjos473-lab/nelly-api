@@ -38,6 +38,7 @@
           }
         },
         "finanzas": {
+          ".read": "auth != null && auth.token.admin == true",
           ".write": "auth != null && auth.token.admin == true",
           "deuda_actual": {
             ".validate": "newData.isNumber() && newData.val() >= 0"
