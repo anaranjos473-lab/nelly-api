@@ -1,0 +1,60 @@
+{
+  "comercios_y_productos": {
+    "comercios": {
+      "com_001": {
+        "nombre": "Tacos Centro Tuxtla",
+        "ciudad": "tuxtla",
+        "geo": {
+          "lat": 16.753,
+          "lng": -93.116
+        },
+        "estatus": "abierto",
+        "foto_url": "https://cdn.nelly.app/comercios/com_001/cover.jpg",
+        "updated_at": 1770000000000
+      }
+    },
+    "catalogo_por_comercio": {
+      "com_001": {
+        "prod_1001": {
+          "nombre": "Taco al pastor",
+          "categoria": "tacos",
+          "precio_centavos": 2500,
+          "foto_url": "https://cdn.nelly.app/comercios/com_001/prod_1001.jpg",
+          "disponible": true,
+          "version_precio": 7,
+          "updated_at": 1770000000000
+        }
+      }
+    },
+    "indices": {
+      "comercios_por_ciudad": {
+        "tuxtla": {
+          "com_001": true
+        }
+      },
+      "productos_disponibles_por_comercio": {
+        "com_001": {
+          "prod_1001": true
+        }
+      }
+    },
+    "pedido_snapshot_precio": {
+      "ejemplo": {
+        "comercio_id": "com_001",
+        "items": [
+          {
+            "producto_id": "prod_1001",
+            "cantidad": 2,
+            "precio_centavos_snapshot": 2500,
+            "version_precio_snapshot": 7,
+            "subtotal_centavos": 5000
+          }
+        ],
+        "total_centavos_calculado_backend": 5000,
+        "validacion_precio_ok": true,
+        "version_catalogo_usada": 7,
+        "updated_at": 1770000000000
+      }
+    }
+  }
+}

@@ -9,11 +9,22 @@
         }
       }
     },
+    "usuarios": {
+      "repartidores": {
+        ".read": "auth != null && auth.token.admin == true",
+        ".write": "auth != null && auth.token.admin == true",
+        "$uid": {
+          ".read": "auth != null && (auth.uid == $uid || auth.token.admin == true)",
+          ".write": "auth != null && auth.token.admin == true"
+        }
+      }
+    },
     "repartidores": {
       "$uid": {
-        ".read": "auth != null && auth.uid == $uid",
+        ".read": "auth != null && (auth.uid == $uid || auth.token.admin == true)",
+        ".write": "auth != null && auth.token.admin == true",
         "estatus": {
-          ".write": false,
+          ".write": "auth != null && auth.token.admin == true",
           "nivel": {
             ".validate": "newData.val() == 'BRONCE' || newData.val() == 'PLATA' || newData.val() == 'ORO' || newData.val() == 'DIAMANTE'"
           },
@@ -23,11 +34,11 @@
         },
         "perfil": {
           "bloqueado_por_deuda": {
-            ".write": false
+            ".write": "auth != null && auth.token.admin == true"
           }
         },
         "finanzas": {
-          ".write": false,
+          ".write": "auth != null && auth.token.admin == true",
           "deuda_actual": {
             ".validate": "newData.isNumber() && newData.val() >= 0"
           },

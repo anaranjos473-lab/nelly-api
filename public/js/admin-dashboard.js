@@ -116,7 +116,7 @@ function switchToLogin() {
 }
 
 function setDriversTableMessage(message) {
-  ui.tableBody.innerHTML = `<tr><td class="px-3 py-3 text-sm text-slate-400" colspan="5">${escapeHtml(message)}</td></tr>`;
+  ui.tableBody.innerHTML = `<tr><td class="px-3 py-3 text-sm text-slate-400" colspan="4">${escapeHtml(message)}</td></tr>`;
 }
 
 function renderDriversTable(drivers) {
@@ -143,11 +143,11 @@ function renderDriversTable(drivers) {
 
       return `
         <tr class="border-b border-panel-line/80 hover:bg-slate-900/40">
-          <td class="px-3 py-2 font-medium">${nombreSafe}</td>
-          <td class="px-3 py-2 text-xs text-slate-300">${uidSafe}</td>
-          <td class="px-3 py-2">${nivel}</td>
-          <td class="px-3 py-2">$${money(deuda)}</td>
-          <td class="px-3 py-2">
+          <td class="px-2 py-2 font-medium sm:px-3">${nombreSafe}</td>
+          <td class="hidden px-3 py-2 text-xs text-slate-300 md:table-cell">${uidSafe}</td>
+          <td class="px-2 py-2 sm:px-3">${nivel}</td>
+          <td class="px-2 py-2 sm:px-3">$${money(deuda)}</td>
+          <td class="px-2 py-2 sm:px-3">
             <label class="inline-flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"

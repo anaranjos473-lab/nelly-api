@@ -116,11 +116,27 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
 const { Resend } = require('resend'); // 1. Importación de Resend
-const {
-    LIMITES_DEUDA_POR_NIVEL,
-    registrarCobroEfectivoTx,
-    registrarPagoDeudaTx,
-} = require('./services/debt-lock.service');
+let LIMITES_DEUDA_POR_NIVEL = Object.freeze({
+    BRONCE: 300,
+    PLATA: 500,
+    ORO: 600,
+    DIAMANTE: 900,
+});
+let registrarCobroEfectivoTx = async () => {
+    throw new Error('debt-lock.service no disponible');
+};
+let registrarPagoDeudaTx = async () => {
+    throw new Error('debt-lock.service no disponible');
+};
+
+try {
+    const debtLockService = require('./services/debt-lock.service');
+    LIMITES_DEUDA_POR_NIVEL = debtLockService.LIMITES_DEUDA_POR_NIVEL || LIMITES_DEUDA_POR_NIVEL;
+    registrarCobroEfectivoTx = debtLockService.registrarCobroEfectivoTx || registrarCobroEfectivoTx;
+    registrarPagoDeudaTx = debtLockService.registrarPagoDeudaTx || registrarPagoDeudaTx;
+} catch (error) {
+    console.error('[BOOT][DEBT_LOCK] No se pudo cargar services/debt-lock.service:', error.message);
+}
 
 const app = express();
 // Montar rutas de monitoreo externo
