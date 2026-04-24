@@ -408,6 +408,109 @@ if (firebaseAdminInitialized) {
   console.log('⚠️ Omitiendo listener de pedidos porque Firebase Admin no está inicializado.');
 }
 
+// --- LISTENER: AGENTE ASIGNADOR (Trigger automático al crear pedido en pedidos_para_reparto) ---
+if (firebaseAdminInitialized) {
+  const pedidosParaRepartoRef = db.ref('pedidos_para_reparto');
+  const pedidosYaAsignados = new Set();
+
+  pedidosParaRepartoRef.on('child_added', async (snapshot) => {
+    const pedidoId = snapshot.key;
+    const pedido = snapshot.val();
+
+    // Evitar reasignación múltiple del mismo pedido
+    if (pedidosYaAsignados.has(pedidoId)) {
+      return;
+    }
+
+    // Solo asignar si no tiene repartidor asignado aún
+    if (pedido.repartidor_uid || pedido.repartidor) {
+      console.log(`[ASIGNADOR_AUTO][${pedidoId}] Ya tiene repartidor asignado, omitiendo...`);
+      return;
+    }
+
+    console.log(`[ASIGNADOR_AUTO][${pedidoId}] Disparando asignación automática...`);
+    pedidosYaAsignados.add(pedidoId);
+
+    try {
+      // Obtener token admin para hacer la request interna (bypass auth para llamada automática)
+      // En lugar de hacer una request HTTP, ejecutar la lógica directamente
+      const coordsPedido = pedido?.cliente?.coords || pedido?.cliente?.ubication || pedido?.ubication;
+
+      if (!coordsPedido || !esCoordenadaValida(coordsPedido.lat, coordsPedido.lng)) {
+        console.warn(`[ASIGNADOR_AUTO][${pedidoId}] Coordenadas inválidas, no se puede asignar`);
+        return;
+      }
+
+      // Obtener repartidores disponibles
+      const repartidoresSnap = await db.ref('repartidores').once('value');
+      const repartidoresData = repartidoresSnap.val() || {};
+
+      const candidatos = [];
+      for (const [uid, repartidor] of Object.entries(repartidoresData)) {
+        if (repartidor.isLibre !== true || repartidor.bloqueado_por_deuda === true) {
+          continue;
+        }
+
+        const location = repartidor.currentLocation;
+        if (!location || !esCoordenadaValida(location.lat, location.lng)) {
+          continue;
+        }
+
+        const distancia = distanciaMetrosHaversine(
+          coordsPedido.lat, coordsPedido.lng,
+          location.lat, location.lng
+        );
+
+        if (distancia > GEO_FENCE_METROS) {
+          continue;
+        }
+
+        candidatos.push({
+          uid,
+          nombre: repartidor.nombre || 'Sin nombre',
+          nivel: normalizarNivelRepartidor(repartidor.nivel),
+          distancia,
+        });
+      }
+
+      if (candidatos.length === 0) {
+        console.warn(`[ASIGNADOR_AUTO][${pedidoId}] Sin repartidores disponibles`);
+        return;
+      }
+
+      // Ordenar y asignar
+      const repartidoresOrdenados = ordenarRepartidoresDisponibles(candidatos);
+      const repartidorAsignado = repartidoresOrdenados[0];
+
+      const updates = {};
+      updates[`pedidos_para_reparto/${pedidoId}/estado`] = 'asignado';
+      updates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = repartidorAsignado.uid;
+      updates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = repartidorAsignado.nombre;
+      updates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = repartidorAsignado.nivel;
+      updates[`pedidos_para_reparto/${pedidoId}/distancia_metros`] = repartidorAsignado.distancia;
+      updates[`pedidos_para_reparto/${pedidoId}/timestamp_asignacion`] = Date.now();
+
+      updates[`pedidos_asignados/${pedidoId}`] = {
+        pedido_id: pedidoId,
+        repartidor_uid: repartidorAsignado.uid,
+        repartidor_nombre: repartidorAsignado.nombre,
+        repartidor_nivel: repartidorAsignado.nivel,
+        distancia_metros: repartidorAsignado.distancia,
+        coordenadas_pedido: coordsPedido,
+        timestamp: Date.now(),
+        estado: 'PENDIENTE_ACEPTACION',
+      };
+
+      await db.ref().update(updates);
+      console.log(`[ASIGNADOR_AUTO][${pedidoId}] ✅ Asignado a ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
+    } catch (error) {
+      console.error(`[ASIGNADOR_AUTO][${pedidoId}] Error:`, error.message);
+    }
+  });
+} else {
+  console.log('⚠️ Omitiendo listener del Agente Asignador porque Firebase Admin no está inicializado.');
+}
+
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
 const URL_DE_TU_API = process.env.RENDER_URL || 'https://nelly-api-8lh1.onrender.com'; // Base URL canónica para keep-alive
 
@@ -983,6 +1086,36 @@ app.post('/api/delivery/update-location', requireDriverAuth, async (req, res) =>
 });
 
 // --- ENDPOINT: REGISTRAR COBRO EN EFECTIVO (TX ATOMICA + BLOQUEO REALTIME) ---
+
+// --- ENDPOINT: REPORTE DE INCIDENTE (MARMAJA / PONCHADO / EMERGENCIA) ---
+app.post('/api/delivery/reporte-incidente', requireDriverAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const uid = req.user.uid;
+    const { activo, descripcion } = req.body;
+
+    // activo: true = activar incidente, false = resolverlo
+    if (typeof activo !== 'boolean') {
+        return res.status(400).json({ error: 'El campo activo debe ser boolean' });
+    }
+
+    try {
+        const updates = {};
+        updates[`repartidores/${uid}/incidente`] = activo;
+        updates[`repartidores/${uid}/incidente_descripcion`] = activo ? (String(descripcion || '').trim() || 'Sin descripción') : null;
+        updates[`repartidores/${uid}/incidente_at`] = activo ? Date.now() : null;
+
+        await db.ref().update(updates);
+
+        console.log(`[INCIDENTE] uid=${uid} activo=${activo} desc=${descripcion || '-'}`);
+        return res.status(200).json({ status: activo ? 'incidente_activado' : 'incidente_resuelto' });
+    } catch (error) {
+        console.error('[DB ERROR Incidente]:', error.message);
+        return res.status(500).json({ error: 'Error al registrar incidente' });
+    }
+});
+
+// --- ENDPOINT: REGISTRAR COBRO EN EFECTIVO (TX ATOMICA + BLOQUEO REALTIME) ---
 app.post('/api/delivery/finanzas/registrar-cobro-efectivo', requireDriverAuth, async (req, res) => {
     if (!requireFirebase(res)) return;
 
@@ -1184,6 +1317,174 @@ app.post('/api/admin/pedidos/manual', requirePanelAdminEmailAuth, async (req, re
     } catch (error) {
         console.error('[ADMIN][PEDIDO_MANUAL] Error:', error.message);
         return res.status(500).json({ error: 'No se pudo crear el pedido manual' });
+    }
+});
+
+// === AGENTE ASIGNADOR: Configuración ===
+const NIVEL_JERARQUIA = Object.freeze({
+    BRONCE: 1,
+    PLATA: 2,
+    ORO: 3,
+    DIAMANTE: 4,
+});
+const GEO_FENCE_METROS = 2000; // 2km
+
+/**
+ * Ordena repartidores por: distancia ascendente, luego por nivel descendente
+ */
+function ordenarRepartidoresDisponibles(candidatos) {
+    return candidatos.sort((a, b) => {
+        // Primero por distancia (menor es mejor)
+        if (Math.abs(a.distancia - b.distancia) > 1) {
+            return a.distancia - b.distancia;
+        }
+        // Si distancias similares (<1m), por nivel descendente (DIAMANTE > ORO > PLATA > BRONCE)
+        const nivelA = NIVEL_JERARQUIA[a.nivel] || 0;
+        const nivelB = NIVEL_JERARQUIA[b.nivel] || 0;
+        return nivelB - nivelA;
+    });
+}
+
+// --- ENDPOINT: ASIGNAR PEDIDO AUTOMÁTICAMENTE (AGENTE ASIGNADOR) ---
+app.post('/api/delivery/assign-order', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const pedidoId = String(req.body?.pedidoId || '').trim();
+
+    if (!pedidoId) {
+        return res.status(400).json({ error: 'pedidoId es requerido' });
+    }
+
+    try {
+        // === PASO 1: Obtener pedido y validar coordenadas ===
+        const pedidoSnap = await db.ref(`pedidos_para_reparto/${pedidoId}`).once('value');
+
+        if (!pedidoSnap.exists()) {
+            return res.status(404).json({ error: `Pedido ${pedidoId} no encontrado en pedidos_para_reparto` });
+        }
+
+        const pedido = pedidoSnap.val();
+        const coordsPedido = pedido?.cliente?.coords || pedido?.cliente?.ubication || pedido?.ubication;
+
+        if (!coordsPedido || !esCoordenadaValida(coordsPedido.lat, coordsPedido.lng)) {
+            console.error(`[ASIGNADOR][${pedidoId}] Coordenadas inválidas:`, coordsPedido);
+            return res.status(400).json({
+                error: 'Coordenadas del cliente inválidas',
+                estado_asignacion: 'ERROR_COORDS_INVALIDAS',
+                pedidoId
+            });
+        }
+
+        // === PASO 2: Consultar repartidores disponibles ===
+        const repartidoresSnap = await db.ref('repartidores').once('value');
+        const repartidoresData = repartidoresSnap.val() || {};
+
+        console.log(`[ASIGNADOR][${pedidoId}] Total repartidores en BD: ${Object.keys(repartidoresData).length}`);
+
+        // === PASO 3: Filtrar candidatos ===
+        const candidatos = [];
+
+        for (const [uid, repartidor] of Object.entries(repartidoresData)) {
+            // Filtro 1: isLibre === true
+            if (repartidor.isLibre !== true) {
+                continue;
+            }
+
+            // Filtro 2: bloqueado_por_deuda === false
+            if (repartidor.bloqueado_por_deuda === true) {
+                continue;
+            }
+
+            // Validar ubicación actual
+            const location = repartidor.currentLocation;
+            if (!location || !esCoordenadaValida(location.lat, location.lng)) {
+                continue;
+            }
+
+            // Calcular distancia (Haversine)
+            const distancia = distanciaMetrosHaversine(
+                coordsPedido.lat,
+                coordsPedido.lng,
+                location.lat,
+                location.lng
+            );
+
+            // Filtro 3: Geo-fence (2km)
+            if (distancia > GEO_FENCE_METROS) {
+                continue;
+            }
+
+            // Candidato válido
+            candidatos.push({
+                uid,
+                nombre: repartidor.nombre || 'Sin nombre',
+                nivel: normalizarNivelRepartidor(repartidor.nivel),
+                distancia,
+            });
+        }
+
+        console.log(`[ASIGNADOR][${pedidoId}] Candidatos dentro del geo-fence: ${candidatos.length}`);
+
+        if (candidatos.length === 0) {
+            console.warn(`[ASIGNADOR][${pedidoId}] Sin repartidores disponibles`);
+            return res.status(404).json({
+                error: 'No hay repartidores disponibles en el área',
+                estado_asignacion: 'NO_DISPONIBLES',
+                candidatos_count: 0,
+                pedidoId
+            });
+        }
+
+        // === PASO 4: Ordenar por distancia y nivel ===
+        const repartidoresOrdenados = ordenarRepartidoresDisponibles(candidatos);
+        const repartidorAsignado = repartidoresOrdenados[0];
+
+        console.log(`[ASIGNADOR][${pedidoId}] Asignado a: ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
+
+        // === PASO 5: Escribir asignación en RTDB ===
+        const updates = {};
+
+        // Actualizar pedido en pedidos_para_reparto
+        updates[`pedidos_para_reparto/${pedidoId}/estado`] = 'asignado';
+        updates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = repartidorAsignado.uid;
+        updates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = repartidorAsignado.nombre;
+        updates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = repartidorAsignado.nivel;
+        updates[`pedidos_para_reparto/${pedidoId}/distancia_metros`] = repartidorAsignado.distancia;
+        updates[`pedidos_para_reparto/${pedidoId}/timestamp_asignacion`] = Date.now();
+
+        // Crear nodo de notificación en pedidos_asignados
+        updates[`pedidos_asignados/${pedidoId}`] = {
+            pedido_id: pedidoId,
+            repartidor_uid: repartidorAsignado.uid,
+            repartidor_nombre: repartidorAsignado.nombre,
+            repartidor_nivel: repartidorAsignado.nivel,
+            distancia_metros: repartidorAsignado.distancia,
+            coordenadas_pedido: coordsPedido,
+            timestamp: Date.now(),
+            estado: 'PENDIENTE_ACEPTACION',
+        };
+
+        await db.ref().update(updates);
+
+        console.log(`[ASIGNADOR][${pedidoId}] ✅ Asignación completada exitosamente`);
+
+        return res.json({
+            ok: true,
+            pedidoId,
+            repartidor_uid: repartidorAsignado.uid,
+            repartidor_nombre: repartidorAsignado.nombre,
+            repartidor_nivel: repartidorAsignado.nivel,
+            distancia_metros: repartidorAsignado.distancia,
+            candidatos_count: candidatos.length,
+            estado_asignacion: 'ASIGNADO',
+        });
+    } catch (error) {
+        console.error(`[ASIGNADOR][${pedidoId}] Error crítico:`, error.message);
+        return res.status(500).json({
+            error: 'No se pudo asignar el pedido',
+            detalles: error.message,
+            pedidoId
+        });
     }
 });
 

@@ -5,7 +5,6 @@ dotenv.config();
 // --- DEPENDENCIAS Y VARIABLES GLOBALES ---
 const axios = require('axios');
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
 
 // --- FUNCIONES DE ALERTA ---
 async function notificarAlertaConexion(mensaje) {

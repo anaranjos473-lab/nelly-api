@@ -40,8 +40,6 @@ const db = admin.database();
 
 // ── Dataset ───────────────────────────────────────────────────────────────────
 
-const NIVELES_LIMITE = { BRONCE: 300, PLATA: 500, ORO: 600, DIAMANTE: 900 };
-
 const REPARTIDORES = {
   "test_rep_01": {
     nombre: "Juan Camaney",
@@ -136,7 +134,6 @@ const REPARTIDORES = {
 };
 
 // 15 pedidos activos con estados variados
-const ESTADOS_POSIBLES = ["buscando", "en_reparto", "pendiente", "en_camino"];
 const PEDIDOS = {};
 const pedidosMeta = [
   { cliente: "Carlos V",        monto: 150,  dir: "Col. Centro",         estado: "buscando",  rep: null },

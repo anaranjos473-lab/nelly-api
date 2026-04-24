@@ -21,6 +21,16 @@
         android:text="Estado: IDLE"
         android:textSize="13sp" />
 
+    <Button
+        android:id="@+id/btnSosIncidente"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#D32F2F"
+        android:text="REPORTAR SOS"
+        android:textAllCaps="true"
+        android:textColor="#FFFFFF" />
+
     <TextView
         android:id="@+id/txtVacio"
         android:layout_width="match_parent"
