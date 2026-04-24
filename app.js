@@ -432,77 +432,9 @@ if (firebaseAdminInitialized) {
     pedidosYaAsignados.add(pedidoId);
 
     try {
-      // Obtener token admin para hacer la request interna (bypass auth para llamada automática)
-      // En lugar de hacer una request HTTP, ejecutar la lógica directamente
-      const coordsPedido = pedido?.cliente?.coords || pedido?.cliente?.ubication || pedido?.ubication;
-
-      if (!coordsPedido || !esCoordenadaValida(coordsPedido.lat, coordsPedido.lng)) {
-        console.warn(`[ASIGNADOR_AUTO][${pedidoId}] Coordenadas inválidas, no se puede asignar`);
-        return;
-      }
-
-      // Obtener repartidores disponibles
-      const repartidoresSnap = await db.ref('repartidores').once('value');
-      const repartidoresData = repartidoresSnap.val() || {};
-
-      const candidatos = [];
-      for (const [uid, repartidor] of Object.entries(repartidoresData)) {
-        if (repartidor.isLibre !== true || repartidor.bloqueado_por_deuda === true) {
-          continue;
-        }
-
-        const location = repartidor.currentLocation;
-        if (!location || !esCoordenadaValida(location.lat, location.lng)) {
-          continue;
-        }
-
-        const distancia = distanciaMetrosHaversine(
-          coordsPedido.lat, coordsPedido.lng,
-          location.lat, location.lng
-        );
-
-        if (distancia > GEO_FENCE_METROS) {
-          continue;
-        }
-
-        candidatos.push({
-          uid,
-          nombre: repartidor.nombre || 'Sin nombre',
-          nivel: normalizarNivelRepartidor(repartidor.nivel),
-          distancia,
-        });
-      }
-
-      if (candidatos.length === 0) {
-        console.warn(`[ASIGNADOR_AUTO][${pedidoId}] Sin repartidores disponibles`);
-        return;
-      }
-
-      // Ordenar y asignar
-      const repartidoresOrdenados = ordenarRepartidoresDisponibles(candidatos);
-      const repartidorAsignado = repartidoresOrdenados[0];
-
-      const updates = {};
-      updates[`pedidos_para_reparto/${pedidoId}/estado`] = 'asignado';
-      updates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = repartidorAsignado.uid;
-      updates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = repartidorAsignado.nombre;
-      updates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = repartidorAsignado.nivel;
-      updates[`pedidos_para_reparto/${pedidoId}/distancia_metros`] = repartidorAsignado.distancia;
-      updates[`pedidos_para_reparto/${pedidoId}/timestamp_asignacion`] = Date.now();
-
-      updates[`pedidos_asignados/${pedidoId}`] = {
-        pedido_id: pedidoId,
-        repartidor_uid: repartidorAsignado.uid,
-        repartidor_nombre: repartidorAsignado.nombre,
-        repartidor_nivel: repartidorAsignado.nivel,
-        distancia_metros: repartidorAsignado.distancia,
-        coordenadas_pedido: coordsPedido,
-        timestamp: Date.now(),
-        estado: 'PENDIENTE_ACEPTACION',
-      };
-
-      await db.ref().update(updates);
-      console.log(`[ASIGNADOR_AUTO][${pedidoId}] ✅ Asignado a ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
+            const resultado = await asignarPedidoInterno(pedidoId, 'ASIGNADOR_AUTO');
+            const repartidorAsignado = resultado.repartidorAsignado;
+            console.log(`[ASIGNADOR_AUTO][${pedidoId}] ✅ Asignado a ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
     } catch (error) {
       console.error(`[ASIGNADOR_AUTO][${pedidoId}] Error:`, error.message);
     }
@@ -1345,6 +1277,249 @@ function ordenarRepartidoresDisponibles(candidatos) {
     });
 }
 
+async function obtenerTokenCliente(clienteUid) {
+    const uid = String(clienteUid || '').trim();
+    if (!uid) return null;
+
+    const rutasRtdb = [
+        `usuarios/clientes/${uid}/fcm_token`,
+        `clientes/${uid}/fcm_token`,
+        `usuarios/${uid}/fcm_token`,
+    ];
+
+    for (const ruta of rutasRtdb) {
+        const snap = await db.ref(ruta).once('value');
+        const token = String(snap.val() || '').trim();
+        if (token) return token;
+    }
+
+    try {
+        const docPaths = [
+            ['clientes', uid],
+            ['usuarios', uid],
+        ];
+        for (const [collection, docId] of docPaths) {
+            const doc = await admin.firestore().collection(collection).doc(docId).get();
+            if (!doc.exists) continue;
+            const data = doc.data() || {};
+            const token = String(data.fcm_token || data.fcmToken || '').trim();
+            if (token) return token;
+        }
+    } catch (error) {
+        console.error('[INCIDENTE_RESUELTO][PUSH] Error consultando token cliente en Firestore:', error.message);
+    }
+
+    return null;
+}
+
+async function enviarPushClienteRelevo({ clienteUid, pedidoId, repartidorUid }) {
+    const token = await obtenerTokenCliente(clienteUid);
+    if (!token) {
+        console.warn(`[INCIDENTE_RESUELTO][PUSH][${pedidoId}] Cliente sin token FCM, se omite notificación`);
+        return { enviado: false, motivo: 'TOKEN_NO_DISPONIBLE' };
+    }
+
+    const message = {
+        token,
+        notification: {
+            title: 'Tu pedido sigue en camino',
+            body: 'Asignamos un nuevo repartidor para completar tu entrega.',
+        },
+        data: {
+            accion: 'RELEVO_CONFIRMADO',
+            pedido_id: String(pedidoId),
+            nuevo_repartidor_uid: String(repartidorUid),
+            // Compatibilidad hacia atrás con clientes que consumen payload genérico.
+            payload: JSON.stringify({ nuevo_repartidor_uid: String(repartidorUid) }),
+        },
+    };
+
+    await admin.messaging().send(message);
+    console.log(`[INCIDENTE_RESUELTO][PUSH][${pedidoId}] Push enviada a cliente ${clienteUid} con repartidor ${repartidorUid}`);
+    return { enviado: true };
+}
+
+async function enviarPushCortesiaClienteTopic({ clienteUid, pedidoId, repartidorUid }) {
+    const uid = String(clienteUid || '').trim();
+    if (!uid) {
+        return { enviado: false, motivo: 'CLIENTE_UID_NO_DISPONIBLE' };
+    }
+
+    const topic = `cliente_${uid}`;
+    const dataLoad = {
+        pedido_id: String(pedidoId),
+        nuevo_repartidor_uid: String(repartidorUid),
+    };
+
+    const mensajeCortesia = {
+        notification: {
+            title: '¡Todo bajo control, pariente!',
+            body: 'Tuvimos un pequeño percance mecánico, pero ya enviamos a otro pariente al rescate. ¡Tus alimentos llegarán calientitos!',
+        },
+        data: {
+            accion: 'RELEVO_CONFIRMADO',
+            pedido_id: String(pedidoId),
+            nuevo_repartidor_uid: String(repartidorUid),
+            data_load: JSON.stringify(dataLoad),
+        },
+        topic,
+    };
+
+    await admin.messaging().send(mensajeCortesia);
+    console.log(`[INCIDENTE_RESUELTO][PUSH][${pedidoId}] Push topic enviada a ${topic} con repartidor ${repartidorUid}`);
+    return { enviado: true, canal: 'topic' };
+}
+
+async function asignarPedidoInterno(pedidoId, origenLog = 'ASIGNADOR') {
+    const pedidoSnap = await db.ref(`pedidos_para_reparto/${pedidoId}`).once('value');
+
+    if (!pedidoSnap.exists()) {
+        const error = new Error(`Pedido ${pedidoId} no encontrado en pedidos_para_reparto`);
+        error.code = 'PEDIDO_NO_ENCONTRADO';
+        throw error;
+    }
+
+    const pedido = pedidoSnap.val() || {};
+    const coordsPedido = pedido?.cliente?.coords || pedido?.cliente?.ubication || pedido?.ubication;
+
+    if (!coordsPedido || !esCoordenadaValida(coordsPedido.lat, coordsPedido.lng)) {
+        const error = new Error('Coordenadas del cliente inválidas');
+        error.code = 'ERROR_COORDS_INVALIDAS';
+        throw error;
+    }
+
+    const repartidoresSnap = await db.ref('repartidores').once('value');
+    const repartidoresData = repartidoresSnap.val() || {};
+
+    console.log(`[${origenLog}][${pedidoId}] Total repartidores en BD: ${Object.keys(repartidoresData).length}`);
+
+    const candidatos = [];
+    for (const [uid, repartidor] of Object.entries(repartidoresData)) {
+        if (repartidor.isLibre !== true) {
+            continue;
+        }
+
+        if (repartidor.bloqueado_por_deuda === true) {
+            continue;
+        }
+
+        const location = repartidor.currentLocation;
+        if (!location || !esCoordenadaValida(location.lat, location.lng)) {
+            continue;
+        }
+
+        const distancia = distanciaMetrosHaversine(
+            coordsPedido.lat,
+            coordsPedido.lng,
+            location.lat,
+            location.lng
+        );
+
+        if (distancia > GEO_FENCE_METROS) {
+            continue;
+        }
+
+        candidatos.push({
+            uid,
+            nombre: repartidor.nombre || 'Sin nombre',
+            nivel: normalizarNivelRepartidor(repartidor.nivel),
+            distancia,
+        });
+    }
+
+    console.log(`[${origenLog}][${pedidoId}] Candidatos dentro del geo-fence: ${candidatos.length}`);
+    if (candidatos.length === 0) {
+        const error = new Error('No hay repartidores disponibles en el área');
+        error.code = 'NO_DISPONIBLES';
+        error.candidatos_count = 0;
+        throw error;
+    }
+
+    const repartidoresOrdenados = ordenarRepartidoresDisponibles(candidatos);
+    const repartidorAsignado = repartidoresOrdenados[0];
+
+    console.log(`[${origenLog}][${pedidoId}] Asignado a ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
+
+    const now = Date.now();
+    const updates = {};
+    updates[`pedidos_para_reparto/${pedidoId}/estado`] = 'asignado';
+    updates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = repartidorAsignado.uid;
+    updates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = repartidorAsignado.nombre;
+    updates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = repartidorAsignado.nivel;
+    updates[`pedidos_para_reparto/${pedidoId}/distancia_metros`] = repartidorAsignado.distancia;
+    updates[`pedidos_para_reparto/${pedidoId}/timestamp_asignacion`] = now;
+
+    updates[`pedidos_asignados/${pedidoId}`] = {
+        pedido_id: pedidoId,
+        repartidor_uid: repartidorAsignado.uid,
+        repartidor_nombre: repartidorAsignado.nombre,
+        repartidor_nivel: repartidorAsignado.nivel,
+        distancia_metros: repartidorAsignado.distancia,
+        coordenadas_pedido: coordsPedido,
+        timestamp: now,
+        estado: 'PENDIENTE_ACEPTACION',
+    };
+
+    await db.ref().update(updates);
+
+    await admin.firestore().collection('pedidos_activos').doc(pedidoId).set({
+        estado: 'ASIGNADO',
+        estado_asignacion: 'ASIGNADO',
+        repartidor_uid: repartidorAsignado.uid,
+        repartidor_nombre: repartidorAsignado.nombre,
+        repartidor_nivel: repartidorAsignado.nivel,
+        distancia_metros: repartidorAsignado.distancia,
+        candidatos_count: candidatos.length,
+        timestamp_asignacion: admin.firestore.FieldValue.serverTimestamp(),
+        fuente_asignacion: origenLog,
+    }, { merge: true });
+
+    return {
+        pedido,
+        pedidoId,
+        coordsPedido,
+        candidatos_count: candidatos.length,
+        repartidorAsignado,
+    };
+}
+
+async function llamarAsignadorSentinel(pedidoId) {
+    return asignarPedidoInterno(pedidoId, 'INCIDENTE_RESUELTO');
+}
+
+async function asignarSiguienteCandidato(pedidoId) {
+    return llamarAsignadorSentinel(pedidoId);
+}
+
+// Al confirmar el incidente, el sistema ejecuta el Relay:
+// 1) reasigna, 2) notifica al cliente con el nuevo repartidor.
+async function procesarRelevo(pedidoId, clienteUid) {
+    const reasignacion = await asignarSiguienteCandidato(pedidoId);
+    const nuevoRepartidorUid = reasignacion.repartidorAsignado.uid;
+
+    let pushResult;
+    try {
+        pushResult = await enviarPushCortesiaClienteTopic({
+            clienteUid,
+            pedidoId,
+            repartidorUid: nuevoRepartidorUid,
+        });
+    } catch (topicError) {
+        console.error(`[INCIDENTE_RESUELTO][PUSH][${pedidoId}] Falla push por topic, intentando fallback token:`, topicError.message);
+        pushResult = await enviarPushClienteRelevo({
+            clienteUid,
+            pedidoId,
+            repartidorUid: nuevoRepartidorUid,
+        });
+    }
+
+    return {
+        reasignacion,
+        nuevoRepartidorUid,
+        pushResult,
+    };
+}
+
 // --- ENDPOINT: ASIGNAR PEDIDO AUTOMÁTICAMENTE (AGENTE ASIGNADOR) ---
 app.post('/api/delivery/assign-order', requirePanelAdminEmailAuth, async (req, res) => {
     if (!requireFirebase(res)) return;
@@ -1356,117 +1531,8 @@ app.post('/api/delivery/assign-order', requirePanelAdminEmailAuth, async (req, r
     }
 
     try {
-        // === PASO 1: Obtener pedido y validar coordenadas ===
-        const pedidoSnap = await db.ref(`pedidos_para_reparto/${pedidoId}`).once('value');
-
-        if (!pedidoSnap.exists()) {
-            return res.status(404).json({ error: `Pedido ${pedidoId} no encontrado en pedidos_para_reparto` });
-        }
-
-        const pedido = pedidoSnap.val();
-        const coordsPedido = pedido?.cliente?.coords || pedido?.cliente?.ubication || pedido?.ubication;
-
-        if (!coordsPedido || !esCoordenadaValida(coordsPedido.lat, coordsPedido.lng)) {
-            console.error(`[ASIGNADOR][${pedidoId}] Coordenadas inválidas:`, coordsPedido);
-            return res.status(400).json({
-                error: 'Coordenadas del cliente inválidas',
-                estado_asignacion: 'ERROR_COORDS_INVALIDAS',
-                pedidoId
-            });
-        }
-
-        // === PASO 2: Consultar repartidores disponibles ===
-        const repartidoresSnap = await db.ref('repartidores').once('value');
-        const repartidoresData = repartidoresSnap.val() || {};
-
-        console.log(`[ASIGNADOR][${pedidoId}] Total repartidores en BD: ${Object.keys(repartidoresData).length}`);
-
-        // === PASO 3: Filtrar candidatos ===
-        const candidatos = [];
-
-        for (const [uid, repartidor] of Object.entries(repartidoresData)) {
-            // Filtro 1: isLibre === true
-            if (repartidor.isLibre !== true) {
-                continue;
-            }
-
-            // Filtro 2: bloqueado_por_deuda === false
-            if (repartidor.bloqueado_por_deuda === true) {
-                continue;
-            }
-
-            // Validar ubicación actual
-            const location = repartidor.currentLocation;
-            if (!location || !esCoordenadaValida(location.lat, location.lng)) {
-                continue;
-            }
-
-            // Calcular distancia (Haversine)
-            const distancia = distanciaMetrosHaversine(
-                coordsPedido.lat,
-                coordsPedido.lng,
-                location.lat,
-                location.lng
-            );
-
-            // Filtro 3: Geo-fence (2km)
-            if (distancia > GEO_FENCE_METROS) {
-                continue;
-            }
-
-            // Candidato válido
-            candidatos.push({
-                uid,
-                nombre: repartidor.nombre || 'Sin nombre',
-                nivel: normalizarNivelRepartidor(repartidor.nivel),
-                distancia,
-            });
-        }
-
-        console.log(`[ASIGNADOR][${pedidoId}] Candidatos dentro del geo-fence: ${candidatos.length}`);
-
-        if (candidatos.length === 0) {
-            console.warn(`[ASIGNADOR][${pedidoId}] Sin repartidores disponibles`);
-            return res.status(404).json({
-                error: 'No hay repartidores disponibles en el área',
-                estado_asignacion: 'NO_DISPONIBLES',
-                candidatos_count: 0,
-                pedidoId
-            });
-        }
-
-        // === PASO 4: Ordenar por distancia y nivel ===
-        const repartidoresOrdenados = ordenarRepartidoresDisponibles(candidatos);
-        const repartidorAsignado = repartidoresOrdenados[0];
-
-        console.log(`[ASIGNADOR][${pedidoId}] Asignado a: ${repartidorAsignado.uid} (${repartidorAsignado.nombre}, ${repartidorAsignado.nivel}, ${(repartidorAsignado.distancia / 1000).toFixed(2)}km)`);
-
-        // === PASO 5: Escribir asignación en RTDB ===
-        const updates = {};
-
-        // Actualizar pedido en pedidos_para_reparto
-        updates[`pedidos_para_reparto/${pedidoId}/estado`] = 'asignado';
-        updates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = repartidorAsignado.uid;
-        updates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = repartidorAsignado.nombre;
-        updates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = repartidorAsignado.nivel;
-        updates[`pedidos_para_reparto/${pedidoId}/distancia_metros`] = repartidorAsignado.distancia;
-        updates[`pedidos_para_reparto/${pedidoId}/timestamp_asignacion`] = Date.now();
-
-        // Crear nodo de notificación en pedidos_asignados
-        updates[`pedidos_asignados/${pedidoId}`] = {
-            pedido_id: pedidoId,
-            repartidor_uid: repartidorAsignado.uid,
-            repartidor_nombre: repartidorAsignado.nombre,
-            repartidor_nivel: repartidorAsignado.nivel,
-            distancia_metros: repartidorAsignado.distancia,
-            coordenadas_pedido: coordsPedido,
-            timestamp: Date.now(),
-            estado: 'PENDIENTE_ACEPTACION',
-        };
-
-        await db.ref().update(updates);
-
-        console.log(`[ASIGNADOR][${pedidoId}] ✅ Asignación completada exitosamente`);
+        const resultado = await asignarPedidoInterno(pedidoId, 'ASIGNADOR');
+        const repartidorAsignado = resultado.repartidorAsignado;
 
         return res.json({
             ok: true,
@@ -1475,16 +1541,111 @@ app.post('/api/delivery/assign-order', requirePanelAdminEmailAuth, async (req, r
             repartidor_nombre: repartidorAsignado.nombre,
             repartidor_nivel: repartidorAsignado.nivel,
             distancia_metros: repartidorAsignado.distancia,
-            candidatos_count: candidatos.length,
+            candidatos_count: resultado.candidatos_count,
             estado_asignacion: 'ASIGNADO',
         });
     } catch (error) {
         console.error(`[ASIGNADOR][${pedidoId}] Error crítico:`, error.message);
-        return res.status(500).json({
-            error: 'No se pudo asignar el pedido',
-            detalles: error.message,
-            pedidoId
+        if (error.code === 'PEDIDO_NO_ENCONTRADO') {
+            return res.status(404).json({ error: error.message, pedidoId });
+        }
+        if (error.code === 'ERROR_COORDS_INVALIDAS') {
+            return res.status(400).json({ error: error.message, estado_asignacion: error.code, pedidoId });
+        }
+        if (error.code === 'NO_DISPONIBLES') {
+            return res.status(404).json({
+                error: error.message,
+                estado_asignacion: 'NO_DISPONIBLES',
+                candidatos_count: 0,
+                pedidoId,
+            });
+        }
+
+        return res.status(500).json({ error: 'No se pudo asignar el pedido', detalles: error.message, pedidoId });
+    }
+});
+
+// --- ENDPOINT: CONFIRMAR RELEVO POR INCIDENTE (ADMIN) ---
+app.post('/api/admin/confirmar-relevo', requirePanelAdminEmailAuth, async (req, res) => {
+    if (!requireFirebase(res)) return;
+
+    const pedidoId = String(req.body?.pedidoId || '').trim();
+    const parienteAfectadoId = String(req.body?.parienteAfectadoId || '').trim() || null;
+
+    if (!pedidoId) {
+        return res.status(400).json({ error: 'pedidoId es requerido' });
+    }
+
+    const firestorePedidoRef = admin.firestore().collection('pedidos_activos').doc(pedidoId);
+    let clienteUid = null;
+
+    try {
+        await admin.firestore().runTransaction(async (transaction) => {
+            const pedidoDoc = await transaction.get(firestorePedidoRef);
+            if (!pedidoDoc.exists) {
+                throw new Error('PEDIDO_NO_ENCONTRADO_FIRESTORE');
+            }
+
+            const pedidoData = pedidoDoc.data() || {};
+            const estadoActual = String(pedidoData.estado || '').trim().toUpperCase();
+            clienteUid = String(pedidoData.cliente_uid || pedidoData.clienteUid || pedidoData?.cliente?.uid || '').trim();
+
+            if (estadoActual !== 'SOLICITANDO_RELEVO') {
+                throw new Error(`ESTADO_INVALIDO:${estadoActual || 'VACIO'}`);
+            }
+
+            transaction.update(firestorePedidoRef, {
+                estado: 'BUSCANDO_RELEVO',
+                repartidor_uid: null,
+                repartidor_id: null,
+                repartidor_nombre: null,
+                repartidor_nivel: null,
+                intentos: admin.firestore.FieldValue.increment(1),
+                relevo_confirmado_at: admin.firestore.FieldValue.serverTimestamp(),
+                relevo_pariente_afectado_id: parienteAfectadoId,
+            });
         });
+
+        const now = Date.now();
+        const resetUpdates = {};
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/estado`] = 'buscando_relevo';
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/repartidor_uid`] = null;
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/repartidor`] = null;
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/repartidor_nombre`] = null;
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/repartidor_nivel`] = null;
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/timestamp_relevo`] = now;
+        resetUpdates[`pedidos_para_reparto/${pedidoId}/pariente_afectado_id`] = parienteAfectadoId;
+        resetUpdates[`pedidos_en_camino/${pedidoId}`] = null;
+        await db.ref().update(resetUpdates);
+
+        // Atomicidad táctica: el push solo sucede si la reasignación concluye sin error.
+        const { nuevoRepartidorUid, pushResult } = await procesarRelevo(pedidoId, clienteUid);
+
+        console.log(`[INCIDENTE_RESUELTO][${pedidoId}] Relevo confirmado. Nuevo repartidor=${nuevoRepartidorUid} push=${pushResult.enviado}`);
+
+        return res.status(200).json({
+            ok: true,
+            msg: 'Operación de rescate iniciada',
+            pedidoId,
+            nuevo_repartidor_uid: nuevoRepartidorUid,
+            push_enviado: pushResult.enviado,
+        });
+    } catch (error) {
+        const message = String(error.message || 'ERROR_DESCONOCIDO');
+        if (message === 'PEDIDO_NO_ENCONTRADO_FIRESTORE') {
+            return res.status(404).json({ error: 'Pedido no encontrado en Firestore', pedidoId });
+        }
+        if (message.startsWith('ESTADO_INVALIDO:')) {
+            const estadoActual = message.split(':')[1] || 'DESCONOCIDO';
+            return res.status(409).json({
+                error: `El pedido no está en SOLICITANDO_RELEVO (estado actual: ${estadoActual})`,
+                pedidoId,
+                estado_actual: estadoActual,
+            });
+        }
+
+        console.error(`[INCIDENTE_RESUELTO][${pedidoId}] Error:`, error.message);
+        return res.status(500).json({ error: 'No se pudo confirmar relevo', detalle: error.message, pedidoId });
     }
 });
 
