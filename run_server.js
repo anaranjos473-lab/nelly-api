@@ -1,10 +1,5 @@
 const express = require('express');
 const router = require('./router.js');
-const axios = require('axios');
-
-const DISCORD_WEBHOOK_URL = String(process.env.DISCORD_WEBHOOK_URL || '').trim();
-const ORDER_INGEST_API_KEY = String(process.env.ORDER_INGEST_API_KEY || '').trim();
-
 async function notificarAlertaCritica(mensaje) {
     if (!DISCORD_WEBHOOK_URL) return;
     try {
@@ -14,10 +9,6 @@ async function notificarAlertaCritica(mensaje) {
     } catch (e) {
         console.error('[ALERTA][WEBHOOK] Fallo al notificar:', e.message);
     }
-}
-
-async function notificarAlertaConexion(mensaje) {
-    await notificarAlertaCritica(mensaje);
 }
 
 // Log global de errores y rechazos no capturados

@@ -1,16 +1,4 @@
 {
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-functions-debug.log"
-      ]
-    }
-  ],
   "hosting": {
     "public": "public",
     "predeploy": [
