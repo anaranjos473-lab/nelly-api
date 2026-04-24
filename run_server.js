@@ -1,5 +1,24 @@
+
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const router = require('./router.js');
+const axios = require('axios');
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
+
+async function notificarAlertaConexion(mensaje) {
+    if (!DISCORD_WEBHOOK_URL) return;
+    try {
+        await axios.post(DISCORD_WEBHOOK_URL, {
+            content: `🚨 **ALERTA NELLY**: ${mensaje}`
+        });
+    } catch (e) {
+        console.error('[ALERTA][WEBHOOK] Fallo al notificar:', e.message);
+    }
+}
+
 async function notificarAlertaCritica(mensaje) {
     if (!DISCORD_WEBHOOK_URL) return;
     try {

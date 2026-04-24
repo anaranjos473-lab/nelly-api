@@ -45,6 +45,9 @@ jobs:
             npm audit --audit-level=critical
           fi
 
+      - name: Validar credenciales Firebase Admin
+        run: node scripts/verificar-firebase-admin.js
+
       - name: Run agent validation suite
         run: npm run test:agents
 

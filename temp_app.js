@@ -1,3 +1,106 @@
+// --- ESCUCHA DE VENTAS EXITOSAS ---
+if (firebaseAdminInitialized) {
+    admin.database().ref('pedidos_activos').on('child_changed', async (snapshot) => {
+        const pedido = snapshot.val();
+        if (pedido.estado === 'ENTREGADO') {
+            const monto = typeof pedido.total_pago === 'number' ? pedido.total_pago.toFixed(2) : (pedido.total_pago || 'N/A');
+            const zona = pedido.colonia || 'zona desconocida';
+            const message = {
+                notification: {
+                    title: '💰 ¡LANA ENTRANDO!',
+                    body: `Venta de $${monto} en ${zona} finalizada.`
+                },
+                android: {
+                    notification: {
+                        sound: 'cash_register',
+                        channelId: 'finanzas_nelly'
+                    }
+                },
+                topic: 'admin_alerts'
+            };
+            try {
+                await admin.messaging().send(message);
+                console.log(`💸 Notificación de venta exitosa enviada: $${monto} en ${zona}`);
+            } catch (e) {
+                console.error('Error enviando notificación de venta exitosa:', e.message);
+            }
+        }
+    });
+}
+// --- MONITOR DE PEDIDOS ESTANCADOS ---
+const MONITOR_INTERVAL = 60000; // Revisar cada 1 minuto
+const TIEMPO_MAXIMO_ESPERA = 10 * 60000; // 10 minutos en milisegundos
+
+if (firebaseAdminInitialized) {
+    setInterval(async () => {
+        try {
+            const ahora = Date.now();
+            const pedidosRef = admin.database().ref('pedidos_activos');
+            const snapshot = await pedidosRef.orderByChild('estado').equalTo('PENDIENTE').once('value');
+            const pedidos = snapshot.val();
+            if (pedidos) {
+                Object.keys(pedidos).forEach(id => {
+                    const pedido = pedidos[id];
+                    if (typeof pedido.timestamp !== 'number') {
+                        console.warn(`⏳ Pedido ${id} sin timestamp numérico, omitido.`);
+                        return;
+                    }
+                    const tiempoTranscurrido = ahora - pedido.timestamp;
+                    if (tiempoTranscurrido > TIEMPO_MAXIMO_ESPERA) {
+                        console.log(`⚠️ ALERTA: Pedido ${id} estancado hace ${Math.round(tiempoTranscurrido/60000)} min.`);
+                        enviarAlertaComandante(id, pedido.colonia);
+                    }
+                });
+            } else {
+                console.log('✅ Monitor: No hay pedidos pendientes estancados.');
+            }
+        } catch (e) {
+            console.error('Error en monitor de pedidos estancados:', e.message);
+        }
+    }, MONITOR_INTERVAL);
+}
+
+async function enviarAlertaComandante(pedidoId, zona) {
+    const message = {
+        notification: {
+            title: '🚨 ¡PEDIDO ESTANCADO!',
+            body: `El pedido en ${zona || 'zona desconocida'} lleva más de 10 min sin pariente. ¡Reasigna ahora!`
+        },
+        android: {
+            priority: 'high',
+            notification: {
+                sound: 'emergency_siren',
+                channelId: 'alertas_criticas'
+            }
+        },
+        topic: 'admin_alerts'
+    };
+    try {
+        await admin.messaging().send(message);
+        console.log(`🔔 Alerta enviada a admin_alerts por pedido ${pedidoId}`);
+    } catch (e) {
+        console.error(`Error enviando alerta FCM para pedido ${pedidoId}:`, e.message);
+    }
+}
+
+const dotenv = require('dotenv');
+dotenv.config();
+
+const axios = require('axios');
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
+
+async function notificarAlertaConexion(mensaje) {
+    if (!DISCORD_WEBHOOK_URL) return;
+    try {
+        await axios.post(DISCORD_WEBHOOK_URL, {
+            content: `🚨 **ALERTA NELLY**: ${mensaje}`
+        });
+    } catch (e) {
+        console.error('[ALERTA][WEBHOOK] Fallo al notificar:', e.message);
+    }
+}
+
 async function notificarAlertaCritica(mensaje) {
     if (!DISCORD_WEBHOOK_URL) return;
     try {
@@ -93,7 +196,9 @@ const { Resend } = require('resend'); // 1. Importación de Resend
 
 const app = express();
 // Montar rutas de monitoreo externo
-app.use('/api', require('./app.js'));
+// Conectamos directamente a la lógica de las rutas sin jalar toda la app principal
+const routes = require('./router.js');
+app.use('/api', routes);
 
 function requireOrderApiKey(req, res, next) {
     if (!ORDER_INGEST_API_KEY) {
@@ -287,15 +392,41 @@ const requirePanelApiKey = (req, res, next) => {
 
 // --- LISTENER DE PEDIDOS (Panel de Cocina) ---
 if (firebaseAdminInitialized) {
-  const pedidosRef = db.ref('pedidos');
+    const pedidosRef = db.ref('pedidos');
 
-  pedidosRef.on('child_added', (snapshot) => {
-      const nuevoPedido = snapshot.val();
-      console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
-      // Aquí puedes disparar la lógica para actualizar el panel.html
-  });
+    pedidosRef.on('child_added', async (snapshot) => {
+            const nuevoPedido = snapshot.val();
+            console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
+            // --- Lógica FCM: notificar al repartidor si hay token ---
+            try {
+                // Buscar token FCM del repartidor relacionado
+                let fcmToken = nuevoPedido.fcm_token;
+                if (!fcmToken && nuevoPedido.repartidorUid) {
+                    const tokenSnap = await db.ref(`repartidores/${nuevoPedido.repartidorUid}/fcm_token`).once('value');
+                    fcmToken = tokenSnap.val();
+                }
+                if (fcmToken) {
+                    await admin.messaging().send({
+                        token: fcmToken,
+                        notification: {
+                            title: 'Nuevo pedido asignado',
+                            body: `Tienes un nuevo pedido: ${nuevoPedido.descripcion || 'Sin descripción'}`
+                        },
+                        data: {
+                            pedidoId: nuevoPedido.id_pedido || ''
+                        }
+                    });
+                    console.log('🔔 Notificación FCM enviada al repartidor');
+                } else {
+                    console.log('ℹ️ No se encontró token FCM para el repartidor de este pedido.');
+                }
+            } catch (e) {
+                console.error('Error enviando FCM:', e.message);
+            }
+            // Aquí puedes disparar la lógica para actualizar el panel.html
+    });
 } else {
-  console.log('⚠️ Omitiendo listener de pedidos porque Firebase Admin no está inicializado.');
+    console.log('⚠️ Omitiendo listener de pedidos porque Firebase Admin no está inicializado.');
 }
 
 // --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
@@ -1010,16 +1141,7 @@ app.get('/healthcheck', healthcheckController);
 app.get('/api/healthcheck', healthcheckController);
 app.get('/health', healthcheckController);
 
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Servidor Nelly v3.0 listo en puerto ${PORT}`);
-});
-
-server.on('error', (err) => {
-  console.error('❌ Error crítico del servidor:', err.message);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error('⚠️ Promesa rechazada no manejada:', reason);
+const PORT = 3001; // El principal usa el 3000, este el 3001 para pruebas
+app.listen(PORT, () => {
+        console.log(`[SENTINEL-TEST] 🛡️ Servidor de pruebas activo en puerto ${PORT}`);
 });

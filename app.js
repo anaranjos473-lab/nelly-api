@@ -105,6 +105,33 @@ function inicializarDependientesFirebase() {
         } catch (e) {
             console.error('No se pudo cargar node-cron para el smoke test automático:', e.message);
         }
+
+        // --- Watcher automático: mover pedidos de 'pendiente' a 'en_reparto' tras X minutos ---
+        const MINUTOS_ESPERA = 5; // Cambia este valor según lo deseado
+        const INTERVALO_MS = 60 * 1000; // 1 minuto
+        setInterval(async () => {
+            try {
+                const ahora = Date.now();
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.orderByChild('estado').equalTo('pendiente').once('value');
+                snapshot.forEach((child) => {
+                    const pedido = child.val();
+                    if (!pedido || typeof pedido !== 'object') return;
+                    const creado = pedido.timestamp || 0;
+                    if (ahora - creado > MINUTOS_ESPERA * 60 * 1000) {
+                        // Mover a en_reparto automáticamente
+                        child.ref.update({
+                            estado: 'en_reparto',
+                            auto_despacho: true,
+                            fecha_en_reparto: new Date().toISOString()
+                        });
+                        console.log(`🤖 Pedido ${child.key} movido a 'en_reparto' automáticamente tras ${MINUTOS_ESPERA} min.`);
+                    }
+                });
+            } catch (e) {
+                console.error('❌ Error en watcher auto-despacho:', e.message);
+            }
+        }, INTERVALO_MS);
     }
 }
 const express = require('express');
@@ -850,8 +877,15 @@ app.post('/api/pedidos/notificar-listo', async (req, res) => {
             }
         };
 
+        // Añadir channelId para Android
+        message.android = {
+            notification: {
+                channelId: 'alertas_criticas'
+            }
+        };
+
         await admin.messaging().send(message);
-        console.log(`🔔 Notificación FCM enviada para pedido ${pedidoId}`);
+        console.log(`🔔 Notificación FCM enviada para pedido ${pedidoId} (con channelId 'alertas_criticas')`);
         return res.json({ ok: true, pedidoId });
     } catch (error) {
         console.error('Error enviando notificación FCM:', error);
@@ -928,10 +962,15 @@ app.post('/webhook', async (req, res) => {
                 if (fcmToken) {
                     const mensaje = {
                         notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
+                        android: {
+                            notification: {
+                                channelId: 'alertas_criticas'
+                            }
+                        },
                         token: fcmToken
                     };
                     await admin.messaging().send(mensaje);
-                    console.log("🔔 Notificación enviada");
+                    console.log("🔔 Notificación enviada (con channelId 'alertas_criticas')");
                 }
             }
         }
@@ -1138,6 +1177,50 @@ app.post('/api/admin/repartidores/manual-lock', requirePanelAdminEmailAuth, asyn
     } catch (error) {
         console.error('[ADMIN][MANUAL_LOCK] Error:', error.message);
         return res.status(500).json({ error: 'No se pudo actualizar bloqueo manual' });
+    }
+});
+
+
+// --- MÓDULO DE INTELIGENCIA FINANCIERA NELLY ---
+app.get('/api/admin/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const hoyStr = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        const pedidosRef = admin.database().ref('pedidos_activos');
+        // Traemos los pedidos del día (puedes filtrar por timestamp si lo prefieres)
+        const snapshot = await pedidosRef.once('value');
+        const pedidos = snapshot.val();
+
+        let metrics = {
+            ventasBrutas: 0,
+            comisionesNelly: 0,
+            conteoEntregas: 0,
+            mapaCalor: {}
+        };
+
+        if (pedidos) {
+            Object.values(pedidos).forEach(p => {
+                // Solo sumamos lo que ya se cobró y entregó hoy
+                if (p.estado === 'ENTREGADO' && p.fecha === hoyStr) {
+                    const total = parseFloat(p.total_pago || 0);
+                    const comision = parseFloat(p.comision_app || 0);
+
+                    metrics.ventasBrutas += total;
+                    metrics.comisionesNelly += comision;
+                    metrics.conteoEntregas++;
+
+                    // Agrupación por zona (Colonia)
+                    const zona = p.colonia || "Zona Desconocida";
+                    metrics.mapaCalor[zona] = (metrics.mapaCalor[zona] || 0) + total;
+                }
+            });
+        }
+
+        console.log(`[FINANZAS] 💰 Corte de caja generado: $${metrics.ventasBrutas} brutos.`);
+        res.status(200).json(metrics);
+
+    } catch (error) {
+        console.error("🔥 Error en Dashboard Financiero:", error);
+        res.status(500).json({ error: "No se pudo calcular la rentabilidad" });
     }
 });
 

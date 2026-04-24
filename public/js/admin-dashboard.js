@@ -1,3 +1,30 @@
+// --- MÉTRICAS DE RENTABILIDAD DIARIA ---
+async function refreshRentabilidadMetrics() {
+  try {
+    const payload = await fetchAdminApi("/api/admin/metricas/rentabilidad");
+    const ventas = Number(payload?.ventasBrutas || 0);
+    const comisiones = Number(payload?.comisionesNelly || 0);
+    const entregas = Number(payload?.conteoEntregas || 0);
+    const mapa = payload?.mapaCalor || {};
+
+    document.getElementById("metric-ventas-brutas").textContent = `$${ventas.toFixed(2)}`;
+    document.getElementById("metric-comisiones-nelly").textContent = `$${comisiones.toFixed(2)}`;
+    document.getElementById("metric-conteo-entregas").textContent = String(entregas);
+
+    const mapaUl = document.getElementById("metric-mapa-calor");
+    mapaUl.innerHTML = Object.entries(mapa).length
+      ? Object.entries(mapa)
+          .sort((a, b) => b[1] - a[1])
+          .map(([zona, total]) => `<li class="flex justify-between border-b border-panel-line/40 pb-1"><span>${escapeHtml(zona)}</span><span class="font-bold">$${Number(total).toFixed(2)}</span></li>`)
+          .join("")
+      : '<li class="text-slate-400 col-span-2">Sin entregas hoy</li>';
+  } catch (error) {
+    document.getElementById("metric-ventas-brutas").textContent = "$0.00";
+    document.getElementById("metric-comisiones-nelly").textContent = "$0.00";
+    document.getElementById("metric-conteo-entregas").textContent = "0";
+    document.getElementById("metric-mapa-calor").innerHTML = '<li class="text-slate-400 col-span-2">No disponible</li>';
+  }
+}
 import { auth, rtdb } from "./admin-firebase-config.js";
 import {
   onAuthStateChanged,
@@ -17,9 +44,52 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   "operaciones@nellydelivery.com"
 ]);
 
+// Permite cambiar el endpoint desde la consola para pruebas de nómina
+window.setAdminApiEndpoint = function(url) {
+  if (typeof url === 'string' && url.startsWith('http')) {
+    ADMIN_API_ENDPOINTS[0] = url.replace(/\/+$/, '');
+    console.log('[Nómina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
+  } else {
+    console.warn('URL inválida para ADMIN_API_ENDPOINTS');
+  }
+};
+
 const ADMIN_API_ENDPOINTS = [
   "https://nelly-api-8lh1.onrender.com"
 ];
+
+// Script de validación automática de nómina
+window.validarNomina = async function(uid, montoPago) {
+  try {
+    if (!uid || !montoPago) throw new Error('Falta uid o montoPago');
+    const user = auth.currentUser;
+    if (!user) throw new Error('Sesion no activa');
+    const idToken = await user.getIdToken();
+    // 1. Consultar liquidaciones
+    const liquidaciones = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    }).then(r => r.json());
+    console.log('[Nómina][Test] Liquidaciones:', liquidaciones);
+    // 2. Ejecutar pago
+    const pago = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/panel/finanzas/registrar-pago-deuda`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify({ uid, monto_pago: montoPago })
+    }).then(r => r.json());
+    console.log('[Nómina][Test] Resultado pago:', pago);
+    // 3. Consultar liquidaciones nuevamente
+    const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    }).then(r => r.json());
+    console.log('[Nómina][Test] Liquidaciones tras pago:', liquidaciones2);
+    alert('Validación de nómina completada. Revisa la consola para detalles.');
+  } catch (e) {
+    alert('Error en validación de nómina: ' + e.message);
+  }
+};
 
 const ui = {
   loginSection: document.getElementById("login-section"),
@@ -278,7 +348,8 @@ async function syncDashboardData() {
   try {
     await Promise.all([
       refreshDriversFromBackend(),
-      refreshOrdersMetricsFromBackend()
+      refreshOrdersMetricsFromBackend(),
+      refreshRentabilidadMetrics()
     ]);
   } catch (error) {
     currentDrivers = {};
@@ -286,6 +357,10 @@ async function syncDashboardData() {
     ui.metricBlocked.textContent = "0";
     ui.metricOrders.textContent = "0";
     setDriversTableMessage(`No se pudo cargar el dashboard: ${error.message}`);
+    document.getElementById("metric-ventas-brutas").textContent = "$0.00";
+    document.getElementById("metric-comisiones-nelly").textContent = "$0.00";
+    document.getElementById("metric-conteo-entregas").textContent = "0";
+    document.getElementById("metric-mapa-calor").innerHTML = '<li class="text-slate-400 col-span-2">No disponible</li>';
   }
 }
 

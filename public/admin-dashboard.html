@@ -60,6 +60,27 @@
 
       <section id="dashboard-section" class="hidden space-y-6">
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <article class="rounded-xl border border-panel-line bg-panel-card p-4 col-span-1 md:col-span-3">
+            <h2 class="text-lg font-semibold mb-2">Rentabilidad del Día</h2>
+            <div class="flex flex-col md:flex-row md:items-end md:gap-8 gap-2">
+              <div>
+                <p class="text-xs text-slate-400">Ventas Brutas</p>
+                <p id="metric-ventas-brutas" class="text-2xl font-bold text-panel-accent">$0.00</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400">Comisiones Nelly</p>
+                <p id="metric-comisiones-nelly" class="text-2xl font-bold text-panel-warn">$0.00</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400">Entregas</p>
+                <p id="metric-conteo-entregas" class="text-2xl font-bold text-panel-info">0</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <p class="text-xs text-slate-400 mb-1">Mapa de calor por zona:</p>
+              <ul id="metric-mapa-calor" class="text-sm text-slate-200 grid grid-cols-2 md:grid-cols-4 gap-2"></ul>
+            </div>
+          </article>
           <article class="rounded-xl border border-panel-line bg-panel-card p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Repartidores</p>
             <p id="metric-drivers" class="mt-2 text-2xl font-bold">0</p>

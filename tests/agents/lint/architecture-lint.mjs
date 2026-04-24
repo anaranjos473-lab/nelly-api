@@ -1,5 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
+const fs = require("node:fs");
+const path = require("node:path");
 
 const ROOT = process.cwd();
 const ALLOWED_EXT = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".kt", ".html"]);
