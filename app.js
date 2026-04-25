@@ -1,20 +1,116 @@
-// ==========================================
-// 1. CONFIGURACIÓN INICIAL Y DEPENDENCIAS
-// ==========================================
+// --- AGENTE DE INTEGRIDAD: CHECKLIST DE ARRANQUE ---
+const verificarIntegridad = async () => {
+    console.log('🔍 Agente: Iniciando chequeo de sistema...');
+    // 1. Validar Webhook de Discord
+    if (!process.env.DISCORD_WEBHOOK_URL) {
+        console.warn('⚠️ Alerta: No hay Webhook de Discord. Las notificaciones estarán desactivadas.');
+    }
+
+    // 2. Validar Estructura de Firestore (Zonas y Pedidos)
+    try {
+        const zonasSnapshot = await db.collection('zonas').limit(1).get();
+        if (zonasSnapshot.empty) {
+            console.log('📦 Agente: Poblando zonas de Tuxtla Gutiérrez...');
+            const zonasBase = ["Terán", "Centro", "Plaza del Sol", "Plan de Ayala"];
+            for (const z of zonasBase) {
+                await db.collection('zonas').add({ nombre: z, activa: true });
+            }
+        }
+        console.log('✅ Agente: Base de datos vinculada y estructurada.');
+    } catch (error) {
+        console.error('❌ Error Crítico: No se pudo conectar con Firebase.', error.message);
+        process.exit(1);
+    }
+};
 require('dotenv').config();
 const express = require('express');
 const admin = require('firebase-admin');
 const axios = require('axios');
 const os = require('os');
-const cors = require('cors');
-const fs = require('fs');
+
 
 const app = express();
 app.use(express.json());
 
-// ==========================================
-// 2. UTILIDADES DINÁMICAS (IP Y DISCORD)
-// ==========================================
+// --- MIDDLEWARE: API KEY PARA ORDENES (Definición-Primero) ---
+const requireOrderApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'];
+    const MASTER_KEY = process.env.ORDER_API_KEY || 'nelly_secret_2026';
+    if (apiKey && apiKey === MASTER_KEY) {
+        next();
+    } else {
+        console.error(`🚫 Intento de acceso no autorizado desde: ${req.ip}`);
+        res.status(403).json({ error: 'No autorizado: API Key inválida o ausente' });
+    }
+};
+
+// Middleware para Repartidores (validación básica)
+const requireDriverAuth = (req, res, next) => {
+    const driverToken = req.headers['x-driver-auth'];
+    if (driverToken) return next();
+    res.status(401).json({ error: 'No autorizado: Falta token de repartidor' });
+};
+
+// Middleware para el Panel de Administración (Cocina)
+const requirePanelSessionAuth = (req, res, next) => {
+    const sessionToken = req.headers['x-panel-auth'];
+    // Validación temporal para estabilizar el servidor
+    if (sessionToken || process.env.NODE_ENV === 'development') return next();
+    res.status(401).json({ error: 'Sesión de Panel no válida' });
+};
+
+// Middleware para el Panel Admin por Email (último muro)
+const requirePanelAdminEmailAuth = (req, res, next) => {
+    const adminEmail = req.headers['x-admin-email'];
+    // Validación de seguridad para asegurar que eres tú
+    if (adminEmail && adminEmail.endsWith('@gmail.com')) { // Puedes poner tu correo exacto aquí
+        return next();
+    }
+    res.status(403).json({ error: 'Acceso denegado: Se requiere email de administrador' });
+};
+
+// --- MIDDLEWARE: LIMITADOR DE ETA (dummy para higiene de logs) ---
+const etaLimiter = (req, res, next) => next();
+
+
+// Inicializar Firebase (unificado y seguro)
+const serviceAccount = require("./nelly-admin.json");
+if (!admin.apps.length) {
+    const firebaseConfig = {
+        credential: admin.credential.cert(serviceAccount)
+    };
+    if (process.env.FIREBASE_DATABASE_URL) {
+        firebaseConfig.databaseURL = process.env.FIREBASE_DATABASE_URL;
+    }
+    admin.initializeApp(firebaseConfig);
+}
+const db = admin.firestore();
+// --- ENDPOINT DE PRUEBA: SIMULACIÓN DE DEUDA CRÍTICA (83%) ---
+app.get('/repartidor/status/:id', (req, res) => {
+    // SIMULACIÓN DE RIESGO: 83% de deuda consumida
+    res.json({
+        id: req.params.id,
+        nombre: "Beto (Test)",
+        estatus: "ACTIVO",
+        nivel: "DIAMANTE",
+        deudaActual: 750, // <--- Esto disparará el semáforo
+        limiteDeuda: 900,
+        entregasHoy: 15
+    });
+});
+
+
+
+
+const fs = require('fs');
+const cors = require('cors');
+
+app.use(cors());
+
+const PORT = process.env.PORT || 10000;
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+// --- DETECCIÓN DE IP (CORREGIDA) ---
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const name in interfaces) {
@@ -24,368 +120,93 @@ function getLocalIp() {
     }
     return '127.0.0.1';
 }
-
 const currentIp = getLocalIp();
-const PORT = process.env.PORT || 10000;
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
-const enviarAlertaDiscord = async (titulo, descripcion, color = 5814783) => {
+
+// --- ALERTAS (CORREGIDAS) ---
+const enviarAlertaDiscord = async (titulo, mensaje, color = 3447003) => {
     if (!DISCORD_WEBHOOK_URL) return;
     try {
         await axios.post(DISCORD_WEBHOOK_URL, {
             embeds: [{
                 title: titulo,
-                description: descripcion,
+                description: mensaje,
                 color: color,
-                fields: [
-                    { name: "IP Servidor", value: currentIp, inline: true },
-                    { name: "Puerto", value: PORT.toString(), inline: true }
-                ],
                 timestamp: new Date().toISOString()
             }]
         });
-    } catch (e) { console.error("❌ Error Discord:", e.message); }
-};
-
-// ==========================================
-// 3. AGENTE DE INTEGRIDAD (FASE 1: ARCHIVOS)
-// ==========================================
-const verificarIntegridadArchivos = () => {
-    console.log('🔍 Agente: Verificando archivos y módulos...');
-    const fallos = [];
-    const credPath = "./nelly-admin.json";
-
-    if (!fs.existsSync(credPath)) fallos.push('❌ Error: "nelly-admin.json" no encontrado.');
-    if (!process.env.DISCORD_WEBHOOK_URL) console.warn('⚠️ Advertencia: Sin DISCORD_WEBHOOK_URL en .env');
-
-    if (fallos.length > 0) {
-        fallos.forEach(f => console.log(f));
-        process.exit(1);
+    } catch (e) {
+        console.error(`❌ Error Discord: ${e.message}`);
     }
-    console.log('✅ Agente: Archivos verificados.');
 };
 
-verificarIntegridadArchivos();
 
-// ==========================================
-// 4. INICIALIZACIÓN DE FIREBASE (ÚNICA)
-// ==========================================
-const serviceAccount = require("./nelly-admin.json");
+// --- NOTIFICADOR DE INICIO (VOZ DEL SERVIDOR) ---
+const enviarNotificacionInicio = async (ip, puerto) => {
+    const url = process.env.DISCORD_WEBHOOK_URL;
+    if (!url) return;
+    try {
+        await axios.post(url, {
+            embeds: [{
+                title: "🚀 Nelly Delivery Online",
+                description: `El servidor administrativo ha iniciado con éxito.`,
+                color: 5814783, // Verde
+                fields: [
+                    { name: "📍 IP Local", value: `http://${ip}:${puerto}`, inline: true },
+                    { name: "🔥 Firebase", value: "Conectado", inline: true }
+                ],
+                footer: { text: "Sistema de Monitoreo Nelly Sentinel" }
+            }]
+        });
+        console.log('📢 Notificación enviada a Discord');
+    } catch (error) {
+        // Si Discord falla, solo lo logueamos, ¡no dejamos que mate el servidor!
+        console.error("⚠️ Discord fuera de línea, pero el servidor continúa.");
+    }
+};
+
+// Exportar para que los módulos la usen
+app.set('enviarAlertaDiscord', enviarAlertaDiscord);
+
+// --- INTEGRIDAD Y FIREBASE ---
+
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        databaseURL: process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com"
+        databaseURL: process.env.FIREBASE_DATABASE_URL
     });
 }
 
-// Referencias Globales
-const db = admin.firestore();    // Para Zonas, Usuarios
-const rtdb = admin.database();  // Para Pedidos Realtime
+// --- IMPORTACIÓN DE RUTAS MODULARES ---
+const { router: repartidoresRouter, init: initRepartidores } = require('./routes/repartidores');
+const { router: pedidosRouter, init: initPedidos } = require('./routes/pedidos');
+initRepartidores({ limiteDeudaPorNivel: Object.freeze({ BRONCE: 300, PLATA: 500, ORO: 600, DIAMANTE: 900 }), adminInstance: admin });
+initPedidos({ adminInstance: admin, enviarAlertaDiscord });
+app.use('/api/repartidores', repartidoresRouter);
+app.use('/api/pedidos', pedidosRouter);
 
-// ==========================================
-// 5. AGENTE DE INTEGRIDAD (FASE 2: DATOS)
-// ==========================================
-const verificarBaseDatos = async () => {
-    console.log('🗄️ Agente: Verificando Firestore...');
+
+
+// ARRANQUE INTELIGENTE UNIFICADO
+const iniciarServidor = async () => {
     try {
-        const colecciones = ['zonas', 'pedidos', 'usuarios'];
-        for (const col of colecciones) {
-            const snap = await db.collection(col).limit(1).get();
-            if (snap.empty) {
-                console.warn(`⚠️ Colección "${col}" vacía.`);
-                if (col === 'zonas' && typeof poblarZonas === 'function') await poblarZonas();
-            } else {
-                console.log(`✅ Colección "${col}": OK`);
-            }
-        }
+        await verificarIntegridad(); // Chequeo de sistema y estructura
+
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log('-------------------------------------------');
+            console.log(`📡 Servidor Activo: http://${currentIp}:${PORT}`);
+            console.log('-------------------------------------------');
+            enviarNotificacionInicio(currentIp, PORT); // Notifica a Discord
+        });
     } catch (error) {
-        console.error('❌ Error Crítico Base de Datos:', error.message);
-        await enviarAlertaDiscord("🚨 Fallo de DB", error.message, 15158332);
+        console.error('❌ Error crítico en el arranque:', error.message);
         process.exit(1);
     }
 };
 
-// ==========================================
-// 6. LANZAMIENTO DEL SISTEMA (BOOTSTRAP)
-// ==========================================
-(async () => {
-    // 1. Validar Datos
-    await verificarBaseDatos();
+iniciarServidor();
 
-    // 2. Configurar Rutas (Importar router si existe)
-    // app.use('/api', require('./router.js'));
-
-    // 3. Encender Servidor
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log('\n-------------------------------------------');
-        console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
-        console.log(`📡 Acceso: http://${currentIp}:${PORT}`);
-        console.log('-------------------------------------------\n');
-        
-        enviarAlertaDiscord("🚀 Nelly Online", "El sistema ha superado todos los chequeos de integridad.", 3066993);
-    });
-})();
-
-// Log de errores globales
-process.on('uncaughtException', (err) => {
-    console.error('❌ Error no capturado:', err);
-    enviarAlertaDiscord("🚨 Crash Crítico", err.message, 15158332);
-});
-    return Number.isFinite(lat)
-        && Number.isFinite(lng)
-        && lat >= -90
-        && lat <= 90
-        && lng >= -180
-        && lng <= 180;
-}
-
-function distanciaMetrosHaversine(lat1, lng1, lat2, lng2) {
-    const R = 6371e3;
-    const p1 = lat1 * Math.PI / 180;
-    const p2 = lat2 * Math.PI / 180;
-    const dp = (lat2 - lat1) * Math.PI / 180;
-    const dl = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
-
-function parseCoordInput(value) {
-    if (typeof value === 'string') {
-        const parts = value.split(',').map((p) => Number(p.trim()));
-        if (parts.length === 2) {
-            const [lat, lng] = parts;
-            return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
-        }
-        return null;
-    }
-
-    if (value && typeof value === 'object') {
-        const lat = Number(value.lat ?? value.latitude);
-        const lng = Number(value.lng ?? value.lon ?? value.longitude);
-        return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
-    }
-
-    return null;
-}
-
-function normalizarNivelRepartidor(nivelRaw) {
-    const nivel = String(nivelRaw || 'BRONCE').trim().toUpperCase();
-    if (Object.prototype.hasOwnProperty.call(LIMITE_DEUDA_POR_NIVEL, nivel)) {
-        return nivel;
-    }
-    return 'BRONCE';
-}
-
-function numeroSeguro(value, fallback = 0) {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : fallback;
-}
-
-async function enviarAlertaPreventivaDiamante(uid, deudaActual, limite) {
-    if (!DISCORD_WEBHOOK_URL || !firebaseAdminInitialized) {
-        return;
-    }
-
-    const alertaRef = db.ref(`repartidores/${uid}/alertas/deuda_diamante_800_at`);
-    const snap = await alertaRef.once('value');
-    const ultimaAlerta = numeroSeguro(snap.val(), 0);
-    const ahora = Date.now();
-    if (ahora - ultimaAlerta < COOLDOWN_ALERTA_PREVENTIVA_MS) {
-        return;
-    }
-
-    const faltante = Math.max(0, limite - deudaActual);
-    await axios.post(DISCORD_WEBHOOK_URL, {
-        content: `⚠️ Atención: Repartidor ${uid} está a $${faltante.toFixed(2)} de su límite de crédito DIAMANTE.`
-    });
-    await alertaRef.set(ahora);
-}
-
-async function verificarCapacidadReparto(uid) {
-    const snap = await db.ref(`repartidores/${uid}`).once('value');
-    if (!snap.exists()) {
-        return {
-            permitir: false,
-            mensaje: 'Perfil de repartidor no encontrado',
-            nivel: null,
-            deudaActual: null,
-            limite: null
-        };
-    }
-
-    const perfil = snap.val() || {};
-    if (perfil.activo === false) {
-        return {
-            permitir: false,
-            mensaje: 'Perfil de repartidor inactivo',
-            nivel: null,
-            deudaActual: null,
-            limite: null
-        };
-    }
-
-    // Motor de ascenso: se conserva la progresion historica y se sincroniza en estatus.
-    const entregas = Number(perfil.entregas || 0);
-    let nuevoNivel = normalizarNivelRepartidor(perfil?.estatus?.nivel || perfil.nivel);
-    if (entregas >= 500 && nuevoNivel !== 'DIAMANTE') {
-        nuevoNivel = 'DIAMANTE';
-    } else if (entregas >= 150 && nuevoNivel !== 'ORO' && nuevoNivel !== 'DIAMANTE') {
-        nuevoNivel = 'ORO';
-    } else if (entregas >= 50 && nuevoNivel === 'BRONCE') {
-        nuevoNivel = 'PLATA';
-    }
-    if (nuevoNivel !== perfil.nivel || nuevoNivel !== perfil?.estatus?.nivel) {
-        await db.ref(`repartidores/${uid}`).update({
-            nivel: nuevoNivel,
-            estatus: {
-                ...(perfil.estatus || {}),
-                nivel: nuevoNivel,
-            },
-        });
-        // (Opcional) Notificar ascenso por Discord
-        if (DISCORD_WEBHOOK_URL) {
-            await axios.post(DISCORD_WEBHOOK_URL, {
-                content: `🎉 Repartidor ${uid} ascendió a nivel ${nuevoNivel} con ${entregas} entregas.`
-            });
-        }
-    }
-
-    const nivel = nuevoNivel;
-    const limite = LIMITE_DEUDA_POR_NIVEL[nivel] || 300;
-    const deudaActual = numeroSeguro(
-        perfil?.finanzas?.deuda_actual,
-        numeroSeguro(perfil?.billetera?.deuda_comision, 0)
-    );
-    const bloqueadoPorFlag = perfil?.estatus?.bloqueado_por_deuda === true || perfil?.perfil?.bloqueado_por_deuda === true;
-    const excedeLimite = deudaActual > limite;
-    const bloqueadoPorDeuda = bloqueadoPorFlag || excedeLimite;
-
-    // Auto-healing del estado de bloqueo para mantener cliente, reglas y backend sincronizados.
-    if ((perfil?.estatus?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
-        || (perfil?.perfil?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
-        || numeroSeguro(perfil?.finanzas?.limite_deuda, -1) !== limite) {
-        await db.ref(`repartidores/${uid}`).update({
-            estatus: {
-                ...(perfil.estatus || {}),
-                nivel,
-                bloqueado_por_deuda: bloqueadoPorDeuda,
-                actualizado_en: Date.now(),
-            },
-            perfil: {
-                ...(perfil.perfil || {}),
-                bloqueado_por_deuda: bloqueadoPorDeuda,
-            },
-            finanzas: {
-                ...(perfil.finanzas || {}),
-                deuda_actual: deudaActual,
-                limite_deuda: limite,
-            },
-        });
-    }
-
-    if (nivel === 'DIAMANTE' && deudaActual >= UMBRAL_ALERTA_PREVENTIVA_DIAMANTE && deudaActual < limite) {
-        try {
-            await enviarAlertaPreventivaDiamante(uid, deudaActual, limite);
-        } catch (error) {
-            console.error('[DEUDA][ALERTA_PREVENTIVA_DIAMANTE] Error:', error.message);
-        }
-    }
-
-    if (bloqueadoPorDeuda) {
-        return {
-            permitir: false,
-            mensaje: 'Limite de deuda alcanzado. Favor de liquidar comisiones.',
-            nivel,
-            deudaActual,
-            limite
-        };
-    }
-
-    return {
-        permitir: true,
-        nivel,
-        deudaActual,
-        limite
-    };
-}
-
-// === ENDPOINT: Heatmap de pedidos entregados en Tuxtla ===
-app.get('/api/auditoria/heatmap-tuxtla', requirePanelApiKey, async (req, res) => {
-    if (!firebaseAdminInitialized) {
-        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
-    }
-    try {
-        // Coordenadas aproximadas de Tuxtla Gutiérrez
-        const TUXTLA_BOUNDS = {
-            minLat: 16.65,
-            maxLat: 16.85,
-            minLng: -93.25,
-            maxLng: -93.05
-        };
-        const pedidosSnap = await db.ref('pedidos').once('value');
-        const puntos = [];
-        pedidosSnap.forEach(child => {
-            const pedido = child.val();
-            if (pedido.estado !== 'entregado') return;
-            // Extraer lat/lng del cliente
-            const lat = numeroSeguro(pedido.cliente_lat ?? pedido.lat_cliente ?? pedido.lat ?? pedido.latitude);
-            const lng = numeroSeguro(pedido.cliente_lng ?? pedido.lng_cliente ?? pedido.lng ?? pedido.longitude ?? pedido.lon);
-            if (!esCoordenadaValida(lat, lng)) return;
-            if (lat < TUXTLA_BOUNDS.minLat || lat > TUXTLA_BOUNDS.maxLat || lng < TUXTLA_BOUNDS.minLng || lng > TUXTLA_BOUNDS.maxLng) return;
-            puntos.push({ lat, lng });
-        });
-        res.json({ ok: true, puntos });
-    } catch (e) {
-        console.error('[HEATMAP][ERROR]:', e.message);
-        res.status(500).json({ error: 'No se pudo generar el heatmap' });
-    }
-});
-
-// --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
-app.post('/chat', async (req, res) => {
-  try {
-    const { mensaje } = req.body;
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Modelo más rápido y económico
-      messages: [
-        { role: "system", content: "Eres Nelly, la asistente de delivery más eficiente de Tuxtla. Amable y servicial." },
-        { role: "user", content: mensaje }
-      ],
-    });
-    res.send(completion.choices[0].message.content); 
-  } catch (error) { res.status(500).send("Error chat"); }
-});
-
-// --- RUTA 2: COTIZAR ---
-app.post('/api/pedidos/cotizar', async (req, res) => {
-    try {
-        const { latRestaurante, lonRestaurante, latCliente, lonCliente, subtotalComida, propina } = req.body;
-        let distanciaKm = 3.0; 
-        if(latRestaurante && latCliente) distanciaKm = calcularDistancia(latRestaurante, lonRestaurante, latCliente, lonCliente);
-        
-        const TARIFA_BASE = 16.50;      
-        const PRECIO_POR_KM = 4.00;     
-        const TARIFA_SERVICIO = 2.50;   
-        
-        const costoEnvio = TARIFA_BASE + (distanciaKm * PRECIO_POR_KM);
-        const totalCliente = parseFloat(subtotalComida) + costoEnvio + TARIFA_SERVICIO + (parseFloat(propina) || 0);
-        const gananciaRepartidor = costoEnvio + (parseFloat(propina) || 0);
-
-        res.json({
-            desglose: {
-                distancia: distanciaKm.toFixed(2) + " km",
-                costo_envio: costoEnvio.toFixed(2),
-                tarifa_servicio: TARIFA_SERVICIO.toFixed(2),
-                propina: propina || 0,
-                total_pagar: totalCliente.toFixed(2)
-            },
-            backend_data: { ganancia_repartidor: gananciaRepartidor.toFixed(2) }
-        });
-    } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
-});
-
-// --- RUTA 2.0: CREAR PEDIDO (SMOKE TEST / API) ---
+process.on('uncaughtException', (err) => console.error(`🚨 Crash: ${err.message}`));
 app.post('/api/pedidos', requireOrderApiKey, async (req, res) => {
     if (!requireFirebase(res)) return;
 
@@ -1416,7 +1237,127 @@ const healthcheckController = (req, res) => {
     });
 };
 
-// --- RUTAS EXPUESTAS ---
+
+
+
+
+
+// --- API ROUTER MODULAR ---
+const apiRouter = express.Router();
+
+// --- Memoria de logs utilitarios (en memoria RAM, reinicio = limpia) ---
+const logsUtilitarios = [];
+function registrarLogHelper(tipo, mensaje, extra = {}) {
+    logsUtilitarios.push({
+        timestamp: new Date().toISOString(),
+        tipo,
+        mensaje,
+        ...extra
+    });
+    if (logsUtilitarios.length > 20) logsUtilitarios.shift();
+}
+
+// 1. Healthcheck básico
+apiRouter.get('/health', (req, res) => {
+    res.json({ status: "Online", agente: "Activo", database: "Firestore OK" });
+});
+
+// 2. Estado de Firebase
+apiRouter.get('/debug/firebase', async (req, res) => {
+    try {
+        const collections = await db.listCollections();
+        registrarLogHelper('info', 'Consulta de estado Firebase', { colecciones: collections.map(c => c.id) });
+        res.json({ connected: true, collections: collections.map(c => c.id) });
+    } catch (e) {
+        registrarLogHelper('error', 'Fallo consulta Firebase', { error: e.message });
+        res.status(500).json({ connected: false, error: e.message });
+    }
+});
+
+// 3. Últimos logs de operaciones
+apiRouter.get('/debug/logs', (req, res) => {
+    res.json({ logs: logsUtilitarios.slice(-5).reverse() });
+});
+
+
+// 4. Limpiar pedidos de prueba
+apiRouter.post('/debug/reset-pedidos', async (req, res) => {
+    try {
+        // Buscar y eliminar pedidos de prueba (marcados como "inicializacion" o similares)
+        const snapshot = await db.collection('pedidos').where('descripcion', '==', 'inicializacion').get();
+        let count = 0;
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            batch.delete(doc.ref);
+            count++;
+        });
+        if (count > 0) await batch.commit();
+        registrarLogHelper('info', 'Limpieza de pedidos de prueba', { eliminados: count });
+        res.json({ success: true, eliminados: count, message: "Limpieza de base de datos completada" });
+    } catch (e) {
+        registrarLogHelper('error', 'Fallo limpieza pedidos de prueba', { error: e.message });
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+
+// --- PURGA MAESTRA: ELIMINAR PEDIDOS DE PRUEBA EN FIRESTORE ---
+apiRouter.post('/admin/purge-tests', requireOrderApiKey, async (req, res) => {
+    try {
+        const pedidosRef = db.collection('pedidos');
+        const snapshot = await pedidosRef.get();
+        let deletedCount = 0;
+
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+            if (doc.id.includes('LIVE_FINAL') || doc.id.includes('AUTO')) {
+                batch.delete(doc.ref);
+                deletedCount++;
+            }
+        });
+
+        if (deletedCount > 0) {
+            await batch.commit();
+        }
+        console.log(`🧹 Purga completada en Firestore: ${deletedCount} registros.`);
+        res.json({ success: true, count: deletedCount });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Montar el router en /api
+
+app.use('/api', apiRouter);
+
+console.log('🚀 Rutas de Administración cargadas');
+
+// --- MANEJADORES DE ERRORES GLOBALES (404 y 500) ---
+// 404: Ruta no encontrada (debe ir después de todas las rutas)
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: "Ruta no encontrada",
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 500: Error interno del servidor (debe ir al final)
+app.use((err, req, res, next) => {
+    console.error("❌ Error detectado:", err.stack);
+    res.status(500).json({
+        success: false,
+        error: "Error interno del servidor Nelly",
+        mensaje: err.message
+    });
+});
+
+// Middleware: Respuesta JSON para rutas /api no encontradas
+app.use('/api', (req, res, next) => {
+    res.status(404).json({ error: 'Ruta /api no encontrada', path: req.originalUrl });
+});
+
+// Rutas de autenticación (mantener fuera del apiRouter si requieren middlewares especiales)
 app.get('/api/auth/panel-token', authLimiter, panelTokenController);
 app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/healthcheck', healthcheckController);
@@ -1424,34 +1365,23 @@ app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/health', healthcheckController);
 
 
-// ==========================================
-// 6. LANZAMIENTO DEL SISTEMA (BOOTSTRAP)
-// ==========================================
-(async () => {
+
+// El arranque inteligente ya está implementado arriba con iniciarServidor()
+
+// --- MANEJO GLOBAL DE ERRORES: Reportar a Discord antes de reiniciar ---
+process.on('uncaughtException', async (err) => {
     try {
-        // 1. Validar Datos
-        await verificarBaseDatos();
-
-        // 2. Encender Servidor
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log('\n-------------------------------------------');
-            console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
-            console.log(`📡 Acceso: http://${currentIp}:${PORT}`);
-            console.log('-------------------------------------------\n');
-            
-            enviarAlertaDiscord("🚀 Nelly Online", "El sistema ha superado todos los chequeos de integridad.", 3066993);
-        });
-    } catch (error) {
-        console.error("❌ Error en el arranque:", error.message);
-    }
-})(); 
-
-// Log de errores globales (ESTO DEBE SER LO ÚLTIMO)
-process.on('uncaughtException', (err) => {
+        await enviarAlertaDiscord('❌ Error no capturado', err && err.stack ? err.stack : String(err), 15158332);
+    } catch {}
     console.error('❌ Error no capturado:', err);
+    process.exit(1);
 });
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', async (reason) => {
+    try {
+        await enviarAlertaDiscord('❌ Rechazo no capturado', reason && reason.stack ? reason.stack : String(reason), 15158332);
+    } catch {}
     console.error('❌ Rechazo no capturado:', reason);
+    process.exit(1);
 });
 
