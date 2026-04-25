@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "5451083162",
+    "firebase_url": "https://nelly-delivery-default-rtdb.firebaseio.com",
+    "project_id": "nelly-delivery",
+    "storage_bucket": "nelly-delivery.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5451083162:android:ba912caaeb58ac9c0bde23",
+        "android_client_info": {
+          "package_name": "com.example.nelly2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARJaI0majtq5UsmLXLp0w2LQlgJkhMc9o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:5451083162:android:ee8c77ffe4b8b5b90bde23",
+        "android_client_info": {
+          "package_name": "com.example.nellydriver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARJaI0majtq5UsmLXLp0w2LQlgJkhMc9o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

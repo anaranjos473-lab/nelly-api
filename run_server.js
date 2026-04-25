@@ -1032,8 +1032,8 @@ app.get('/api/healthcheck', healthcheckController);
 app.get('/health', healthcheckController);
 
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Servidor Nelly v3.0 listo en puerto ${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor Nelly v3.0 listo en puerto ${PORT}`);
 });
 
 server.on('error', (err) => {

@@ -1,12 +1,4 @@
 
-const dotenv = require('dotenv');
-dotenv.config();
-
-// --- DEPENDENCIAS Y VARIABLES GLOBALES ---
-const axios = require('axios');
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
-
 // --- FUNCIONES DE ALERTA ---
 async function notificarAlertaConexion(mensaje) {
     if (!DISCORD_WEBHOOK_URL) return;
@@ -1819,14 +1811,16 @@ const healthcheckController = (req, res) => {
 // --- RUTAS EXPUESTAS ---
 app.get('/api/auth/panel-token', authLimiter, panelTokenController);
 app.get('/api/auth/driver-token', authLimiter, driverTokenController);
-app.get('/healthcheck', healthcheckController);
-app.get('/api/healthcheck', healthcheckController);
-app.get('/health', healthcheckController);
+// app.get('/healthcheck', healthcheckController);
+// app.get('/api/healthcheck', healthcheckController);
+// app.get('/health', healthcheckController);
 
-// Agente Nexus: Correccion de Port Binding para Render
+
+// Configuración explícita de HOST y PORT para acceso en red local
 const PORT = process.env.PORT || 10000;
-const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Nelly v3.0 operando en puerto ${PORT}`);
+const HOST = '0.0.0.0';
+const server = app.listen(PORT, HOST, () => {
+    console.log(`✅ Servidor de Nelly Delivery corriendo en http://${HOST}:${PORT}`);
 });
 
 server.on('error', (err) => {
@@ -1839,3 +1833,33 @@ process.on('unhandledRejection', (reason) => {
 });
 
 
+
+// --- REFACTORIZACIÓN: ENRUTADOR GLOBAL API ---
+const apiRouter = express.Router();
+
+// 1. Endpoint de Salud (Sentinel)
+apiRouter.get('/health', healthcheckController);
+
+// 2. Endpoint de Zonas
+apiRouter.get('/zonas', (req, res) => {
+    const listaZonas = ["Terán", "Centro", "Norte", "Sur", "Oriente", "Poniente"];
+    res.json(listaZonas);
+});
+
+// 3. Endpoint de Boost
+apiRouter.post('/sentinel/boost', (req, res) => {
+    res.json({ success: true, message: "Boost sincronizado mediante Router" });
+});
+
+// APLICACIÓN DEL PREFIJO MAESTRO
+// Esto hace que todas las rutas anteriores empiecen con /api/
+app.use('/api', apiRouter);
+// ----------------------------------------------
+
+const dotenv = require('dotenv');
+dotenv.config();
+
+// --- DEPENDENCIAS Y VARIABLES GLOBALES ---
+const axios = require('axios');
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;

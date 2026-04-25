@@ -9,6 +9,6 @@ app.get('/api/admin/metricas/rentabilidad', (req, res) => {
         mapaCalor: { "Zona Centro": 1000, "Zona Norte": 500 }
     });
 });
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log('Mock server running on port ' + PORT);
 });

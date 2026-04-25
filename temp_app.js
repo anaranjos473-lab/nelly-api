@@ -1142,6 +1142,6 @@ app.get('/api/healthcheck', healthcheckController);
 app.get('/health', healthcheckController);
 
 const PORT = 3001; // El principal usa el 3000, este el 3001 para pruebas
-app.listen(PORT, () => {
-        console.log(`[SENTINEL-TEST] 🛡️ Servidor de pruebas activo en puerto ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[SENTINEL-TEST] 🛡️ Servidor de pruebas activo en puerto ${PORT}`);
 });
