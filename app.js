@@ -1,3 +1,9 @@
+// 1. Definir el middleware que falta para evitar el crash
+const requirePanelApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-panel-api-key'];
+    if (apiKey === 'nelly_secret_2026') return next();
+    res.status(401).json({ error: 'API Key del Panel no válida' });
+};
 // --- AGENTE DE INTEGRIDAD: CHECKLIST DE ARRANQUE ---
 const verificarIntegridad = async () => {
     console.log('🔍 Agente: Iniciando chequeo de sistema...');
@@ -1312,7 +1318,7 @@ apiRouter.post('/debug/reset-pedidos', async (req, res) => {
 
 
 // --- PURGA MAESTRA: ELIMINAR PEDIDOS DE PRUEBA EN FIRESTORE ---
-apiRouter.post('/admin/purge-tests', requireOrderApiKey, async (req, res) => {
+apiRouter.post('/admin/purge-tests', requireOrderApiKey, requirePanelAdminEmailAuth, async (req, res) => {
     try {
         const pedidosRef = db.collection('pedidos');
         const snapshot = await pedidosRef.get();
@@ -1330,7 +1336,7 @@ apiRouter.post('/admin/purge-tests', requireOrderApiKey, async (req, res) => {
             await batch.commit();
         }
         console.log(`🧹 Purga completada en Firestore: ${deletedCount} registros.`);
-        res.json({ success: true, count: deletedCount });
+        res.json({ success: true, count: deletedCount, message: "Purga de pruebas completada en la nube" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
