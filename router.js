@@ -1,3 +1,55 @@
+const express = require('express');
+const router = express.Router();
+
+const admin = require('firebase-admin');
+
+// --- ENDPOINT: REPORTE FINANCIERO REAL ---
+router.get('/reporte-financiero', async (req, res) => {
+    try {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0); // Inicio del día
+
+        // Consulta pedidos del día que estén finalizados
+        const snapshot = await admin.firestore().collection('pedidos')
+            .where('fecha', '>=', admin.firestore.Timestamp.fromDate(hoy))
+            .where('estado', '==', 'entregado')
+            .get();
+
+        let ventasBrutas = 0;
+        let pedidosConcluidos = snapshot.size;
+
+        snapshot.forEach(doc => {
+            ventasBrutas += doc.data().total || 0;
+        });
+
+        // Comisión FIJA 18%
+        const utilidadNelly = ventasBrutas * 0.18;
+
+        res.json({
+            success: true,
+            ventas_brutas: ventasBrutas,
+            utilidad_nelly: utilidadNelly,
+            pedidos_concluidos: pedidosConcluidos,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error("Error en reporte:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+
+router.get('/zonas', async (req, res) => {
+    try {
+        const snapshot = await admin.firestore().collection('zonas').get();
+        const listaZonas = snapshot.docs.map(doc => doc.data().nombre);
+        res.json(listaZonas.length > 0 ? listaZonas : ["Sin zonas configuradas"]);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -29,8 +81,6 @@ async function notificarAlertaCritica(mensaje) {
     }
 }
 // --- ENDPOINTS DE MONITOREO EXTERNO ---
-const express = require('express');
-const router = express.Router();
 
 // Recibe snapshot de métricas y reenvía a Discord
 router.post('/monitoreo/discord', async (req, res) => {
@@ -55,5 +105,6 @@ router.post('/monitoreo/alerta', async (req, res) => {
         res.status(500).json({ error: 'Error enviando alerta', detalle: e.message });
     }
 });
+
 
 module.exports = router;
