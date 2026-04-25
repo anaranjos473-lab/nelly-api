@@ -1,17 +1,20 @@
-// --- FIRESTORE DB ---
-let dbFirestore = null;
-// --- DEPENDENCIAS FIREBASE ---
+require('dotenv').config(); // Carga variables desde un archivo .env
 const admin = require('firebase-admin');
-let db = null;
-let firebaseAdminInitialized = false;
-
-
-// --- VARIABLES DE ENTORNO Y DEPENDENCIAS GLOBALES ---
-const dotenv = require('dotenv');
-dotenv.config();
 const axios = require('axios');
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const ORDER_INGEST_API_KEY = process.env.ORDER_INGEST_API_KEY;
+
+app.use(express.json());
+
+// Inicializar Firebase (Asegúrate de que el nombre del archivo coincida)
+const serviceAccount = require("./nelly-admin.json"); 
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+}
+const db = admin.firestore();
+
+// Variable de Discord (Viene de tu .env o la puedes definir aquí para pruebas)
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "TU_URL_AQUÍ";
 
 // --- FUNCIONES DE ALERTA ---
 async function notificarAlertaConexion(mensaje) {
@@ -50,8 +53,105 @@ process.on('unhandledRejection', async (reason, _promise) => {
 setInterval(() => {
     console.log("💓 Pulso local: Nelly sigue activa...");
 }, 30000); // Cada 30 segundos
+// --- INICIALIZACIÓN DE FIREBASE Y BLOQUES DEPENDIENTES ---
+let firebaseAdminInitialized = false;
 
+// ...código de inicialización de Firebase y db...
 
+// --- INICIALIZACIÓN DE FIREBASE ADMIN (FIRESTORE) ---
+// const admin removed
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+const dbFirestore = admin.firestore();
+// --- FIN INICIALIZACIÓN FIREBASE ADMIN ---
+
+// --- BLOQUES QUE DEPENDEN DE FIREBASE ---
+function inicializarDependientesFirebase() {
+    // Monitor de salud de Firebase
+    if (firebaseAdminInitialized && db) {
+        const dbStatusRef = db.ref(".info/connected");
+        let huboConexionPrevia = false;
+        dbStatusRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                huboConexionPrevia = true;
+                console.log("✅ Conectado a Firebase RTDB");
+            } else {
+                if (!huboConexionPrevia) {
+                    console.log('ℹ️ Firebase RTDB aun no establece sesion inicial.');
+                    return;
+                }
+                const msg = "Nelly perdió conexión con la base de datos.";
+                console.error("🚨 ALERTA: " + msg);
+                notificarAlertaConexion(msg);
+            }
+        });
+
+        // Limpieza automática de pedidos de prueba al arrancar
+        (async function limpiarPruebas() {
+            try {
+                console.log("🧹 Iniciando limpieza de pedidos de prueba...");
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.once('value');
+                snapshot.forEach((child) => {
+                    if (child.key.startsWith('test_') || child.key.startsWith('AUTO_')) {
+                        child.ref.remove();
+                    }
+                });
+                console.log("✨ Base de datos limpia de logs de prueba.");
+            } catch (e) {
+                console.error("❌ Error limpiando pruebas:", e.message);
+            }
+        })();
+
+        // Ejecución periódica del smoke test
+        try {
+            const cron = require('node-cron');
+            cron.schedule('*/15 * * * *', () => {
+                console.log('⏱️ Ejecutando smoke-test.js (cada 15 minutos)...');
+                require('child_process').exec('node smoke-test.js', (err, stdout, stderr) => {
+                    if (err) {
+                        console.error('❌ Error ejecutando smoke-test.js:', err.message);
+                    } else {
+                        console.log(stdout);
+                        if (stderr) console.error(stderr);
+                    }
+                });
+            });
+        } catch (e) {
+            console.error('No se pudo cargar node-cron para el smoke test automático:', e.message);
+        }
+
+        // --- Watcher automático: mover pedidos de 'pendiente' a 'en_reparto' tras X minutos ---
+        const MINUTOS_ESPERA = 5; // Cambia este valor según lo deseado
+        const INTERVALO_MS = 60 * 1000; // 1 minuto
+        setInterval(async () => {
+            try {
+                const ahora = Date.now();
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.orderByChild('estado').equalTo('pendiente').once('value');
+                snapshot.forEach((child) => {
+                    const pedido = child.val();
+                    if (!pedido || typeof pedido !== 'object') return;
+                    const creado = pedido.timestamp || 0;
+                    if (ahora - creado > MINUTOS_ESPERA * 60 * 1000) {
+                        // Mover a en_reparto automáticamente
+                        child.ref.update({
+                            estado: 'en_reparto',
+                            auto_despacho: true,
+                            fecha_en_reparto: new Date().toISOString()
+                        });
+                        console.log(`🤖 Pedido ${child.key} movido a 'en_reparto' automáticamente tras ${MINUTOS_ESPERA} min.`);
+                    }
+                });
+            } catch (e) {
+                console.error('❌ Error en watcher auto-despacho:', e.message);
+            }
+        }, INTERVALO_MS);
+    }
+}
 const express = require('express');
 const OpenAI = require('openai');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
@@ -209,9 +309,9 @@ try {
         databaseURL: firebaseDatabaseUrl
     });
     db = admin.database();
-    dbFirestore = admin.firestore();
     firebaseAdminInitialized = true;
     console.log('✅ Firebase Admin conectado exitosamente');
+    inicializarDependientesFirebase();
 } catch (error) {
     console.error("❌ Error Crítico Firebase:", error.message);
     if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
@@ -1742,135 +1842,33 @@ app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/health', healthcheckController);
 
 
-// Configuración explícita de HOST y PORT para acceso en red local
-const PORT = process.env.PORT || 10000;
-const HOST = '0.0.0.0';
-const server = app.listen(PORT, HOST, () => {
-    console.log(`✅ Servidor de Nelly Delivery corriendo en http://${HOST}:${PORT}`);
-});
+// CONFIGURACIÓN DE CONEXIÓN FINAL
 
-server.on('error', (err) => {
-  console.error('❌ Error crítico del servidor:', err.message);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason) => {
-  console.error('⚠️ Promesa rechazada no manejada:', reason);
-});
-
-
-
-// --- REFACTORIZACIÓN: ENRUTADOR GLOBAL API ---
-const apiRouter = express.Router();
-
-// 1. Endpoint de Salud (Sentinel)
-apiRouter.get('/health', healthcheckController);
-
-// 2. Endpoint de Zonas
-apiRouter.get('/zonas', (req, res) => {
-    const listaZonas = ["Terán", "Centro", "Norte", "Sur", "Oriente", "Poniente"];
-    res.json(listaZonas);
-});
-
-// 3. Endpoint de Boost
-apiRouter.post('/sentinel/boost', (req, res) => {
-    res.json({ success: true, message: "Boost sincronizado mediante Router" });
-});
-
-// APLICACIÓN DEL PREFIJO MAESTRO
-// Esto hace que todas las rutas anteriores empiecen con /api/
-app.use('/api', apiRouter);
-// ----------------------------------------------
-
-// --- NUEVAS RUTAS ADMINISTRATIVAS ---
-
-// 1. Reporte Financiero
-// --- ENDPOINT REAL DE REPORTE FINANCIERO ---
-apiRouter.get('/reporte-financiero', async (req, res) => {
-    try {
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Inicio del día
-
-        // Consulta pedidos del día que estén finalizados
-        const snapshot = await dbFirestore.collection('pedidos')
-            .where('fecha', '>=', admin.firestore.Timestamp.fromDate(hoy))
-            .where('estado', '==', 'entregado')
-            .get();
-
-        let ventasBrutas = 0;
-        let pedidosConcluidos = snapshot.size;
-
-        snapshot.forEach(doc => {
-            ventasBrutas += doc.data().total || 0;
-        });
-
-        // Comisión FIJA 18% (no modificar)
-        const utilidadNelly = ventasBrutas * 0.18;
-
-        res.json({
-            success: true,
-            ventas_brutas: ventasBrutas,
-            utilidad_nelly: utilidadNelly,
-            pedidos_concluidos: pedidosConcluidos,
-            timestamp: new Date().toISOString()
-        });
-
-    } catch (error) {
-        console.error("Error en reporte:", error);
-        res.status(500).json({ success: false, message: error.message });
+const os = require('os');
+// Función para obtener la IP local automáticamente
+function getLocalIp() {
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            // Filtramos solo IPv4 y que no sea interna (127.0.0.1)
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
     }
+    return 'localhost';
+}
+
+const PORT = 10000;
+const currentIp = getLocalIp();
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('-------------------------------------------');
+    console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
+    console.log('-------------------------------------------');
+    console.log(`📡 Red Local: http://${currentIp}:${PORT}`);
+    console.log(`🏥 Salud:    http://${currentIp}:${PORT}/api/health`);
+    console.log('-------------------------------------------');
+    console.log('Presiona Ctrl+C para detener el servidor');
 });
 
-// --- FIRESTORE: ENDPOINT DE PRUEBA ---
-// Consulta los primeros 5 documentos de la colección 'pedidos' en Firestore
-apiRouter.get('/firestore/pedidos', async (req, res) => {
-    try {
-        const snapshot = await dbFirestore.collection('pedidos').limit(5).get();
-        const pedidos = [];
-        snapshot.forEach(doc => pedidos.push({ id: doc.id, ...doc.data() }));
-        res.json({ success: true, pedidos });
-    } catch (error) {
-        console.error('[FIRESTORE][GET pedidos]', error.message);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// --- EJEMPLO DE MIGRACIÓN: CREAR PEDIDO EN FIRESTORE ---
-// Crea un pedido de prueba en Firestore
-apiRouter.post('/firestore/crear-pedido', async (req, res) => {
-    try {
-        const data = req.body || {};
-        const ref = await dbFirestore.collection('pedidos').add({
-            ...data,
-            creado: new Date().toISOString(),
-            origen: 'api-migracion'
-        });
-        res.json({ success: true, id: ref.id });
-    } catch (error) {
-        console.error('[FIRESTORE][CREAR pedido]', error.message);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// 2. Reasignar Pedidos
-apiRouter.post('/reasignar', (req, res) => {
-    console.log("Iniciando algoritmo de reasignación de pedidos...");
-    res.json({ 
-        success: true, 
-        message: "Pedidos reasignados a repartidores cercanos" 
-    });
-});
-
-// 3. Registrar Usuario de Prueba
-apiRouter.post('/registrar-prueba', (req, res) => {
-    console.log("Registrando nuevo usuario de prueba...");
-    res.json({ 
-        success: true, 
-        user: "Tester_Nelly", 
-        status: "Activo" 
-    });
-});
-
-// ...existing code...
-
-// --- FIN DE ARCHIVO ---
