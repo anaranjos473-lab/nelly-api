@@ -192,6 +192,16 @@ const iniciarServidor = async () => {
     try {
         await verificarIntegridad(); // Chequeo de sistema y estructura
 
+        // --- LOG DE SUPERVIVENCIA: Mostrar rutas cargadas ---
+        console.log("Rutas cargadas:");
+        app._router.stack.forEach(r => {
+            if (r.route) console.log(`- [${Object.keys(r.route.methods)}] ${r.route.path}`);
+            if (r.name === 'router') {
+                r.handle.stack.forEach(s => {
+                    if (s.route) console.log(`- [${Object.keys(s.route.methods)}] /api${s.route.path}`);
+                });
+            }
+        });
         app.listen(PORT, '0.0.0.0', () => {
             console.log('-------------------------------------------');
             console.log(`📡 Servidor Activo: http://${currentIp}:${PORT}`);
