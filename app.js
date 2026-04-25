@@ -1424,33 +1424,34 @@ app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/health', healthcheckController);
 
 
-// CONFIGURACIÓN DE CONEXIÓN FINAL
+// ==========================================
+// 6. LANZAMIENTO DEL SISTEMA (BOOTSTRAP)
+// ==========================================
+(async () => {
+    try {
+        // 1. Validar Datos
+        await verificarBaseDatos();
 
-const os = require('os');
-// Función para obtener la IP local automáticamente
-function getLocalIp() {
-    const interfaces = os.networkInterfaces();
-    for (const name in interfaces) {
-        for (const iface of interfaces[name]) {
-            // Filtramos solo IPv4 y que no sea interna (127.0.0.1)
-            if (iface.family === 'IPv4' && !iface.internal) {
-                return iface.address;
-            }
-        }
+        // 2. Encender Servidor
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log('\n-------------------------------------------');
+            console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
+            console.log(`📡 Acceso: http://${currentIp}:${PORT}`);
+            console.log('-------------------------------------------\n');
+            
+            enviarAlertaDiscord("🚀 Nelly Online", "El sistema ha superado todos los chequeos de integridad.", 3066993);
+        });
+    } catch (error) {
+        console.error("❌ Error en el arranque:", error.message);
     }
-    return 'localhost';
-}
+})(); 
 
-const PORT = 10000;
-const currentIp = getLocalIp();
+// Log de errores globales (ESTO DEBE SER LO ÚLTIMO)
+process.on('uncaughtException', (err) => {
+    console.error('❌ Error no capturado:', err);
+});
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('-------------------------------------------');
-    console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
-    console.log('-------------------------------------------');
-    console.log(`📡 Red Local: http://${currentIp}:${PORT}`);
-    console.log(`🏥 Salud:    http://${currentIp}:${PORT}/api/health`);
-    console.log('-------------------------------------------');
-    console.log('Presiona Ctrl+C para detener el servidor');
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ Rechazo no capturado:', reason);
 });
 
