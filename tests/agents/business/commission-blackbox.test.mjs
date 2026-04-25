@@ -1,6 +1,6 @@
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 
 const root = process.cwd();
 const policyPath = path.join(root, "tests", "agents", "config", "commission-policy.json");
@@ -18,15 +18,11 @@ if (!fs.existsSync(enginePath)) {
 
 let api;
 try {
-  api = require(enginePath);
-} catch (e) {
-  // fallback a import dinámico si es ES module
-  import(`file://${enginePath.replaceAll("\\", "/")}`).then(mod => {
-    api = mod.default ?? mod;
-  }).catch(err => {
-    console.error("NO PASA: no se pudo cargar el motor de comisiones", err);
-    process.exit(1);
-  });
+  api = await import(`file://${enginePath.replaceAll("\\", "/")}`);
+  api = api.default ?? api;
+} catch (err) {
+  console.error("NO PASA: no se pudo cargar el motor de comisiones", err);
+  process.exit(1);
 }
 
 function exactEqual(label, actual, expected) {

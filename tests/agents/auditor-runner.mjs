@@ -1,5 +1,4 @@
-// auditor-runner.js (CommonJS)
-const { spawnSync } = require("node:child_process");
+import { spawnSync } from "node:child_process";
 
 const checks = [
   { name: "Arquitectura", cmd: ["node", "tests/agents/lint/architecture-lint.mjs"] },
