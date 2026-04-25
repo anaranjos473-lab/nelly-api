@@ -1,3 +1,6 @@
+// VS CODE - app.js
+// Debajo de tus otros limiters o middlewares:
+const authLimiter = (req, res, next) => next(); // Bypass temporal para estabilizar
 // 1. Definir el middleware que falta para evitar el crash
 const requirePanelApiKey = (req, res, next) => {
     const apiKey = req.headers['x-panel-api-key'];
