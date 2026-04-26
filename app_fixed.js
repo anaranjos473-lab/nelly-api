@@ -173,12 +173,15 @@ app.post('/api/pedidos', requireOrderApiKey, async (req, res) => {
             return res.status(400).json({ error: 'id_pedido es requerido' });
         }
 
+
         const nuevoPedido = {
             id: pedidoId,
             id_pedido: pedidoId,
             cliente_nombre: payload.cliente_nombre || payload.cliente || 'Cliente Anonimo',
             descripcion: payload.descripcion || payload.items || 'Sin descripcion',
             monto: Number(payload.monto || payload.total || 0),
+            zonaNombre: payload.zonaNombre || 'Sin Zona',
+            distanciaRecoleccion: typeof payload.distanciaRecoleccion === 'number' ? payload.distanciaRecoleccion : Number(payload.distanciaRecoleccion) || 0,
             estado: 'pendiente',
             timestamp: Date.now(),
             fecha_creacion: new Date().toISOString()
