@@ -26,7 +26,7 @@ const verificarIntegridad = async () => {
             }
         }
         console.log('✅ Agente: Base de datos vinculada y estructurada.');
-    } catch (error) {
+    const webhookPagoHandler = async (req, res) => {
         console.error('❌ Error Crítico: No se pudo conectar con Firebase.', error.message);
         process.exit(1);
     }
@@ -123,7 +123,9 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const name in interfaces) {
-        for (const iface of interfaces[name]) {
+    };
+    app.post('/webhook', webhookPagoHandler);
+    app.post('/api/webhooks/pago-liquidado', webhookPagoHandler);
             if (iface.family === 'IPv4' && !iface.internal) return iface.address;
         }
     }
@@ -361,17 +363,19 @@ app.post('/webhook', async (req, res) => {
     try {
         const payment = new Payment(client);
         const infoPago = await payment.get({ id: data.id });
-        
+
         if (infoPago.status === 'approved') {
             const monto = infoPago.transaction_amount;
             const emailCliente = infoPago.payer?.email || 'cliente@ejemplo.com';
-            console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente}`);
+            const repartidorId = infoPago.external_reference; // Debe enviarse al crear el pago
+            console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente} | Repartidor: ${repartidorId}`);
 
             // 1. Registro en Firebase
             try {
                 await admin.database().ref(`pagos_confirmados/${data.id}`).set({
                     monto: monto,
                     email: emailCliente,
+                    repartidorId: repartidorId,
                     fecha: new Date().toISOString(),
                     status: 'approved'
                 });
@@ -395,29 +399,55 @@ app.post('/webhook', async (req, res) => {
                 console.log("📧 Correo enviado a:", emailCliente);
             } catch (mailError) { console.error("❌ Error correo:", mailError.message); }
 
-            // 3. Notificar al repartidor
-                if (!firebaseAdminInitialized) {
-                console.warn('⚠️ Firebase Admin no inicializado, no se enviará notificación al repartidor.');
-            } else {
-                const snapshot = await db.ref(`repartidores/driver_123/fcm_token`).once('value');
-                const fcmToken = snapshot.val();
+            // 3. Agente Validador: Limpiar deuda y reactivar repartidor
+            if (repartidorId) {
+                const batch = db.batch();
+                // 3.1. Marcar pedidos como liquidados
+                const pedidosRef = db.collection('pedidos');
+                const snapshot = await pedidosRef
+                    .where('repartidorId', '==', repartidorId)
+                    .where('liquidado', '==', false)
+                    .where('estado', '==', 'Entregado')
+                    .get();
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { liquidado: true });
+                });
+                // 3.2. Registrar corte en historial
+                const corteRef = db.collection('cortes_caja').doc();
+                batch.set(corteRef, {
+                    repartidorId: repartidorId,
+                    montoRecaudado: monto,
+                    fecha: new Date(),
+                    tipo: 'AUTOMATICO_ONLINE'
+                });
+                // 3.3. Reactivar repartidor
+                const repartidorRef = db.collection('repartidores').doc(repartidorId);
+                batch.update(repartidorRef, {
+                    bloqueadoPorDeuda: false,
+                    balanceActual: 0
+                });
+                await batch.commit();
 
-                if (fcmToken) {
-                    const mensaje = {
-                        notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
-                        android: {
-                            notification: {
-                                channelId: 'alertas_criticas'
-                            }
-                        },
-                        token: fcmToken
-                    };
-                    await admin.messaging().send(mensaje);
-                    console.log("🔔 Notificación enviada (con channelId 'alertas_criticas')");
+                // 4. Notificar al repartidor (FCM)
+                try {
+                    const repartidorSnap = await repartidorRef.get();
+                    const fcmToken = repartidorSnap.exists ? repartidorSnap.data().fcmToken : null;
+                    if (fcmToken) {
+                        const mensaje = {
+                            notification: { title: '¡Pago Validado! 🤑', body: `Tu saldo ha sido liberado. ¡A rodar!` },
+                            android: { notification: { channelId: 'alertas_criticas' } },
+                            token: fcmToken
+                        };
+                        await admin.messaging().send(mensaje);
+                        console.log("🔔 Notificación enviada al repartidor (canal 'alertas_criticas')");
+                    }
+                } catch (notifErr) {
+                    console.error('Error notificando al repartidor:', notifErr.message);
                 }
+                console.log(`✅ Liquidación automática exitosa para: ${repartidorId}`);
             }
         }
-        res.sendStatus(200); 
+        res.sendStatus(200);
     } catch (error) {
         console.error("❌ Error en webhook:", error.message);
         res.sendStatus(500);
