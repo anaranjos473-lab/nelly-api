@@ -19,6 +19,16 @@ service cloud.firestore {
       allow write: if request.auth.token.admin == true;
     }
 
+    // Regla para Expansión de Negocio (Puntos Ciegos)
+    match /puntos_ciegos/{puntoId} {
+      // Solo usuarios con cuenta en la app pueden registrar su ubicación
+      allow create: if request.auth != null;
+      // Solo tú (Admin) puedes ver y analizar los puntos de calor
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      // Prohibido editar o borrar datos de analítica para mantener integridad
+      allow update, delete: if false;
+    }
+
     // Bloquear todo lo demás por defecto
     match /{document=**} {
       allow read, write: if false;
