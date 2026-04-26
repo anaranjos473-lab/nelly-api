@@ -4,6 +4,15 @@
     ".write": "auth != null",
     "pedidos": {
       ".indexOn": ["estado"]
+    },
+    "chats": {
+      "$pedidoId": {
+        ".read": "data.child('metadatos/clienteId').val() === auth.uid || data.child('metadatos/repartidorId').val() === auth.uid || root.child('admins').child(auth.uid).exists()",
+        ".write": "data.child('metadatos/clienteId').val() === auth.uid || data.child('metadatos/repartidorId').val() === auth.uid",
+        "mensajes": {
+          ".indexOn": ["timestamp"]
+        }
+      }
     }
   }
 }
