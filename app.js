@@ -1268,6 +1268,16 @@ const healthcheckController = (req, res) => {
 // --- API ROUTER MODULAR UNIFICADO ---
 const apiRouter = express.Router();
 
+// Healthcheck personalizado Nelly
+apiRouter.get('/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Nelly API está operando al 100%",
+        timestamp: new Date().toISOString(),
+        entorno: "Producción - Render"
+    });
+});
+
 // --- Memoria de logs utilitarios (en memoria RAM, reinicio = limpia) ---
 const logsUtilitarios = [];
 function registrarLogHelper(tipo, mensaje, extra = {}) {

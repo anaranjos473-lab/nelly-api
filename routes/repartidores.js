@@ -52,3 +52,63 @@ router.get('/status/:id', async (req, res) => {
 });
 
 module.exports = { router, init };
+
+
+// POST /api/repartidores/cerrar-turno
+router.post('/cerrar-turno', async (req, res) => {
+    const { repartidorId, fcmToken } = req.body;
+
+    if (!repartidorId) {
+        return res.status(400).send({ error: "Falta repartidorId" });
+    }
+
+    try {
+        // 1. Definir el rango de tiempo (Hoy)
+        const inicioHoy = new Date();
+        inicioHoy.setHours(0, 0, 0, 0);
+
+        // 2. Consultar pedidos entregados por el repartidor hoy
+        const pedidosRef = admin.firestore().collection('pedidos');
+        const snapshot = await pedidosRef
+            .where('repartidorId', '==', repartidorId)
+            .where('estado', '==', 'Entregado')
+            .where('timestampAsignacion', '>=', inicioHoy)
+            .get();
+
+        let totalKmAhorrados = 0;
+        let conteoPedidos = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            totalKmAhorrados += (data.distanciaCalculada || 0);
+            conteoPedidos++;
+        });
+
+        // 3. Preparar y enviar notificación FCM (Si el token existe)
+        if (fcmToken && conteoPedidos > 0) {
+            const payload = {
+                notification: {
+                    title: "¡Misión Cumplida, Pariente! 🏆",
+                    body: `Hoy entregaste ${conteoPedidos} pedidos y ahorraste ${totalKmAhorrados.toFixed(2)}km de combustible. ¡Nelly Delivery te agradece!`
+                },
+                data: {
+                    tipo: "RESUMEN_DIARIO",
+                    km: totalKmAhorrados.toString()
+                }
+            };
+            await admin.messaging().sendToDevice(fcmToken, payload);
+        }
+
+        // 4. Responder al cliente tras completar todo
+        res.status(200).send({ 
+            status: "Success",
+            message: "Turno cerrado y métricas procesadas",
+            conteo: conteoPedidos,
+            ahorro: totalKmAhorrados.toFixed(2)
+        });
+
+    } catch (error) {
+        console.error("Error en cierre de turno:", error);
+        res.status(500).send({ error: "Error interno al procesar el cierre" });
+    }
+});
