@@ -1,12 +1,4 @@
-// VS CODE - app.js
-// Debajo de tus otros limiters o middlewares:
-const authLimiter = (req, res, next) => next(); // Bypass temporal para estabilizar
-// 1. Definir el middleware que falta para evitar el crash
-const requirePanelApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-panel-api-key'];
-    if (apiKey === 'nelly_secret_2026') return next();
-    res.status(401).json({ error: 'API Key del Panel no válida' });
-};
+require('dotenv').config();
 // --- AGENTE DE INTEGRIDAD: CHECKLIST DE ARRANQUE ---
 const verificarIntegridad = async () => {
     console.log('🔍 Agente: Iniciando chequeo de sistema...');
@@ -37,61 +29,15 @@ const admin = require('firebase-admin');
 const axios = require('axios');
 const os = require('os');
 
-
 const app = express();
 app.use(express.json());
 
-// --- MIDDLEWARE: API KEY PARA ORDENES (Definición-Primero) ---
-const requireOrderApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-api-key'];
-    const MASTER_KEY = process.env.ORDER_API_KEY || 'nelly_secret_2026';
-    if (apiKey && apiKey === MASTER_KEY) {
-        next();
-    } else {
-        console.error(`🚫 Intento de acceso no autorizado desde: ${req.ip}`);
-        res.status(403).json({ error: 'No autorizado: API Key inválida o ausente' });
-    }
-};
-
-// Middleware para Repartidores (validación básica)
-const requireDriverAuth = (req, res, next) => {
-    const driverToken = req.headers['x-driver-auth'];
-    if (driverToken) return next();
-    res.status(401).json({ error: 'No autorizado: Falta token de repartidor' });
-};
-
-// Middleware para el Panel de Administración (Cocina)
-const requirePanelSessionAuth = (req, res, next) => {
-    const sessionToken = req.headers['x-panel-auth'];
-    // Validación temporal para estabilizar el servidor
-    if (sessionToken || process.env.NODE_ENV === 'development') return next();
-    res.status(401).json({ error: 'Sesión de Panel no válida' });
-};
-
-// Middleware para el Panel Admin por Email (último muro)
-const requirePanelAdminEmailAuth = (req, res, next) => {
-    const adminEmail = req.headers['x-admin-email'];
-    // Validación de seguridad para asegurar que eres tú
-    if (adminEmail && adminEmail.endsWith('@gmail.com')) { // Puedes poner tu correo exacto aquí
-        return next();
-    }
-    res.status(403).json({ error: 'Acceso denegado: Se requiere email de administrador' });
-};
-
-// --- MIDDLEWARE: LIMITADOR DE ETA (dummy para higiene de logs) ---
-const etaLimiter = (req, res, next) => next();
-
-
-// Inicializar Firebase (unificado y seguro)
-const serviceAccount = require("./nelly-admin.json");
+// Inicializar Firebase
+const serviceAccount = require("./nelly-admin.json"); 
 if (!admin.apps.length) {
-    const firebaseConfig = {
+    admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
-    };
-    if (process.env.FIREBASE_DATABASE_URL) {
-        firebaseConfig.databaseURL = process.env.FIREBASE_DATABASE_URL;
-    }
-    admin.initializeApp(firebaseConfig);
+    });
 }
 const db = admin.firestore();
 // --- ENDPOINT DE PRUEBA: SIMULACIÓN DE DEUDA CRÍTICA (83%) ---
@@ -149,11 +95,11 @@ const enviarAlertaDiscord = async (titulo, mensaje, color = 3447003) => {
     }
 };
 
-
 // --- NOTIFICADOR DE INICIO (VOZ DEL SERVIDOR) ---
 const enviarNotificacionInicio = async (ip, puerto) => {
     const url = process.env.DISCORD_WEBHOOK_URL;
     if (!url) return;
+
     try {
         await axios.post(url, {
             embeds: [{
@@ -167,10 +113,9 @@ const enviarNotificacionInicio = async (ip, puerto) => {
                 footer: { text: "Sistema de Monitoreo Nelly Sentinel" }
             }]
         });
-        console.log('📢 Notificación enviada a Discord');
-    } catch (error) {
-        // Si Discord falla, solo lo logueamos, ¡no dejamos que mate el servidor!
-        console.error("⚠️ Discord fuera de línea, pero el servidor continúa.");
+        console.log('📢 Notificación enviada a Discord.');
+    } catch (e) {
+        console.error('❌ No se pudo enviar reporte a Discord.');
     }
 };
 
@@ -201,16 +146,6 @@ const iniciarServidor = async () => {
     try {
         await verificarIntegridad(); // Chequeo de sistema y estructura
 
-        // --- LOG DE SUPERVIVENCIA: Mostrar rutas cargadas ---
-        console.log("Rutas cargadas:");
-        app._router.stack.forEach(r => {
-            if (r.route) console.log(`- [${Object.keys(r.route.methods)}] ${r.route.path}`);
-            if (r.name === 'router') {
-                r.handle.stack.forEach(s => {
-                    if (s.route) console.log(`- [${Object.keys(s.route.methods)}] /api${s.route.path}`);
-                });
-            }
-        });
         app.listen(PORT, '0.0.0.0', () => {
             console.log('-------------------------------------------');
             console.log(`📡 Servidor Activo: http://${currentIp}:${PORT}`);
@@ -1258,11 +1193,7 @@ const healthcheckController = (req, res) => {
 
 
 
-
-
-
-
-// --- API ROUTER MODULAR UNIFICADO ---
+// --- API ROUTER MODULAR ---
 const apiRouter = express.Router();
 
 // --- Memoria de logs utilitarios (en memoria RAM, reinicio = limpia) ---
@@ -1276,9 +1207,6 @@ function registrarLogHelper(tipo, mensaje, extra = {}) {
     });
     if (logsUtilitarios.length > 20) logsUtilitarios.shift();
 }
-
-// Middleware de autenticación para endpoints tácticos (API Key)
-const authMiddleware = requireOrderApiKey;
 
 // 1. Healthcheck básico
 apiRouter.get('/health', (req, res) => {
@@ -1302,9 +1230,11 @@ apiRouter.get('/debug/logs', (req, res) => {
     res.json({ logs: logsUtilitarios.slice(-5).reverse() });
 });
 
+
 // 4. Limpiar pedidos de prueba
 apiRouter.post('/debug/reset-pedidos', async (req, res) => {
     try {
+        // Buscar y eliminar pedidos de prueba (marcados como "inicializacion" o similares)
         const snapshot = await db.collection('pedidos').where('descripcion', '==', 'inicializacion').get();
         let count = 0;
         const batch = db.batch();
@@ -1321,12 +1251,14 @@ apiRouter.post('/debug/reset-pedidos', async (req, res) => {
     }
 });
 
+
 // --- PURGA MAESTRA: ELIMINAR PEDIDOS DE PRUEBA EN FIRESTORE ---
-apiRouter.post('/admin/purge-tests', requireOrderApiKey, requirePanelAdminEmailAuth, async (req, res) => {
+apiRouter.post('/admin/purge-tests', async (req, res) => {
     try {
         const pedidosRef = db.collection('pedidos');
         const snapshot = await pedidosRef.get();
         let deletedCount = 0;
+
         const batch = db.batch();
         snapshot.forEach(doc => {
             if (doc.id.includes('LIVE_FINAL') || doc.id.includes('AUTO')) {
@@ -1334,70 +1266,19 @@ apiRouter.post('/admin/purge-tests', requireOrderApiKey, requirePanelAdminEmailA
                 deletedCount++;
             }
         });
+
         if (deletedCount > 0) {
             await batch.commit();
         }
         console.log(`🧹 Purga completada en Firestore: ${deletedCount} registros.`);
-        res.json({ success: true, count: deletedCount, message: "Purga de pruebas completada en la nube" });
+        res.json({ success: true, count: deletedCount });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// --- ENDPOINT: SENTINEL BOOST (TÁCTICO) ---
-apiRouter.post('/sentinel/boost', authMiddleware, (req, res) => {
-    try {
-        console.log("🚀 Sentinel Boost activado por el Panel de Administración");
-        res.status(200).json({
-            status: "success",
-            message: "Sistema impulsado correctamente. Resiliencia al 100%.",
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ status: "error", message: error.message });
-    }
-});
-
-// --- ENDPOINT: ZONAS (UNIFICADO) ---
-apiRouter.get('/zonas', authMiddleware, async (req, res) => {
-    try {
-        const snapshot = await db.collection('zonas').get();
-        const listaZonas = snapshot.docs.map(doc => doc.data().nombre);
-        res.json({ zonas: listaZonas.length > 0 ? listaZonas : ["Sin zonas configuradas"] });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
 // Montar el router en /api
 app.use('/api', apiRouter);
-
-console.log('🚀 Rutas de Administración cargadas');
-
-// --- MANEJADORES DE ERRORES GLOBALES (404 y 500) ---
-// 404: Ruta no encontrada (debe ir después de todas las rutas)
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: "Ruta no encontrada",
-        timestamp: new Date().toISOString()
-    });
-});
-
-// 500: Error interno del servidor (debe ir al final)
-app.use((err, req, res, next) => {
-    console.error("❌ Error detectado:", err.stack);
-    res.status(500).json({
-        success: false,
-        error: "Error interno del servidor Nelly",
-        mensaje: err.message
-    });
-});
-
-// Middleware: Respuesta JSON para rutas /api no encontradas
-app.use('/api', (req, res, next) => {
-    res.status(404).json({ error: 'Ruta /api no encontrada', path: req.originalUrl });
-});
 
 // Rutas de autenticación (mantener fuera del apiRouter si requieren middlewares especiales)
 app.get('/api/auth/panel-token', authLimiter, panelTokenController);
