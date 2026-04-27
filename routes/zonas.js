@@ -3,24 +3,35 @@ const router = express.Router();
 const admin = require('firebase-admin');
 const db = admin.firestore();
 
-// GET /api/zonas -> Para el Mapa de Calor
+/**
+ * @route   GET /api/zonas
+ * @desc    Obtiene los puntos de demanda para el Mapa de Calor
+ */
 router.get('/', async (req, res) => {
     try {
+        // Consultamos la colección 'zonas_calor'
         const zonasSnapshot = await db.collection('zonas_calor').get();
-        const zonas = zonasSnapshot.docs.map(doc => ({
+        
+        let zonas = zonasSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        // Si la colección está vacía, enviamos datos semilla de Tuxtla para que no de error
+
+        // Si aún no hay datos en Firebase, enviamos las semillas de Tuxtla
+        // para que tu Mapa en Android no se vea vacío.
         if (zonas.length === 0) {
-            return res.json([
-                { nombre: "Centro", lat: 16.7527, lng: -93.1167, montoAcumulado: 4500 },
-                { nombre: "Terán", lat: 16.7432, lng: -93.1678, montoAcumulado: 1200 }
-            ]);
+            zonas = [
+                { nombre: "Centro Histórico", lat: 16.7527, lng: -93.1167, montoAcumulado: 4500 },
+                { nombre: "Zona Terán", lat: 16.7432, lng: -93.1678, montoAcumulado: 2100 },
+                { nombre: "Plaza Las Américas", lat: 16.7560, lng: -93.1415, montoAcumulado: 3200 }
+            ];
         }
+
+        console.log(`📡 [MAPA] Enviando ${zonas.length} zonas de demanda a Android.`);
         res.json(zonas);
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener zonas de calor" });
+        console.error("Error en GET Zonas:", error);
+        res.status(500).json({ error: "No se pudieron cargar las zonas de calor" });
     }
 });
 
