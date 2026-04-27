@@ -26,7 +26,7 @@ const verificarIntegridad = async () => {
             }
         }
         console.log('✅ Agente: Base de datos vinculada y estructurada.');
-    const webhookPagoHandler = async (req, res) => {
+    } catch (error) {
         console.error('❌ Error Crítico: No se pudo conectar con Firebase.', error.message);
         process.exit(1);
     }
@@ -123,9 +123,7 @@ const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const name in interfaces) {
-    };
-    app.post('/webhook', webhookPagoHandler);
-    app.post('/api/webhooks/pago-liquidado', webhookPagoHandler);
+        for (const iface of interfaces[name]) {
             if (iface.family === 'IPv4' && !iface.internal) return iface.address;
         }
     }
@@ -188,6 +186,7 @@ if (!admin.apps.length) {
     });
 }
 
+
 // --- IMPORTACIÓN DE RUTAS MODULARES ---
 const { router: repartidoresRouter, init: initRepartidores } = require('./routes/repartidores');
 const { router: pedidosRouter, init: initPedidos } = require('./routes/pedidos');
@@ -195,6 +194,12 @@ initRepartidores({ limiteDeudaPorNivel: Object.freeze({ BRONCE: 300, PLATA: 500,
 initPedidos({ adminInstance: admin, enviarAlertaDiscord });
 app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/pedidos', pedidosRouter);
+
+// --- NUEVAS RUTAS ADMIN Y ZONAS ---
+const adminRoutes = require('./routes/admin');
+const zonasRoutes = require('./routes/zonas');
+app.use('/api/admin', adminRoutes);
+app.use('/api', zonasRoutes);
 
 
 

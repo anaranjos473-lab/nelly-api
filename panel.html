@@ -1505,6 +1505,7 @@
                     <div class="card-body">
                         <p class="cliente">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
                         <p class="desc">${pedido.descripcion || 'Sin descripción'}</p>
+                        ${pedido.fotoEvidencia ? `<div style='margin:10px 0;'><img src='${pedido.fotoEvidencia}' alt='Evidencia de entrega' style='max-width:100%;border-radius:8px;box-shadow:0 2px 8px #0001;'></div>` : ''}
                     </div>
                     <button onclick="${config.funcion}" class="btn-action ${config.clase}">
                         ${config.texto}
