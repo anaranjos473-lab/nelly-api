@@ -198,8 +198,10 @@ app.use('/api/pedidos', pedidosRouter);
 // --- NUEVAS RUTAS ADMIN Y ZONAS ---
 const adminRoutes = require('./routes/admin');
 const zonasRoutes = require('./routes/zonas');
+app.use('/api/zonas', zonasRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api', zonasRoutes);
+// Alias para salud (Evita el 404 de health)
+app.use('/api/health', (req, res) => res.json({ status: "UP", server: "Render Cloud" }));
 
 
 

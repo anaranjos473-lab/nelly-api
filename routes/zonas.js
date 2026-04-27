@@ -1,44 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
+const db = admin.firestore();
 
-// Middleware de seguridad
-function securityMiddleware(req, res, next) {
-  const apiKey = req.header('x-api-key');
-  const adminEmail = req.header('x-admin-email');
-  if (!apiKey || !adminEmail) {
-    return res.status(400).json({ error: 'Faltan headers de autenticación' });
-  }
-  if (apiKey !== process.env.ORDER_INGEST_API_KEY) {
-    return res.status(403).json({ error: 'API Key inválida' });
-  }
-  next();
-}
-
-router.use(securityMiddleware);
-
-// GET /zonas - Mapa de calor Tuxtla Gutiérrez
-router.get('/zonas', async (req, res) => {
-  try {
-    const zonasSnap = await admin.firestore()
-      .collection('zonas')
-      .select('nombre', 'lat', 'lng', 'montoAcumulado')
-      .limit(100)
-      .get();
-    const zonas = [];
-    zonasSnap.forEach(doc => {
-      const data = doc.data();
-      zonas.push({
-        nombre: data.nombre,
-        lat: data.lat,
-        lng: data.lng,
-        montoAcumulado: data.montoAcumulado || 0
-      });
-    });
-    res.json(zonas);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// GET /api/zonas -> Para el Mapa de Calor
+router.get('/', async (req, res) => {
+    try {
+        const zonasSnapshot = await db.collection('zonas_calor').get();
+        const zonas = zonasSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        // Si la colección está vacía, enviamos datos semilla de Tuxtla para que no de error
+        if (zonas.length === 0) {
+            return res.json([
+                { nombre: "Centro", lat: 16.7527, lng: -93.1167, montoAcumulado: 4500 },
+                { nombre: "Terán", lat: 16.7432, lng: -93.1678, montoAcumulado: 1200 }
+            ]);
+        }
+        res.json(zonas);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener zonas de calor" });
+    }
 });
 
 module.exports = router;

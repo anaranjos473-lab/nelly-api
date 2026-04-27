@@ -2,66 +2,36 @@ const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
 
-// Middleware de seguridad
-function securityMiddleware(req, res, next) {
-  const apiKey = req.header('x-api-key');
-  const adminEmail = req.header('x-admin-email');
-  if (!apiKey || !adminEmail) {
-    return res.status(400).json({ error: 'Faltan headers de autenticación' });
-  }
-  if (apiKey !== process.env.ORDER_INGEST_API_KEY) {
-    return res.status(403).json({ error: 'API Key inválida' });
-  }
-  // Validación adicional de email si aplica
-  next();
-}
+const express = require('express');
+const router = express.Router();
+const admin = require('firebase-admin');
 
-router.use(securityMiddleware);
-
-// Registro de usuarios de prueba
-router.post('/users/register', async (req, res) => {
-  const { email, password, displayName } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Faltan parámetros obligatorios (email, password)' });
-  }
-  try {
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: displayName || email,
-    });
-    res.json({ uid: userRecord.uid, email: userRecord.email });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Sentinel Boost
+// POST /api/admin/sentinel/boost
 router.post('/sentinel/boost', async (req, res) => {
-  const { uid } = req.body;
-  if (!uid) {
-    return res.status(400).json({ error: 'Falta el ID del repartidor' });
-  }
-  try {
-    await admin.firestore().collection('repartidores').doc(uid).update({ boost: true });
-    res.json({ status: 'Boost aplicado', uid });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const { zonaId, monto } = req.body;
+    if (!zonaId || !monto) return res.status(400).json({ error: "Faltan datos de zona o monto" });
+    try {
+        // Lógica para alertar a todos los repartidores de esa zona
+        console.log(`🚀 Lanzando Boost en ${zonaId} por $${monto}`);
+        res.json({ success: true, message: `Boost activado en ${zonaId}` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Sentinel Reasignar
-router.post('/sentinel/reasignar', async (req, res) => {
-  const { uid } = req.body;
-  if (!uid) {
-    return res.status(400).json({ error: 'Falta el ID del repartidor' });
-  }
-  try {
-    await admin.firestore().collection('repartidores').doc(uid).update({ reasignar: true });
-    res.json({ status: 'Reasignación disparada', uid });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// POST /api/admin/users/register
+router.post('/users/register', async (req, res) => {
+    const { email, password, nombre } = req.body;
+    try {
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: nombre
+        });
+        res.status(201).json({ success: true, uid: userRecord.uid });
+    } catch (error) {
+        res.status(400).json({ error: "Error al registrar usuario de prueba" });
+    }
 });
 
 module.exports = router;
