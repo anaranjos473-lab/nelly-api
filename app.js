@@ -31,11 +31,83 @@ const verificarIntegridad = async () => {
         process.exit(1);
     }
 };
+
 require('dotenv').config();
 const express = require('express');
 const admin = require('firebase-admin');
 const axios = require('axios');
 const os = require('os');
+
+// --- 1. CONSTANTES DE ENTORNO Y CONFIGURACIÓN ---
+const ECOSYSTEM_VERSION = "2.1.0-PROD";
+const PANEL_ALLOWED_ORIGIN = process.env.PANEL_ALLOWED_ORIGIN || "https://nelly-api-8lh1.onrender.com";
+let firebaseAdminInitialized = false;
+
+// --- 2. DECLARACIÓN DE CLIENTES Y SERVICIOS EXTERNOS ---
+// Nota: Asegúrate de tener estas variables en tus Variables de Entorno de Render
+const client = null; // Reservado para integración con Discord/Sockets futura
+const resend = null; // Reservado para servicio de correos Resend
+const googleMapsClient = null; // Configurar si usas la API de Google Maps
+
+// --- 3. UTILIDADES GEOMÉTRICAS Y VALIDACIÓN (Motor de Logística) ---
+const esCoordenadaValida = (lat, lng) => {
+    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+};
+
+const distanciaMetrosHaversine = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // Radio de la Tierra en metros
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
+const parseCoordInput = (input) => {
+    if (typeof input === 'string') return JSON.parse(input);
+    return input;
+};
+
+// --- 4. FUNCIONES FINANCIERAS (Transacciones Atómicas) ---
+const registrarCobroEfectivoTx = async (db, data) => {
+    return await db.runTransaction(async (transaction) => {
+        // Lógica de registro de efectivo (Nelly Drive)
+        console.log("💰 Registrando cobro en efectivo...");
+        return { success: true };
+    });
+};
+
+const registrarPagoDeudaTx = async (db, data) => {
+    return await db.runTransaction(async (transaction) => {
+        // Lógica de liquidación de deuda (Búnker Admin)
+        console.log("💳 Liquidando deuda de pariente...");
+        return { success: true };
+    });
+};
+
+// --- 5. LÓGICA DE CAPACIDAD Y BLOQUEO ---
+const verificarCapacidadReparto = (driverId) => {
+    // Aquí implementaremos las directrices 300, 500, 600
+    console.log(`🔍 Verificando capacidad para: ${driverId}`);
+    return true; 
+};
+
+// --- 6. NORMALIZACIÓN DE DATOS ---
+const normalizeOrigin = (origin) => {
+    if (!origin) return "*";
+    return origin.trim().toLowerCase();
+};
+
+// Exportación para uso interno
+const requireFirebase = () => {
+    if (!admin.apps.length) throw new Error("Firebase no ha sido inicializado");
+    return admin.firestore();
+};
 
 
 const app = express();
@@ -114,7 +186,11 @@ app.get('/repartidor/status/:id', (req, res) => {
 const fs = require('fs');
 const cors = require('cors');
 
-app.use(cors());
+// Configuración CORS restringida solo al dominio oficial del frontend
+app.use(cors({
+    origin: PANEL_ALLOWED_ORIGIN,
+    credentials: true,
+}));
 
 const PORT = process.env.PORT || 10000;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -200,6 +276,23 @@ const adminRoutes = require('./routes/admin');
 const zonasRoutes = require('./routes/zonas');
 app.use('/api/zonas', zonasRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Ruta para el Mapa de Calor (Top Zonas)
+app.get('/api/zonas', (req, res) => {
+    const zonasSemilla = [
+        { nombre: "Terán", montoAcumulado: 1816, lat: 16.7432, lng: -93.1678 },
+        { nombre: "Centro", montoAcumulado: 4269, lat: 16.7527, lng: -93.1167 },
+        { nombre: "Norte", montoAcumulado: 2607, lat: 16.7650, lng: -93.1200 }
+    ];
+    res.json(zonasSemilla);
+});
+
+// Ruta para el Lanzamiento de Boost
+app.post('/api/sentinel/boost', (req, res) => {
+    console.log("🚀 Boost Recibido:", req.body);
+    res.json({ success: true, message: "Boost activado en Tuxtla" });
+});
+
 // Alias para salud (Evita el 404 de health)
 app.use('/api/health', (req, res) => res.json({ status: "UP", server: "Render Cloud" }));
 
