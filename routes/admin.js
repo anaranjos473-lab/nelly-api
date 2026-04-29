@@ -1,3 +1,10 @@
+// Endpoint raíz para monitorización
+router.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Módulo de admin operativo y a la espera de instrucciones"
+    });
+});
 
 
 import express from 'express';
