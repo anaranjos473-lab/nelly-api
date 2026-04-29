@@ -1,3 +1,25 @@
+// Endpoint de salud para monitoreo de Render y Nelly Admin
+app.get('/api/salud', async (req, res) => {
+    try {
+        // Una consulta rápida a Firestore para validar la conexión real
+        await db.collection('_health_check').doc('ping').set({ 
+            last_check: new Date().toISOString() 
+        });
+
+        res.status(200).json({
+            success: true,
+            status: "Servidor Activo 🎉",
+            infra: "Singleton Firebase Admin ✅",
+            timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            status: "Error de Conexión a Infraestructura ❌",
+            error: error.message
+        });
+    }
+});
 // ==========================================
 // NELLY DELIVERY - API CORE OPTIMIZED
 // ==========================================
@@ -22,66 +44,53 @@ if (db) {
     console.log('✅ Agente: Base de datos vinculada y estructurada.');
 } else {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-// ==========================================
-// NELLY DELIVERY - API CORE (VERSIÓN CERTIFICADA)
-// ==========================================
+
 import express from 'express';
-import cors from 'cors';
-import { db } from './config/firebase-admin.js'; 
+import { db } from './config/firebase-admin.js';
 
-// Importación de Routers
-import zonesRouter from './routes/zonas.js';
-import ordersRouter from './routes/pedidos.js';
-import sentinelRouter from './routes/sentinel.js';
-import adminRouter from './routes/admin.js';
+const app = express();
 
-const app = express(); // <--- ESTA ES LA ÚNICA DECLARACIÓN DE 'app'
-const PORT = process.env.PORT || 10000;
-
-// MIDDLEWARES
-app.use(cors());
-app.use(express.json());
-
-// AUDITORÍA DE CONEXIÓN
-console.log('🔍 Agente: Verificando vinculación de base de datos...');
-if (db) {
-    console.log('✅ Agente: Base de datos vinculada y estructurada.');
-} else {
-    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-}
-
-// RUTAS PRINCIPALES
-app.use('/api/zonas', zonesRouter);
-app.use('/api/pedidos', ordersRouter);
-app.use('/api/sentinel', sentinelRouter);
-app.use('/api/admin', adminRouter);
-
-// ENDPOINT DE SALUD
-app.get('/api/salud', (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: 'Servidor Activo 🎉',
-        timestamp: new Date().toISOString()
-    });
+// 1. VALIDACIÓN DE VARIABLES CRÍTICAS
+const REQUIRED_VARS = ['FIREBASE_SERVICE_ACCOUNT', 'PORT', 'ZONA_TERAN_ID'];
+REQUIRED_VARS.forEach(v => {
+    if (!process.env[v]) {
+        console.error(`❌ ERROR CRÍTICO: La variable ${v} no está definida en Render.`);
+        process.exit(1); 
+    }
 });
 
-// MANEJO DE RUTAS NO ENCONTRADAS
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Ruta no encontrada',
-        path: req.originalUrl
-    });
-});
+// 2. GESTIÓN DE LISTENERS (Ejemplo con pedidos)
+let unsubscribePedidos = null;
 
-// ARRANQUE DEL SISTEMA
-app.listen(PORT, () => {
-    console.log('-------------------------------------------');
-    console.log(`📡 Servidor Activo en Puerto: ${PORT}`);
-    console.log('-------------------------------------------');
-});
+const iniciarMonitoreo = () => {
+    unsubscribePedidos = db.collection('pedidos')
+        .where('status', '==', 'pendiente')
+        .onSnapshot(snapshot => {
+            console.log(`🔔 Cambio detectado: ${snapshot.size} pedidos pendientes.`);
+            // Tu lógica de Sentinel aquí
+        }, error => {
+            console.error("❌ Error en listener de Firebase:", error);
+        });
+};
 
-export default app;
+iniciarMonitoreo();
+
+// 3. CIERRE LIMPIO (Graceful Shutdown)
+const cerrarSistema = async (signal) => {
+    console.log(`\nFrenando Nelly Admin (Señal: ${signal})...`);
+    if (unsubscribePedidos) {
+        console.log("🔌 Desconectando listeners de Firebase...");
+        unsubscribePedidos();
+    }
+    console.log("✅ Proceso finalizado limpiamente. ¡Hasta pronto, Alberto!");
+    process.exit(0);
+};
+
+process.on('SIGTERM', () => cerrarSistema('SIGTERM'));
+process.on('SIGINT', () => cerrarSistema('SIGINT'));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Nelly API volando en puerto ${PORT}`));
 app.use('/api/zonas', zonesRouter);
 app.use('/api/pedidos', ordersRouter);
 app.use('/api/sentinel', sentinelRouter);
