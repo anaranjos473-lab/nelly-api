@@ -38,9 +38,9 @@ if (db) {
 }
 
 // 3. RUTA DE ÓRDENES (expuesta para el monitor y pruebas)
-import usuariosRouter from './src/routes/users.js';
-import ordenesRouter from './src/routes/orders.js';
-import zonasRouter from './src/routes/zones.js';
+import usuariosRouter from './routes/usuarios.js';
+import ordenesRouter from './routes/ordenes.js';
+import zonasRouter from './routes/zonas.js';
 
 // Vinculación de rutas principales
 app.use('/api/usuarios', usuariosRouter);
