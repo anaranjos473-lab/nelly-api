@@ -1,10 +1,16 @@
 
-// 1. IMPORTACIONES ÚNICAS (Siempre al inicio)
+// 1. IMPORTACIONES ÚNICAS
 import express from 'express';
 import { db } from './config/firebase-admin.js';
 
-// 2. AUDITORÍA DE VINCULACIÓN
-console.log('🔍 Agente: Verificando vinculación de base de datos...');
+// 2. CONFIGURACIÓN INICIAL
+const app = express();
+const PORT = process.env.PORT || 10000; 
+app.use(express.json());
+
+// 3. AUDITORÍA DE CONEXIÓN
+console.log('-------------------------------------------');
+console.log('🔍 Agente: Iniciando chequeo de sistema...');
 if (db) {
     console.log('✅ Agente: Base de datos vinculada y estructurada.');
 } else {
@@ -12,22 +18,7 @@ if (db) {
     process.exit(1);
 }
 
-const app = express();
-
-// TEST DE PUNTO CERO (Prueba de vida absoluta)
-app.get('/test-vivo', (req, res) => res.send("Nelly está viva 🛵"));
-const PORT = process.env.PORT || 3000;
-
-// 3. VALIDACIÓN DE ENTORNO (Pre-vuelo)
-const REQUIRED_VARS = ['FIREBASE_SERVICE_ACCOUNT', 'ZONA_TERAN_ID'];
-REQUIRED_VARS.forEach(v => {
-    if (!process.env[v]) {
-        console.error(`❌ ERROR CRÍTICO: La variable ${v} no está definida en Render.`);
-        process.exit(1); 
-    }
-});
-
-// 4. ENDPOINT DE SALUD (Health Check)
+// 4. ENDPOINT DE SALUD (Punto Cero)
 app.get('/api/salud', (req, res) => {
     res.status(200).json({
         success: true,
@@ -37,46 +28,22 @@ app.get('/api/salud', (req, res) => {
     });
 });
 
-// 5. INICIO DEL SERVIDOR
+// 5. RUTAS DE ADMINISTRACIÓN (Aquí van tus rutas cargadas)
+// app.use('/api', tusRutas); 
+console.log('🚀 Rutas de Administración cargadas');
+
+// 6. INICIO DEL SERVIDOR
 app.listen(PORT, () => {
-    console.log(`🚀 Nelly API volando en puerto ${PORT}`);
+    console.log('-------------------------------------------');
+    console.log(`📡 Servidor Activo: http://localhost:${PORT}`);
+    console.log('-------------------------------------------');
 });
 
-// 6. GESTIÓN DE CIERRE (Graceful Shutdown)
+// 7. GESTIÓN DE CIERRE
 process.on('SIGTERM', () => {
     console.log('🔌 Cerrando servidor por orden de Render...');
     process.exit(0);
 });
-
-// 2. GESTIÓN DE LISTENERS (Ejemplo con pedidos)
-let unsubscribePedidos = null;
-
-const iniciarMonitoreo = () => {
-    unsubscribePedidos = db.collection('pedidos')
-        .where('status', '==', 'pendiente')
-        .onSnapshot(snapshot => {
-            console.log(`🔔 Cambio detectado: ${snapshot.size} pedidos pendientes.`);
-            // Tu lógica de Sentinel aquí
-        }, error => {
-            console.error("❌ Error en listener de Firebase:", error);
-        });
-};
-
-iniciarMonitoreo();
-
-// 3. CIERRE LIMPIO (Graceful Shutdown)
-const cerrarSistema = async (signal) => {
-    console.log(`\nFrenando Nelly Admin (Señal: ${signal})...`);
-    if (unsubscribePedidos) {
-        console.log("🔌 Desconectando listeners de Firebase...");
-        unsubscribePedidos();
-    }
-    console.log("✅ Proceso finalizado limpiamente. ¡Hasta pronto, Alberto!");
-    process.exit(0);
-};
-
-process.on('SIGTERM', () => cerrarSistema('SIGTERM'));
-process.on('SIGINT', () => cerrarSistema('SIGINT'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Nelly API volando en puerto ${PORT}`));
