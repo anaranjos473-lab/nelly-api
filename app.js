@@ -38,19 +38,24 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// AUDITORÍA DE CONEXIÓN
+
+// 1. LAS IMPORTACIONES SIEMPRE VAN PRIMERO 🔝
+import express from 'express';
+import { db } from './config/firebase-admin.js';
+
+// 2. AHORA SÍ, LA LÓGICA DE AUDITORÍA Y VALIDACIÓN
 console.log('🔍 Agente: Verificando vinculación de base de datos...');
+
 if (db) {
     console.log('✅ Agente: Base de datos vinculada y estructurada.');
 } else {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-
-import express from 'express';
-import { db } from './config/firebase-admin.js';
+    process.exit(1); 
+}
 
 const app = express();
 
-// 1. VALIDACIÓN DE VARIABLES CRÍTICAS
+// 3. VALIDACIÓN DE VARIABLES CRÍTICAS
 const REQUIRED_VARS = ['FIREBASE_SERVICE_ACCOUNT', 'PORT', 'ZONA_TERAN_ID'];
 REQUIRED_VARS.forEach(v => {
     if (!process.env[v]) {
