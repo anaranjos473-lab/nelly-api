@@ -1,18 +1,27 @@
-// Endpoint temporal para depuración: lista rutas montadas
+// 🛠️ ENDPOINT DE DEPURACIÓN DE RUTAS ACTIVAS (Temporal para diagnóstico)
 app.get('/api/debug', (req, res) => {
-    const rutas = [];
+    const rutasActivas = [];
     app._router.stack.forEach((middleware) => {
         if (middleware.route) {
-            rutas.push(middleware.route.path);
-        } else if (middleware.name === 'router' && middleware.handle.stack) {
+            rutasActivas.push({ path: middleware.route.path });
+        } else if (middleware.name === 'router') {
             middleware.handle.stack.forEach((handler) => {
                 if (handler.route) {
-                    rutas.push(handler.route.path);
+                    const basePath = middleware.regexp.toString().replace('/^\\/', '/').replace('\\/?(?=\\/|$)/i', '');
+                    rutasActivas.push({
+                        base: basePath,
+                        endpoint: handler.route.path,
+                        metodos: Object.keys(handler.route.methods)
+                    });
                 }
             });
         }
     });
-    res.json({ rutas });
+    res.status(200).json({
+        success: true,
+        total_rutas_detectadas: rutasActivas.length,
+        rutas: rutasActivas
+    });
 });
 import express from 'express';
 // Asegúrate de que la ruta a firebase-admin.js sea correcta según tu estructura
