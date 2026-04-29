@@ -1,14 +1,14 @@
-const express = require('express');
+
+import express from 'express';
+import admin from 'firebase-admin';
 const router = express.Router();
 
-// Importar la lógica de niveles desde app.js (se pasará por parámetro)
-let LIMITE_DEUDA_POR_NIVEL;
-let admin;
-
-function init({ limiteDeudaPorNivel, adminInstance }) {
-    LIMITE_DEUDA_POR_NIVEL = limiteDeudaPorNivel;
-    admin = adminInstance;
-}
+// Lógica de niveles (puedes ajustar según tu app)
+const LIMITE_DEUDA_POR_NIVEL = {
+    BRONCE: 500,
+    PLATA: 1000,
+    ORO: 2000
+};
 
 
 // GET /api/repartidor/status/:id (singular, camelCase)

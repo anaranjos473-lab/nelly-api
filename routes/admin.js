@@ -6,7 +6,7 @@ const router = express.Router();
 
 // No es necesario inicializar db aquí si ya lo hiciste en app.js, 
 // pero lo declaramos para que el archivo sea independiente.
-const db = admin.firestore();
+const db = (admin.apps && admin.apps.length > 0) ? admin.firestore() : null;
 
 /**
  * @route   POST /api/admin/sentinel/boost
@@ -14,20 +14,19 @@ const db = admin.firestore();
  */
 router.post('/sentinel/boost', async (req, res) => {
     const { zonaId, monto } = req.body;
-    
     if (!zonaId || !monto) {
         return res.status(400).json({ error: "Faltan datos críticos: zonaId o monto" });
     }
-
+    if (!db) {
+        return res.status(500).json({ error: "Firebase Admin no inicializado" });
+    }
     try {
-        // Registro del Boost en Firestore para que los repartidores lo vean
         await db.collection('configuracion').doc('boost_actual').set({
             zonaId,
             monto,
             activo: true,
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
-
         console.log(`🚀 [SENTINEL] Boost activado en ${zonaId} por $${monto}`);
         res.json({ success: true, message: `¡Boost de $${monto} lanzado en ${zonaId}!` });
     } catch (error) {
@@ -42,26 +41,24 @@ router.post('/sentinel/boost', async (req, res) => {
  */
 router.post('/users/register', async (req, res) => {
     const { email, password, nombre, rol } = req.body;
-
     if (!email || !password) {
         return res.status(400).json({ error: "Email y Password son obligatorios" });
     }
-
+    if (!db) {
+        return res.status(500).json({ error: "Firebase Admin no inicializado" });
+    }
     try {
         const userRecord = await admin.auth().createUser({
             email,
             password,
             displayName: nombre || "Usuario Nelly"
         });
-
-        // Guardar el rol en Firestore (Repartidor, Admin, Cliente)
         await db.collection('usuarios').doc(userRecord.uid).set({
             nombre: nombre || "Usuario Nelly",
             email,
             rol: rol || "DRIVER_TEST",
             fechaRegistro: admin.firestore.FieldValue.serverTimestamp()
         });
-
         res.status(201).json({ 
             success: true, 
             message: "Usuario creado exitosamente",
