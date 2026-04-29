@@ -1,8 +1,15 @@
 import express from 'express';
 const router = express.Router();
 
+
+// Endpoint raíz con perfil de ejemplo
 router.get('/', (req, res) => {
-    res.status(200).json({ success: true, module: "Operativo" });
+    const nombre = "Administrador";
+    const userProfile = {
+        displayName: nombre || "Usuario Nelly",
+        role: "admin"
+    };
+    res.status(200).json({ success: true, profile: userProfile });
 });
 
 export default router;
@@ -15,10 +22,10 @@ export default router;
             rol: rol || "DRIVER_TEST",
             fechaRegistro: admin.firestore.FieldValue.serverTimestamp()
         });
-        res.status(201).json({ 
-            success: true, 
+        res.status(201).json({
+            success: true,
             message: "Usuario creado exitosamente",
-            uid: userRecord.uid 
+            uid: userRecord.uid
         });
     } catch (error) {
         res.status(400).json({ error: error.message });
