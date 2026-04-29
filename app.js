@@ -28,8 +28,19 @@ if (db) {
 }
 
 // 3. RUTA DE ÓRDENES (expuesta para el monitor y pruebas)
+import usuariosRouter from './src/routes/users.js';
 import ordenesRouter from './src/routes/orders.js';
+import zonasRouter from './src/routes/zones.js';
+
+// Vinculación de rutas principales
+app.use('/api/usuarios', usuariosRouter);
 app.use('/api/ordenes', ordenesRouter);
+app.use('/api/zonas', zonasRouter);
+
+// Manejador de errores 404 (al final)
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: `Route ${req.url} not found` });
+});
 
 // 4. INICIO DEL SERVIDOR (Host 0.0.0.0 obligatorio para Render)
 app.listen(PORT, '0.0.0.0', () => {
