@@ -41,6 +41,9 @@ if (db) {
 import usuariosRouter from './routes/users.js';
 import ordenesRouter from './routes/orders.js';
 import zonasRouter from './routes/zones.js';
+import usuariosRouter from './routes/users.js';
+import ordenesRouter from './routes/orders.js';
+import zonasRouter from './routes/zones.js';
 
 // Vinculación de rutas principales
 app.use('/api/usuarios', usuariosRouter);
