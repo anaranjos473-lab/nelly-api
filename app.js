@@ -4,8 +4,19 @@ import express from 'express';
 import { db } from './config/firebase-admin.js';
 
 // 2. CONFIGURACIÓN INICIAL
+
 const app = express();
-const PORT = process.env.PORT || 10000; 
+
+// 1. ENDPOINT DE SALUD (Debe ir AQUÍ, en la cima de todo)
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "Servidor Activo 🎉",
+        timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+    });
+});
+
+const PORT = process.env.PORT || 10000;
 app.use(express.json());
 
 // 3. AUDITORÍA DE CONEXIÓN
@@ -32,10 +43,10 @@ app.get('/api/salud', (req, res) => {
 // app.use('/api', tusRutas); 
 console.log('🚀 Rutas de Administración cargadas');
 
-// 6. INICIO DEL SERVIDOR
-app.listen(PORT, () => {
+// 6. INICIO DEL SERVIDOR (Único y profesional)
+app.listen(PORT, '0.0.0.0', () => {
     console.log('-------------------------------------------');
-    console.log(`📡 Servidor Activo: http://localhost:${PORT}`);
+    console.log(`📡 Servidor Activo: http://0.0.0.0:${PORT}`);
     console.log('-------------------------------------------');
 });
 
@@ -45,8 +56,7 @@ process.on('SIGTERM', () => {
     process.exit(0);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Nelly API volando en puerto ${PORT}`));
+// (Eliminado duplicado de PORT y app.listen)
 app.use('/api/zonas', zonesRouter);
 app.use('/api/pedidos', ordersRouter);
 app.use('/api/sentinel', sentinelRouter);
@@ -1845,16 +1855,5 @@ function getLocalIp() {
     return 'localhost';
 }
 
-const PORT = 10000;
-const currentIp = getLocalIp();
-
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('-------------------------------------------');
-    console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
-    console.log('-------------------------------------------');
-    console.log(`📡 Red Local: http://${currentIp}:${PORT}`);
-    console.log(`🏥 Salud:    http://${currentIp}:${PORT}/api/health`);
-    console.log('-------------------------------------------');
-    console.log('Presiona Ctrl+C para detener el servidor');
-});
+// (Eliminado duplicado de PORT y app.listen)
 
