@@ -1,6 +1,7 @@
-const express = require('express');
+
+import express from 'express';
+import admin from 'firebase-admin';
 const router = express.Router();
-const admin = require('firebase-admin');
 const db = admin.firestore();
 
 /**
@@ -35,4 +36,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

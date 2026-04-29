@@ -1,133 +1,42 @@
-
-// 1. IMPORTACIONES ÚNICAS
-import express from 'express';
 import { db } from './config/firebase-admin.js';
+// Ruta de prueba para validar conexión a Firestore
+app.get('/api/firebase-check', async (req, res) => {
+    try {
+        // Intentar leer una colección de prueba
+        const snapshot = await db.collection('test').limit(1).get();
+        res.json({ ok: true, firestore: true, docs: snapshot.size });
+    } catch (e) {
+        res.status(500).json({ ok: false, error: e.message });
+    }
+});
 
-// 2. CONFIGURACIÓN INICIAL
+// src/app.js
+import express from 'express';
+import zonesRouter from './routes/zonas.js';
 
 const app = express();
 
-// 1. ENDPOINT DE SALUD (Debe ir AQUÍ, en la cima de todo)
-app.get('/api/salud', (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: "Servidor Activo 🎉",
-        timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
-    });
-});
-
-const PORT = process.env.PORT || 10000;
+// Middlewares básicos
 app.use(express.json());
 
-// 3. AUDITORÍA DE CONEXIÓN
-console.log('-------------------------------------------');
-console.log('🔍 Agente: Iniciando chequeo de sistema...');
-if (db) {
-    console.log('✅ Agente: Base de datos vinculada y estructurada.');
-} else {
-    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-    process.exit(1);
-}
-
-// 4. ENDPOINT DE SALUD (Punto Cero)
-app.get('/api/salud', (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: "Servidor Activo 🎉",
-        infra: "Singleton Firebase Admin ✅",
-        timestamp: new Date().toISOString()
-    });
+// Ruta raíz
+app.get('/', (req, res) => {
+    res.send('API Nelly funcionando 🚀');
 });
 
-// 5. RUTAS DE ADMINISTRACIÓN (Aquí van tus rutas cargadas)
-// app.use('/api', tusRutas); 
-console.log('🚀 Rutas de Administración cargadas');
-
-// 6. INICIO DEL SERVIDOR (Único y profesional)
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('-------------------------------------------');
-    console.log(`📡 Servidor Activo: http://0.0.0.0:${PORT}`);
-    console.log('-------------------------------------------');
-});
-
-// 7. GESTIÓN DE CIERRE
-process.on('SIGTERM', () => {
-    console.log('🔌 Cerrando servidor por orden de Render...');
-    process.exit(0);
-});
-
-// (Eliminado duplicado de PORT y app.listen)
+// Rutas de zonas
 app.use('/api/zonas', zonesRouter);
-app.use('/api/pedidos', ordersRouter);
-app.use('/api/sentinel', sentinelRouter);
-app.use('/api/admin', adminRouter);
 
-// ENDPOINT DE SALUD (Optimizado: Sin controladores redundantes)
-app.get('/api/salud', (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: 'Servidor Activo 🎉',
-        timestamp: new Date().toISOString(),
-        node_version: process.version
-    });
-});
-
-// MANEJO DE RUTAS NO ENCONTRADAS (Prevención de 404 silenciosos)
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: 'Ruta no encontrada',
-        path: req.originalUrl
-    });
-});
-
-// ARRANQUE DEL SISTEMA
-app.listen(PORT, () => {
-    console.log('-------------------------------------------');
-    console.log(`📡 Servidor Activo en Puerto: ${PORT}`);
-    console.log(`🚀 URL Principal: https://nelly-api-8lh1.onrender.com`);
-    console.log('-------------------------------------------');
-});
-
+// Exportación para Render
 export default app;
 
-// --- INICIALIZACIÓN DE FIREBASE ADMIN (FIRESTORE) ---
-// const admin removed
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
-
-const dbFirestore = admin.firestore();
-// --- FIN INICIALIZACIÓN FIREBASE ADMIN ---
-
-// --- BLOQUES QUE DEPENDEN DE FIREBASE ---
-function inicializarDependientesFirebase() {
-    // Monitor de salud de Firebase
-    if (firebaseAdminInitialized && db) {
-        const dbStatusRef = db.ref(".info/connected");
-        let huboConexionPrevia = false;
-        dbStatusRef.on("value", (snap) => {
-            if (snap.val() === true) {
-                huboConexionPrevia = true;
-                console.log("✅ Conectado a Firebase RTDB");
-            } else {
-                if (!huboConexionPrevia) {
-                    console.log('ℹ️ Firebase RTDB aun no establece sesion inicial.');
-                    return;
-                }
-                const msg = "Nelly perdió conexión con la base de datos.";
-                console.error("🚨 ALERTA: " + msg);
-                notificarAlertaConexion(msg);
-            }
-        });
-
-        // Limpieza automática de pedidos de prueba al arrancar
-        (async function limpiarPruebas() {
-            try {
-                console.log("🧹 Iniciando limpieza de pedidos de prueba...");
-                const ref = db.ref('pedidos');
-                const snapshot = await ref.once('value');
+// Arranque del servidor (solo si corres localmente)
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    });
+}
                 snapshot.forEach((child) => {
                     if (child.key.startsWith('test_') || child.key.startsWith('AUTO_')) {
                         child.ref.remove();
@@ -324,6 +233,7 @@ const checkFirebase = async () => {
     if (!firebaseAdminInitialized) {
         console.error('❌ Firebase Admin no inicializado: omitiendo verificación.');
         return;
+
     }
     try {
         await admin.auth().listUsers(1);

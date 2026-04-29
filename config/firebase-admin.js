@@ -1,19 +1,26 @@
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 
-/**
- * Singleton de Firebase Admin
- * Garantiza una única instancia de la app incluso en entornos de redeploy rápido.
- */
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+import admin from 'firebase-admin';
 
-if (getApps().length === 0) {
-    initializeApp({
-        credential: cert(serviceAccount),
-        // Aquí puedes añadir storageBucket más adelante para las fotos de evidencias
-    });
-    console.log("🔥 [Firebase] Inicialización Singleton exitosa.");
+// Inicialización segura y única
+if (!admin.apps.length) {
+    let serviceAccount = null;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        try {
+            serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        } catch (e) {
+            console.error('❌ Error al parsear FIREBASE_SERVICE_ACCOUNT:', e.message);
+        }
+    } else {
+        try {
+            serviceAccount = await import('../nelly-admin.json', { assert: { type: 'json' } }).then(m => m.default);
+        } catch (e) {
+            console.error('❌ No se encontró FIREBASE_SERVICE_ACCOUNT ni nelly-admin.json:', e.message);
+        }
+    }
+    if (serviceAccount) {
+        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        console.log('🔥 Firebase Admin inicializado correctamente');
+    }
 }
 
-// Exportamos la instancia de base de datos para usarla en todo el proyecto
-export const db = getFirestore();
+export default admin;

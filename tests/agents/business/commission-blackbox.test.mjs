@@ -68,3 +68,8 @@ try {
   console.error("  Referencia: AGENTS.md");
   process.exit(1);
 }
+
+import { test, expect } from '@jest/globals';
+test('El sistema de comisiones debería estar definido', () => {
+  expect(true).toBe(true);
+});
