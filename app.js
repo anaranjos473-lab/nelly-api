@@ -16,6 +16,16 @@ app.get('/api/salud', (req, res) => {
         timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
     });
 });
+// Endpoint de health para compatibilidad con monitor
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "OK",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 
 // 2. AUDITORÍA DE CONEXIÓN
 console.log('-------------------------------------------');
