@@ -1,13 +1,13 @@
 // scripts/monitor-api.js
 import fetch from 'node-fetch';
 
-const BASE_URL = process.env.NELLY_API_URL || 'https://nelly-api.onrender.com';
+const BASE_URL = process.env.NELLY_API_URL || 'https://nelly-api-8lh1.onrender.com';
 const endpoints = [
   '/api/health',
-  '/api/usuarios',
-  '/api/ordenes',
-  '/api/zonas',
-  '/api-docs'
+  '/api/admin',
+  '/api/pedidos',
+  '/api/repartidores',
+  '/api/zonas'
 ];
 
 async function checkEndpoint(path) {

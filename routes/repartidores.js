@@ -2,42 +2,10 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Módulo operativo"
-    });
+    res.status(200).json({ success: true, module: "Operativo" });
 });
 
-import admin from 'firebase-admin';
-
-// Lógica de niveles (puedes ajustar según tu app)
-const LIMITE_DEUDA_POR_NIVEL = {
-    BRONCE: 500,
-    PLATA: 1000,
-    ORO: 2000
-};
-
-
-// GET /api/repartidor/status/:id (singular, camelCase)
-router.get('/status/:id', async (req, res) => {
-    const uid = req.params.id;
-    if (!uid) return res.status(400).json({ error: 'uid requerido' });
-    try {
-        // Usar RTDB para consistencia con la app
-        const ref = admin.database().ref(`repartidores/${uid}`);
-        const snap = await ref.once('value');
-        if (!snap.exists()) {
-            return res.status(404).json({
-                permitir: false,
-                mensaje: 'Perfil de repartidor no encontrado',
-                nivel: null,
-                deudaActual: null,
-                limiteDeuda: null
-            });
-        }
-        const perfil = snap.val() || {};
-        const nivel = perfil.nivel || (perfil.estatus && perfil.estatus.nivel) || 'BRONCE';
-        const limiteDeuda = LIMITE_DEUDA_POR_NIVEL[nivel] || LIMITE_DEUDA_POR_NIVEL.BRONCE;
+export default router;
         const deudaActual = (perfil.finanzas && typeof perfil.finanzas.deuda_actual === 'number')
             ? perfil.finanzas.deuda_actual
             : (perfil.billetera && typeof perfil.billetera.deuda_comision === 'number' ? perfil.billetera.deuda_comision : 0);

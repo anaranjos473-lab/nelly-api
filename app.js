@@ -1,4 +1,17 @@
-// 🛠️ ENDPOINT DE DEPURACIÓN DE RUTAS ACTIVAS (Temporal para diagnóstico)
+import express from 'express';
+import admin from './config/firebase-admin.js';
+import adminRouter from './routes/admin.js';
+import pedidosRouter from './routes/pedidos.js';
+import repartidoresRouter from './routes/repartidores.js';
+import zonasRouter from './routes/zonas.js';
+
+const app = express();
+const db = admin.firestore();
+const PORT = process.env.PORT || 10000;
+
+app.use(express.json());
+
+// ENDPOINT DE DEPURACIÓN DE RUTAS ACTIVAS (Temporal para diagnóstico)
 app.get('/api/debug', (req, res) => {
     const rutasActivas = [];
     app._router.stack.forEach((middleware) => {
@@ -23,15 +36,6 @@ app.get('/api/debug', (req, res) => {
         rutas: rutasActivas
     });
 });
-import express from 'express';
-// Asegúrate de que la ruta a firebase-admin.js sea correcta según tu estructura
-import admin from './config/firebase-admin.js';
-const db = admin.firestore();
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-app.use(express.json());
 
 // 1. ENDPOINT DE SALUD (Prioridad Máxima)
 app.get('/api/salud', (req, res) => {
@@ -62,13 +66,7 @@ if (db) {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
 }
 
-// 3. RUTA DE ÓRDENES (expuesta para el monitor y pruebas)
-import adminRouter from './routes/admin.js';
-import pedidosRouter from './routes/pedidos.js';
-import repartidoresRouter from './routes/repartidores.js';
-import zonasRouter from './routes/zonas.js';
-
-// Vinculación de rutas principales
+// 3. Vinculación de rutas principales
 app.use('/api/admin', adminRouter);
 app.use('/api/pedidos', pedidosRouter);
 app.use('/api/repartidores', repartidoresRouter);

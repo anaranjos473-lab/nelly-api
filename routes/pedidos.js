@@ -2,43 +2,10 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Módulo operativo"
-    });
+    res.status(200).json({ success: true, module: "Operativo" });
 });
 
-import admin from 'firebase-admin';
-
-// GET /api/pedidos/activos/:uid
-// Devuelve los pedidos activos asignados a un repartidor en RTDB
-router.get('/activos/:uid', async (req, res) => {
-    const uid = req.params.uid;
-    if (!uid) return res.status(400).json({ error: 'uid requerido' });
-    try {
-        const db = admin.database();
-        const snap = await db.ref('pedidos_en_camino').orderByChild('repartidor').equalTo(uid).once('value');
-        const pedidos = snap.val() || {};
-        return res.json({ ok: true, pedidos });
-    } catch (e) {
-        return res.status(500).json({ error: 'Error consultando pedidos', detalle: e.message });
-    }
-});
-
-// Aquí se pueden agregar endpoints POST para notificaciones instantáneas
-
-
-// POST /api/pedidos/reasignar
-// Reasigna un pedido a otro repartidor disponible
-router.post('/reasignar', async (req, res) => {
-    const { pedidoId, nuevoRepartidorId } = req.body || {};
-    if (!pedidoId || !nuevoRepartidorId) {
-        return res.status(400).json({ error: 'Faltan datos: pedidoId y nuevoRepartidorId son requeridos' });
-    }
-    try {
-        const dbRTDB = admin.database();
-        const pedidoRef = dbRTDB.ref(`pedidos_en_camino/${pedidoId}`);
-        const pedidoSnap = await pedidoRef.once('value');
+export default router;
         if (!pedidoSnap.exists()) {
             return res.status(404).json({ error: 'Pedido no encontrado en pedidos_en_camino' });
         }
