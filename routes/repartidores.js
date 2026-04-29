@@ -2,7 +2,11 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    res.status(200).json({ success: true, module: "Operativo" });
+    const repartidorProfile = {
+        displayName: "Repartidor Nelly",
+        status: "online"
+    };
+    res.status(200).json({ success: true, profile: repartidorProfile });
 });
 
 export default router;
