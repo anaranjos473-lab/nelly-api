@@ -1,67 +1,48 @@
-// Endpoint de salud para monitoreo de Render y Nelly Admin
-app.get('/api/salud', async (req, res) => {
-    try {
-        // Una consulta rápida a Firestore para validar la conexión real
-        await db.collection('_health_check').doc('ping').set({ 
-            last_check: new Date().toISOString() 
-        });
 
-        res.status(200).json({
-            success: true,
-            status: "Servidor Activo 🎉",
-            infra: "Singleton Firebase Admin ✅",
-            timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            status: "Error de Conexión a Infraestructura ❌",
-            error: error.message
-        });
-    }
-});
-// ==========================================
-// NELLY DELIVERY - API CORE OPTIMIZED
-// ==========================================
-import express from 'express';
-import cors from 'cors';
-import { db } from './config/firebase-admin.js'; // Única instancia de BD necesaria
-import zonesRouter from './routes/zonas.js';
-import ordersRouter from './routes/pedidos.js';
-import sentinelRouter from './routes/sentinel.js';
-import adminRouter from './routes/admin.js';
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-// MIDDLEWARES
-app.use(cors());
-app.use(express.json());
-
-
-// 1. LAS IMPORTACIONES SIEMPRE VAN PRIMERO 🔝
+// 1. IMPORTACIONES ÚNICAS (Siempre al inicio)
 import express from 'express';
 import { db } from './config/firebase-admin.js';
 
-// 2. AHORA SÍ, LA LÓGICA DE AUDITORÍA Y VALIDACIÓN
+// 2. AUDITORÍA DE VINCULACIÓN
 console.log('🔍 Agente: Verificando vinculación de base de datos...');
-
 if (db) {
     console.log('✅ Agente: Base de datos vinculada y estructurada.');
 } else {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-    process.exit(1); 
+    process.exit(1);
 }
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// 3. VALIDACIÓN DE VARIABLES CRÍTICAS
-const REQUIRED_VARS = ['FIREBASE_SERVICE_ACCOUNT', 'PORT', 'ZONA_TERAN_ID'];
+// 3. VALIDACIÓN DE ENTORNO (Pre-vuelo)
+const REQUIRED_VARS = ['FIREBASE_SERVICE_ACCOUNT', 'ZONA_TERAN_ID'];
 REQUIRED_VARS.forEach(v => {
     if (!process.env[v]) {
         console.error(`❌ ERROR CRÍTICO: La variable ${v} no está definida en Render.`);
         process.exit(1); 
     }
+});
+
+// 4. ENDPOINT DE SALUD (Health Check)
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "Servidor Activo 🎉",
+        infra: "Singleton Firebase Admin ✅",
+        timestamp: new Date().toISOString()
+    });
+});
+
+// 5. INICIO DEL SERVIDOR
+app.listen(PORT, () => {
+    console.log(`🚀 Nelly API volando en puerto ${PORT}`);
+});
+
+// 6. GESTIÓN DE CIERRE (Graceful Shutdown)
+process.on('SIGTERM', () => {
+    console.log('🔌 Cerrando servidor por orden de Render...');
+    process.exit(0);
 });
 
 // 2. GESTIÓN DE LISTENERS (Ejemplo con pedidos)
