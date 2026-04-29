@@ -1,0 +1,37 @@
+import express from 'express';
+// Asegúrate de que la ruta a firebase-admin.js sea correcta según tu estructura
+import { db } from './config/firebase-admin.js'; 
+
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.use(express.json());
+
+// 1. ENDPOINT DE SALUD (Prioridad Máxima)
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "Servidor Activo 🎉",
+        timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+    });
+});
+
+// 2. AUDITORÍA DE CONEXIÓN
+console.log('-------------------------------------------');
+console.log('🔍 Agente: Iniciando chequeo de sistema...');
+
+if (db) {
+    console.log('✅ Agente: Base de datos vinculada y estructurada.');
+} else {
+    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
+}
+
+// 3. TUS RUTAS (Aquí puedes montar tus routers modulares después)
+// app.use('/api', adminRoutes);
+
+// 4. INICIO DEL SERVIDOR (Host 0.0.0.0 obligatorio para Render)
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('-------------------------------------------');
+    console.log(`📡 Servidor Activo: http://0.0.0.0:${PORT}`);
+    console.log('-------------------------------------------');
+});
