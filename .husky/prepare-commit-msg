@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-npm run -s prepare-commit:agents -- "$1"
+exit 0

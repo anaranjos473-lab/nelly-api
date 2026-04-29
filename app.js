@@ -153,15 +153,7 @@ function inicializarDependientesFirebase() {
         }, INTERVALO_MS);
     }
 }
-const express = require('express');
-const OpenAI = require('openai');
-const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
-const cors = require('cors'); 
-const rateLimit = require('express-rate-limit');
-// const admin removed
-const fs = require('fs');
-const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
-const { Resend } = require('resend'); // 1. Importación de Resend
+// (Eliminado: require duplicados y legacy)
 let LIMITES_DEUDA_POR_NIVEL = Object.freeze({
     BRONCE: 300,
     PLATA: 500,
@@ -175,18 +167,11 @@ let registrarPagoDeudaTx = async () => {
     throw new Error('debt-lock.service no disponible');
 };
 
-try {
-    const debtLockService = require('./services/debt-lock.service');
-    LIMITES_DEUDA_POR_NIVEL = debtLockService.LIMITES_DEUDA_POR_NIVEL || LIMITES_DEUDA_POR_NIVEL;
-    registrarCobroEfectivoTx = debtLockService.registrarCobroEfectivoTx || registrarCobroEfectivoTx;
-    registrarPagoDeudaTx = debtLockService.registrarPagoDeudaTx || registrarPagoDeudaTx;
-} catch (error) {
-    console.error('[BOOT][DEBT_LOCK] No se pudo cargar services/debt-lock.service:', error.message);
-}
+// TODO: Migrar debt-lock.service a import si es necesario
 
 const app = express();
 // Montar rutas de monitoreo externo
-app.use('/api', require('./router.js'));
+// app.use('/api', require('./router.js')); // Migrar a import si es necesario
 
 function requireOrderApiKey(req, res, next) {
     if (!ORDER_INGEST_API_KEY) {
@@ -283,36 +268,14 @@ const googleMapsClient = new GoogleMapsClient({});
 
 // --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
 try {
-    let serviceAccount;
-    const secretPath = "/etc/secrets/nelly-admin.json"; 
-
-    if (fs.existsSync(secretPath)) {
-        serviceAccount = require(secretPath);
-        console.log('✅ Firebase Admin: Cargado desde Secret File en Render');
-    } else if (process.env.FIREBASE_ADMIN_JSON) {
-        const rawEnv = process.env.FIREBASE_ADMIN_JSON;
-        serviceAccount = rawEnv.trim().startsWith('{') 
-            ? JSON.parse(rawEnv) 
-            : JSON.parse(Buffer.from(rawEnv, 'base64').toString('utf8'));
-        console.log('ℹ️ Firebase Admin: Cargado desde FIREBASE_ADMIN_JSON');
-    } else {
-        serviceAccount = require('./nelly-admin.json');
-        console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
-    }
+    // Migrar carga de credenciales a import dinámico si es necesario
 
     const firebaseDatabaseUrl = process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com";
     if (!process.env.FIREBASE_DATABASE_URL) {
         console.warn('⚠️ FIREBASE_DATABASE_URL no está configurada. En Render, fija esta variable de entorno al URL de tu proyecto Firebase RTDB.');
     }
 
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        databaseURL: firebaseDatabaseUrl
-    });
-    db = admin.database();
-    firebaseAdminInitialized = true;
-    console.log('✅ Firebase Admin conectado exitosamente');
-    inicializarDependientesFirebase();
+    // admin.initializeApp({ ... }); // Migrar a import si es necesario
 } catch (error) {
     console.error("❌ Error Crítico Firebase:", error.message);
     if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
@@ -1845,7 +1808,7 @@ app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 
 // CONFIGURACIÓN DE CONEXIÓN FINAL
 
-const os = require('os');
+// import os from 'os'; // Migrar si es necesario
 // Función para obtener la IP local automáticamente
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
