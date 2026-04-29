@@ -13,6 +13,9 @@ if (db) {
 }
 
 const app = express();
+
+// TEST DE PUNTO CERO (Prueba de vida absoluta)
+app.get('/test-vivo', (req, res) => res.send("Nelly está viva 🛵"));
 const PORT = process.env.PORT || 3000;
 
 // 3. VALIDACIÓN DE ENTORNO (Pre-vuelo)
