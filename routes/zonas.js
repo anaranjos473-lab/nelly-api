@@ -1,3 +1,5 @@
+// ...existing code...
+// Ya tiene 'export default router;' al final, no requiere cambio.
 
 import express from 'express';
 import admin from 'firebase-admin';

@@ -89,4 +89,4 @@ router.post('/reasignar', async (req, res) => {
     }
 });
 
-module.exports = { router, init };
+export default router;

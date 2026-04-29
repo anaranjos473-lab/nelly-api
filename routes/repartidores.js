@@ -51,7 +51,7 @@ router.get('/status/:id', async (req, res) => {
     }
 });
 
-module.exports = { router, init };
+export default router;
 
 
 // POST /api/repartidores/cerrar-turno
