@@ -38,13 +38,15 @@ if (db) {
 }
 
 // 3. RUTA DE ÓRDENES (expuesta para el monitor y pruebas)
-import usuariosRouter from './routes/users.js';
-import ordenesRouter from './routes/orders.js';
-import zonasRouter from './routes/zones.js';
+import adminRouter from './routes/admin.js';
+import pedidosRouter from './routes/pedidos.js';
+import repartidoresRouter from './routes/repartidores.js';
+import zonasRouter from './routes/zonas.js';
 
 // Vinculación de rutas principales
-app.use('/api/usuarios', usuariosRouter);
-app.use('/api/ordenes', ordenesRouter);
+app.use('/api/admin', adminRouter);
+app.use('/api/pedidos', pedidosRouter);
+app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
 
 // Manejador de errores 404 (al final)
