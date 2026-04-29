@@ -201,7 +201,7 @@ let registrarPagoDeudaTx = async () => {
 
 // TODO: Migrar debt-lock.service a import si es necesario
 
-const app = express();
+
 // Montar rutas de monitoreo externo
 // app.use('/api', require('./router.js')); // Migrar a import si es necesario
 
