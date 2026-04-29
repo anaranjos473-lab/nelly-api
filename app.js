@@ -22,9 +22,66 @@ if (db) {
     console.log('✅ Agente: Base de datos vinculada y estructurada.');
 } else {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
+// ==========================================
+// NELLY DELIVERY - API CORE (VERSIÓN CERTIFICADA)
+// ==========================================
+import express from 'express';
+import cors from 'cors';
+import { db } from './config/firebase-admin.js'; 
+
+// Importación de Routers
+import zonesRouter from './routes/zonas.js';
+import ordersRouter from './routes/pedidos.js';
+import sentinelRouter from './routes/sentinel.js';
+import adminRouter from './routes/admin.js';
+
+const app = express(); // <--- ESTA ES LA ÚNICA DECLARACIÓN DE 'app'
+const PORT = process.env.PORT || 10000;
+
+// MIDDLEWARES
+app.use(cors());
+app.use(express.json());
+
+// AUDITORÍA DE CONEXIÓN
+console.log('🔍 Agente: Verificando vinculación de base de datos...');
+if (db) {
+    console.log('✅ Agente: Base de datos vinculada y estructurada.');
+} else {
+    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
 }
 
 // RUTAS PRINCIPALES
+app.use('/api/zonas', zonesRouter);
+app.use('/api/pedidos', ordersRouter);
+app.use('/api/sentinel', sentinelRouter);
+app.use('/api/admin', adminRouter);
+
+// ENDPOINT DE SALUD
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: 'Servidor Activo 🎉',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// MANEJO DE RUTAS NO ENCONTRADAS
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Ruta no encontrada',
+        path: req.originalUrl
+    });
+});
+
+// ARRANQUE DEL SISTEMA
+app.listen(PORT, () => {
+    console.log('-------------------------------------------');
+    console.log(`📡 Servidor Activo en Puerto: ${PORT}`);
+    console.log('-------------------------------------------');
+});
+
+export default app;
 app.use('/api/zonas', zonesRouter);
 app.use('/api/pedidos', ordersRouter);
 app.use('/api/sentinel', sentinelRouter);
