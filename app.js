@@ -27,8 +27,9 @@ if (db) {
     console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
 }
 
-// 3. TUS RUTAS (Aquí puedes montar tus routers modulares después)
-// app.use('/api', adminRoutes);
+// 3. RUTA DE ÓRDENES (expuesta para el monitor y pruebas)
+import ordenesRouter from './src/routes/orders.js';
+app.use('/api/ordenes', ordenesRouter);
 
 // 4. INICIO DEL SERVIDOR (Host 0.0.0.0 obligatorio para Render)
 app.listen(PORT, '0.0.0.0', () => {
