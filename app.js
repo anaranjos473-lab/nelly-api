@@ -1,3 +1,19 @@
+// Endpoint temporal para depuración: lista rutas montadas
+app.get('/api/debug', (req, res) => {
+    const rutas = [];
+    app._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+            rutas.push(middleware.route.path);
+        } else if (middleware.name === 'router' && middleware.handle.stack) {
+            middleware.handle.stack.forEach((handler) => {
+                if (handler.route) {
+                    rutas.push(handler.route.path);
+                }
+            });
+        }
+    });
+    res.json({ rutas });
+});
 import express from 'express';
 // Asegúrate de que la ruta a firebase-admin.js sea correcta según tu estructura
 import admin from './config/firebase-admin.js';
