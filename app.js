@@ -1,6 +1,7 @@
 import express from 'express';
 // Asegúrate de que la ruta a firebase-admin.js sea correcta según tu estructura
-import { db } from './config/firebase-admin.js'; 
+import admin from './config/firebase-admin.js';
+const db = admin.firestore();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
