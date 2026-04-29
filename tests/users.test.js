@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../src/app.js';
+import app from '../app.js';
 
 describe('Usuarios API', () => {
   it('Debe crear un usuario válido', async () => {
