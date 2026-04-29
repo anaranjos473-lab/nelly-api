@@ -1,333 +1,810 @@
-// VS CODE - app.js
-// Debajo de tus otros limiters o middlewares:
-const authLimiter = (req, res, next) => next(); // Bypass temporal para estabilizar
-// 1. Definir el middleware que falta para evitar el crash
-const requirePanelApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-panel-api-key'];
-    if (apiKey === 'nelly_secret_2026') return next();
-    res.status(401).json({ error: 'API Key del Panel no válida' });
-};
-// --- AGENTE DE INTEGRIDAD: CHECKLIST DE ARRANQUE ---
-const verificarIntegridad = async () => {
-    console.log('🔍 Agente: Iniciando chequeo de sistema...');
-    // 1. Validar Webhook de Discord
-    if (!process.env.DISCORD_WEBHOOK_URL) {
-        console.warn('⚠️ Alerta: No hay Webhook de Discord. Las notificaciones estarán desactivadas.');
-    }
-
-    // 2. Validar Estructura de Firestore (Zonas y Pedidos)
-    try {
-        const zonasSnapshot = await db.collection('zonas').limit(1).get();
-        if (zonasSnapshot.empty) {
-            console.log('📦 Agente: Poblando zonas de Tuxtla Gutiérrez...');
-            const zonasBase = ["Terán", "Centro", "Plaza del Sol", "Plan de Ayala"];
-            for (const z of zonasBase) {
-                await db.collection('zonas').add({ nombre: z, activa: true });
-            }
-        }
-        console.log('✅ Agente: Base de datos vinculada y estructurada.');
-    } catch (error) {
-        console.error('❌ Error Crítico: No se pudo conectar con Firebase.', error.message);
-        process.exit(1);
-    }
-};
-
-require('dotenv').config();
-const express = require('express');
-const admin = require('firebase-admin');
-const axios = require('axios');
-const os = require('os');
-
-// --- 1. CONSTANTES DE ENTORNO Y CONFIGURACIÓN ---
-const ECOSYSTEM_VERSION = "2.1.0-PROD";
-const PANEL_ALLOWED_ORIGIN = process.env.PANEL_ALLOWED_ORIGIN || "https://nelly-api-8lh1.onrender.com";
-let firebaseAdminInitialized = false;
-
-// --- 2. DECLARACIÓN DE CLIENTES Y SERVICIOS EXTERNOS ---
-// Nota: Asegúrate de tener estas variables en tus Variables de Entorno de Render
-const client = null; // Reservado para integración con Discord/Sockets futura
-const resend = null; // Reservado para servicio de correos Resend
-const googleMapsClient = null; // Configurar si usas la API de Google Maps
-
-// --- 3. UTILIDADES GEOMÉTRICAS Y VALIDACIÓN (Motor de Logística) ---
-const esCoordenadaValida = (lat, lng) => {
-    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-};
-
-const distanciaMetrosHaversine = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3; // Radio de la Tierra en metros
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-};
-
-const parseCoordInput = (input) => {
-    if (typeof input === 'string') return JSON.parse(input);
-    return input;
-};
-
-// --- 4. FUNCIONES FINANCIERAS (Transacciones Atómicas) ---
-const registrarCobroEfectivoTx = async (db, data) => {
-    return await db.runTransaction(async (transaction) => {
-        // Lógica de registro de efectivo (Nelly Drive)
-        console.log("💰 Registrando cobro en efectivo...");
-        return { success: true };
-    });
-};
-
-const registrarPagoDeudaTx = async (db, data) => {
-    return await db.runTransaction(async (transaction) => {
-        // Lógica de liquidación de deuda (Búnker Admin)
-        console.log("💳 Liquidando deuda de pariente...");
-        return { success: true };
-    });
-};
-
-// --- 5. LÓGICA DE CAPACIDAD Y BLOQUEO ---
-const verificarCapacidadReparto = (driverId) => {
-    // Aquí implementaremos las directrices 300, 500, 600
-    console.log(`🔍 Verificando capacidad para: ${driverId}`);
-    return true; 
-};
-
-// --- 6. NORMALIZACIÓN DE DATOS ---
-const normalizeOrigin = (origin) => {
-    if (!origin) return "*";
-    return origin.trim().toLowerCase();
-};
-
-// Exportación para uso interno
-const requireFirebase = () => {
-    if (!admin.apps.length) throw new Error("Firebase no ha sido inicializado");
-    return admin.firestore();
-};
-
+// ==========================================
+// NELLY DELIVERY - API CORE OPTIMIZED
+// ==========================================
+import express from 'express';
+import cors from 'cors';
+import { db } from './config/firebase-admin.js'; // Única instancia de BD necesaria
+import zonesRouter from './routes/zonas.js';
+import ordersRouter from './routes/pedidos.js';
+import sentinelRouter from './routes/sentinel.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
+const PORT = process.env.PORT || 10000;
+
+// MIDDLEWARES
+app.use(cors());
 app.use(express.json());
 
-// --- MIDDLEWARE: API KEY PARA ORDENES (Definición-Primero) ---
-const requireOrderApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-api-key'];
-    const MASTER_KEY = process.env.ORDER_API_KEY || 'nelly_secret_2026';
-    if (apiKey && apiKey === MASTER_KEY) {
-        next();
-    } else {
-        console.error(`🚫 Intento de acceso no autorizado desde: ${req.ip}`);
-        res.status(403).json({ error: 'No autorizado: API Key inválida o ausente' });
-    }
-};
-
-// Middleware para Repartidores (validación básica)
-const requireDriverAuth = (req, res, next) => {
-    const driverToken = req.headers['x-driver-auth'];
-    if (driverToken) return next();
-    res.status(401).json({ error: 'No autorizado: Falta token de repartidor' });
-};
-
-// Middleware para el Panel de Administración (Cocina)
-const requirePanelSessionAuth = (req, res, next) => {
-    const sessionToken = req.headers['x-panel-auth'];
-    // Validación temporal para estabilizar el servidor
-    if (sessionToken || process.env.NODE_ENV === 'development') return next();
-    res.status(401).json({ error: 'Sesión de Panel no válida' });
-};
-
-// Middleware para el Panel Admin por Email (último muro)
-const requirePanelAdminEmailAuth = (req, res, next) => {
-    const adminEmail = req.headers['x-admin-email'];
-    // Validación de seguridad para asegurar que eres tú
-    if (adminEmail && adminEmail.endsWith('@gmail.com')) { // Puedes poner tu correo exacto aquí
-        return next();
-    }
-    res.status(403).json({ error: 'Acceso denegado: Se requiere email de administrador' });
-};
-
-// --- MIDDLEWARE: LIMITADOR DE ETA (dummy para higiene de logs) ---
-const etaLimiter = (req, res, next) => next();
-
-
-// Inicializar Firebase (unificado y seguro)
-const serviceAccount = require("./nelly-admin.json");
-if (!admin.apps.length) {
-    const firebaseConfig = {
-        credential: admin.credential.cert(serviceAccount)
-    };
-    if (process.env.FIREBASE_DATABASE_URL) {
-        firebaseConfig.databaseURL = process.env.FIREBASE_DATABASE_URL;
-    }
-    admin.initializeApp(firebaseConfig);
+// AUDITORÍA DE CONEXIÓN
+console.log('🔍 Agente: Verificando vinculación de base de datos...');
+if (db) {
+    console.log('✅ Agente: Base de datos vinculada y estructurada.');
+} else {
+    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
 }
-const db = admin.firestore();
-// --- ENDPOINT DE PRUEBA: SIMULACIÓN DE DEUDA CRÍTICA (83%) ---
-app.get('/repartidor/status/:id', (req, res) => {
-    // SIMULACIÓN DE RIESGO: 83% de deuda consumida
-    res.json({
-        id: req.params.id,
-        nombre: "Beto (Test)",
-        estatus: "ACTIVO",
-        nivel: "DIAMANTE",
-        deudaActual: 750, // <--- Esto disparará el semáforo
-        limiteDeuda: 900,
-        entregasHoy: 15
+
+// RUTAS PRINCIPALES
+app.use('/api/zonas', zonesRouter);
+app.use('/api/pedidos', ordersRouter);
+app.use('/api/sentinel', sentinelRouter);
+app.use('/api/admin', adminRouter);
+
+// ENDPOINT DE SALUD (Optimizado: Sin controladores redundantes)
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: 'Servidor Activo 🎉',
+        timestamp: new Date().toISOString(),
+        node_version: process.version
     });
 });
 
-
-
-
-const fs = require('fs');
-const cors = require('cors');
-
-// Configuración CORS restringida solo al dominio oficial del frontend
-app.use(cors({
-    origin: PANEL_ALLOWED_ORIGIN,
-    credentials: true,
-}));
-
-const PORT = process.env.PORT || 10000;
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-
-// --- DETECCIÓN DE IP (CORREGIDA) ---
-function getLocalIp() {
-    const interfaces = os.networkInterfaces();
-    for (const name in interfaces) {
-        for (const iface of interfaces[name]) {
-            if (iface.family === 'IPv4' && !iface.internal) return iface.address;
-        }
-    }
-    return '127.0.0.1';
-}
-const currentIp = getLocalIp();
-
-
-// --- ALERTAS (CORREGIDAS) ---
-const enviarAlertaDiscord = async (titulo, mensaje, color = 3447003) => {
-    if (!DISCORD_WEBHOOK_URL) return;
-    try {
-        await axios.post(DISCORD_WEBHOOK_URL, {
-            embeds: [{
-                title: titulo,
-                description: mensaje,
-                color: color,
-                timestamp: new Date().toISOString()
-            }]
-        });
-    } catch (e) {
-        console.error(`❌ Error Discord: ${e.message}`);
-    }
-};
-
-
-// --- NOTIFICADOR DE INICIO (VOZ DEL SERVIDOR) ---
-const enviarNotificacionInicio = async (ip, puerto) => {
-    const url = process.env.DISCORD_WEBHOOK_URL;
-    if (!url) return;
-    try {
-        await axios.post(url, {
-            embeds: [{
-                title: "🚀 Nelly Delivery Online",
-                description: `El servidor administrativo ha iniciado con éxito.`,
-                color: 5814783, // Verde
-                fields: [
-                    { name: "📍 IP Local", value: `http://${ip}:${puerto}`, inline: true },
-                    { name: "🔥 Firebase", value: "Conectado", inline: true }
-                ],
-                footer: { text: "Sistema de Monitoreo Nelly Sentinel" }
-            }]
-        });
-        console.log('📢 Notificación enviada a Discord');
-    } catch (error) {
-        // Si Discord falla, solo lo logueamos, ¡no dejamos que mate el servidor!
-        console.error("⚠️ Discord fuera de línea, pero el servidor continúa.");
-    }
-};
-
-// Exportar para que los módulos la usen
-app.set('enviarAlertaDiscord', enviarAlertaDiscord);
-
-// --- INTEGRIDAD Y FIREBASE ---
-
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        databaseURL: process.env.FIREBASE_DATABASE_URL
+// MANEJO DE RUTAS NO ENCONTRADAS (Prevención de 404 silenciosos)
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Ruta no encontrada',
+        path: req.originalUrl
     });
-}
-
-
-// --- IMPORTACIÓN DE RUTAS MODULARES ---
-const { router: repartidoresRouter, init: initRepartidores } = require('./routes/repartidores');
-const { router: pedidosRouter, init: initPedidos } = require('./routes/pedidos');
-initRepartidores({ limiteDeudaPorNivel: Object.freeze({ BRONCE: 300, PLATA: 500, ORO: 600, DIAMANTE: 900 }), adminInstance: admin });
-initPedidos({ adminInstance: admin, enviarAlertaDiscord });
-app.use('/api/repartidores', repartidoresRouter);
-app.use('/api/pedidos', pedidosRouter);
-
-// --- NUEVAS RUTAS ADMIN Y ZONAS ---
-const adminRoutes = require('./routes/admin');
-const zonasRoutes = require('./routes/zonas');
-app.use('/api/zonas', zonasRoutes);
-app.use('/api/admin', adminRoutes);
-
-// Ruta para el Mapa de Calor (Top Zonas)
-app.get('/api/zonas', (req, res) => {
-    const zonasSemilla = [
-        { nombre: "Terán", montoAcumulado: 1816, lat: 16.7432, lng: -93.1678 },
-        { nombre: "Centro", montoAcumulado: 4269, lat: 16.7527, lng: -93.1167 },
-        { nombre: "Norte", montoAcumulado: 2607, lat: 16.7650, lng: -93.1200 }
-    ];
-    res.json(zonasSemilla);
 });
 
-// Ruta para el Lanzamiento de Boost
-app.post('/api/sentinel/boost', (req, res) => {
-    console.log("🚀 Boost Recibido:", req.body);
-    res.json({ success: true, message: "Boost activado en Tuxtla" });
+// ARRANQUE DEL SISTEMA
+app.listen(PORT, () => {
+    console.log('-------------------------------------------');
+    console.log(`📡 Servidor Activo en Puerto: ${PORT}`);
+    console.log(`🚀 URL Principal: https://nelly-api-8lh1.onrender.com`);
+    console.log('-------------------------------------------');
 });
 
-// Alias para salud (Evita el 404 de health)
-app.use('/api/health', (req, res) => res.json({ status: "UP", server: "Render Cloud" }));
+export default app;
 
+// --- INICIALIZACIÓN DE FIREBASE ADMIN (FIRESTORE) ---
+// const admin removed
 
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 
-// ARRANQUE INTELIGENTE UNIFICADO
-const iniciarServidor = async () => {
-    try {
-        await verificarIntegridad(); // Chequeo de sistema y estructura
+const dbFirestore = admin.firestore();
+// --- FIN INICIALIZACIÓN FIREBASE ADMIN ---
 
-        // --- LOG DE SUPERVIVENCIA: Mostrar rutas cargadas ---
-        console.log("Rutas cargadas:");
-        app._router.stack.forEach(r => {
-            if (r.route) console.log(`- [${Object.keys(r.route.methods)}] ${r.route.path}`);
-            if (r.name === 'router') {
-                r.handle.stack.forEach(s => {
-                    if (s.route) console.log(`- [${Object.keys(s.route.methods)}] /api${s.route.path}`);
-                });
+// --- BLOQUES QUE DEPENDEN DE FIREBASE ---
+function inicializarDependientesFirebase() {
+    // Monitor de salud de Firebase
+    if (firebaseAdminInitialized && db) {
+        const dbStatusRef = db.ref(".info/connected");
+        let huboConexionPrevia = false;
+        dbStatusRef.on("value", (snap) => {
+            if (snap.val() === true) {
+                huboConexionPrevia = true;
+                console.log("✅ Conectado a Firebase RTDB");
+            } else {
+                if (!huboConexionPrevia) {
+                    console.log('ℹ️ Firebase RTDB aun no establece sesion inicial.');
+                    return;
+                }
+                const msg = "Nelly perdió conexión con la base de datos.";
+                console.error("🚨 ALERTA: " + msg);
+                notificarAlertaConexion(msg);
             }
         });
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log('-------------------------------------------');
-            console.log(`📡 Servidor Activo: http://${currentIp}:${PORT}`);
-            console.log('-------------------------------------------');
-            enviarNotificacionInicio(currentIp, PORT); // Notifica a Discord
-        });
+
+        // Limpieza automática de pedidos de prueba al arrancar
+        (async function limpiarPruebas() {
+            try {
+                console.log("🧹 Iniciando limpieza de pedidos de prueba...");
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.once('value');
+                snapshot.forEach((child) => {
+                    if (child.key.startsWith('test_') || child.key.startsWith('AUTO_')) {
+                        child.ref.remove();
+                    }
+                });
+                console.log("✨ Base de datos limpia de logs de prueba.");
+            } catch (e) {
+                console.error("❌ Error limpiando pruebas:", e.message);
+            }
+        })();
+
+        // Ejecución periódica del smoke test
+        try {
+            const cron = require('node-cron');
+            cron.schedule('*/15 * * * *', () => {
+                console.log('⏱️ Ejecutando smoke-test.js (cada 15 minutos)...');
+                require('child_process').exec('node smoke-test.js', (err, stdout, stderr) => {
+                    if (err) {
+                        console.error('❌ Error ejecutando smoke-test.js:', err.message);
+                    } else {
+                        console.log(stdout);
+                        if (stderr) console.error(stderr);
+                    }
+                });
+            });
+        } catch (e) {
+            console.error('No se pudo cargar node-cron para el smoke test automático:', e.message);
+        }
+
+        // --- Watcher automático: mover pedidos de 'pendiente' a 'en_reparto' tras X minutos ---
+        const MINUTOS_ESPERA = 5; // Cambia este valor según lo deseado
+        const INTERVALO_MS = 60 * 1000; // 1 minuto
+        setInterval(async () => {
+            try {
+                const ahora = Date.now();
+                const ref = db.ref('pedidos');
+                const snapshot = await ref.orderByChild('estado').equalTo('pendiente').once('value');
+                snapshot.forEach((child) => {
+                    const pedido = child.val();
+                    if (!pedido || typeof pedido !== 'object') return;
+                    const creado = pedido.timestamp || 0;
+                    if (ahora - creado > MINUTOS_ESPERA * 60 * 1000) {
+                        // Mover a en_reparto automáticamente
+                        child.ref.update({
+                            estado: 'en_reparto',
+                            auto_despacho: true,
+                            fecha_en_reparto: new Date().toISOString()
+                        });
+                        console.log(`🤖 Pedido ${child.key} movido a 'en_reparto' automáticamente tras ${MINUTOS_ESPERA} min.`);
+                    }
+                });
+            } catch (e) {
+                console.error('❌ Error en watcher auto-despacho:', e.message);
+            }
+        }, INTERVALO_MS);
+    }
+}
+const express = require('express');
+const OpenAI = require('openai');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); 
+const cors = require('cors'); 
+const rateLimit = require('express-rate-limit');
+// const admin removed
+const fs = require('fs');
+const { Client: GoogleMapsClient } = require('@googlemaps/google-maps-services-js');
+const { Resend } = require('resend'); // 1. Importación de Resend
+let LIMITES_DEUDA_POR_NIVEL = Object.freeze({
+    BRONCE: 300,
+    PLATA: 500,
+    ORO: 600,
+    DIAMANTE: 900,
+});
+let registrarCobroEfectivoTx = async () => {
+    throw new Error('debt-lock.service no disponible');
+};
+let registrarPagoDeudaTx = async () => {
+    throw new Error('debt-lock.service no disponible');
+};
+
+try {
+    const debtLockService = require('./services/debt-lock.service');
+    LIMITES_DEUDA_POR_NIVEL = debtLockService.LIMITES_DEUDA_POR_NIVEL || LIMITES_DEUDA_POR_NIVEL;
+    registrarCobroEfectivoTx = debtLockService.registrarCobroEfectivoTx || registrarCobroEfectivoTx;
+    registrarPagoDeudaTx = debtLockService.registrarPagoDeudaTx || registrarPagoDeudaTx;
+} catch (error) {
+    console.error('[BOOT][DEBT_LOCK] No se pudo cargar services/debt-lock.service:', error.message);
+}
+
+const app = express();
+// Montar rutas de monitoreo externo
+app.use('/api', require('./router.js'));
+
+function requireOrderApiKey(req, res, next) {
+    if (!ORDER_INGEST_API_KEY) {
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(503).json({ error: 'ORDER_INGEST_API_KEY no configurada en servidor' });
+        }
+        return next();
+    }
+
+    const provided = String(req.headers['x-api-key'] || '').trim();
+    if (!provided || provided !== ORDER_INGEST_API_KEY) {
+        return res.status(401).json({ error: 'API key invalida' });
+    }
+
+    return next();
+}
+
+function normalizeOrigin(originValue) {
+    return String(originValue || '').trim().replace(/\/$/, '').toLowerCase();
+}
+
+const PANEL_ALLOWED_ORIGIN = normalizeOrigin(process.env.PANEL_ALLOWED_ORIGIN || 'https://nelly-delivery.web.app');
+const PANEL_LIQUIDACIONES_API_KEY = String(process.env.PANEL_LIQUIDACIONES_API_KEY || '').trim();
+const PANEL_ADMIN_EMAILS = new Set(
+    String(process.env.PANEL_ADMIN_EMAILS || 'admin@nellydelivery.com,operaciones@nellydelivery.com')
+        .split(',')
+        .map((email) => String(email || '').trim().toLowerCase())
+        .filter(Boolean)
+);
+const ECOSYSTEM_VERSION = process.env.ECOSYSTEM_VERSION || '4.0.0-PRO';
+const UMBRAL_ALERTA_PREVENTIVA_DIAMANTE = 800;
+const COOLDOWN_ALERTA_PREVENTIVA_MS = 12 * 60 * 60 * 1000;
+const LIMITE_DEUDA_POR_NIVEL = LIMITES_DEUDA_POR_NIVEL;
+
+app.set('trust proxy', 1);
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin) {
+            return callback(null, false);
+        }
+
+        const normalizedOrigin = normalizeOrigin(origin);
+        if (normalizedOrigin === PANEL_ALLOWED_ORIGIN) {
+            return callback(null, true);
+        }
+
+        return callback(null, false);
+    },
+    methods: ['GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+    optionsSuccessStatus: 200
+};
+
+app.use('/api/auth', cors(corsOptions));
+app.options('/api/auth/panel-token', cors(corsOptions));
+
+const openCors = cors();
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/auth')) {
+        return next();
+    }
+    return openCors(req, res, next);
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: 'Demasiados intentos. Intenta mas tarde.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const etaLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    message: { error: 'Demasiadas consultas de ETA. Intenta en unos segundos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.use(express.json());
+
+// Servir archivos estáticos desde la carpeta "public"
+app.use(express.static('public'));
+
+// --- CONFIGURACIONES ---
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
+const resend = new Resend(process.env.RESEND_API_KEY); // 2. Inicialización de Resend
+const googleMapsClient = new GoogleMapsClient({});
+
+
+// --- CONFIGURACIÓN FIREBASE (Notificaciones) ---
+try {
+    let serviceAccount;
+    const secretPath = "/etc/secrets/nelly-admin.json"; 
+
+    if (fs.existsSync(secretPath)) {
+        serviceAccount = require(secretPath);
+        console.log('✅ Firebase Admin: Cargado desde Secret File en Render');
+    } else if (process.env.FIREBASE_ADMIN_JSON) {
+        const rawEnv = process.env.FIREBASE_ADMIN_JSON;
+        serviceAccount = rawEnv.trim().startsWith('{') 
+            ? JSON.parse(rawEnv) 
+            : JSON.parse(Buffer.from(rawEnv, 'base64').toString('utf8'));
+        console.log('ℹ️ Firebase Admin: Cargado desde FIREBASE_ADMIN_JSON');
+    } else {
+        serviceAccount = require('./nelly-admin.json');
+        console.log('ℹ️ Firebase Admin: Cargado desde archivo local');
+    }
+
+    const firebaseDatabaseUrl = process.env.FIREBASE_DATABASE_URL || "https://nelly-delivery-default-rtdb.firebaseio.com";
+    if (!process.env.FIREBASE_DATABASE_URL) {
+        console.warn('⚠️ FIREBASE_DATABASE_URL no está configurada. En Render, fija esta variable de entorno al URL de tu proyecto Firebase RTDB.');
+    }
+
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: firebaseDatabaseUrl
+    });
+    db = admin.database();
+    firebaseAdminInitialized = true;
+    console.log('✅ Firebase Admin conectado exitosamente');
+    inicializarDependientesFirebase();
+} catch (error) {
+    console.error("❌ Error Crítico Firebase:", error.message);
+    if (error.message && (error.message.includes('invalid_grant') || error.message.includes('Invalid JWT Signature'))) {
+        console.error('⚠️ Verifica la clave de servicio de Firebase en nelly-admin.json o la variable FIREBASE_ADMIN_JSON.');
+        console.error('   - Asegúrate de que el archivo no esté revocado.');
+        console.error('   - Revisa que la clave JSON sea la correcta para el proyecto.');
+        console.error('   - Si usas env var, valida que sea JSON válido o base64 válido.');
+        console.error('   - Si el problema persiste, sincroniza el reloj del servidor.');
+    }
+}
+
+// --- Verificación inmediata de Firebase Admin ---
+const checkFirebase = async () => {
+    if (!firebaseAdminInitialized) {
+        console.error('❌ Firebase Admin no inicializado: omitiendo verificación.');
+        return;
+    }
+    try {
+        await admin.auth().listUsers(1);
+        console.log('✅ Firebase Admin: Conexión verificada y activa');
     } catch (error) {
-        console.error('❌ Error crítico en el arranque:', error.message);
-        process.exit(1);
+        console.error('❌ Error crítico en Firebase:', error.message);
+    }
+};
+checkFirebase();
+
+const requireFirebase = (res) => {
+    if (!firebaseAdminInitialized) {
+        res.status(500).json({ error: 'Firebase Admin no está inicializado. Revisa las credenciales de servicio.' });
+        return false;
+    }
+    return true;
+};
+
+// --- MIDDLEWARE: VALIDACION DE IDENTIDAD DEL REPARTIDOR ---
+const requireDriverAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.driver === true || decodedToken.role === 'repartidor') {
+            req.user = decodedToken;
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Acceso denegado: No es un perfil de repartidor' });
+    } catch (error) {
+        console.error('[AUTH ERROR Driver]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
     }
 };
 
-iniciarServidor();
+const requirePanelSessionAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
 
-process.on('uncaughtException', (err) => console.error(`🚨 Crash: ${err.message}`));
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.admin === true || decodedToken.role === 'panel_cocina') {
+            req.user = decodedToken;
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Acceso denegado: sesion de panel invalida' });
+    } catch (error) {
+        console.error('[AUTH ERROR Panel]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+};
+
+const requirePanelAdminEmailAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const email = String(decodedToken.email || '').trim().toLowerCase();
+
+        if (!email || !PANEL_ADMIN_EMAILS.has(email)) {
+            return res.status(403).json({ error: 'Acceso denegado: correo no autorizado' });
+        }
+
+        req.user = decodedToken;
+        return next();
+    } catch (error) {
+        console.error('[AUTH ERROR Panel Admin Email]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+};
+
+const requirePanelApiKey = (req, res, next) => {
+    if (!PANEL_LIQUIDACIONES_API_KEY) {
+        return next();
+    }
+
+    const provided = String(req.headers['x-panel-key'] || '').trim();
+    if (!provided || provided !== PANEL_LIQUIDACIONES_API_KEY) {
+        return res.status(401).json({ error: 'x-panel-key invalido' });
+    }
+
+    return next();
+};
+
+// --- LISTENER DE PEDIDOS (Panel de Cocina) ---
+if (firebaseAdminInitialized) {
+  const pedidosRef = db.ref('pedidos');
+
+  pedidosRef.on('child_added', (snapshot) => {
+      const nuevoPedido = snapshot.val();
+      console.log("📦 Nuevo pedido recibido para cocina:", nuevoPedido);
+      // Aquí puedes disparar la lógica para actualizar el panel.html
+  });
+} else {
+  console.log('⚠️ Omitiendo listener de pedidos porque Firebase Admin no está inicializado.');
+}
+
+// --- KEEP-ALIVE: Script para mantener el servidor despierto en Render ---
+const URL_DE_TU_API = process.env.RENDER_URL || 'https://nelly-api-8lh1.onrender.com'; // Base URL canónica para keep-alive
+
+if (process.env.NODE_ENV === 'production') {
+    setInterval(async () => {
+        try {
+            await axios.get(`${URL_DE_TU_API}/healthcheck`);
+            console.log('📡 Keep-Alive: Ping enviado para evitar inactividad');
+        } catch (err) {
+            console.log('📡 Keep-Alive: Error en el ping, pero el servidor sigue intentando');
+        }
+    }, 14 * 60 * 1000); // 14 minutos en milisegundos
+}
+
+// --- MATEMÁTICAS (Haversine) ---
+function calcularDistancia(lat1, lon1, lat2, lon2) {
+    const R = 6371; 
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; 
+}
+
+// --- VALIDACIÓN DE CORREO ELECTRÓNICO ---
+function validarCorreo(email) { // eslint-disable-line no-unused-vars
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regexCorreo.test(email);
+}
+
+// === ENDPOINT: Resumen Semanal Estratégico (solo canal privado, requiere API key panel) ===
+app.post('/api/auditoria/resumen-semanal', requirePanelApiKey, async (req, res) => {
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+    try {
+        const LIMITE_DIAS = 7;
+        const COMISION_PCT = 0.18;
+        const ahora = Date.now();
+        const limite = ahora - LIMITE_DIAS * 24 * 60 * 60 * 1000;
+        // 1. Pedidos últimos 7 días
+        const pedidosSnap = await db.ref('pedidos').once('value');
+        const pedidosSemana = [];
+        pedidosSnap.forEach(child => {
+            const pedido = child.val();
+            const fecha = pedido.fecha_finalizado || pedido.fecha_creacion || pedido.creado || 0;
+            if (pedido.estado === 'entregado' && fecha >= limite) {
+                pedidosSemana.push({ ...pedido, fecha });
+            }
+        });
+        // 2. Masa financiera
+        const totalVentas = pedidosSemana.reduce((acc, p) => acc + Number(p.monto || p.total || 0), 0);
+        const comisionTotal = totalVentas * COMISION_PCT;
+        // 3. Ranking repartidores
+        const ranking = {};
+        pedidosSemana.forEach(p => {
+            const rep = p.repartidorUid || p.driverUid || 'SIN_UID';
+            if (!ranking[rep]) ranking[rep] = { uid: rep, pedidos: 0, monto: 0 };
+            ranking[rep].pedidos++;
+            ranking[rep].monto += Number(p.monto || p.total || 0);
+        });
+        const rankingArr = Object.values(ranking).sort((a, b) => b.monto - a.monto);
+        // 4. Deuda total
+        const repSnap = await db.ref('repartidores').once('value');
+        let deudaTotal = 0;
+        repSnap.forEach(child => {
+            deudaTotal += Number(child.val().deuda || 0);
+        });
+        // 5. Armar reporte
+        const reporte = {
+            periodo: 'Semana Actual',
+            ingresos_brutos: totalVentas,
+            comisiones_nelly: comisionTotal,
+            top_performers: rankingArr.slice(0, 3),
+            estado_deuda_calle: deudaTotal
+        };
+        // 6. Enviar solo a canal privado (Discord webhook)
+        if (DISCORD_WEBHOOK_URL) {
+            const content = `\n**Resumen Semanal Nelly**\n\n` +
+                `Periodo: ${reporte.periodo}\n` +
+                `Ingresos brutos: $${reporte.ingresos_brutos.toFixed(2)}\n` +
+                `Comisiones Nelly (18%): $${reporte.comisiones_nelly.toFixed(2)}\n` +
+                `Top repartidores:\n` +
+                reporte.top_performers.map((r, i) => `${i + 1}. ${r.uid} · $${r.monto.toFixed(2)} · ${r.pedidos} pedidos`).join('\n') +
+                `\nDeuda total en sistema: $${reporte.estado_deuda_calle.toFixed(2)}`;
+            await axios.post(DISCORD_WEBHOOK_URL, { content });
+        }
+        // 7. Nunca exponer datos sensibles en respuesta
+        res.json({ ok: true, enviado: true, resumen: 'Reporte semanal enviado a canal privado.' });
+    } catch (e) {
+        console.error('[AUDITORIA][RESUMEN_SEMANAL] Error:', e.message);
+        res.status(500).json({ error: 'No se pudo generar el resumen semanal' });
+    }
+});
+
+function esCoordenadaValida(lat, lng) {
+    return Number.isFinite(lat)
+        && Number.isFinite(lng)
+        && lat >= -90
+        && lat <= 90
+        && lng >= -180
+        && lng <= 180;
+}
+
+function distanciaMetrosHaversine(lat1, lng1, lat2, lng2) {
+    const R = 6371e3;
+    const p1 = lat1 * Math.PI / 180;
+    const p2 = lat2 * Math.PI / 180;
+    const dp = (lat2 - lat1) * Math.PI / 180;
+    const dl = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function parseCoordInput(value) {
+    if (typeof value === 'string') {
+        const parts = value.split(',').map((p) => Number(p.trim()));
+        if (parts.length === 2) {
+            const [lat, lng] = parts;
+            return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
+        }
+        return null;
+    }
+
+    if (value && typeof value === 'object') {
+        const lat = Number(value.lat ?? value.latitude);
+        const lng = Number(value.lng ?? value.lon ?? value.longitude);
+        return esCoordenadaValida(lat, lng) ? { lat, lng } : null;
+    }
+
+    return null;
+}
+
+function normalizarNivelRepartidor(nivelRaw) {
+    const nivel = String(nivelRaw || 'BRONCE').trim().toUpperCase();
+    if (Object.prototype.hasOwnProperty.call(LIMITE_DEUDA_POR_NIVEL, nivel)) {
+        return nivel;
+    }
+    return 'BRONCE';
+}
+
+function numeroSeguro(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+async function enviarAlertaPreventivaDiamante(uid, deudaActual, limite) {
+    if (!DISCORD_WEBHOOK_URL || !firebaseAdminInitialized) {
+        return;
+    }
+
+    const alertaRef = db.ref(`repartidores/${uid}/alertas/deuda_diamante_800_at`);
+    const snap = await alertaRef.once('value');
+    const ultimaAlerta = numeroSeguro(snap.val(), 0);
+    const ahora = Date.now();
+    if (ahora - ultimaAlerta < COOLDOWN_ALERTA_PREVENTIVA_MS) {
+        return;
+    }
+
+    const faltante = Math.max(0, limite - deudaActual);
+    await axios.post(DISCORD_WEBHOOK_URL, {
+        content: `⚠️ Atención: Repartidor ${uid} está a $${faltante.toFixed(2)} de su límite de crédito DIAMANTE.`
+    });
+    await alertaRef.set(ahora);
+}
+
+async function verificarCapacidadReparto(uid) {
+    const snap = await db.ref(`repartidores/${uid}`).once('value');
+    if (!snap.exists()) {
+        return {
+            permitir: false,
+            mensaje: 'Perfil de repartidor no encontrado',
+            nivel: null,
+            deudaActual: null,
+            limite: null
+        };
+    }
+
+    const perfil = snap.val() || {};
+    if (perfil.activo === false) {
+        return {
+            permitir: false,
+            mensaje: 'Perfil de repartidor inactivo',
+            nivel: null,
+            deudaActual: null,
+            limite: null
+        };
+    }
+
+    // Motor de ascenso: se conserva la progresion historica y se sincroniza en estatus.
+    const entregas = Number(perfil.entregas || 0);
+    let nuevoNivel = normalizarNivelRepartidor(perfil?.estatus?.nivel || perfil.nivel);
+    if (entregas >= 500 && nuevoNivel !== 'DIAMANTE') {
+        nuevoNivel = 'DIAMANTE';
+    } else if (entregas >= 150 && nuevoNivel !== 'ORO' && nuevoNivel !== 'DIAMANTE') {
+        nuevoNivel = 'ORO';
+    } else if (entregas >= 50 && nuevoNivel === 'BRONCE') {
+        nuevoNivel = 'PLATA';
+    }
+    if (nuevoNivel !== perfil.nivel || nuevoNivel !== perfil?.estatus?.nivel) {
+        await db.ref(`repartidores/${uid}`).update({
+            nivel: nuevoNivel,
+            estatus: {
+                ...(perfil.estatus || {}),
+                nivel: nuevoNivel,
+            },
+        });
+        // (Opcional) Notificar ascenso por Discord
+        if (DISCORD_WEBHOOK_URL) {
+            await axios.post(DISCORD_WEBHOOK_URL, {
+                content: `🎉 Repartidor ${uid} ascendió a nivel ${nuevoNivel} con ${entregas} entregas.`
+            });
+        }
+    }
+
+    const nivel = nuevoNivel;
+    const limite = LIMITE_DEUDA_POR_NIVEL[nivel] || 300;
+    const deudaActual = numeroSeguro(
+        perfil?.finanzas?.deuda_actual,
+        numeroSeguro(perfil?.billetera?.deuda_comision, 0)
+    );
+    const bloqueadoPorFlag = perfil?.estatus?.bloqueado_por_deuda === true || perfil?.perfil?.bloqueado_por_deuda === true;
+    const excedeLimite = deudaActual > limite;
+    const bloqueadoPorDeuda = bloqueadoPorFlag || excedeLimite;
+
+    // Auto-healing del estado de bloqueo para mantener cliente, reglas y backend sincronizados.
+    if ((perfil?.estatus?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
+        || (perfil?.perfil?.bloqueado_por_deuda === true) !== bloqueadoPorDeuda
+        || numeroSeguro(perfil?.finanzas?.limite_deuda, -1) !== limite) {
+        await db.ref(`repartidores/${uid}`).update({
+            estatus: {
+                ...(perfil.estatus || {}),
+                nivel,
+                bloqueado_por_deuda: bloqueadoPorDeuda,
+                actualizado_en: Date.now(),
+            },
+            perfil: {
+                ...(perfil.perfil || {}),
+                bloqueado_por_deuda: bloqueadoPorDeuda,
+            },
+            finanzas: {
+                ...(perfil.finanzas || {}),
+                deuda_actual: deudaActual,
+                limite_deuda: limite,
+            },
+        });
+    }
+
+    if (nivel === 'DIAMANTE' && deudaActual >= UMBRAL_ALERTA_PREVENTIVA_DIAMANTE && deudaActual < limite) {
+        try {
+            await enviarAlertaPreventivaDiamante(uid, deudaActual, limite);
+        } catch (error) {
+            console.error('[DEUDA][ALERTA_PREVENTIVA_DIAMANTE] Error:', error.message);
+        }
+    }
+
+    if (bloqueadoPorDeuda) {
+        return {
+            permitir: false,
+            mensaje: 'Limite de deuda alcanzado. Favor de liquidar comisiones.',
+            nivel,
+            deudaActual,
+            limite
+        };
+    }
+
+    return {
+        permitir: true,
+        nivel,
+        deudaActual,
+        limite
+    };
+}
+
+// === ENDPOINT: Heatmap de pedidos entregados en Tuxtla ===
+app.get('/api/auditoria/heatmap-tuxtla', requirePanelApiKey, async (req, res) => {
+    if (!firebaseAdminInitialized) {
+        return res.status(503).json({ error: 'Firebase Admin no inicializado' });
+    }
+    try {
+        // Coordenadas aproximadas de Tuxtla Gutiérrez
+        const TUXTLA_BOUNDS = {
+            minLat: 16.65,
+            maxLat: 16.85,
+            minLng: -93.25,
+            maxLng: -93.05
+        };
+        const pedidosSnap = await db.ref('pedidos').once('value');
+        const puntos = [];
+        pedidosSnap.forEach(child => {
+            const pedido = child.val();
+            if (pedido.estado !== 'entregado') return;
+            // Extraer lat/lng del cliente
+            const lat = numeroSeguro(pedido.cliente_lat ?? pedido.lat_cliente ?? pedido.lat ?? pedido.latitude);
+            const lng = numeroSeguro(pedido.cliente_lng ?? pedido.lng_cliente ?? pedido.lng ?? pedido.longitude ?? pedido.lon);
+            if (!esCoordenadaValida(lat, lng)) return;
+            if (lat < TUXTLA_BOUNDS.minLat || lat > TUXTLA_BOUNDS.maxLat || lng < TUXTLA_BOUNDS.minLng || lng > TUXTLA_BOUNDS.maxLng) return;
+            puntos.push({ lat, lng });
+        });
+        res.json({ ok: true, puntos });
+    } catch (e) {
+        console.error('[HEATMAP][ERROR]:', e.message);
+        res.status(500).json({ error: 'No se pudo generar el heatmap' });
+    }
+});
+
+// --- RUTA 1: CHAT IA (Actualizado a GPT-4o-mini) ---
+app.post('/chat', async (req, res) => {
+  try {
+    const { mensaje } = req.body;
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // Modelo más rápido y económico
+      messages: [
+        { role: "system", content: "Eres Nelly, la asistente de delivery más eficiente de Tuxtla. Amable y servicial." },
+        { role: "user", content: mensaje }
+      ],
+    });
+    res.send(completion.choices[0].message.content); 
+  } catch (error) { res.status(500).send("Error chat"); }
+});
+
+// --- RUTA 2: COTIZAR ---
+app.post('/api/pedidos/cotizar', async (req, res) => {
+    try {
+        const { latRestaurante, lonRestaurante, latCliente, lonCliente, subtotalComida, propina } = req.body;
+        let distanciaKm = 3.0; 
+        if(latRestaurante && latCliente) distanciaKm = calcularDistancia(latRestaurante, lonRestaurante, latCliente, lonCliente);
+        
+        const TARIFA_BASE = 16.50;      
+        const PRECIO_POR_KM = 4.00;     
+        const TARIFA_SERVICIO = 2.50;   
+        
+        const costoEnvio = TARIFA_BASE + (distanciaKm * PRECIO_POR_KM);
+        const totalCliente = parseFloat(subtotalComida) + costoEnvio + TARIFA_SERVICIO + (parseFloat(propina) || 0);
+        const gananciaRepartidor = costoEnvio + (parseFloat(propina) || 0);
+
+        res.json({
+            desglose: {
+                distancia: distanciaKm.toFixed(2) + " km",
+                costo_envio: costoEnvio.toFixed(2),
+                tarifa_servicio: TARIFA_SERVICIO.toFixed(2),
+                propina: propina || 0,
+                total_pagar: totalCliente.toFixed(2)
+            },
+            backend_data: { ganancia_repartidor: gananciaRepartidor.toFixed(2) }
+        });
+    } catch (error) { res.status(500).json({ error: "Error cotizando" }); }
+});
+
+// --- RUTA 2.0: CREAR PEDIDO (SMOKE TEST / API) ---
 app.post('/api/pedidos', requireOrderApiKey, async (req, res) => {
     if (!requireFirebase(res)) return;
 
@@ -340,15 +817,12 @@ app.post('/api/pedidos', requireOrderApiKey, async (req, res) => {
             return res.status(400).json({ error: 'id_pedido es requerido' });
         }
 
-
         const nuevoPedido = {
             id: pedidoId,
             id_pedido: pedidoId,
             cliente_nombre: payload.cliente_nombre || payload.cliente || 'Cliente Anonimo',
             descripcion: payload.descripcion || payload.items || 'Sin descripcion',
             monto: Number(payload.monto || payload.total || 0),
-            zonaNombre: payload.zonaNombre || 'Sin Zona',
-            distanciaRecoleccion: typeof payload.distanciaRecoleccion === 'number' ? payload.distanciaRecoleccion : Number(payload.distanciaRecoleccion) || 0,
             estado: 'pendiente',
             timestamp: Date.now(),
             fecha_creacion: new Date().toISOString()
@@ -463,19 +937,17 @@ app.post('/webhook', async (req, res) => {
     try {
         const payment = new Payment(client);
         const infoPago = await payment.get({ id: data.id });
-
+        
         if (infoPago.status === 'approved') {
             const monto = infoPago.transaction_amount;
             const emailCliente = infoPago.payer?.email || 'cliente@ejemplo.com';
-            const repartidorId = infoPago.external_reference; // Debe enviarse al crear el pago
-            console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente} | Repartidor: ${repartidorId}`);
+            console.log(`💰 PAGO APROBADO: $${monto} de ${emailCliente}`);
 
             // 1. Registro en Firebase
             try {
                 await admin.database().ref(`pagos_confirmados/${data.id}`).set({
                     monto: monto,
                     email: emailCliente,
-                    repartidorId: repartidorId,
                     fecha: new Date().toISOString(),
                     status: 'approved'
                 });
@@ -499,55 +971,29 @@ app.post('/webhook', async (req, res) => {
                 console.log("📧 Correo enviado a:", emailCliente);
             } catch (mailError) { console.error("❌ Error correo:", mailError.message); }
 
-            // 3. Agente Validador: Limpiar deuda y reactivar repartidor
-            if (repartidorId) {
-                const batch = db.batch();
-                // 3.1. Marcar pedidos como liquidados
-                const pedidosRef = db.collection('pedidos');
-                const snapshot = await pedidosRef
-                    .where('repartidorId', '==', repartidorId)
-                    .where('liquidado', '==', false)
-                    .where('estado', '==', 'Entregado')
-                    .get();
-                snapshot.forEach(doc => {
-                    batch.update(doc.ref, { liquidado: true });
-                });
-                // 3.2. Registrar corte en historial
-                const corteRef = db.collection('cortes_caja').doc();
-                batch.set(corteRef, {
-                    repartidorId: repartidorId,
-                    montoRecaudado: monto,
-                    fecha: new Date(),
-                    tipo: 'AUTOMATICO_ONLINE'
-                });
-                // 3.3. Reactivar repartidor
-                const repartidorRef = db.collection('repartidores').doc(repartidorId);
-                batch.update(repartidorRef, {
-                    bloqueadoPorDeuda: false,
-                    balanceActual: 0
-                });
-                await batch.commit();
+            // 3. Notificar al repartidor
+                if (!firebaseAdminInitialized) {
+                console.warn('⚠️ Firebase Admin no inicializado, no se enviará notificación al repartidor.');
+            } else {
+                const snapshot = await db.ref(`repartidores/driver_123/fcm_token`).once('value');
+                const fcmToken = snapshot.val();
 
-                // 4. Notificar al repartidor (FCM)
-                try {
-                    const repartidorSnap = await repartidorRef.get();
-                    const fcmToken = repartidorSnap.exists ? repartidorSnap.data().fcmToken : null;
-                    if (fcmToken) {
-                        const mensaje = {
-                            notification: { title: '¡Pago Validado! 🤑', body: `Tu saldo ha sido liberado. ¡A rodar!` },
-                            android: { notification: { channelId: 'alertas_criticas' } },
-                            token: fcmToken
-                        };
-                        await admin.messaging().send(mensaje);
-                        console.log("🔔 Notificación enviada al repartidor (canal 'alertas_criticas')");
-                    }
-                } catch (notifErr) {
-                    console.error('Error notificando al repartidor:', notifErr.message);
+                if (fcmToken) {
+                    const mensaje = {
+                        notification: { title: '¡PAGO RECIBIDO! 🤑', body: `Nuevo pedido por $${monto}. ¡A rodar!` },
+                        android: {
+                            notification: {
+                                channelId: 'alertas_criticas'
+                            }
+                        },
+                        token: fcmToken
+                    };
+                    await admin.messaging().send(mensaje);
+                    console.log("🔔 Notificación enviada (con channelId 'alertas_criticas')");
                 }
-                console.log(`✅ Liquidación automática exitosa para: ${repartidorId}`);
             }
         }
-        res.sendStatus(200);
+        res.sendStatus(200); 
     } catch (error) {
         console.error("❌ Error en webhook:", error.message);
         res.sendStatus(500);
@@ -1389,160 +1835,7 @@ const healthcheckController = (req, res) => {
     });
 };
 
-
-
-
-
-
-
-// --- API ROUTER MODULAR UNIFICADO ---
-const apiRouter = express.Router();
-
-// Healthcheck personalizado Nelly
-apiRouter.get('/salud', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Nelly API está operando al 100%",
-        timestamp: new Date().toISOString(),
-        entorno: "Producción - Render"
-    });
-});
-
-// --- Memoria de logs utilitarios (en memoria RAM, reinicio = limpia) ---
-const logsUtilitarios = [];
-function registrarLogHelper(tipo, mensaje, extra = {}) {
-    logsUtilitarios.push({
-        timestamp: new Date().toISOString(),
-        tipo,
-        mensaje,
-        ...extra
-    });
-    if (logsUtilitarios.length > 20) logsUtilitarios.shift();
-}
-
-// Middleware de autenticación para endpoints tácticos (API Key)
-const authMiddleware = requireOrderApiKey;
-
-// 1. Healthcheck básico
-apiRouter.get('/health', (req, res) => {
-    res.json({ status: "Online", agente: "Activo", database: "Firestore OK" });
-});
-
-// 2. Estado de Firebase
-apiRouter.get('/debug/firebase', async (req, res) => {
-    try {
-        const collections = await db.listCollections();
-        registrarLogHelper('info', 'Consulta de estado Firebase', { colecciones: collections.map(c => c.id) });
-        res.json({ connected: true, collections: collections.map(c => c.id) });
-    } catch (e) {
-        registrarLogHelper('error', 'Fallo consulta Firebase', { error: e.message });
-        res.status(500).json({ connected: false, error: e.message });
-    }
-});
-
-// 3. Últimos logs de operaciones
-apiRouter.get('/debug/logs', (req, res) => {
-    res.json({ logs: logsUtilitarios.slice(-5).reverse() });
-});
-
-// 4. Limpiar pedidos de prueba
-apiRouter.post('/debug/reset-pedidos', async (req, res) => {
-    try {
-        const snapshot = await db.collection('pedidos').where('descripcion', '==', 'inicializacion').get();
-        let count = 0;
-        const batch = db.batch();
-        snapshot.forEach(doc => {
-            batch.delete(doc.ref);
-            count++;
-        });
-        if (count > 0) await batch.commit();
-        registrarLogHelper('info', 'Limpieza de pedidos de prueba', { eliminados: count });
-        res.json({ success: true, eliminados: count, message: "Limpieza de base de datos completada" });
-    } catch (e) {
-        registrarLogHelper('error', 'Fallo limpieza pedidos de prueba', { error: e.message });
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-// --- PURGA MAESTRA: ELIMINAR PEDIDOS DE PRUEBA EN FIRESTORE ---
-apiRouter.post('/admin/purge-tests', requireOrderApiKey, requirePanelAdminEmailAuth, async (req, res) => {
-    try {
-        const pedidosRef = db.collection('pedidos');
-        const snapshot = await pedidosRef.get();
-        let deletedCount = 0;
-        const batch = db.batch();
-        snapshot.forEach(doc => {
-            if (doc.id.includes('LIVE_FINAL') || doc.id.includes('AUTO')) {
-                batch.delete(doc.ref);
-                deletedCount++;
-            }
-        });
-        if (deletedCount > 0) {
-            await batch.commit();
-        }
-        console.log(`🧹 Purga completada en Firestore: ${deletedCount} registros.`);
-        res.json({ success: true, count: deletedCount, message: "Purga de pruebas completada en la nube" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// --- ENDPOINT: SENTINEL BOOST (TÁCTICO) ---
-apiRouter.post('/sentinel/boost', authMiddleware, (req, res) => {
-    try {
-        console.log("🚀 Sentinel Boost activado por el Panel de Administración");
-        res.status(200).json({
-            status: "success",
-            message: "Sistema impulsado correctamente. Resiliencia al 100%.",
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ status: "error", message: error.message });
-    }
-});
-
-// --- ENDPOINT: ZONAS (UNIFICADO) ---
-apiRouter.get('/zonas', authMiddleware, async (req, res) => {
-    try {
-        const snapshot = await db.collection('zonas').get();
-        const listaZonas = snapshot.docs.map(doc => doc.data().nombre);
-        res.json({ zonas: listaZonas.length > 0 ? listaZonas : ["Sin zonas configuradas"] });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Montar el router en /api
-app.use('/api', apiRouter);
-
-console.log('🚀 Rutas de Administración cargadas');
-
-// --- MANEJADORES DE ERRORES GLOBALES (404 y 500) ---
-// 404: Ruta no encontrada (debe ir después de todas las rutas)
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        error: "Ruta no encontrada",
-        timestamp: new Date().toISOString()
-    });
-});
-
-// 500: Error interno del servidor (debe ir al final)
-app.use((err, req, res, next) => {
-    console.error("❌ Error detectado:", err.stack);
-    res.status(500).json({
-        success: false,
-        error: "Error interno del servidor Nelly",
-        mensaje: err.message
-    });
-});
-
-// Middleware: Respuesta JSON para rutas /api no encontradas
-app.use('/api', (req, res, next) => {
-    res.status(404).json({ error: 'Ruta /api no encontrada', path: req.originalUrl });
-});
-
-// Rutas de autenticación (mantener fuera del apiRouter si requieren middlewares especiales)
+// --- RUTAS EXPUESTAS ---
 app.get('/api/auth/panel-token', authLimiter, panelTokenController);
 app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/healthcheck', healthcheckController);
@@ -1550,23 +1843,33 @@ app.get('/api/auth/driver-token', authLimiter, driverTokenController);
 // app.get('/health', healthcheckController);
 
 
+// CONFIGURACIÓN DE CONEXIÓN FINAL
 
-// El arranque inteligente ya está implementado arriba con iniciarServidor()
+const os = require('os');
+// Función para obtener la IP local automáticamente
+function getLocalIp() {
+    const interfaces = os.networkInterfaces();
+    for (const name in interfaces) {
+        for (const iface of interfaces[name]) {
+            // Filtramos solo IPv4 y que no sea interna (127.0.0.1)
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
 
-// --- MANEJO GLOBAL DE ERRORES: Reportar a Discord antes de reiniciar ---
-process.on('uncaughtException', async (err) => {
-    try {
-        await enviarAlertaDiscord('❌ Error no capturado', err && err.stack ? err.stack : String(err), 15158332);
-    } catch {}
-    console.error('❌ Error no capturado:', err);
-    process.exit(1);
-});
+const PORT = 10000;
+const currentIp = getLocalIp();
 
-process.on('unhandledRejection', async (reason) => {
-    try {
-        await enviarAlertaDiscord('❌ Rechazo no capturado', reason && reason.stack ? reason.stack : String(reason), 15158332);
-    } catch {}
-    console.error('❌ Rechazo no capturado:', reason);
-    process.exit(1);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('-------------------------------------------');
+    console.log('   🛵 NELLY DELIVERY - BACKEND ACTIVO 🛵   ');
+    console.log('-------------------------------------------');
+    console.log(`📡 Red Local: http://${currentIp}:${PORT}`);
+    console.log(`🏥 Salud:    http://${currentIp}:${PORT}/api/health`);
+    console.log('-------------------------------------------');
+    console.log('Presiona Ctrl+C para detener el servidor');
 });
 
