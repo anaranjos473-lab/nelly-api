@@ -1,14 +1,14 @@
-// Endpoint raíz para monitorización
+import express from 'express';
+const router = express.Router();
+
 router.get('/', (req, res) => {
     res.status(200).json({
         success: true,
-        message: "Módulo de repartidores operativo y a la espera de instrucciones"
+        message: "Módulo operativo"
     });
 });
 
-import express from 'express';
 import admin from 'firebase-admin';
-const router = express.Router();
 
 // Lógica de niveles (puedes ajustar según tu app)
 const LIMITE_DEUDA_POR_NIVEL = {

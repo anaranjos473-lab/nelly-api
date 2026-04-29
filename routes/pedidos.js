@@ -1,13 +1,14 @@
-// Endpoint raíz para monitorización
+import express from 'express';
+const router = express.Router();
+
 router.get('/', (req, res) => {
     res.status(200).json({
         success: true,
-        message: "Módulo de pedidos operativo y a la espera de instrucciones"
+        message: "Módulo operativo"
     });
 });
-import express from 'express';
+
 import admin from 'firebase-admin';
-const router = express.Router();
 
 // GET /api/pedidos/activos/:uid
 // Devuelve los pedidos activos asignados a un repartidor en RTDB
