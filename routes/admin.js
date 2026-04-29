@@ -1,8 +1,8 @@
 
 
-const express = require('express');
+import express from 'express';
+import admin from 'firebase-admin';
 const router = express.Router();
-const admin = require('firebase-admin');
 
 // No es necesario inicializar db aquí si ya lo hiciste en app.js, 
 // pero lo declaramos para que el archivo sea independiente.
