@@ -2,10 +2,10 @@
   "name": "nelly-api",
   "version": "1.0.0",
   "type": "module",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "firebase-admin": "^13.8.0",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
+    "node-fetch": "^3.3.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
