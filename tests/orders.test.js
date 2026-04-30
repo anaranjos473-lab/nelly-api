@@ -1,5 +1,49 @@
+import { jest } from '@jest/globals';
 import request from 'supertest';
-import app from '../app.js';
+
+// MOCK ESM PURO con datos inteligentes
+jest.unstable_mockModule('firebase-admin', () => {
+  const mockFn = jest.fn(async (path) => {
+    // Soporte: simula RTDB
+    if (path && path.includes('driver_valido')) {
+      return { val: () => 'token_valido_1234567890' };
+    }
+    if (path && path.includes('driver_invalido')) {
+      return { val: () => '###INVALIDO###' };
+    }
+    return { val: () => null };
+  });
+  return {
+    default: {
+      initializeApp: jest.fn(),
+      apps: { length: 1 },
+      database: () => ({
+        ref: () => ({ once: mockFn })
+      }),
+      __setMockOnce: (fn) => { mockFn.mockImplementationOnce(fn); },
+      firestore: () => ({
+        collection: jest.fn(() => ({
+          add: jest.fn(async (data) => ({ id: 'orden_simulada_456', ...data })),
+          doc: jest.fn(() => ({
+            set: jest.fn(async (data) => ({ id: 'orden_simulada_456', ...data })),
+            get: jest.fn(async () => ({
+              exists: true,
+              id: 'orden_simulada_456',
+              data: () => ({
+                userId: '123',
+                items: [{ producto: 'Pizza', cantidad: 2 }],
+                total: 250
+              })
+            }))
+          }))
+        }))
+      })
+    }
+  };
+});
+
+const admin = (await import('firebase-admin')).default;
+const { default: app } = await import('../app.js');
 
 describe('Órdenes API', () => {
   it('Debe crear una orden válida', async () => {

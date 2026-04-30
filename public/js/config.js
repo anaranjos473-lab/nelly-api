@@ -1,5 +1,9 @@
-// Configuración Maestra Nelly Delivery
-const firebaseConfig = {
+// Configuración Maestra Nelly Delivery (Firebase Modular v9+)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+export const firebaseConfig = {
   apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
   authDomain: "nelly-delivery.firebaseapp.com",
   databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
@@ -10,13 +14,8 @@ const firebaseConfig = {
   measurementId: "G-0H2BKP1G8L"
 };
 
-// Inicialización para Scripts Clásicos
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
 
-// Variables globales para que logistica-maps.js las vea
-const db = firebase.firestore();
-const rtdb = firebase.database();
-
-console.log("🔥 Nelly API: Sistema de Datos Conectado");
+console.log("🔥 Nelly API: Sistema de Datos Conectado (modular)");

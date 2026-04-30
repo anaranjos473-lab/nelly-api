@@ -4,8 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nelly Delivery - Panel Realtime</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+                authDomain: "nelly-delivery.firebaseapp.com",
+                databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+                projectId: "nelly-delivery",
+                storageBucket: "nelly-delivery.firebasestorage.app",
+                messagingSenderId: "5451083162",
+                appId: "1:5451083162:web:06b03a76f50b74b60bde23"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            window.nellyDb = db;
+        </script>
     
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
@@ -29,63 +43,45 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN (Validada con tus capturas anteriores)
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-            authDomain: "nelly-delivery.firebaseapp.com",
-            databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-            projectId: "nelly-delivery",
-            storageBucket: "nelly-delivery.firebasestorage.app",
-            messagingSenderId: "5451083162",
-            appId: "1:5451083162:web:06b03a76f50b74b60bde23"
-        };
-
-        // Inicializar
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Monitor de conexión
-        db.ref('.info/connected').on('value', (snap) => {
-            const label = document.getElementById('conexion');
-            if (snap.val() === true) {
-                label.innerText = "SISTEMA ONLINE";
-                label.style.background = "#2ecc71";
-            } else {
-                label.innerText = "SIN CONEXIÓN";
-                label.style.background = "#e74c3c";
-            }
-        });
-
-        // ESCUCHAR PEDIDOS EN TIEMPO REAL
-        // Usamos la ruta 'pedidos' que vimos en tu imagen de la DB
-        db.ref('pedidos').on('value', (snapshot) => {
-            const div = document.getElementById('lista-pedidos');
-            div.innerHTML = ""; 
-
-            if (!snapshot.exists()) {
-                div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
-                return;
-            }
-
-            snapshot.forEach((child) => {
-                const p = child.val();
-                div.innerHTML += `
-                    <div class="card">
-                        <h3>Folio: #${child.key}</h3>
-                        <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
-                        <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
-                        <button class="btn" onclick="entregar('${child.key}')">Marcar como Entregado</button>
-                    </div>
-                `;
-            });
-        });
-
-        // Función para limpiar pedido al terminar
-        function entregar(id) {
-            if(confirm("¿Confirmas que el pedido está listo?")) {
-                db.ref('pedidos/' + id).remove();
-            }
-        }
+                import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+                const db = window.nellyDb;
+                // Monitor de conexión
+                onValue(ref(db, '.info/connected'), (snap) => {
+                    const label = document.getElementById('conexion');
+                    if (snap.val() === true) {
+                        label.innerText = "SISTEMA ONLINE";
+                        label.style.background = "#2ecc71";
+                    } else {
+                        label.innerText = "SIN CONEXIÓN";
+                        label.style.background = "#e74c3c";
+                    }
+                });
+                // ESCUCHAR PEDIDOS EN TIEMPO REAL
+                onValue(ref(db, 'pedidos'), (snapshot) => {
+                    const div = document.getElementById('lista-pedidos');
+                    div.innerHTML = "";
+                    if (!snapshot.exists()) {
+                        div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
+                        return;
+                    }
+                    snapshot.forEach((child) => {
+                        const p = child.val();
+                        div.innerHTML += `
+                            <div class="card">
+                                    <h3>Folio: #${child.key}</h3>
+                                    <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
+                                    <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
+                                    <button class="btn" onclick="window.entregarPedido('${child.key}')">Marcar como Entregado</button>
+                            </div>
+                        `;
+                    });
+                });
+                // Función para limpiar pedido al terminar
+                window.entregarPedido = function(id) {
+                    if(confirm("¿Confirmas que el pedido está listo?")) {
+                        remove(ref(db, 'pedidos/' + id));
+                    }
+                }
     </script>
 </body>
 </html>

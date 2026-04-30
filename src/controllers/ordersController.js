@@ -1,9 +1,10 @@
 
-import admin from '../config/firebase-admin.js';
-const db = admin.firestore();
+import { getAdmin } from '../../config/firebase-admin-esm.js';
+let dbPromise = getAdmin().then(admin => admin.firestore());
 
 export const getOrders = async (req, res) => {
   try {
+    const db = await dbPromise;
     const { page = 1, limit = 10, userId, minTotal } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let query = db.collection('orders');
@@ -30,7 +31,11 @@ export const getOrders = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
+    const db = await dbPromise;
     const { userId, items, total } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ errors: [{ msg: 'Debe incluir al menos un producto' }] });
+    }
     const docRef = await db.collection('orders').add({ userId, items, total });
     res.status(201).json({
       id: docRef.id,
@@ -45,6 +50,7 @@ export const createOrder = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
   try {
+    const db = await dbPromise;
     const doc = await db.collection('orders').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
     res.json({ order: { id: doc.id, ...doc.data() } });
@@ -55,6 +61,7 @@ export const getOrderById = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   try {
+    const db = await dbPromise;
     await db.collection('orders').doc(req.params.id).update(req.body);
     res.json({ message: 'Pedido actualizado', id: req.params.id });
   } catch (e) {
@@ -64,6 +71,7 @@ export const updateOrder = async (req, res) => {
 
 export const deleteOrder = async (req, res) => {
   try {
+    const db = await dbPromise;
     await db.collection('orders').doc(req.params.id).delete();
     res.json({ message: 'Pedido eliminado', id: req.params.id });
   } catch (e) {

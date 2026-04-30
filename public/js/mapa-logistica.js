@@ -1,15 +1,19 @@
-// Configuración de Firebase (ajusta según tu proyecto)
+// Configuración de Firebase Modular v9+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
 const firebaseConfig = {
-    apiKey: "TU_API_KEY_FIREBASE",
-    authDomain: "TU_DOMINIO.firebaseapp.com",
-    databaseURL: "https://TU_DOMINIO.firebaseio.com",
-    projectId: "TU_DOMINIO",
-    storageBucket: "TU_DOMINIO.appspot.com",
-    messagingSenderId: "TU_MESSAGING_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+    authDomain: "nelly-delivery.firebaseapp.com",
+    databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+    projectId: "nelly-delivery",
+    storageBucket: "nelly-delivery.firebasestorage.app",
+    messagingSenderId: "5451083162",
+    appId: "1:5451083162:web:06b03a76f50b74b60bde23"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const rtdb = getDatabase(app);
 
 let markers = [];
 
@@ -19,8 +23,8 @@ function initMap() {
         zoom: 13
     });
 
-    const dbRef = firebase.database().ref('repartidores_activos');
-    dbRef.on('value', (snapshot) => {
+    const dbRef = ref(rtdb, 'repartidores_activos');
+    onValue(dbRef, (snapshot) => {
         // Limpiar marcadores viejos
         markers.forEach(marker => marker.setMap(null));
         markers = [];

@@ -1,11 +1,12 @@
 
-import admin from '../config/firebase-admin.js';
+import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { generateToken } from '../utils/jwt.js';
-const db = admin.firestore();
+let dbPromise = getAdmin().then(admin => admin.firestore());
 // Login de usuario
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
+    const db = await dbPromise;
     const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
     if (snapshot.empty) {
       return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
@@ -25,6 +26,7 @@ export const loginUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
+    const db = await dbPromise;
     const { page = 1, limit = 10, name, email } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let query = db.collection('users');
@@ -51,6 +53,7 @@ export const getUsers = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
+    const db = await dbPromise;
     const { name, email, password } = req.body;
     const docRef = await db.collection('users').add({ name, email, password });
     res.status(201).json({ id: docRef.id, name, email });
@@ -61,6 +64,7 @@ export const createUser = async (req, res) => {
 
 export const getUserById = async (req, res) => {
   try {
+    const db = await dbPromise;
     const doc = await db.collection('users').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ ok: false, error: 'Usuario no encontrado' });
     res.json({ user: { id: doc.id, ...doc.data() } });
@@ -71,6 +75,7 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
+    const db = await dbPromise;
     await db.collection('users').doc(req.params.id).update(req.body);
     res.json({ message: 'Usuario actualizado', id: req.params.id });
   } catch (e) {
@@ -80,6 +85,7 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
+    const db = await dbPromise;
     await db.collection('users').doc(req.params.id).delete();
     res.json({ message: 'Usuario eliminado', id: req.params.id });
   } catch (e) {

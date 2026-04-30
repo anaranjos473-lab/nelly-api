@@ -1,16 +1,22 @@
 import express from 'express';
-import admin from './config/firebase-admin.js';
-
+import { getAdmin } from './config/firebase-admin-esm.js';
 import adminRouter from './routes/admin.js';
 import pedidosRouter from './routes/pedidos.js';
 import repartidoresRouter from './routes/repartidores.js';
 import zonasRouter from './routes/zonas.js';
 import { checkAuth } from './middlewares/authMiddleware.js';
 import soporteRoutes from './routes/soporte.js';
+import notificacionesRouter from './routes/notificaciones.js';
+import usuariosRouter from './routes/usuarios.js';
+import ordenesRouter from './routes/ordenes.js';
 
 const app = express();
-const db = admin.firestore();
-const PORT = process.env.PORT || 10000;
+let db;
+
+(async () => {
+    const admin = await getAdmin();
+    db = admin.firestore();
+})();
 
 app.use(express.json());
 
@@ -23,7 +29,7 @@ app.get('/api/debug', (req, res) => {
         } else if (middleware.name === 'router') {
             middleware.handle.stack.forEach((handler) => {
                 if (handler.route) {
-                    const basePath = middleware.regexp.toString().replace('/^\\/', '/').replace('\\/?(?=\\/|$)/i', '');
+                    const basePath = middleware.regexp.toString().replace('/^\/', '/').replace('\/?(?=\/|$)/i', '');
                     rutasActivas.push({
                         base: basePath,
                         endpoint: handler.route.path,
@@ -59,31 +65,19 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 2. AUDITORÍA DE CONEXIÓN
-console.log('-------------------------------------------');
-console.log('🔍 Agente: Iniciando chequeo de sistema...');
-
-if (db) {
-    console.log('✅ Agente: Base de datos vinculada y estructurada.');
-} else {
-    console.error('❌ Error Crítico: No se pudo conectar con Firebase.');
-}
-
 // 3. Vinculación de rutas principales
 app.use('/api/admin', adminRouter);
 app.use('/api/pedidos', checkAuth, pedidosRouter);
 app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
 app.use('/soporte', soporteRoutes);
+app.use('/api/notificaciones', notificacionesRouter);
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/ordenes', ordenesRouter);
 
 // Manejador de errores 404 (al final)
 app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });
 });
 
-// 4. INICIO DEL SERVIDOR (Host 0.0.0.0 obligatorio para Render)
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('-------------------------------------------');
-    console.log(`📡 Servidor Activo: http://0.0.0.0:${PORT}`);
-    console.log('-------------------------------------------');
-});
+export default app;

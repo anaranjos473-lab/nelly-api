@@ -3,9 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nelly Delivery - Panel de Cocina Central</title>
-    
-    <style>
+        <title>Nelly Delivery - Panel de Cocina Central</title>
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+                authDomain: "nelly-delivery.firebaseapp.com",
+                databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+                projectId: "nelly-delivery",
+                storageBucket: "nelly-delivery.firebasestorage.app",
+                messagingSenderId: "5451083162",
+                appId: "1:5451083162:web:06b03a76f50b74b60bde23"
+            };
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            window.nellyDb = db;
+        </script>
+        <style>
                                         .floating-menu {
                                             display: flex;
                                             flex-direction: column;
@@ -58,65 +73,47 @@
                         .toggle-switch input[type="checkbox"] {
                             width: 36px;
                             height: 20px;
-                            accent-color: #00ff88;
-                        }
-                /* Mejora de tarjetas de métricas */
-                .card-value {
-                    font-size: 2.5rem;
-                    font-weight: 800;
-                    color: #00ff88;
-                    text-shadow: 0px 0px 10px rgba(0, 255, 136, 0.3);
-                }
-                .card-title {
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    font-size: 0.8rem;
-                    color: #888;
-                }
-        :root {
-            --primary: #1877f2;
-            --primary-gradient: linear-gradient(90deg, #1877f2 0%, #00c6fb 100%);
-            --success: #2ecc71;
-            --success-gradient: linear-gradient(90deg, #2ecc71 0%, #27ae60 100%);
-            --dark: #1e293b;
-            --bg: #f4f7f6;
-            --card-radius: 18px;
-            --shadow: 0 6px 24px rgba(24, 119, 242, 0.10);
-        }
-        body {
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            background: var(--bg);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-        .header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 22px 32px 18px 32px;
-            border-radius: 0 0 24px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 8px 32px rgba(24,119,242,0.10);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .status-badge {
-            padding: 7px 18px;
-            border-radius: 24px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            background: #e74c3c;
-            box-shadow: 0 2px 8px rgba(231,76,60,0.10);
-        }
-        .online { background: #2ecc71 !important; }
-        .stats {
-            display: flex;
-            gap: 28px;
-            margin: 28px 0 18px 0;
-            flex-wrap: wrap;
+                            <script type="module">
+                                import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+                                const db = window.nellyDb;
+                                // Monitor de conexión
+                                onValue(ref(db, '.info/connected'), (snap) => {
+                                    const label = document.getElementById('conexion');
+                                    if (snap.val() === true) {
+                                        label.innerText = "SISTEMA ONLINE";
+                                        label.style.background = "#2ecc71";
+                                    } else {
+                                        label.innerText = "SIN CONEXIÓN";
+                                        label.style.background = "#e74c3c";
+                                    }
+                                });
+                                // ESCUCHAR PEDIDOS EN TIEMPO REAL
+                                onValue(ref(db, 'pedidos'), (snapshot) => {
+                                    const div = document.getElementById('lista-pedidos');
+                                    div.innerHTML = "";
+                                    if (!snapshot.exists()) {
+                                        div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
+                                        return;
+                                    }
+                                    snapshot.forEach((child) => {
+                                        const p = child.val();
+                                        div.innerHTML += `
+                                            <div class="card">
+                                                    <h3>Folio: #${child.key}</h3>
+                                                    <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
+                                                    <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
+                                                    <button class="btn" onclick="window.entregarPedido('${child.key}')">Marcar como Entregado</button>
+                                            </div>
+                                        `;
+                                    });
+                                });
+                                // Función para limpiar pedido al terminar
+                                window.entregarPedido = function(id) {
+                                    if(confirm("¿Confirmas que el pedido está listo?")) {
+                                        remove(ref(db, 'pedidos/' + id));
+                                    }
+                                }
+                            </script>
         }
         .stat-card {
             background: white;
@@ -568,25 +565,7 @@
 
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-        <script>
-            const firebaseConfig = {
-                apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-                authDomain: "nelly-delivery.firebaseapp.com",
-                databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-                projectId: "nelly-delivery",
-                storageBucket: "nelly-delivery.firebasestorage.app",
-                messagingSenderId: "5451083162",
-                appId: "1:5451083162:web:06b03a76f50b74b60bde23"
-            };
-            if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-            }
-            const db = firebase.firestore();
-            const rtdb = firebase.database();
-        </script>
+    <!-- Bloque compat de Firebase eliminado. Usar solo inicialización modular con type=module. -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E&libraries=visualization&callback=initMap" async defer></script>
     <script src="js/logistica-maps.js"></script>
 

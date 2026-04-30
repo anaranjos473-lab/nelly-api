@@ -1,7 +1,12 @@
+import express from 'express';
+import { getAdmin } from '../config/firebase-admin-esm.js';
+import { Parser } from 'json2csv';
+const router = express.Router();
+
 // Diagnóstico de tokens FCM de repartidores activos
-const { Parser } = require('json2csv');
 router.get('/diagnostico-tokens', checkAccess, async (req, res) => {
     try {
+        const admin = await getAdmin();
         // Leer ambos nodos: activos e inactivos
         const [activosSnap, inactivosSnap] = await Promise.all([
             admin.database().ref('repartidores_activos').once('value'),
@@ -44,11 +49,6 @@ router.get('/diagnostico-tokens', checkAccess, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-const express = require('express');
-const router = express.Router();
-const admin = require('firebase-admin');
-
-
 // Middleware de restricción por IP y token
 const IP_WHITELIST = [
     '127.0.0.1', '::1', // Localhost
@@ -85,6 +85,7 @@ router.post('/verificar-token', express.urlencoded({ extended: true }), checkAcc
     const logTime = new Date().toISOString();
     console.log(`[SOPORTE] Acceso a consulta de token FCM | id: ${idConductor} | ${logTime}`);
     try {
+        const admin = await getAdmin();
         const snapshot = await admin.database()
             .ref(`repartidores_activos/${idConductor}/fcm_token`)
             .once('value');
@@ -120,4 +121,4 @@ router.post('/verificar-token', express.urlencoded({ extended: true }), checkAcc
     }
 });
 
-module.exports = router;
+export default router;

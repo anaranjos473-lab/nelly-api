@@ -1,5 +1,3 @@
-
-
 import admin from 'firebase-admin';
 let initialized = false;
 
@@ -20,12 +18,14 @@ export async function getAdmin() {
             }
         }
         if (serviceAccount) {
-            admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+            const opts = { credential: admin.credential.cert(serviceAccount) };
+            if (process.env.FIREBASE_DATABASE_URL) {
+                opts.databaseURL = process.env.FIREBASE_DATABASE_URL;
+            }
+            admin.initializeApp(opts);
             console.log('🔥 Firebase Admin inicializado correctamente');
         }
         initialized = true;
     }
     return admin;
 }
-
-

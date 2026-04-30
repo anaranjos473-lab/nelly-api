@@ -1,8 +1,9 @@
 ﻿
-require('dotenv').config();
-const axios = require('axios');
-const admin = require('firebase-admin');
-const { resolveTestConfig } = require('./scripts/resolve-test-config');
+
+import 'dotenv/config';
+import axios from 'axios';
+import admin from 'firebase-admin';
+import { resolveTestConfig } from './scripts/resolve-test-config.js';
 
 const { apiKey, baseUrl } = resolveTestConfig();
 const CONFIG = {
@@ -24,7 +25,7 @@ function loadServiceAccount() {
         }
     }
 
-    return require('./nelly-admin.json');
+    return (await import('./nelly-admin.json', { assert: { type: 'json' } })).default;
 }
 
 const serviceAccount = loadServiceAccount();
