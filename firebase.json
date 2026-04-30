@@ -9,10 +9,9 @@
     ],
     "cleanUrls": true,
     "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "/panel", "destination": "/panel.html" },
+      { "source": "/", "destination": "/index.html" },
+      { "source": "**", "destination": "/index.html" }
     ]
   },
   "database": {

@@ -2,24 +2,27 @@
 // Mapa de calor de pedidos en Tuxtla Gutiérrez
 let map, heatmap, repartidorMarkers = [], repartidoresVisible = true;
 
-// Estilo oscuro para Google Maps
+// Estilo "Nelly Night Mode" para Google Maps
 const estilosOscuros = [
-  { elementType: 'geometry', stylers: [{ color: '#181c24' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#181c24' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1a232f' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#232b3b' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#232b3b' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#181c24' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] }
+    { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },
+    { "elementType": "labels.icon", "stylers": [{ "visibility": "off" }] },
+    { "elementType": "labels.text.fill", "stylers": [{ "color": "#757575" }] },
+    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#212121" }] },
+    { "featureType": "administrative", "elementType": "geometry", "stylers": [{ "color": "#757575" }] },
+    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#3d3d3d" }] },
+    { "featureType": "road", "elementType": "geometry.fill", "stylers": [{ "color": "#2c2c2c" }] },
+    { "featureType": "road", "elementType": "labels.text.fill", "stylers": [{ "color": "#8a8a8a" }] },
+    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#3c3c3c" }] },
+    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#000000" }] }
 ];
 
 function initMap() {
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 13,
         center: { lat: 16.7527, lng: -93.1167 },
-        mapTypeId: "roadmap",
-        styles: estilosOscuros
+        styles: estilosOscuros, // Nelly Night Mode
+        disableDefaultUI: true,
+        zoomControl: true
     });
 
     // --- Toggle para mostrar/ocultar repartidores ---

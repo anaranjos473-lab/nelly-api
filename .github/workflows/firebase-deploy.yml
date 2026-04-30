@@ -1,3 +1,21 @@
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar pruebas automáticas
+        run: npx jest tests/soporte_token_api.test.js
+
+    # Solo si las pruebas pasan, continúa el deploy
 name: Firebase Deploy
 
 on:
@@ -19,6 +37,7 @@ on:
 
 jobs:
   validate-and-deploy:
+    needs: test-backend
     runs-on: ubuntu-latest
     timeout-minutes: 15
 

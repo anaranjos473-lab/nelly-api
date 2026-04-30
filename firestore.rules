@@ -31,7 +31,7 @@ service cloud.firestore {
 
     // Bloquear todo lo demás por defecto
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }

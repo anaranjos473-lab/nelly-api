@@ -571,43 +571,26 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="/js/config.js"></script>
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
+                authDomain: "nelly-delivery.firebaseapp.com",
+                databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
+                projectId: "nelly-delivery",
+                storageBucket: "nelly-delivery.firebasestorage.app",
+                messagingSenderId: "5451083162",
+                appId: "1:5451083162:web:06b03a76f50b74b60bde23"
+            };
+            if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+            const rtdb = firebase.database();
+        </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E&libraries=visualization&callback=initMap" async defer></script>
     <script src="js/logistica-maps.js"></script>
 
-    <script>
-    // Configuración de Firebase SOLO para el mapa (ajusta según tu proyecto)
-    const firebaseConfigMapa = {
-        apiKey: "TU_API_KEY_FIREBASE",
-        authDomain: "TU_DOMINIO.firebaseapp.com",
-        databaseURL: "https://TU_DOMINIO.firebaseio.com",
-        projectId: "TU_DOMINIO",
-        storageBucket: "TU_DOMINIO.appspot.com",
-        messagingSenderId: "TU_MESSAGING_ID",
-        appId: "TU_APP_ID"
-    };
-    if (!window.firebase?.apps?.length) {
-        firebase.initializeApp(firebaseConfigMapa);
-    }
-    let mapaRepartidores = null;
-    let markersRepartidores = [];
-    function initMapRepartidores() {
-        mapaRepartidores = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 16.7527, lng: -93.1167 },
-            zoom: 13
-        });
-        const dbRef = firebase.database().ref('repartidores_activos');
-        dbRef.on('value', (snapshot) => {
-            markersRepartidores.forEach(marker => marker.setMap(null));
-            markersRepartidores = [];
-            snapshot.forEach((child) => {
-                const data = child.val();
-                const marker = new google.maps.Marker({
-                    position: { lat: data.lat, lng: data.lng },
-                    map: mapaRepartidores,
-                    icon: 'assets/moto-icon.png',
-                    title: data.displayName || child.key
-                });
+    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicialización -->
                 markersRepartidores.push(marker);
             });
         });
@@ -739,7 +722,7 @@
                 if (!debugLog) {
                     return;
                 }
-                const hora = new Date().toLocaleTimeString();
+                const hora = new Date().toLocaleTimeString('es-MX');
                 const row = document.createElement('div');
                 row.className = `debug-row ${tipo}`;
                 row.textContent = `[${hora}] ${mensaje}`;
@@ -955,7 +938,7 @@
                                     <td>${pedido.id_pedido || ''}</td>
                                     <td>${pedido.cliente_nombre || pedido.cliente || ''}</td>
                                     <td>$${montoNumero.toFixed(2)}</td>
-                                    <td>${new Date(fechaPedido).toLocaleString()}</td>
+                                    <td>${new Date(fechaPedido).toLocaleString('es-MX')}</td>
                                     <td><span class="badge-success">Entregado</span></td>
                                 </tr>
                             `;
@@ -987,7 +970,7 @@
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `Corte_Nelly_${new Date().toLocaleDateString()}.csv`);
+                link.setAttribute("download", `Corte_Nelly_${new Date().toLocaleDateString('es-MX')}.csv`);
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -1232,13 +1215,13 @@
             if (typeof metricasEventos[nombre] === 'number') {
                 metricasEventos[nombre] += 1;
             }
-            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString()} · ${nombre}`;
+            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · ${nombre}`;
             refrescarMetricasDebug();
         }
 
         function solicitarRenderPanel(origen = 'desconocido') {
             metricasEventos.renderSolicitudes += 1;
-            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString()} · render:${origen}`;
+            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · render:${origen}`;
             refrescarMetricasDebug();
 
             if (renderDebounceTimer) {

@@ -6,6 +6,7 @@ import pedidosRouter from './routes/pedidos.js';
 import repartidoresRouter from './routes/repartidores.js';
 import zonasRouter from './routes/zonas.js';
 import { checkAuth } from './middlewares/authMiddleware.js';
+import soporteRoutes from './routes/soporte.js';
 
 const app = express();
 const db = admin.firestore();
@@ -73,6 +74,7 @@ app.use('/api/admin', adminRouter);
 app.use('/api/pedidos', checkAuth, pedidosRouter);
 app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
+app.use('/soporte', soporteRoutes);
 
 // Manejador de errores 404 (al final)
 app.use((req, res) => {

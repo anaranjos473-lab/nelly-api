@@ -1,5 +1,4 @@
-// public/js/config.js
-// Configuración real de Firebase para compatibilidad con el panel
+// Configuración Maestra Nelly Delivery
 const firebaseConfig = {
   apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
   authDomain: "nelly-delivery.firebaseapp.com",
@@ -11,6 +10,13 @@ const firebaseConfig = {
   measurementId: "G-0H2BKP1G8L"
 };
 
+// Inicialización para Scripts Clásicos
 if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
 }
+
+// Variables globales para que logistica-maps.js las vea
+const db = firebase.firestore();
+const rtdb = firebase.database();
+
+console.log("🔥 Nelly API: Sistema de Datos Conectado");

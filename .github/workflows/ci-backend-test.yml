@@ -1,0 +1,64 @@
+            - name: Alerta por email (Mailgun) si la cobertura baja del 80%
+              if: failure()
+              run: |
+                echo "Enviando alerta por email vía Mailgun (si MAILGUN_API_KEY y MAILGUN_DOMAIN están configurados)"
+                if [ ! -z "$MAILGUN_API_KEY" ] && [ ! -z "$MAILGUN_DOMAIN" ] && [ ! -z "$MAILGUN_TO" ]; then
+                  curl -s --user "api:$MAILGUN_API_KEY" \
+                    https://api.mailgun.net/v3/$MAILGUN_DOMAIN/messages \
+                    -F from="Nelly CI <ci@$MAILGUN_DOMAIN>" \
+                    -F to="$MAILGUN_TO" \
+                    -F subject="Cobertura insuficiente en backend Nelly" \
+                    -F text="❌ Cobertura de código insuficiente (<80%). Revisa el artefacto HTML en GitHub Actions."
+                fi
+              env:
+                MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+                MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+                MAILGUN_TO: ${{ secrets.MAILGUN_TO }}
+      - name: Alerta si la cobertura baja del 80%
+        if: failure()
+        run: |
+          echo "❌ Cobertura insuficiente (<80%). Revisa el artefacto HTML y aumenta los tests."
+          # Ejemplo: notificación por Slack (requiere configurar SLACK_WEBHOOK_URL en secrets)
+          if [ ! -z "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ Cobertura de código insuficiente en backend Nelly. Revisa el reporte HTML en GitHub Actions."}' $SLACK_WEBHOOK_URL
+          fi
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+name: CI Backend Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Instalar dependencias
+        run: npm install
+
+
+
+      - name: Ejecutar pruebas y cobertura (mínimo 80%)
+        run: npx jest --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=html --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+
+      - name: Subir reporte de cobertura HTML como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-backend-html
+          path: coverage/
+
+      - name: Reporte de estado
+        if: failure()
+        run: |
+          echo "❌ Pruebas fallidas. Revisar logs de CI."
