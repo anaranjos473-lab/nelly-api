@@ -80,4 +80,16 @@ app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });
 });
 
+
 export default app;
+
+// --- AL FINAL DE TU ARCHIVO app.js ---
+// Solo iniciamos el servidor si NO estamos corriendo pruebas con Jest
+if (process.env.NODE_ENV !== 'test') {
+    // Usamos el puerto dinámico de Render o el 3000 en local
+    const PORT = process.env.PORT || 3000;
+    // El '0.0.0.0' es vital para que Render pueda conectar el tráfico externo
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Servidor de Nelly Delivery listo y escuchando en el puerto ${PORT}`);
+    });
+}
