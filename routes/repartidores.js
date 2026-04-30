@@ -1,4 +1,8 @@
+import express from 'express';
 import admin from 'firebase-admin';
+
+const router = express.Router();
+
 /**
  * PATCH /api/repartidores/estado
  * Actualiza la disponibilidad y ubicación del repartidor
@@ -21,8 +25,6 @@ router.patch('/estado', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-import express from 'express';
-const router = express.Router();
 
 // Endpoint raíz para el monitor
 router.get('/', (req, res) => {
