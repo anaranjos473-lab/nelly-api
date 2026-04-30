@@ -1,24 +1,30 @@
 import express from 'express';
+// ... otros imports (cors, firebase-admin, etc.)
+import usuariosRouter from './routes/usuarios.js';
+import repartidoresRouter from './routes/repartidores.js'; // <--- AGREGAR AQUÍ
 import { getAdmin } from './config/firebase-admin-esm.js';
 import adminRouter from './routes/admin.js';
 import pedidosRouter from './routes/pedidos.js';
-import repartidoresRouter from './routes/repartidores.js';
 import zonasRouter from './routes/zonas.js';
 import { checkAuth } from './middlewares/authMiddleware.js';
 import soporteRoutes from './routes/soporte.js';
 import notificacionesRouter from './routes/notificaciones.js';
-import usuariosRouter from './routes/usuarios.js';
 import ordenesRouter from './routes/ordenes.js';
 
-const app = express();
-let db;
 
+const app = express();
+app.use(express.json()); // El servidor ya sabe leer datos
+app.use(express.urlencoded({ extended: true }));
+
+// --- BLOQUE DE RUTAS PRINCIPALES ---
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/repartidores', repartidoresRouter); // <--- AGREGAR AQUÍ
+
+let db;
 (async () => {
     const admin = await getAdmin();
     db = admin.firestore();
 })();
-
-app.use(express.json());
 
 // ENDPOINT DE DEPURACIÓN DE RUTAS ACTIVAS (Temporal para diagnóstico)
 app.get('/api/debug', (req, res) => {
@@ -66,23 +72,17 @@ app.get('/api/health', (req, res) => {
 });
 
 // 3. Vinculación de rutas principales
+
 app.use('/api/admin', adminRouter);
 app.use('/api/pedidos', checkAuth, pedidosRouter);
-app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
 app.use('/soporte', soporteRoutes);
 app.use('/api/notificaciones', notificacionesRouter);
-app.use('/api/usuarios', usuariosRouter);
-
 app.use('/api/ordenes', ordenesRouter);
 
-// Ruta raíz / Health Check
+// Ruta raíz (Health Check que ya tienes)
 app.get('/', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "🚀 Nelly API está en línea y operativa",
-        version: "1.0.0"
-    });
+    res.send('🚀 Nelly API está en línea y operativa');
 });
 
 // Manejador de errores 404 (al final)
