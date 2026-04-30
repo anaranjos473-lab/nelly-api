@@ -73,7 +73,17 @@ app.use('/api/zonas', zonasRouter);
 app.use('/soporte', soporteRoutes);
 app.use('/api/notificaciones', notificacionesRouter);
 app.use('/api/usuarios', usuariosRouter);
+
 app.use('/api/ordenes', ordenesRouter);
+
+// Ruta raíz / Health Check
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "🚀 Nelly API está en línea y operativa",
+        version: "1.0.0"
+    });
+});
 
 // Manejador de errores 404 (al final)
 app.use((req, res) => {
