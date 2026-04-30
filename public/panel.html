@@ -6,6 +6,21 @@
     <title>Nelly Delivery - Panel de Cocina Central</title>
     
     <style>
+                                        .floating-menu {
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 10px;
+                                            position: fixed;
+                                            top: 20px;
+                                            right: 20px;
+                                            z-index: 9999;
+                                        }
+                                        .btn-menu {
+                                            padding: 10px 20px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                            white-space: nowrap;
+                                        }
                                 /* Efecto de pulso para el indicador SISTEMA ONLINE */
                                 .status-online {
                                     background-color: #00ff88 !important;
@@ -444,16 +459,12 @@
         </div>
     </div>
 
-        <!-- Botón para mostrar historial -->
-        <button id="btn-historial" class="btn-filtro" style="position:fixed;top:10px;right:10px;z-index:1001;">📊 Corte de Caja</button>
-        <button id="btn-debug" class="debug-btn">DEBUG</button>
-
-
-    <!-- Botón para mostrar Heatmap -->
-    <button id="btn-heatmap" class="btn-filtro" style="position:fixed;top:50px;right:10px;z-index:1001;">🗺️ Mapa de Calor</button>
-
-    <!-- Botón para mostrar el mapa de repartidores activos -->
-    <button id="btn-mapa-repartidores" class="btn-filtro" style="position:fixed;top:90px;right:10px;z-index:1001;">🛵 Ver Mapa Repartidores</button>
+    <div class="floating-menu">
+        <button id="btn-historial" class="btn-filtro btn-menu">📊 Corte de Caja</button>
+        <button id="btn-heatmap" class="btn-filtro btn-menu">🗺️ Mapa de Calor</button>
+        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">🛵 Ver Mapa Repartidores</button>
+        <button id="btn-debug" class="debug-btn btn-menu">DEBUG</button>
+    </div>
 
     <!-- Modal del mapa de repartidores activos -->
     <div id="modal-mapa-repartidores" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;background:rgba(0,0,0,0.25);">
@@ -557,9 +568,10 @@
 
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- Reemplaza TU_API_KEY por tu clave real de Google Maps -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="js/config.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=visualization&callback=initMap" async defer></script>
     <script src="js/logistica-maps.js"></script>
 
