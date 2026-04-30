@@ -1,0 +1,37 @@
+name: Nelly API CI/CD Produccion
+
+on:
+  push:
+    branches:
+      - main # Cambia a 'master' si tu rama principal se llama así
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar el código
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Usamos una versión estable de Node
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: 🧪 Ejecutar Pruebas (Jest)
+        run: npm test
+
+      - name: 🚀 Disparar Despliegue en Render
+        if: success() # ESTO ES CLAVE: Solo se ejecuta si los tests pasan (verde)
+        env:
+          DEPLOY_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL_PROD }}
+        run: |
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "Error: RENDER_DEPLOY_HOOK_URL_PROD no está configurado."
+            exit 1
+          fi
+          echo "Pruebas exitosas. Iniciando despliegue..."
+          curl -X POST "$DEPLOY_URL"
