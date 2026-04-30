@@ -1,9 +1,7 @@
 {
   "hosting": {
     "public": "public",
-    "predeploy": [
-      "npm run sync:panel"
-    ],
+    // predeploy eliminado para permitir despliegue directo
     "ignore": [
       "firebase.json",
       "**/.*",
