@@ -1,7 +1,7 @@
 import express from 'express';
 // ... otros imports (cors, firebase-admin, etc.)
 import usuariosRouter from './routes/usuarios.js';
-import repartidoresRouter from './routes/repartidores.js'; // <--- AGREGAR AQUÍ
+import repartidoresRouter from './routes/repartidores.js';
 import { getAdmin } from './config/firebase-admin-esm.js';
 import adminRouter from './routes/admin.js';
 import pedidosRouter from './routes/pedidos.js';
@@ -11,14 +11,13 @@ import soporteRoutes from './routes/soporte.js';
 import notificacionesRouter from './routes/notificaciones.js';
 import ordenesRouter from './routes/ordenes.js';
 
-
 const app = express();
 app.use(express.json()); // El servidor ya sabe leer datos
 app.use(express.urlencoded({ extended: true }));
 
 // --- BLOQUE DE RUTAS PRINCIPALES ---
 app.use('/api/usuarios', usuariosRouter);
-app.use('/api/repartidores', repartidoresRouter); // <--- AGREGAR AQUÍ
+app.use('/api/repartidores', repartidoresRouter);
 
 let db;
 (async () => {
@@ -35,7 +34,7 @@ app.get('/api/debug', (req, res) => {
         } else if (middleware.name === 'router') {
             middleware.handle.stack.forEach((handler) => {
                 if (handler.route) {
-                    const basePath = middleware.regexp.toString().replace('/^\/', '/').replace('\/?(?=\/|$)/i', '');
+                    const basePath = middleware.regexp.toString().replace('/^\\//', '/').replace('/\\/?(?=\\/|$)/i', '');
                     rutasActivas.push({
                         base: basePath,
                         endpoint: handler.route.path,
@@ -60,6 +59,7 @@ app.get('/api/salud', (req, res) => {
         timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
     });
 });
+
 // Endpoint de health para compatibilidad con monitor
 app.get('/api/health', (req, res) => {
     res.status(200).json({
@@ -72,7 +72,6 @@ app.get('/api/health', (req, res) => {
 });
 
 // 3. Vinculación de rutas principales
-
 app.use('/api/admin', adminRouter);
 app.use('/api/pedidos', checkAuth, pedidosRouter);
 app.use('/api/zonas', zonasRouter);
@@ -85,11 +84,47 @@ app.get('/', (req, res) => {
     res.send('🚀 Nelly API está en línea y operativa');
 });
 
-// Manejador de errores 404 (al final)
+// =========================================================
+// --- INICIO DE RUTAS MOCKEADAS PARA DASHBOARD ANDROID ---
+// =========================================================
+
+app.get('/api/admin/metricas/rentabilidad', (req, res) => {
+  res.status(200).json([
+    {"nombre": "Centro Histórico", "lat": 16.7527, "lng": -93.1167, "montoAcumulado": 4500},
+    {"nombre": "Zona Terán", "lat": 16.7432, "lng": -93.1678, "montoAcumulado": 2100},
+    {"nombre": "Plaza Las Américas", "lat": 16.7560, "lng": -93.1415, "montoAcumulado": 3200}
+  ]);
+});
+
+app.get('/api/admin/metricas/eficiencia', (req, res) => {
+  res.status(200).json({
+    "entregasCompletadas": 145,
+    "tiempoPromedioMinutos": 18,
+    "repartidoresActivos": 4,
+    "cancelaciones": 2
+  });
+});
+
+app.get('/api/repartidor/status/:uid', (req, res) => {
+  res.status(200).json({
+    "success": true,
+    "uid": req.params.uid,
+    "disponible": true,
+    "bateria": 95,
+    "ultimaUbicacion": {"lat": 16.7528, "lng": -93.1167},
+    "ultimaConexion": new Date().toISOString()
+  });
+});
+
+// =========================================================
+// --- FIN DE RUTAS MOCKEADAS ---
+// =========================================================
+
+
+// Manejador de errores 404 (Siempre debe ir al final de las rutas)
 app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });
 });
-
 
 export default app;
 
