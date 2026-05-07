@@ -10,14 +10,34 @@ import { checkAuth } from './middlewares/authMiddleware.js';
 import soporteRoutes from './routes/soporte.js';
 import notificacionesRouter from './routes/notificaciones.js';
 import ordenesRouter from './routes/ordenes.js';
+import { getFirebaseConfig } from './config/firebase-config.js';
+import rateLimiter from './src/middlewares/rateLimiter.js';
+import secureHeaders from './src/middlewares/secureHeaders.js';
+import errorHandler from './src/middlewares/errorHandler.js';
 
 const app = express();
-app.use(express.json()); // El servidor ya sabe leer datos
+// Middlewares globales de seguridad
+app.use(rateLimiter);
+app.use(secureHeaders);
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --- BLOQUE DE RUTAS PRINCIPALES ---
-app.use('/api/usuarios', usuariosRouter);
-app.use('/api/repartidores', repartidoresRouter);
+// Rutas públicas explícitas (no requieren autenticación)
+app.use('/api/public/firebase-config', (req, res, next) => next());
+app.get('/api/salud', (req, res, next) => next());
+app.get('/api/health', (req, res, next) => next());
+
+// Rutas protegidas con autenticación (excepto en entorno de test)
+const useAuth = process.env.NODE_ENV !== 'test' ? checkAuth : (req, res, next) => next();
+app.use('/api/usuarios', useAuth, usuariosRouter);
+app.use('/api/repartidores', useAuth, repartidoresRouter);
+app.use('/api/admin', useAuth, (req, res, next) => wrapAsyncRoute(adminRouter)(req, res, next));
+app.use('/api/pedidos', useAuth, (req, res, next) => wrapAsyncRoute(pedidosRouter)(req, res, next));
+app.use('/api/zonas', useAuth, (req, res, next) => wrapAsyncRoute(zonasRouter)(req, res, next));
+app.use('/soporte', useAuth, (req, res, next) => wrapAsyncRoute(soporteRoutes)(req, res, next));
+app.use('/api/notificaciones', useAuth, (req, res, next) => wrapAsyncRoute(notificacionesRouter)(req, res, next));
+app.use('/api/ordenes', useAuth, (req, res, next) => wrapAsyncRoute(ordenesRouter)(req, res, next));
 
 let db;
 (async () => {
@@ -71,13 +91,55 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 3. Vinculación de rutas principales
-app.use('/api/admin', adminRouter);
-app.use('/api/pedidos', checkAuth, pedidosRouter);
-app.use('/api/zonas', zonasRouter);
-app.use('/soporte', soporteRoutes);
-app.use('/api/notificaciones', notificacionesRouter);
-app.use('/api/ordenes', ordenesRouter);
+// 3. Vinculación de rutas principales con robustez de errores
+
+// Endpoint seguro para exponer config pública de Firebase (sin secretos)
+app.get('/api/public/firebase-config', (req, res) => {
+    // Solo expone campos públicos, nunca secretos ni admin keys
+    const cfg = getFirebaseConfig();
+    // Filtrar solo campos permitidos
+    const safeCfg = {
+        apiKey: cfg.apiKey,
+        authDomain: cfg.authDomain,
+        databaseURL: cfg.databaseURL,
+        projectId: cfg.projectId,
+        storageBucket: cfg.storageBucket,
+        messagingSenderId: cfg.messagingSenderId,
+        appId: cfg.appId,
+        measurementId: cfg.measurementId
+    };
+    res.json(safeCfg);
+});
+
+// 1. ENDPOINT DE SALUD (Prioridad Máxima)
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "Servidor Activo 🎉",
+        timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })
+    });
+});
+
+// Endpoint de health para compatibilidad con monitor
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        success: true,
+        status: "OK",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// 3. Vinculación de rutas principales con robustez de errores
+function wrapAsyncRoute(fn) {
+    return function(req, res, next) {
+        Promise.resolve(fn(req, res, next)).catch(err => {
+            console.error('[API ERROR]', req.originalUrl, err);
+            res.status(500).json({ error: 'Error interno del servidor', detalle: err.message });
+        });
+    };
+}
 
 // Ruta raíz (Health Check que ya tienes)
 app.get('/', (req, res) => {
@@ -125,6 +187,9 @@ app.get('/api/repartidor/status/:uid', (req, res) => {
 app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });
 });
+
+// Middleware global de manejo de errores
+app.use(errorHandler);
 
 export default app;
 

@@ -5,20 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Nelly Delivery - Panel de Cocina Central</title>
         <script type="module">
+            // Inicialización segura de Firebase: config se obtiene vía endpoint seguro
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-            import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-            const firebaseConfig = {
-                apiKey: "AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E",
-                authDomain: "nelly-delivery.firebaseapp.com",
-                databaseURL: "https://nelly-delivery-default-rtdb.firebaseio.com",
-                projectId: "nelly-delivery",
-                storageBucket: "nelly-delivery.firebasestorage.app",
-                messagingSenderId: "5451083162",
-                appId: "1:5451083162:web:06b03a76f50b74b60bde23"
-            };
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
-            window.nellyDb = db;
+            import { getDatabase, ref, onValue, off, query, orderByChild, equalTo, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            // --- Documentación: Flujo de sincronía ---
+            // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
+            // 2. Todos los listeners se limpian automáticamente al recargar o cerrar el panel.
+            // 3. El flujo de estados es: pendiente → en_reparto → entregado (o eliminado).
+            // 4. El rescate manual usa la misma consulta granular.
+
+            let pedidosListenerRef = null;
+            let pedidosListenerCallback = null;
+
+            async function fetchFirebaseConfig() {
+                const resp = await fetch('/api/public/firebase-config');
+                if (!resp.ok) throw new Error('No se pudo obtener configuración segura');
+                return await resp.json();
+            }
+            fetchFirebaseConfig().then(cfg => {
+                const app = initializeApp(cfg);
+                const db = getDatabase(app);
+                window.nellyDb = db;
+                window.dispatchEvent(new Event('firebase-ready'));
+
+                // Listener granular solo para pedidos pendientes
+                const pedidosPendientesQuery = query(ref(db, 'pedidos'), orderByChild('estado'), equalTo('pendiente'));
+                pedidosListenerRef = pedidosPendientesQuery;
+                pedidosListenerCallback = (snapshot) => {
+                    const div = document.getElementById('lista-pedidos');
+                    div.innerHTML = "";
+                    if (!snapshot.exists()) {
+                        div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
+                        return;
+                    }
+                    snapshot.forEach((child) => {
+                        const p = child.val();
+                        div.innerHTML += `
+                            <div class="card">
+                                    <h3>Folio: #${child.key}</h3>
+                                    <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
+                                    <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
+                                    <button class="btn" onclick="window.entregarPedido('${child.key}')">Marcar como Entregado</button>
+                            </div>
+                        `;
+                    });
+                };
+                onValue(pedidosPendientesQuery, pedidosListenerCallback);
+
+                // Limpieza automática de listeners al cerrar o recargar
+                window.addEventListener('beforeunload', () => {
+                    if (pedidosListenerRef && pedidosListenerCallback) {
+                        off(pedidosListenerRef, 'value', pedidosListenerCallback);
+                    }
+                });
+            }).catch(e => {
+                alert('Error de inicialización Firebase: ' + e.message);
+            });
         </script>
         <style>
                                         .floating-menu {
@@ -87,28 +129,9 @@
                                         label.style.background = "#e74c3c";
                                     }
                                 });
-                                // ESCUCHAR PEDIDOS EN TIEMPO REAL
-                                onValue(ref(db, 'pedidos'), (snapshot) => {
-                                    const div = document.getElementById('lista-pedidos');
-                                    div.innerHTML = "";
-                                    if (!snapshot.exists()) {
-                                        div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
-                                        return;
-                                    }
-                                    snapshot.forEach((child) => {
-                                        const p = child.val();
-                                        div.innerHTML += `
-                                            <div class="card">
-                                                    <h3>Folio: #${child.key}</h3>
-                                                    <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
-                                                    <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
-                                                    <button class="btn" onclick="window.entregarPedido('${child.key}')">Marcar como Entregado</button>
-                                            </div>
-                                        `;
-                                    });
-                                });
                                 // Función para limpiar pedido al terminar
                                 window.entregarPedido = function(id) {
+                                    const db = window.nellyDb;
                                     if(confirm("¿Confirmas que el pedido está listo?")) {
                                         remove(ref(db, 'pedidos/' + id));
                                     }
@@ -1375,6 +1398,12 @@
             }
         }, { once: true });
 
+        // Optimización: listeners solo tras autenticación exitosa y limpieza previa
+        let listenersActivos = [];
+        function limpiarListeners() {
+            listenersActivos.forEach(unsub => { try { unsub(); } catch {} });
+            listenersActivos = [];
+        }
         onAuthStateChanged(auth, (user) => {
             const badge = document.getElementById('badge-estado');
             if (user) {
@@ -1382,9 +1411,11 @@
                 badge.classList.add('online');
                 if (!sincronizacionIniciada) {
                     sincronizacionIniciada = true;
-                    iniciarSincronizacion();
+                    limpiarListeners();
+                    listenersActivos.push(iniciarSincronizacion());
                 }
             } else {
+                limpiarListeners();
                 autenticarPanelConBackend();
             }
         });
@@ -1443,40 +1474,38 @@
         }
 
         function iniciarSincronizacion() {
+            // Devuelve función de limpieza para listeners
+            const listeners = [];
             const gananciasRef = doc(db, "metricas", "ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
             const consultaPendientes = query(dbRef, orderByChild("estado"), equalTo("pendiente"));
             iniciarMonitorMetricas();
             refrescarMetricasDebug();
 
-            onSnapshot(gananciasRef, (snap) => {
+            listeners.push(onSnapshot(gananciasRef, (snap) => {
                 const total = snap.exists() ? Number(snap.data().total || 0) : 0;
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
-            });
+            }));
 
-            // Respaldo de caja negra: mantiene UI sincronizada si onChildAdded falla al inicializar.
-            onValue(consultaPendientes, (snapshot) => {
+            listeners.push(onValue(consultaPendientes, (snapshot) => {
                 sincronizarPendientesDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pendientes' : 'snapshot-resync-pendientes');
                 if (primeraCargaPendientes) {
                     primeraCargaPendientes = false;
                 }
             }, (error) => {
                 reportarErrorListener('onValue(consultaPendientes)', error);
-            });
+            }));
 
-            // Escucha incremental: solo pedidos pendientes nuevos.
-            onChildAdded(consultaPendientes, (snapshot) => {
+            listeners.push(onChildAdded(consultaPendientes, (snapshot) => {
                 const pedido = snapshot.val();
                 if (!pedido || typeof pedido !== "object") {
                     return;
                 }
-
                 const key = snapshot.key;
                 const tieneMonto = pedido.monto !== undefined || pedido.total !== undefined;
                 if (!tieneMonto) {
                     return;
                 }
-
                 registrarEvento('pendienteAdded');
                 agregarPedidoATablaVisual(key, pedido, {
                     notificar: !primeraCargaPendientes,
@@ -1485,15 +1514,13 @@
                 });
             }, (error) => {
                 reportarErrorListener('onChildAdded(pedidos pendientes)', error);
-            });
+            }));
 
-            // Reacciona a cambios de estado sin releer toda la rama de pedidos.
-            onChildChanged(dbRef, (snapshot) => {
+            listeners.push(onChildChanged(dbRef, (snapshot) => {
                 const pedidoActualizado = snapshot.val();
                 if (!pedidoActualizado || typeof pedidoActualizado !== "object") {
                     return;
                 }
-
                 const key = snapshot.key;
                 const estado = String(pedidoActualizado.estado || "").trim().toLowerCase();
                 if (estado === "pendiente") {
@@ -1508,17 +1535,17 @@
                 registrarEvento('pendienteChanged');
             }, (error) => {
                 reportarErrorListener('onChildChanged(pedidos)', error);
-            });
+            }));
 
-            onChildRemoved(dbRef, (snapshot) => {
+            listeners.push(onChildRemoved(dbRef, (snapshot) => {
                 const key = snapshot.key;
                 registrarEvento('pendienteRemoved');
                 eliminarFilaVisual(key, { origen: 'onChildRemoved-pedidos' });
             }, (error) => {
                 reportarErrorListener('onChildRemoved(pedidos)', error);
-            });
+            }));
 
-            onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
+            listeners.push(onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
                 pedidosReparto.clear();
                 const raiz = snapshot.val();
                 if (raiz && typeof raiz === "object") {
@@ -1539,9 +1566,9 @@
                 solicitarRenderPanel('onValue-pedidos_para_reparto');
             }, (error) => {
                 reportarErrorListener('onValue(pedidos_para_reparto)', error);
-            });
+            }));
 
-            onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
+            listeners.push(onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
                 pedidosEnCamino.clear();
                 const raiz = snapshot.val();
                 if (raiz && typeof raiz === "object") {
@@ -1562,14 +1589,13 @@
                 solicitarRenderPanel('onValue-pedidos_en_camino');
             }, (error) => {
                 reportarErrorListener('onValue(pedidos_en_camino)', error);
-            });
+            }));
 
-            onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
+            listeners.push(onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
                 const raiz = snapshot.val();
                 if (!raiz || typeof raiz !== "object") {
                     return;
                 }
-
                 const novedades = [];
                 Object.entries(raiz).forEach(([key, value]) => {
                     if (!value || typeof value !== "object") {
@@ -1581,7 +1607,6 @@
                     liquidacionesAuditProcesadas.add(key);
                     novedades.push(value);
                 });
-
                 novedades
                     .sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0))
                     .forEach((evento) => {
@@ -1597,7 +1622,10 @@
                     });
             }, (error) => {
                 reportarErrorListener('onValue(liquidaciones_auditoria)', error);
-            });
+            }));
+
+            // Devuelve función para limpiar todos los listeners
+            return () => listeners.forEach(unsub => { try { if (typeof unsub === 'function') unsub(); } catch {} });
         }
 
         window.addEventListener('online', () => {
