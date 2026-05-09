@@ -1,13 +1,16 @@
 
 import app from './app.js';
 
+
 import { iniciarAgenteDespacho, limpiarAgenteDespacho } from './src/agentes/agenteDespacho.js';
 import { iniciarAgenteFinanciero } from './src/agentes/agenteTarifaDinamica.js';
+import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
 
 // Inicializar agentes inteligentes al arrancar el backend
 
 iniciarAgenteDespacho();
 iniciarAgenteFinanciero();
+iniciarAgenteAntifraude();
 
 // Limpieza de listeners al cerrar el proceso
 process.on('SIGINT', () => {
