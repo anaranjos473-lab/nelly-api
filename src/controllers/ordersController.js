@@ -1,10 +1,10 @@
 
 import { getAdmin } from '../../config/firebase-admin-esm.js';
-let dbPromise = getAdmin().then(admin => admin.firestore());
 
 export const getOrders = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     const { page = 1, limit = 10, userId, minTotal } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let query = db.collection('orders');

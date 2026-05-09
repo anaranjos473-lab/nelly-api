@@ -1,12 +1,12 @@
 
 import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { generateToken } from '../utils/jwt.js';
-let dbPromise = getAdmin().then(admin => admin.firestore());
 // Login de usuario
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
     if (snapshot.empty) {
       return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });

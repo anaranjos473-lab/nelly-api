@@ -1,4 +1,7 @@
+
 import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
 let initialized = false;
 
 export async function getAdmin() {
@@ -12,16 +15,17 @@ export async function getAdmin() {
             }
         } else {
             try {
-                serviceAccount = await import('../nelly-admin.json', { assert: { type: 'json' } }).then(m => m.default);
+                const __dirname = path.dirname(new URL(import.meta.url).pathname.replace(/^\/+([A-Za-z]:)/, '$1'));
+                const jsonPath = path.join(__dirname, '../nelly-admin.json');
+                const jsonData = fs.readFileSync(jsonPath, 'utf8');
+                serviceAccount = JSON.parse(jsonData);
             } catch (e) {
                 console.error('❌ No se encontró FIREBASE_SERVICE_ACCOUNT ni nelly-admin.json:', e.message);
             }
         }
         if (serviceAccount) {
             const opts = { credential: admin.credential.cert(serviceAccount) };
-            if (process.env.FIREBASE_DATABASE_URL) {
-                opts.databaseURL = process.env.FIREBASE_DATABASE_URL;
-            }
+            opts.databaseURL = process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com';
             admin.initializeApp(opts);
             console.log('🔥 Firebase Admin inicializado correctamente');
         }

@@ -1,5 +1,9 @@
-import express from 'express';
-// ... otros imports (cors, firebase-admin, etc.)
+// ...existing code...
+import { getDatabase } from 'firebase-admin/database';
+import { getFirestore } from 'firebase-admin/firestore';
+// ...otros imports...
+
+
 import usuariosRouter from './routes/usuarios.js';
 import repartidoresRouter from './routes/repartidores.js';
 import { getAdmin } from './config/firebase-admin-esm.js';
@@ -14,13 +18,11 @@ import { getFirebaseConfig } from './config/firebase-config.js';
 import rateLimiter from './src/middlewares/rateLimiter.js';
 import secureHeaders from './src/middlewares/secureHeaders.js';
 import errorHandler from './src/middlewares/errorHandler.js';
+import { iniciarAgenteDespacho } from './src/agentes/agenteDespacho.js';
 
+
+import express from 'express';
 const app = express();
-// Middlewares globales de seguridad
-app.use(rateLimiter);
-app.use(secureHeaders);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // --- BLOQUE DE RUTAS PRINCIPALES ---
 // Rutas públicas explícitas (no requieren autenticación)
@@ -29,15 +31,150 @@ app.get('/api/salud', (req, res, next) => next());
 app.get('/api/health', (req, res, next) => next());
 
 // Rutas protegidas con autenticación (excepto en entorno de test)
-const useAuth = process.env.NODE_ENV !== 'test' ? checkAuth : (req, res, next) => next();
-app.use('/api/usuarios', useAuth, usuariosRouter);
-app.use('/api/repartidores', useAuth, repartidoresRouter);
-app.use('/api/admin', useAuth, (req, res, next) => wrapAsyncRoute(adminRouter)(req, res, next));
-app.use('/api/pedidos', useAuth, (req, res, next) => wrapAsyncRoute(pedidosRouter)(req, res, next));
-app.use('/api/zonas', useAuth, (req, res, next) => wrapAsyncRoute(zonasRouter)(req, res, next));
-app.use('/soporte', useAuth, (req, res, next) => wrapAsyncRoute(soporteRoutes)(req, res, next));
-app.use('/api/notificaciones', useAuth, (req, res, next) => wrapAsyncRoute(notificacionesRouter)(req, res, next));
-app.use('/api/ordenes', useAuth, (req, res, next) => wrapAsyncRoute(ordenesRouter)(req, res, next));
+
+
+// --- ENDPOINTS DE DIAGNÓSTICO ---
+
+app.get('/api/diagnostico/conductores', async (req, res) => {
+    try {
+        await getAdmin();
+        const rtdb = getDatabase();
+        const snap = await rtdb.ref('conductores_activos').once('value');
+        const conductores = snap.val() || {};
+        res.json({ success: true, total: Object.keys(conductores).length, conductores });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+app.get('/api/diagnostico/pedidos', async (req, res) => {
+    try {
+        await getAdmin();
+        const db = getFirestore();
+        const snapshot = await db.collection('pedidos').get();
+        const pedidos = [];
+        snapshot.forEach(doc => {
+            pedidos.push({ id: doc.id, ...doc.data() });
+        });
+        res.json({ success: true, total: pedidos.length, pedidos });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// --- AGENTE DE DESPACHO: Selección de mejor conductor usando worker ---
+app.post('/api/despacho/mejor-conductor', async (req, res) => {
+    try {
+        const { origen, conductores } = req.body;
+        if (!origen || !conductores) {
+            return res.status(400).json({ success: false, error: 'Faltan datos requeridos: origen o conductores' });
+        }
+        const workerPath = path.resolve('src/agentes/workerDistancias.js');
+        const worker = new Worker(workerPath, {
+            workerData: { origen, conductores }
+        });
+        worker.once('message', (mejor) => {
+            res.json({ success: true, mejor });
+        });
+        worker.once('error', (err) => {
+            res.status(500).json({ success: false, error: 'Error en worker', detalle: err.message });
+        });
+        worker.once('exit', (code) => {
+            if (code !== 0) {
+                console.error('Worker salió con código', code);
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Error interno', detalle: err.message });
+    }
+});
+
+// ...el resto del archivo permanece igual...
+// --- AGENTE DE DESPACHO: Selección de mejor conductor usando worker ---
+import { Worker } from 'worker_threads';
+import path from 'path';
+
+app.post('/api/despacho/mejor-conductor', async (req, res) => {
+    try {
+        const { origen, conductores } = req.body;
+        if (!origen || !conductores) {
+            return res.status(400).json({ success: false, error: 'Faltan datos requeridos: origen o conductores' });
+        }
+        const workerPath = path.resolve('src/agentes/workerDistancias.js');
+        const worker = new Worker(workerPath, {
+            workerData: { origen, conductores }
+        });
+        worker.once('message', (mejor) => {
+            res.json({ success: true, mejor });
+        });
+        worker.once('error', (err) => {
+            res.status(500).json({ success: false, error: 'Error en worker', detalle: err.message });
+        });
+        worker.once('exit', (code) => {
+            if (code !== 0) {
+                console.error('Worker salió con código', code);
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Error interno', detalle: err.message });
+    }
+});
+
+
+
+
+
+
+// --- ENDPOINTS DE DIAGNÓSTICO (después de middlewares y rutas principales) ---
+// Colocar después de middlewares y rutas principales
+
+// ...existing code...
+
+// Middlewares globales de seguridad
+app.use(async (req, res, next) => { await getAdmin(); next(); });
+app.use(rateLimiter);
+app.use(secureHeaders);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// --- BLOQUE DE RUTAS PRINCIPALES ---
+// ...rutas principales...
+
+// --- ENDPOINTS DE DIAGNÓSTICO ---
+app.get('/api/diagnostico/conductores', async (req, res) => {
+    try {
+        const rtdb = getDatabase();
+        const snap = await rtdb.ref('conductores_activos').once('value');
+        const conductores = snap.val() || {};
+        res.json({ success: true, total: Object.keys(conductores).length, conductores });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/diagnostico/pedidos', async (req, res) => {
+    try {
+        const db = getFirestore();
+        const snapshot = await db.collection('pedidos').get();
+        const pedidos = [];
+        snapshot.forEach(doc => {
+            pedidos.push({ id: doc.id, ...doc.data() });
+        });
+        res.json({ success: true, total: pedidos.length, pedidos });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// --- BLOQUE DE RUTAS PRINCIPALES ---
+// Rutas públicas explícitas (no requieren autenticación)
+app.use('/api/public/firebase-config', (req, res, next) => next());
+app.get('/api/salud', (req, res, next) => next());
+app.get('/api/health', (req, res, next) => next());
+
+// Rutas protegidas con autenticación (excepto en entorno de test)
+
 
 let db;
 (async () => {
@@ -193,13 +330,5 @@ app.use(errorHandler);
 
 export default app;
 
-// --- AL FINAL DE TU ARCHIVO app.js ---
-// Solo iniciamos el servidor si NO estamos corriendo pruebas con Jest
-if (process.env.NODE_ENV !== 'test') {
-    // Usamos el puerto dinámico de Render o el 3000 en local
-    const PORT = process.env.PORT || 3000;
-    // El '0.0.0.0' es vital para que Render pueda conectar el tráfico externo
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 Servidor de Nelly Delivery listo y escuchando en el puerto ${PORT}`);
-    });
-}
+
+// --- El arranque del servidor ahora solo se controla desde server.js ---
