@@ -1,8 +1,7 @@
-import { getFirestore } from 'firebase-admin/firestore';
-import { getDatabase } from 'firebase-admin/database';
 
-const db = getFirestore();
-const rtdb = getDatabase();
+import { getAdmin } from '../../config/firebase-admin-esm.js';
+
+
 
 // Ciclo de evaluación (Ej. cada 3 minutos = 180000 ms)
 const INTERVALO_EVALUACION = 180000; 
@@ -10,6 +9,9 @@ const INTERVALO_EVALUACION = 180000;
 const evaluarMercado = async () => {
     try {
         console.log("📊 [Agente Financiero] Evaluando oferta y demanda en Tuxtla...");
+        const admin = await getAdmin();
+        const db = admin.firestore();
+        const rtdb = admin.database();
 
         // 1. Contar pedidos PENDIENTES (Demanda)
         const snapshotPedidos = await db.collection('pedidos')
@@ -20,7 +22,6 @@ const evaluarMercado = async () => {
         // 2. Contar conductores DISPONIBLES (Oferta)
         const snapshotConductores = await rtdb.ref('conductores_activos').once('value');
         const conductores = snapshotConductores.val() || {};
-        
         let totalConductoresLibres = 0;
         for (const id in conductores) {
             if (conductores[id].estado === 'DISPONIBLE') {
@@ -38,7 +39,6 @@ const evaluarMercado = async () => {
             nivelDemanda = "CRÍTICA";
         } else if (totalConductoresLibres > 0) {
             const ratio = totalPedidos / totalConductoresLibres;
-            
             if (ratio >= 3) {
                 // Alta demanda: 3 o más pedidos por cada repartidor libre
                 nuevoMultiplicador = 1.3;
@@ -51,7 +51,6 @@ const evaluarMercado = async () => {
         }
 
         // 4. Actualizar la configuración global en Firestore
-        // La app en Kotlin leerá este documento para mostrar "Tarifa Dinámica Activa"
         await db.collection('configuracion').doc('sistema').set({
             multiplicadorTarifa: nuevoMultiplicador,
             estadoDemanda: nivelDemanda,

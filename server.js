@@ -22,11 +22,12 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-// Definir solo el puerto 3001 para local y despliegue
-const PORT = 3001;
+// Definir el puerto usando variable de entorno o 10000 por defecto
+const PORT = process.env.PORT || 10000;
 
 if (process.env.NODE_ENV !== 'test') {
+  // 🟢 El '0.0.0.0' es vital para Render
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor de Nelly corriendo en el puerto ${PORT}`);
+    console.log(`🚀 Servidor Nelly-API escuchando en el puerto ${PORT}`);
   });
 }

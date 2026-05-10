@@ -26,7 +26,8 @@ export const loginUser = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     const { page = 1, limit = 10, name, email } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     let query = db.collection('users');
@@ -53,8 +54,18 @@ export const getUsers = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ errors: [{ msg: 'Faltan campos obligatorios' }] });
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ errors: [{ msg: 'Debe ser un email válido' }] });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ errors: [{ msg: 'La contraseña debe tener al menos 6 caracteres' }] });
+    }
     const docRef = await db.collection('users').add({ name, email, password });
     res.status(201).json({ id: docRef.id, name, email });
   } catch (error) {
@@ -64,7 +75,8 @@ export const createUser = async (req, res) => {
 
 export const getUserById = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     const doc = await db.collection('users').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ ok: false, error: 'Usuario no encontrado' });
     res.json({ user: { id: doc.id, ...doc.data() } });
@@ -75,7 +87,8 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     await db.collection('users').doc(req.params.id).update(req.body);
     res.json({ message: 'Usuario actualizado', id: req.params.id });
   } catch (e) {
@@ -85,7 +98,8 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const db = await dbPromise;
+    const admin = await getAdmin();
+    const db = admin.firestore();
     await db.collection('users').doc(req.params.id).delete();
     res.json({ message: 'Usuario eliminado', id: req.params.id });
   } catch (e) {

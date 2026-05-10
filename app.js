@@ -20,9 +20,17 @@ import secureHeaders from './src/middlewares/secureHeaders.js';
 import errorHandler from './src/middlewares/errorHandler.js';
 import { iniciarAgenteDespacho } from './src/agentes/agenteDespacho.js';
 
+import { iniciarAgenteSoporte } from './src/agentes/agenteSoporte.js';
+
 
 import express from 'express';
 const app = express();
+
+// --- INICIALIZACIÓN DE AGENTES INTELIGENTES ---
+iniciarAgenteDespacho();
+// Si tienes agentes financieros o antifraude, inicialízalos aquí
+// Inicializar agente de soporte (async)
+void iniciarAgenteSoporte();
 
 // --- BLOQUE DE RUTAS PRINCIPALES ---
 // Rutas públicas explícitas (no requieren autenticación)
@@ -316,9 +324,21 @@ app.get('/api/repartidor/status/:uid', (req, res) => {
 });
 
 // =========================================================
+
+// =========================================================
 // --- FIN DE RUTAS MOCKEADAS ---
 // =========================================================
 
+// --- VINCULACIÓN DE RUTAS DE API PRINCIPALES ---
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/ordenes', ordenesRouter);
+app.use('/api/soporte', soporteRoutes);
+app.use('/soporte', soporteRoutes);
+app.use('/api/pedidos', pedidosRouter);
+app.use('/api/repartidores', repartidoresRouter);
+app.use('/api/zonas', zonasRouter);
+app.use('/api/notificaciones', notificacionesRouter);
+app.use('/api/admin', adminRouter);
 
 // Manejador de errores 404 (Siempre debe ir al final de las rutas)
 app.use((req, res) => {
