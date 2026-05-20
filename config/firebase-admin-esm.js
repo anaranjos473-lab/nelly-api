@@ -15,8 +15,13 @@ export async function getAdmin() {
             }
         } else {
             try {
-                const __dirname = path.dirname(new URL(import.meta.url).pathname.replace(/^\/+([A-Za-z]:)/, '$1'));
-                const jsonPath = path.join(__dirname, '../nelly-admin.json');
+                // Compatibilidad multiplataforma para ruta absoluta
+                let __dirname = path.dirname(new URL(import.meta.url).pathname);
+                // Corrige rutas en Windows (quita '/' inicial si existe)
+                if (process.platform === 'win32' && __dirname.startsWith('/')) {
+                    __dirname = __dirname.slice(1);
+                }
+                const jsonPath = path.resolve(__dirname, '../nelly-admin.json');
                 const jsonData = fs.readFileSync(jsonPath, 'utf8');
                 serviceAccount = JSON.parse(jsonData);
             } catch (e) {
