@@ -35,6 +35,13 @@ jest.unstable_mockModule('firebase-admin', () => {
                 total: 250
               })
             }))
+          })),
+          where: jest.fn(() => ({
+            onSnapshot: (cb) => {
+              cb({ docChanges: () => [], size: 0 });
+              return () => {};
+            },
+            get: async () => ({ empty: true, docs: [] })
           }))
         }))
       })

@@ -5,10 +5,12 @@ import app from './app.js';
 import { iniciarAgenteDespacho, limpiarAgenteDespacho } from './src/agentes/agenteDespacho.js';
 import { iniciarAgenteFinanciero } from './src/agentes/agenteTarifaDinamica.js';
 import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
+import { iniciarAgenteSoporte } from './src/agentes/agenteSoporte.js';
 
-// Inicializar agentes inteligentes al arrancar el backend
-
+// Inicializar todos los agentes inteligentes al arrancar el backend
+// Recordatorio: Map Cloud está puenteado temporalmente, lógica de mapas simulada.
 iniciarAgenteDespacho();
+iniciarAgenteSoporte();
 iniciarAgenteFinanciero();
 iniciarAgenteAntifraude();
 

@@ -4,7 +4,19 @@ let mockOnceImpl = async () => ({ val: () => null });
 const __setMockOnce = (fn) => { mockOnceImpl = fn; };
 const mockFirestore = () => ({
   collection: () => ({
-    where: () => ({ limit: () => ({ get: async () => ({ empty: true, docs: [] }) }) }),
+    where: () => ({
+      limit: () => ({ get: async () => ({ empty: true, docs: [] }) }),
+      get: async () => ({ empty: true, docs: [] }),
+      onSnapshot: (cb) => {
+        // Simula un snapshot vacío
+        cb({
+          docChanges: () => [],
+          size: 0
+        });
+        // Devuelve función de unsuscribe
+        return () => {};
+      }
+    }),
     add: async () => ({ id: 'mockId' }),
     doc: () => ({
       get: async () => ({ exists: false, data: () => ({}) }),
