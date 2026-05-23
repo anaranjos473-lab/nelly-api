@@ -1,6 +1,16 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true
+    "repartidores_activos": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "seguridad": {
+      "alertas_panico": {
+        ".write": "auth != null",
+        ".read": "false"
+      }
+    }
   }
 }
