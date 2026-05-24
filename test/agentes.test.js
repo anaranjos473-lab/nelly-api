@@ -1,24 +1,26 @@
-// NOTA: Este test originalmente usaba node:test, pero fue adaptado a Jest para compatibilidad CI/CD y multiplataforma.
-// Si en el futuro se prefiere node:test, restaurar la versión original.
+import { test } from 'node:test';
+import assert from 'node:assert';
 
-describe('🛡️ Smoke Test: Verificación de Módulos del Sistema Multi-Agente', () => {
-    it('Agente de Despacho debe exportar la función de inicio', async () => {
+// Importaciones dinámicas para validar la sintaxis y exportaciones
+test('🛡️ Smoke Test: Verificación de Módulos del Sistema Multi-Agente', async (t) => {
+    
+    await t.test('Agente de Despacho debe exportar la función de inicio', async () => {
         const modulo = await import('../src/agentes/agenteDespacho.js');
-        expect(typeof modulo.iniciarAgenteDespacho).toBe('function');
+        assert.strictEqual(typeof modulo.iniciarAgenteDespacho, 'function');
     });
 
-    it('Agente Financiero debe exportar la función de inicio', async () => {
+    await t.test('Agente Financiero debe exportar la función de inicio', async () => {
         const modulo = await import('../src/agentes/agenteTarifaDinamica.js');
-        expect(typeof modulo.iniciarAgenteFinanciero).toBe('function');
+        assert.strictEqual(typeof modulo.iniciarAgenteFinanciero, 'function');
     });
 
-    it('Agente Antifraude debe exportar la función de inicio', async () => {
+    await t.test('Agente Antifraude debe exportar la función de inicio', async () => {
         const modulo = await import('../src/agentes/agenteAntifraude.js');
-        expect(typeof modulo.iniciarAgenteAntifraude).toBe('function');
+        assert.strictEqual(typeof modulo.iniciarAgenteAntifraude, 'function');
     });
 
-    it('Agente de Soporte debe exportar la función de inicio', async () => {
+    await t.test('Agente de Soporte debe exportar la función de inicio', async () => {
         const modulo = await import('../src/agentes/agenteSoporte.js');
-        expect(typeof modulo.iniciarAgenteSoporte).toBe('function');
+        assert.strictEqual(typeof modulo.iniciarAgenteSoporte, 'function');
     });
 });
