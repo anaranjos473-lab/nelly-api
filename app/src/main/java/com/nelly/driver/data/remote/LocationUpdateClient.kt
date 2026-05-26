@@ -12,7 +12,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class LocationUpdateClient(
-    private val endpoint: String = "https://nelly-api-8lh1.onrender.com/api/delivery/update-location"
+    private val endpoint: String = "${BuildConfig.API_BASE_URL}/api/delivery/update-location"
 ) {
 
     data class UpdateResult(

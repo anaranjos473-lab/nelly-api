@@ -30,6 +30,7 @@ local.properties
 
 # Dependencias
 node_modules/
+.jest-cache/
 
 # Archivos de respaldo
 *.bak

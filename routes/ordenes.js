@@ -1,4 +1,5 @@
 import express from 'express';
+import authMiddleware from '../src/middlewares/authMiddleware.js';
 import {
   getOrders,
   createOrder,
@@ -8,6 +9,8 @@ import {
 } from '../src/controllers/ordersController.js';
 
 const router = express.Router();
+
+router.use(authMiddleware);
 
 // Crear orden
 router.post('/', createOrder);

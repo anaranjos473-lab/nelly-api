@@ -1,10 +1,11 @@
 import { jest } from '@jest/globals';
 import request from 'supertest';
+import jwt from 'jsonwebtoken';
 
-// MOCK ESM PURO con datos inteligentes
+process.env.JWT_SECRET = 'test-orders-secret';
+
 jest.unstable_mockModule('firebase-admin', () => {
   const mockFn = jest.fn(async (path) => {
-    // Soporte: simula RTDB
     if (path && path.includes('driver_valido')) {
       return { val: () => 'token_valido_1234567890' };
     }
@@ -49,14 +50,14 @@ jest.unstable_mockModule('firebase-admin', () => {
   };
 });
 
-const admin = (await import('firebase-admin')).default;
 const { default: app } = await import('../app.js');
+const authToken = jwt.sign({ id: 'tester', email: 'tester@nelly.test' }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-describe('Órdenes API', () => {
-  it('Debe crear una orden válida', async () => {
+describe('Ordenes API', () => {
+  it('Debe crear una orden valida', async () => {
     const res = await request(app)
       .post('/api/ordenes')
-      .set('Authorization', 'Bearer tokenDePrueba') // reemplaza con un JWT válido
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: '123', items: [{ producto: 'Pizza', cantidad: 2 }], total: 250 });
 
     expect(res.statusCode).toBe(201);
@@ -67,10 +68,18 @@ describe('Órdenes API', () => {
   it('Debe rechazar orden sin items', async () => {
     const res = await request(app)
       .post('/api/ordenes')
-      .set('Authorization', 'Bearer tokenDePrueba')
+      .set('Authorization', `Bearer ${authToken}`)
       .send({ userId: '123', items: [], total: 250 });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors[0].msg).toBe('Debe incluir al menos un producto');
+  });
+
+  it('Debe rechazar orden sin token', async () => {
+    const res = await request(app)
+      .post('/api/ordenes')
+      .send({ userId: '123', items: [{ producto: 'Pizza', cantidad: 2 }], total: 250 });
+
+    expect(res.statusCode).toBe(401);
   });
 });

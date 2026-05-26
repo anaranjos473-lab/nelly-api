@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  gateway:
+    build:
+      context: ./gateway
+      target: dev
+    volumes:
+      - ./gateway/src:/app/src:delegated
+      - ./gateway/package.json:/app/package.json:ro
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "8080:8080"
+      - "9229:9229"
+    depends_on:
+      - redis
+      - assignment-service
+    networks:
+      - nelly-net
+
+  assignment-service:
+    build:
+      context: ./assignment-service
+      target: dev
+    volumes:
+      - ./assignment-service/src:/app/src:delegated
+      - ./assignment-service/package.json:/app/package.json:ro
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    ports:
+      - "3001:3001"
+      - "9230:9229"
+    networks:
+      - nelly-net
+
+  envoy:
+    build:
+      context: ./envoy
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "10000:10000"
+      - "9901:9901"
+    networks:
+      - nelly-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - nelly-net
+
+networks:
+  nelly-net:
+    driver: bridge

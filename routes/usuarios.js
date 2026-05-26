@@ -2,6 +2,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import validateRequest from '../src/middlewares/validateRequest.js';
+import authMiddleware from '../src/middlewares/authMiddleware.js';
 import {
   getUsers,
   createUser,
@@ -25,14 +26,14 @@ router.post(
   createUser
 );
 // Listar usuarios
-router.get('/', getUsers);
+router.get('/', authMiddleware, getUsers);
 // Login
 router.post('/login', loginUser);
 // Obtener usuario por ID
-router.get('/:id', getUserById);
+router.get('/:id', authMiddleware, getUserById);
 // Actualizar usuario
-router.put('/:id', updateUser);
+router.put('/:id', authMiddleware, updateUser);
 // Eliminar usuario
-router.delete('/:id', deleteUser);
+router.delete('/:id', authMiddleware, deleteUser);
 
 export default router;

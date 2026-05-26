@@ -12,7 +12,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class OrderAcceptClient(
-    private val endpoint: String = "https://nelly-api-8lh1.onrender.com/api/delivery/accept-order"
+    private val endpoint: String = "${BuildConfig.API_BASE_URL}/api/delivery/accept-order"
 ) {
 
     data class AcceptResult(

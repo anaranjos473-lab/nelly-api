@@ -1,7 +1,12 @@
-
 import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { generateToken } from '../utils/jwt.js';
-// Login de usuario
+import { hashPassword, verifyPassword } from '../utils/password.js';
+
+function publicUser(id, user) {
+  const { password, passwordHash, ...safeUser } = user;
+  return { id, ...safeUser };
+}
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -9,16 +14,25 @@ export const loginUser = async (req, res) => {
     const db = admin.firestore();
     const snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
     if (snapshot.empty) {
-      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+      return res.status(401).json({ ok: false, error: 'Credenciales invalidas' });
     }
+
     const userDoc = snapshot.docs[0];
     const user = userDoc.data();
-    if (user.password !== password) {
-      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+    const passwordOk = user.passwordHash
+      ? await verifyPassword(password, user.passwordHash)
+      : user.password === password;
+
+    if (!passwordOk) {
+      return res.status(401).json({ ok: false, error: 'Credenciales invalidas' });
     }
-    // Generar token JWT
+
+    if (!user.passwordHash) {
+      await userDoc.ref?.update?.({ passwordHash: await hashPassword(password) });
+    }
+
     const token = generateToken({ id: userDoc.id, email: user.email, name: user.name });
-    res.json({ ok: true, token, user: { id: userDoc.id, email: user.email, name: user.name } });
+    res.json({ ok: true, token, user: publicUser(userDoc.id, user) });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
@@ -38,8 +52,7 @@ export const getUsers = async (req, res) => {
       query = query.where('email', '==', email);
     }
     const snapshot = await query.get();
-    let users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Simular paginación por offset
+    const users = snapshot.docs.map((doc) => publicUser(doc.id, doc.data()));
     const paginated = users.slice(offset, offset + parseInt(limit));
     res.json({
       page: parseInt(page),
@@ -66,7 +79,8 @@ export const createUser = async (req, res) => {
     if (password.length < 6) {
       return res.status(400).json({ errors: [{ msg: 'La contraseña debe tener al menos 6 caracteres' }] });
     }
-    const docRef = await db.collection('users').add({ name, email, password });
+    const passwordHash = await hashPassword(password);
+    const docRef = await db.collection('users').add({ name, email, passwordHash });
     res.status(201).json({ id: docRef.id, name, email });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
@@ -79,7 +93,7 @@ export const getUserById = async (req, res) => {
     const db = admin.firestore();
     const doc = await db.collection('users').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ ok: false, error: 'Usuario no encontrado' });
-    res.json({ user: { id: doc.id, ...doc.data() } });
+    res.json({ user: publicUser(doc.id, doc.data()) });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
@@ -89,7 +103,12 @@ export const updateUser = async (req, res) => {
   try {
     const admin = await getAdmin();
     const db = admin.firestore();
-    await db.collection('users').doc(req.params.id).update(req.body);
+    const updateData = { ...req.body };
+    if (updateData.password) {
+      updateData.passwordHash = await hashPassword(updateData.password);
+      delete updateData.password;
+    }
+    await db.collection('users').doc(req.params.id).update(updateData);
     res.json({ message: 'Usuario actualizado', id: req.params.id });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });

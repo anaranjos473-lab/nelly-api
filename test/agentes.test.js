@@ -1,26 +1,21 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
-
-// Importaciones dinámicas para validar la sintaxis y exportaciones
-test('🛡️ Smoke Test: Verificación de Módulos del Sistema Multi-Agente', async (t) => {
-    
-    await t.test('Agente de Despacho debe exportar la función de inicio', async () => {
+describe('Smoke Test: modulos del sistema multi-agente', () => {
+    test('Agente de Despacho debe exportar la funcion de inicio', async () => {
         const modulo = await import('../src/agentes/agenteDespacho.js');
-        assert.strictEqual(typeof modulo.iniciarAgenteDespacho, 'function');
+        expect(typeof modulo.iniciarAgenteDespacho).toBe('function');
     });
 
-    await t.test('Agente Financiero debe exportar la función de inicio', async () => {
+    test('Agente Financiero debe exportar la funcion de inicio', async () => {
         const modulo = await import('../src/agentes/agenteTarifaDinamica.js');
-        assert.strictEqual(typeof modulo.iniciarAgenteFinanciero, 'function');
+        expect(typeof modulo.iniciarAgenteFinanciero).toBe('function');
     });
 
-    await t.test('Agente Antifraude debe exportar la función de inicio', async () => {
+    test('Agente Antifraude debe exportar la funcion de inicio', async () => {
         const modulo = await import('../src/agentes/agenteAntifraude.js');
-        assert.strictEqual(typeof modulo.iniciarAgenteAntifraude, 'function');
+        expect(typeof modulo.iniciarAgenteAntifraude).toBe('function');
     });
 
-    await t.test('Agente de Soporte debe exportar la función de inicio', async () => {
+    test('Agente de Soporte debe exportar la funcion de inicio', async () => {
         const modulo = await import('../src/agentes/agenteSoporte.js');
-        assert.strictEqual(typeof modulo.iniciarAgenteSoporte, 'function');
+        expect(typeof modulo.iniciarAgenteSoporte).toBe('function');
     });
 });

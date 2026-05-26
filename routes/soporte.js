@@ -54,11 +54,14 @@ const IP_WHITELIST = [
     '127.0.0.1', '::1', // Localhost
     // Agrega aquí IPs de soporte autorizadas
 ];
-const ACCESS_TOKEN = process.env.SOPORTE_TOKEN || 'nelly_soporte_2026';
+const ACCESS_TOKEN = process.env.SOPORTE_TOKEN || null;
 
 function checkAccess(req, res, next) {
     const ip = req.ip || req.connection.remoteAddress;
     const token = req.query.token || req.body.token || req.headers['x-soporte-token'];
+    if (!ACCESS_TOKEN && process.env.NODE_ENV === 'production') {
+        return res.status(503).send('<h2>Soporte no configurado</h2><p>Falta SOPORTE_TOKEN.</p>');
+    }
     if (!IP_WHITELIST.includes(ip) && token !== ACCESS_TOKEN) {
         return res.status(403).send('<h2>Acceso restringido</h2><p>Solo soporte autorizado.</p>');
     }
@@ -72,7 +75,7 @@ router.get('/verificar-token', checkAccess, (req, res) => {
         <form method="POST" action="/soporte/verificar-token">
             <label>ID del repartidor:</label>
             <input name="idConductor" required>
-            <input type="hidden" name="token" value="${ACCESS_TOKEN}">
+            ${ACCESS_TOKEN ? `<input type="hidden" name="token" value="${ACCESS_TOKEN}">` : ''}
             <button type="submit">Consultar</button>
         </form>
     `);

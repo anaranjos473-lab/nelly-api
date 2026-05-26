@@ -1,6 +1,8 @@
 import { jest } from '@jest/globals';
 import request from 'supertest';
 
+process.env.SOPORTE_TOKEN = 'test_soporte_token';
+
 // MOCK ESM PURO con datos inteligentes
 jest.unstable_mockModule('firebase-admin', () => {
   let mockFn = async () => ({ val: () => null }); // Por defecto null
@@ -65,7 +67,7 @@ describe('POST /soporte/verificar-token', () => {
     });
   });
 
-    const ACCESS_TOKEN = process.env.SOPORTE_TOKEN || 'nelly_soporte_2026';
+    const ACCESS_TOKEN = process.env.SOPORTE_TOKEN;
 
     it('debe rechazar si no hay idConductor', async () => {
         const res = await request(app)
