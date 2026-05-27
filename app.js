@@ -17,8 +17,17 @@ import { getFirebaseConfig } from './config/firebase-config.js';
 import rateLimiter from './src/middlewares/rateLimiter.js';
 import secureHeaders from './src/middlewares/secureHeaders.js';
 import errorHandler from './src/middlewares/errorHandler.js';
+import { loadEnv, validateEnv } from './src/utils/envLoader.js';
+import { validateCriticalSecrets } from './src/config/secrets.js';
+
+validateCriticalSecrets();
 
 const app = express();
+
+// Cargar variables de entorno según NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : (process.env.NODE_ENV === 'staging' ? '.env.staging' : '.env.local');
+loadEnv(envFile);
+validateEnv();
 
 app.use(secureHeaders);
 app.use(rateLimiter);

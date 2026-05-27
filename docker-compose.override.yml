@@ -7,6 +7,7 @@ services:
     volumes:
       - ./gateway/src:/app/src:delegated
       - ./gateway/package.json:/app/package.json:ro
+      - ./gateway/.env:/app/.env:ro
     environment:
       - NODE_ENV=development
     ports:
@@ -42,13 +43,6 @@ services:
     ports:
       - "10000:10000"
       - "9901:9901"
-    networks:
-      - nelly-net
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
     networks:
       - nelly-net
 
