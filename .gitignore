@@ -66,3 +66,6 @@ secrets/
 firebase*.json
 !*.example
 !.env.example
+
+# Archivos de Gradle
+.gradle/

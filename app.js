@@ -210,3 +210,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 export default app;
+
+// Arranque para Render y local
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('Servidor activo en puerto', PORT));
