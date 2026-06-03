@@ -391,7 +391,7 @@ function startDashboardPolling() {
   syncDashboardData();
   dashboardPollingId = window.setInterval(() => {
     syncDashboardData();
-  }, 5000);
+  }, 30000);
 }
 
 function stopDashboardPolling() {
