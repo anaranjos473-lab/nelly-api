@@ -21,7 +21,12 @@ const requirePanelAdminEmailAuth = async (req, res, next) => {
 
     try {
         const admin = await getAdmin();
+        console.log('[AUTH] Firebase Project ID:', process.env.FIREBASE_PROJECT_ID);
+        console.log('[AUTH] Token recibido:', !!idToken);
         const decodedToken = await admin.auth().verifyIdToken(idToken);
+        console.log('[AUTH] Token verificado OK');
+        console.log('[AUTH] UID:', decodedToken.uid);
+        console.log('[AUTH] Email:', decodedToken.email);
         const email = String(decodedToken.email || '').trim().toLowerCase();
 
         if (!email || !PANEL_ADMIN_EMAILS.has(email)) {
@@ -31,7 +36,7 @@ const requirePanelAdminEmailAuth = async (req, res, next) => {
         req.user = decodedToken;
         return next();
     } catch (error) {
-        console.error('[AUTH ERROR Panel Admin Email]:', error.message);
+        console.error('[AUTH ERROR Panel Admin Email]:', error);
         return res.status(401).json({ error: 'Token invalido o expirado' });
     }
 };

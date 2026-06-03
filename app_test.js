@@ -304,6 +304,7 @@ const requirePanelAdminEmailAuth = async (req, res, next) => {
     }
 
     try {
+        console.log('[AUTH] Verificando token');
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const email = String(decodedToken.email || '').trim().toLowerCase();
 
@@ -314,7 +315,9 @@ const requirePanelAdminEmailAuth = async (req, res, next) => {
         req.user = decodedToken;
         return next();
     } catch (error) {
-        console.error('[AUTH ERROR Panel Admin Email]:', error.message);
+        console.error('[AUTH ERROR]', error.code);
+        console.error('[AUTH ERROR]', error.message);
+        console.error('[AUTH ERROR]', error);
         return res.status(401).json({ error: 'Token invalido o expirado' });
     }
 };
