@@ -107,7 +107,8 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
         const admin = await getAdmin();
         const db = admin.database();
         const hoyStr = new Date().toISOString().split('T')[0];
-        const pedidosRef = db.ref('pedidos_activos');
+        // Consultar 'pedidos' globales en lugar de solo 'pedidos_activos'
+        const pedidosRef = db.ref('pedidos');
         const snapshot = await pedidosRef.once('value');
         const pedidos = snapshot.val();
 
@@ -120,15 +121,22 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
 
         if (pedidos) {
             Object.values(pedidos).forEach(p => {
-                if (p.estado === 'ENTREGADO' && p.fecha === hoyStr) {
-                    const total = parseFloat(p.total_pago || 0);
-                    const comision = parseFloat(p.comision_app || 0);
+                const estado = String(p.estado || p.estado_pedido || '').trim().toUpperCase();
+                
+                // Buscar cualquier campo de fecha que tenga el pedido
+                const fechaRaw = p.fecha || p.fecha_finalizado || p.fecha_creacion || p.creado || p.timestamp || '';
+                const fechaStr = typeof fechaRaw === 'number' ? new Date(fechaRaw).toISOString() : String(fechaRaw);
+                
+                // Si el estado es ENTREGADO o FINALIZADO y la fecha incluye hoy (YYYY-MM-DD)
+                if ((estado === 'ENTREGADO' || estado === 'FINALIZADO') && fechaStr.includes(hoyStr)) {
+                    const total = parseFloat(p.total_pago || p.total || p.monto || 0);
+                    const comision = parseFloat(p.comision_app || p.comision || 0);
 
                     metrics.ventasBrutas += total;
                     metrics.comisionesNelly += comision;
                     metrics.conteoEntregas++;
 
-                    const zona = p.colonia || "Zona Desconocida";
+                    const zona = p.colonia || p.zona || "Zona Desconocida";
                     metrics.mapaCalor[zona] = (metrics.mapaCalor[zona] || 0) + total;
                 }
             });
