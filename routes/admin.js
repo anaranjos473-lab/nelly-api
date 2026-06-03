@@ -51,19 +51,23 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
         const admin = await getAdmin();
         const db = admin.database();
 
-        const [usuariosSnap, repartidoresSnap] = await Promise.all([
+        const [activosSnap, usuariosSnap, repartidoresSnap] = await Promise.all([
+            db.ref('repartidores_activos').once('value'),
             db.ref('usuarios/repartidores').once('value'),
             db.ref('repartidores').once('value'),
         ]);
 
+        const activos = activosSnap.val();
         const usuarios = usuariosSnap.val();
         const repartidores = repartidoresSnap.val();
-        const source = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0
-            ? 'usuarios/repartidores'
-            : 'repartidores';
-        const drivers = source === 'usuarios/repartidores'
-            ? (usuarios || {})
-            : (repartidores || {});
+        const hasActivos = activos && typeof activos === 'object' && Object.keys(activos).length > 0;
+        const hasUsuarios = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0;
+        const source = hasActivos
+            ? 'repartidores_activos'
+            : (hasUsuarios ? 'usuarios/repartidores' : 'repartidores');
+        const drivers = source === 'repartidores_activos'
+            ? (activos || {})
+            : (source === 'usuarios/repartidores' ? (usuarios || {}) : (repartidores || {}));
 
         return res.status(200).json({
             ok: true,
