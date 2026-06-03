@@ -24,6 +24,7 @@ import { validateCriticalSecrets } from './src/config/secrets.js';
 validateCriticalSecrets();
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(cors({
     origin: [
