@@ -57,6 +57,7 @@ window.setAdminApiEndpoint = function(url) {
 const ADMIN_API_ENDPOINTS = [
   "https://nelly-api-8lh1.onrender.com"
 ];
+const ADMIN_API_TIMEOUT_MS = 15000;
 
 // Script de validación automática de nómina
 window.validarNomina = async function(uid, montoPago) {
@@ -119,6 +120,8 @@ let currentDrivers = {};
 let activeDriversBasePath = "usuarios/repartidores";
 let dashboardListenersAttached = false;
 let dashboardPollingId = null;
+let activeAdminUser = null;
+let dashboardSyncInFlight = false;
 
 function escapeHtml(value) {
   return String(value || "")
@@ -294,7 +297,7 @@ function bindToggleEvents() {
 }
 
 async function fetchAdminApi(path, options = {}) {
-  const user = auth.currentUser;
+  const user = auth.currentUser || activeAdminUser;
   if (!user) {
     throw new Error("Sesion no activa");
   }
@@ -303,9 +306,13 @@ async function fetchAdminApi(path, options = {}) {
   let lastError = new Error("Sin respuesta valida del backend");
 
   for (const baseUrl of ADMIN_API_ENDPOINTS) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), ADMIN_API_TIMEOUT_MS);
+
     try {
       const response = await fetch(`${baseUrl}${path}`, {
         ...options,
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
@@ -324,7 +331,11 @@ async function fetchAdminApi(path, options = {}) {
 
       return response.json();
     } catch (error) {
-      lastError = error;
+      lastError = error?.name === "AbortError"
+        ? new Error(`Timeout consultando ${path}`)
+        : error;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
@@ -345,6 +356,11 @@ async function refreshOrdersMetricsFromBackend() {
 }
 
 async function syncDashboardData() {
+  if (dashboardSyncInFlight) {
+    return;
+  }
+
+  dashboardSyncInFlight = true;
   try {
     await Promise.all([
       refreshDriversFromBackend(),
@@ -361,6 +377,8 @@ async function syncDashboardData() {
     document.getElementById("metric-comisiones-nelly").textContent = "$0.00";
     document.getElementById("metric-conteo-entregas").textContent = "0";
     document.getElementById("metric-mapa-calor").innerHTML = '<li class="text-slate-400 col-span-2">No disponible</li>';
+  } finally {
+    dashboardSyncInFlight = false;
   }
 }
 
@@ -496,6 +514,7 @@ ui.orderForm.addEventListener("submit", createManualOrder);
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    activeAdminUser = null;
     dashboardListenersAttached = false;
     stopDashboardPolling();
     switchToLogin();
@@ -504,12 +523,14 @@ onAuthStateChanged(auth, async (user) => {
 
   const email = String(user.email || "").toLowerCase();
   if (!isAuthorizedEmail(email)) {
+    activeAdminUser = null;
     await signOut(auth);
     switchToLogin();
     setLoginError("Sesion cerrada: correo no autorizado.");
     return;
   }
 
+  activeAdminUser = user;
   switchToDashboard(email);
   if (!dashboardListenersAttached) {
     startDashboardPolling();
