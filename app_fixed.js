@@ -562,43 +562,39 @@ app.post('/api/admin/repartidores/manual-lock', requirePanelAdminEmailAuth, asyn
 // --- MÓDULO DE INTELIGENCIA FINANCIERA NELLY ---
 app.get('/api/admin/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res) => {
     try {
-        const hoyStr = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-        const pedidosRef = admin.database().ref('pedidos_activos');
-        // Traemos los pedidos del día (puedes filtrar por timestamp si lo prefieres)
-        const snapshot = await pedidosRef.once('value');
-        const pedidos = snapshot.val();
+        const db = admin.database();
 
-        let metrics = {
-            ventasBrutas: 0,
-            comisionesNelly: 0,
-            conteoEntregas: 0,
+        const [
+            finanzasSnap,
+            historialSnap
+        ] = await Promise.all([
+            db.ref('finanzas').once('value'),
+            db.ref('historial_ventas').once('value')
+        ]);
+
+        const finanzas = finanzasSnap.val() || {};
+        const historial = historialSnap.val() || {};
+
+        const ventasBrutas = Number(finanzas.ingresosHoy || 0);
+
+        const conteoEntregas = Object.keys(historial).length;
+
+        const metrics = {
+            ventasBrutas,
+            comisionesNelly: +(ventasBrutas * 0.15).toFixed(2),
+            conteoEntregas,
             mapaCalor: {}
         };
 
-        if (pedidos) {
-            Object.values(pedidos).forEach(p => {
-                // Solo sumamos lo que ya se cobró y entregó hoy
-                if (p.estado === 'ENTREGADO' && p.fecha === hoyStr) {
-                    const total = parseFloat(p.total_pago || 0);
-                    const comision = parseFloat(p.comision_app || 0);
+        console.log(
+            `[FINANZAS] 💰 Corte de caja generado: $${metrics.ventasBrutas} brutos.`
+        );
 
-                    metrics.ventasBrutas += total;
-                    metrics.comisionesNelly += comision;
-                    metrics.conteoEntregas++;
-
-                    // Agrupación por zona (Colonia)
-                    const zona = p.colonia || "Zona Desconocida";
-                    metrics.mapaCalor[zona] = (metrics.mapaCalor[zona] || 0) + total;
-                }
-            });
-        }
-
-        console.log(`[FINANZAS] 💰 Corte de caja generado: $${metrics.ventasBrutas} brutos.`);
-        res.status(200).json(metrics);
+        return res.status(200).json(metrics);
 
     } catch (error) {
         console.error("🔥 Error en Dashboard Financiero:", error);
-        res.status(500).json({ error: "No se pudo calcular la rentabilidad" });
+        return res.status(500).json({ error: "No se pudo calcular la rentabilidad" });
     }
 });
 
