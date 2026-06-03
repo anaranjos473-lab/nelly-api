@@ -58,6 +58,7 @@ const ADMIN_API_ENDPOINTS = [
   "https://nelly-api-8lh1.onrender.com"
 ];
 const ADMIN_API_TIMEOUT_MS = 15000;
+console.log("ADMIN DASHBOARD VERSION 522db1b");
 
 // Script de validación automática de nómina
 window.validarNomina = async function(uid, montoPago) {

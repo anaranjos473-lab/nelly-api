@@ -48,35 +48,33 @@ router.get('/', (req, res) => {
 // --- ENDPOINT: LISTA DE REPARTIDORES ---
 router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
     try {
+        console.log('[ADMIN] Inicio /repartidores');
         const admin = await getAdmin();
+        console.log('[ADMIN] Firebase Admin OK');
         const db = admin.database();
 
-        const [activosSnap, usuariosSnap, repartidoresSnap] = await Promise.all([
-            db.ref('repartidores_activos').once('value'),
-            db.ref('usuarios/repartidores').once('value'),
-            db.ref('repartidores').once('value'),
-        ]);
+        console.log('[ADMIN] Leyendo repartidores_activos');
+        const activosSnap = await db.ref('repartidores_activos').once('value');
+        console.log('[ADMIN] Lectura repartidores_activos completada');
 
         const activos = activosSnap.val();
-        const usuarios = usuariosSnap.val();
-        const repartidores = repartidoresSnap.val();
-        const hasActivos = activos && typeof activos === 'object' && Object.keys(activos).length > 0;
-        const hasUsuarios = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0;
-        const source = hasActivos
-            ? 'repartidores_activos'
-            : (hasUsuarios ? 'usuarios/repartidores' : 'repartidores');
-        const drivers = source === 'repartidores_activos'
-            ? (activos || {})
-            : (source === 'usuarios/repartidores' ? (usuarios || {}) : (repartidores || {}));
+        const drivers = activos || {};
 
+        console.log('[ADMIN] Enviando respuesta /repartidores', {
+            source: 'repartidores_activos',
+            total: Object.keys(drivers).length,
+        });
         return res.status(200).json({
             ok: true,
-            source,
+            source: 'repartidores_activos',
             drivers,
         });
     } catch (error) {
-        console.error('[ADMIN][DRIVERS_LIST] Error:', error.message);
-        return res.status(500).json({ error: 'No se pudo obtener la lista de repartidores' });
+        console.error('[ADMIN][DRIVERS_LIST]', error);
+        return res.status(500).json({
+            ok: false,
+            error: error.message,
+        });
     }
 });
 
