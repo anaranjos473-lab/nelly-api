@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { Worker } from 'worker_threads';
 import path from 'path';
 import usuariosRouter from './routes/usuarios.js';
@@ -23,6 +24,15 @@ import { validateCriticalSecrets } from './src/config/secrets.js';
 validateCriticalSecrets();
 
 const app = express();
+
+app.use(cors({
+    origin: [
+        'https://nelly-delivery.web.app',
+        'http://localhost:3000',
+        'http://localhost:5173'
+    ],
+    credentials: true
+}));
 
 // Cargar variables de entorno según NODE_ENV
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : (process.env.NODE_ENV === 'staging' ? '.env.staging' : '.env.local');
