@@ -17,8 +17,12 @@
             let pedidosListenerRef = null;
             let pedidosListenerCallback = null;
 
+            const API_BASE_URL = window.location.hostname === 'nelly-delivery.web.app'
+                ? 'https://nelly-api-8lh1.onrender.com'
+                : '';
+
             async function fetchFirebaseConfig() {
-                const resp = await fetch('/api/public/firebase-config');
+                const resp = await fetch(`${API_BASE_URL}/api/public/firebase-config`);
                 if (!resp.ok) throw new Error('No se pudo obtener configuración segura');
                 return await resp.json();
             }
@@ -115,28 +119,6 @@
                         .toggle-switch input[type="checkbox"] {
                             width: 36px;
                             height: 20px;
-                            <script type="module">
-                                import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-                                const db = window.nellyDb;
-                                // Monitor de conexión
-                                onValue(ref(db, '.info/connected'), (snap) => {
-                                    const label = document.getElementById('conexion');
-                                    if (snap.val() === true) {
-                                        label.innerText = "SISTEMA ONLINE";
-                                        label.style.background = "#2ecc71";
-                                    } else {
-                                        label.innerText = "SIN CONEXIÓN";
-                                        label.style.background = "#e74c3c";
-                                    }
-                                });
-                                // Función para limpiar pedido al terminar
-                                window.entregarPedido = function(id) {
-                                    const db = window.nellyDb;
-                                    if(confirm("¿Confirmas que el pedido está listo?")) {
-                                        remove(ref(db, 'pedidos/' + id));
-                                    }
-                                }
-                            </script>
         }
         .stat-card {
             background: white;
@@ -429,6 +411,40 @@
             .column-header { padding: 12px 8px; font-size: 1rem; }
         }
     </style>
+    <script type="module">
+        import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+        function initPanelFirebaseConnection() {
+            const db = window.nellyDb;
+            if (!db) {
+                window.addEventListener('firebase-ready', initPanelFirebaseConnection, { once: true });
+                return;
+            }
+
+            const label = document.getElementById('conexion');
+            if (!label) return;
+
+            onValue(ref(db, '.info/connected'), (snap) => {
+                if (snap.val() === true) {
+                    label.innerText = "SISTEMA ONLINE";
+                    label.style.background = "#2ecc71";
+                } else {
+                    label.innerText = "SIN CONEXIÓN";
+                    label.style.background = "#e74c3c";
+                }
+            });
+
+            window.entregarPedido = function(id) {
+                const db = window.nellyDb;
+                if (!db) return;
+                if (confirm("¿Confirmas que el pedido está listo?")) {
+                    remove(ref(db, 'pedidos/' + id));
+                }
+            };
+        }
+
+        initPanelFirebaseConnection();
+    </script>
 </head>
 <body>
 
@@ -601,6 +617,32 @@
     </script>
 
     <script type="module">
+        import "./test_evidencia.js";
+        import { db, auth, rtdb } from "./firebase.js";
+        import {
+            doc,
+            onSnapshot,
+            serverTimestamp,
+            setDoc,
+            updateDoc,
+            increment
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        import {
+            onAuthStateChanged,
+            signInWithCustomToken
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            equalTo,
+            onChildAdded,
+            onChildChanged,
+            onChildRemoved,
+            onValue,
+            orderByChild,
+            query,
+            ref,
+            set
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
             // Mostrar/ocultar modal del mapa de repartidores activos
             window.addEventListener('DOMContentLoaded', () => {
                 const btnMapa = document.getElementById('btn-mapa-repartidores');
@@ -611,9 +653,6 @@
                     btnCerrarMapa.onclick = () => { modalMapa.style.display = 'none'; };
                 }
             });
-        import "./test_evidencia.js";
-        // --- INTEGRACIÓN DE PRUEBA AUTOMATIZADA CHAT NELLY ---
-        // import "./test_chat_listener.js"; // Desactivado para evitar error de módulos
 
                 // --- Cargar Leaflet y Heatmap.js dinámicamente ---
                 function cargarLeafletYHeatmap(cb) {
@@ -649,7 +688,7 @@
                                     attribution: '© OpenStreetMap contributors'
                                 }).addTo(mapa);
                             }
-                            fetch('/api/auditoria/heatmap-tuxtla', { headers: { 'x-panel-key': localStorage.getItem('NELLY_PANEL_KEY') || '' } })
+                            fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auditoria/heatmap-tuxtla`, { headers: { 'x-panel-key': localStorage.getItem('NELLY_PANEL_KEY') || '' } })
                                 .then(r => r.json())
                                 .then(data => {
                                     if (!data.ok) throw new Error('No se pudo cargar heatmap');
@@ -664,30 +703,6 @@
                         seccionHeatmap.style.display = 'none';
                     };
                 });
-        import { db, auth, rtdb } from "./firebase.js";
-        import {
-            doc,
-            onSnapshot,
-            serverTimestamp,
-            setDoc,
-            updateDoc,
-            increment
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-        import {
-            onAuthStateChanged,
-            signInWithCustomToken
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-        import {
-            equalTo,
-            onChildAdded,
-            onChildChanged,
-            onChildRemoved,
-            onValue,
-            orderByChild,
-            query,
-            ref,
-            set
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
             // Mostrar/ocultar sección historial
             window.addEventListener('DOMContentLoaded', () => {
@@ -783,7 +798,7 @@
                     const payload = {
                         content: `📊 Snapshot métricas panel (${location.pathname}):\n\n${'```json\n' + JSON.stringify(data, null, 2) + '\n```'}`
                     };
-                    const resp = await fetch('/api/monitoreo/discord', {
+                    const resp = await fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/monitoreo/discord`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -798,7 +813,7 @@
                 try {
                     const motivo = prompt('Motivo de la alerta operativa:');
                     if (!motivo) return;
-                    const resp = await fetch('/api/monitoreo/alerta', {
+                    const resp = await fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/monitoreo/alerta`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ motivo })
@@ -1009,7 +1024,7 @@
         };
         let metricasInicioMs = Date.now();
         const PANEL_TOKEN_ENDPOINTS = [
-            "https://nelly-api-8lh1.onrender.com/api/auth/panel-token"
+            `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auth/panel-token`
         ];
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
