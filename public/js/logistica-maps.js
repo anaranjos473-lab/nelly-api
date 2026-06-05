@@ -1,4 +1,5 @@
 // public/js/logistica-maps.js
+console.log("LOGISTICA MAPS CARGADO");
 // Mapa de calor de pedidos en Tuxtla Gutiérrez
 let map, heatmap, repartidorMarkers = [], repartidoresVisible = true;
 
@@ -56,34 +57,7 @@ function initMap() {
         });
     }
 
-    // --- Pedidos (Heatmap, Firestore) ---
-    if (!window.firebase?.firestore) {
-        alert('Firestore SDK no cargado');
-        return;
-    }
-    const pedidosRef = firebase.firestore().collection("pedidos");
-    pedidosRef.onSnapshot((snapshot) => {
-        const puntosCalor = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.ubicacion) {
-                puntosCalor.push(new google.maps.LatLng(data.ubicacion.lat, data.ubicacion.lng));
-            }
-        });
-        // --- Radio dinámico ---
-        let radio = 60;
-        if (puntosCalor.length > 40) radio = 20;
-        else if (puntosCalor.length > 20) radio = 30;
-        else if (puntosCalor.length > 10) radio = 40;
-        else if (puntosCalor.length > 3) radio = 50;
-
-        if (heatmap) heatmap.setMap(null);
-        heatmap = new google.maps.visualization.HeatmapLayer({
-            data: puntosCalor,
-            map: map,
-            radius: radio,
-            opacity: 0.7
-        });
-    });
+    // Heatmap deshabilitado temporalmente
 }
 window.initMap = initMap;
+console.log("INITMAP REGISTRADO");

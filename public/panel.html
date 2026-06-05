@@ -605,8 +605,8 @@
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
     <!-- Bloque compat de Firebase eliminado. Usar solo inicialización modular con type=module. -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E&libraries=visualization&callback=initMap" async defer></script>
-    <script src="js/logistica-maps.js"></script>
+    <script type="module" src="js/logistica-maps.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUppCEqg5YQ4UvTNxGQHRUy4H2YA3t08Q&libraries=visualization&callback=initMap" async defer></script>
 
     <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicialización -->
                 markersRepartidores.push(marker);
@@ -685,24 +685,7 @@
                     let mapa = null;
                     let capaHeat = null;
                     btnHeatmap.onclick = () => {
-                        seccionHeatmap.style.display = 'block';
-                        cargarLeafletYHeatmap(() => {
-                            if (!mapa) {
-                                mapa = L.map('mapa-heatmap').setView([16.75, -93.12], 13);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                    attribution: '© OpenStreetMap contributors'
-                                }).addTo(mapa);
-                            }
-                            fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auditoria/heatmap-tuxtla`, { headers: { 'x-panel-key': localStorage.getItem('NELLY_PANEL_KEY') || '' } })
-                                .then(r => r.json())
-                                .then(data => {
-                                    if (!data.ok) throw new Error('No se pudo cargar heatmap');
-                                    const puntos = data.puntos.map(p => [p.lat, p.lng, 0.5]);
-                                    if (capaHeat) capaHeat.remove();
-                                    capaHeat = L.heatLayer(puntos, { radius: 25, blur: 18, maxZoom: 16 }).addTo(mapa);
-                                })
-                                .catch(() => alert('Error al cargar mapa de calor.'));
-                        });
+                        alert('Heatmap temporalmente deshabilitado');
                     };
                     btnCerrarHeatmap.onclick = () => {
                         seccionHeatmap.style.display = 'none';
@@ -1450,9 +1433,15 @@
 
             try {
                 let response = null;
+                const bootstrapToken = window.AUTH_BOOTSTRAP_TOKEN || '';
                 for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
                     try {
-                        const candidate = await fetch(endpoint, { method: "GET" });
+                        const candidate = await fetch(endpoint, { 
+                            method: "GET",
+                            headers: {
+                                'x-auth-bootstrap-token': bootstrapToken
+                            }
+                        });
                         if (candidate.ok) {
                             response = candidate;
                             break;
