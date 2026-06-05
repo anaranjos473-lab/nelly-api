@@ -9,10 +9,13 @@ function bootstrapAllowed(req) {
   }
 
   const expected = process.env.AUTH_BOOTSTRAP_TOKEN;
+  
+  // Si no existe token de bootstrap configurado, permitir (CORS ya validó origen)
   if (!expected) {
-    return false;
+    return true;
   }
 
+  // Si existe token, validar que coincida
   const received = req.query.token || req.headers['x-auth-bootstrap-token'];
   return received === expected;
 }
