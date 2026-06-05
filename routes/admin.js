@@ -143,4 +143,43 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
     }
 });
 
+// --- ENDPOINT: CREAR PEDIDO ---
+router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const { cliente_nombre, telefono, direccion, monto, descripcion } = req.body;
+
+        if (!cliente_nombre || !telefono || !direccion || typeof monto !== 'number') {
+            return res.status(400).json({ error: 'Faltan campos obligatorios o formato invalido' });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+
+        const timestamp = Date.now();
+        const pedidoId = `PED_${timestamp}`;
+
+        const nuevoPedido = {
+            id: pedidoId,
+            cliente_nombre: String(cliente_nombre).trim(),
+            telefono: String(telefono).trim(),
+            direccion: String(direccion).trim(),
+            descripcion: String(descripcion || '').trim(),
+            monto: Number(monto.toFixed(2)),
+            estado: 'pendiente',
+            repartidor_id: null,
+            fecha_creacion: timestamp,
+            origen: 'panel_admin'
+        };
+
+        await db.ref(`pedidos/${pedidoId}`).set(nuevoPedido);
+
+        console.log(`[ADMIN] Pedido creado: ${pedidoId}`);
+
+        return res.status(201).json({ ok: true, id: pedidoId, pedido: nuevoPedido });
+    } catch (error) {
+        console.error('[ADMIN][CREATE_ORDER] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo crear el pedido' });
+    }
+});
+
 export default router;

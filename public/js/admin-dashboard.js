@@ -419,66 +419,43 @@ async function createManualOrder(event) {
   }
 
   try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("Sesion no activa");
+    }
+
+    const idToken = await user.getIdToken();
+    let created = false;
     let pedidoId = null;
-    try {
-      const orderRef = push(ref(rtdb, "pedidos_activos"));
-      const now = Date.now();
 
-      await set(orderRef, {
-        id_pedido: orderRef.key,
-        cliente_nombre: client,
-        telefono: phone,
-        direccion: address,
-        monto: Number(amount.toFixed(2)),
-        descripcion: notes || "Pedido telefonico",
-        origen: "panel_admin",
-        created_at: now,
-        logistica: {
-          estado: driverId ? "en_reparto" : "pendiente",
-          repartidor_id: driverId || null,
-          manual: true
+    for (const baseUrl of ADMIN_API_ENDPOINTS) {
+      try {
+        const response = await fetch(`${baseUrl}/api/admin/pedidos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`
+          },
+          body: JSON.stringify({
+            cliente_nombre: client,
+            telefono: phone,
+            direccion: address,
+            monto: Number(amount.toFixed(2)),
+            descripcion: notes || "Pedido telefonico"
+          })
+        });
+
+        if (response.ok) {
+          const payload = await response.json();
+          pedidoId = payload?.id || null;
+          created = true;
+          break;
         }
-      });
-      pedidoId = orderRef.key;
-    } catch (_rtdbError) {
-      const user = auth.currentUser;
-      if (!user) {
-        throw new Error("Sesion no activa");
-      }
+      } catch (_networkError) {}
+    }
 
-      const idToken = await user.getIdToken();
-      let created = false;
-
-      for (const baseUrl of ADMIN_API_ENDPOINTS) {
-        try {
-          const response = await fetch(`${baseUrl}/api/admin/pedidos/manual`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${idToken}`
-            },
-            body: JSON.stringify({
-              cliente_nombre: client,
-              telefono: phone,
-              direccion: address,
-              monto: Number(amount.toFixed(2)),
-              descripcion: notes || "Pedido telefonico",
-              repartidor_id: driverId || null
-            })
-          });
-
-          if (response.ok) {
-            const payload = await response.json();
-            pedidoId = payload?.pedidoId || null;
-            created = true;
-            break;
-          }
-        } catch (_networkError) {}
-      }
-
-      if (!created) {
-        throw new Error("No se pudo crear pedido en RTDB ni backend");
-      }
+    if (!created) {
+      throw new Error("No se pudo crear pedido en backend");
     }
 
     ui.orderForm.reset();
