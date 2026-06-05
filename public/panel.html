@@ -643,6 +643,11 @@
             set
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
+        const API_BASE_URL =
+            window.location.hostname === 'nelly-delivery.web.app'
+                ? 'https://nelly-api-8lh1.onrender.com'
+                : '';
+
             // Mostrar/ocultar modal del mapa de repartidores activos
             window.addEventListener('DOMContentLoaded', () => {
                 const btnMapa = document.getElementById('btn-mapa-repartidores');
