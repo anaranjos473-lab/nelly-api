@@ -135,8 +135,9 @@ app.get('/api/diagnostico/conductores', requireDiagnosticAccess, async (req, res
 app.get('/api/diagnostico/pedidos', requireDiagnosticAccess, async (req, res, next) => {
     try {
         const admin = await getAdmin();
-        const snapshot = await admin.firestore().collection('pedidos').get();
-        const pedidos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const snapshot = await admin.database().ref('pedidos').once('value');
+        const pedidosObj = snapshot.val() || {};
+        const pedidos = Object.entries(pedidosObj).map(([id, pedido]) => ({ id, ...pedido }));
         res.json({ success: true, total: pedidos.length, pedidos });
     } catch (error) {
         next(error);

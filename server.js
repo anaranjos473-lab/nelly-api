@@ -3,21 +3,25 @@ import { iniciarAgenteDespacho, limpiarAgenteDespacho } from './src/agentes/agen
 import { iniciarAgenteFinanciero } from './src/agentes/agenteTarifaDinamica.js';
 import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
 import { iniciarAgenteSoporte } from './src/agentes/agenteSoporte.js';
+import { iniciarFirestoreRtdbBridge, limpiarFirestoreRtdbBridge } from './src/services/firestoreRtdbBridgeService.js';
 
 async function iniciarAgentes() {
   iniciarAgenteDespacho();
   iniciarAgenteFinanciero();
   iniciarAgenteAntifraude();
   await iniciarAgenteSoporte();
+  await iniciarFirestoreRtdbBridge();
 }
 
 // Limpieza de listeners al cerrar el proceso
 process.on('SIGINT', () => {
   limpiarAgenteDespacho();
+  limpiarFirestoreRtdbBridge();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
   limpiarAgenteDespacho();
+  limpiarFirestoreRtdbBridge();
   process.exit(0);
 });
 

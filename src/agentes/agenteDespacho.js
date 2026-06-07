@@ -1,4 +1,3 @@
-
 import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { Worker } from 'worker_threads';
 import path from 'path';
@@ -6,60 +5,66 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+let pedidosListener = null;
 
-let db, rtdb;
-let unsubscribePedidos = null;
 async function initFirebaseRefs() {
     const admin = await getAdmin();
-    db = admin.firestore();
-    rtdb = admin.database();
+    return admin.database();
 }
 
-
-
 export const iniciarAgenteDespacho = async () => {
-	await initFirebaseRefs();
-	console.log("🕵️ Agente de Despacho Nelly activo...");
+    const rtdb = await initFirebaseRefs();
+    console.log('🕵️ Agente de Despacho Nelly activo...');
 
-	// Si ya hay un listener activo, lo limpiamos antes de crear uno nuevo
-	if (typeof unsubscribePedidos === 'function') {
-		unsubscribePedidos();
-		unsubscribePedidos = null;
-	}
+    if (pedidosListener) {
+        pedidosListener.off('child_added');
+        pedidosListener.off('child_changed');
+        pedidosListener = null;
+    }
 
-	unsubscribePedidos = db.collection('pedidos').where('estado', '==', 'PENDIENTE').onSnapshot(async (snap) => {
-		snap.docChanges().forEach(async (change) => {
-			if (change.type === 'added') {
-				const pedido = change.doc.data();
-				const pedidoId = change.doc.id;
+    const pedidosRef = rtdb.ref('pedidos');
+    pedidosListener = pedidosRef.orderByChild('estado').equalTo('pendiente');
 
-				const conductoresSnap = await rtdb.ref('conductores_activos').once('value');
-				const conductores = conductoresSnap.val();
+    const handlePendiente = async (snapshot) => {
+        const pedido = snapshot.val();
+        const pedidoId = snapshot.key;
+        if (!pedido || pedido.estado !== 'pendiente') return;
 
-				if (!conductores) return;
+        const conductoresSnap = await rtdb.ref('conductores_activos').once('value');
+        const conductores = conductoresSnap.val();
+        if (!conductores) return;
 
-				const worker = new Worker(path.join(__dirname, 'workerDistancias.js'), {
-					workerData: { origen: { lat: pedido.latTienda, lng: pedido.lngTienda }, conductores }
-				});
+        const worker = new Worker(path.join(__dirname, 'workerDistancias.js'), {
+            workerData: {
+                origen: { lat: pedido.latTienda, lng: pedido.lngTienda },
+                conductores
+            }
+        });
 
-				worker.on('message', async (mejor) => {
-					if (mejor) {
-						await db.collection('pedidos').doc(pedidoId).update({
-							conductorId: mejor.id,
-							estado: 'EN_CURSO'
-						});
-						console.log(`✅ Pedido ${pedidoId} asignado a ${mejor.id}`);
-					}
-				});
-			}
-		});
-	});
+        worker.on('message', async (mejor) => {
+            if (!mejor || !pedidoId) return;
+            await rtdb.ref(`pedidos/${pedidoId}`).update({
+                conductorId: mejor.id,
+                estado: 'en_curso',
+                timestampActualizacion: Date.now()
+            });
+            console.log(`✅ Pedido ${pedidoId} asignado a ${mejor.id}`);
+        });
+
+        worker.on('error', (error) => {
+            console.error(`❌ Error worker despacho pedido ${pedidoId}:`, error);
+        });
+    };
+
+    pedidosListener.on('child_added', handlePendiente);
+    pedidosListener.on('child_changed', handlePendiente);
 };
 
 export const limpiarAgenteDespacho = () => {
-	if (typeof unsubscribePedidos === 'function') {
-		unsubscribePedidos();
-		unsubscribePedidos = null;
-		console.log('🧹 Listener de pedidos (agente despacho) limpiado.');
-	}
+    if (pedidosListener) {
+        pedidosListener.off('child_added');
+        pedidosListener.off('child_changed');
+        pedidosListener = null;
+        console.log('🧹 Listener de pedidos (agente despacho) limpiado.');
+    }
 };
