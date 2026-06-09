@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.nelly.driver.R
 import com.nelly.driver.data.local.PedidoDao
@@ -15,6 +16,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PedidoRepository(
@@ -27,8 +31,12 @@ class PedidoRepository(
     private val appContext = context.applicationContext
     private val syncScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private var listener: ValueEventListener? = null
+    private var connectedListener: ValueEventListener? = null
     private val idsPrevios = mutableSetOf<String>()
     private var cargaInicialCompletada = false
+    private val _syncEventos = MutableStateFlow("IDLE")
+    val syncEventos: StateFlow<String> = _syncEventos.asStateFlow()
+    private val conexionRef: DatabaseReference = FirebaseDatabase.getInstance().getReference(".info/connected")
 
     fun observarPedidos(): Flow<List<PedidoEntity>> = pedidoDao.obtenerTodosLosPedidos()
 
@@ -39,6 +47,9 @@ class PedidoRepository(
         if (listener != null) {
             return
         }
+
+        startConnectionListener()
+        _syncEventos.value = "ROOM_SYNC_STARTED"
 
         listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -64,23 +75,54 @@ class PedidoRepository(
                     if (pedidos.isNotEmpty()) {
                         pedidoDao.insertarPedidos(pedidos)
                     }
+                    _syncEventos.value = "ROOM_SYNC_FINISHED"
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
+                _syncEventos.value = "ERROR_SYNC"
                 onError("RTDB listener cancelado", error.toException())
             }
         }
 
+        pedidosRef.keepSynced(true)
         pedidosRef.addValueEventListener(listener!!)
     }
 
     fun detenerSincronizacion() {
         val current = listener ?: return
         pedidosRef.removeEventListener(current)
+        pedidosRef.keepSynced(false)
+        stopConnectionListener()
         listener = null
         idsPrevios.clear()
         cargaInicialCompletada = false
+        _syncEventos.value = "STOPPED"
+    }
+
+    private fun startConnectionListener() {
+        if (connectedListener != null) {
+            return
+        }
+
+        connectedListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val connected = snapshot.getValue(Boolean::class.java) == true
+                _syncEventos.value = if (connected) "NETWORK_RESTORED" else "NETWORK_LOST"
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Connection info listener is advisory; keep sync state unchanged.
+            }
+        }
+
+        conexionRef.addValueEventListener(connectedListener!!)
+    }
+
+    private fun stopConnectionListener() {
+        val current = connectedListener ?: return
+        conexionRef.removeEventListener(current)
+        connectedListener = null
     }
 
     private fun reproducirNotificacionPedido() {

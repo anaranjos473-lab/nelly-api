@@ -35,11 +35,20 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private lateinit var pedidoAdapter: PedidoAdapter
     private lateinit var txtEstadoSync: TextView
     private lateinit var txtVacio: TextView
+    private var currentSyncState = "IDLE"
+    private var currentSyncEvent = "IDLE"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pedidos_disponibles)
         validarVersionEcosistema()
+
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            Log.i(TAG, "SESSION_RECOVERED: ${currentUser.uid}")
+        } else {
+            Log.i(TAG, "SESSION_NOT_RECOVERED")
+        }
 
         txtEstadoSync = findViewById(R.id.txtEstadoSync)
         txtVacio = findViewById(R.id.txtVacio)
@@ -75,6 +84,7 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
         observarPedidos()
         observarEstadoSync()
+        observarEventosSync()
         observarBloqueoDeuda()
     }
 
@@ -105,9 +115,23 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarEstadoSync() {
         uiScope.launch {
             viewModel.syncEstado.collect { estado ->
-                txtEstadoSync.text = "Estado: $estado"
+                currentSyncState = estado
+                actualizarEstadoSync()
             }
         }
+    }
+
+    private fun observarEventosSync() {
+        uiScope.launch {
+            viewModel.syncEventos.collect { evento ->
+                currentSyncEvent = evento
+                actualizarEstadoSync()
+            }
+        }
+    }
+
+    private fun actualizarEstadoSync() {
+        txtEstadoSync.text = "Estado: $currentSyncState • Evento: $currentSyncEvent"
     }
 
     private fun observarBloqueoDeuda() {

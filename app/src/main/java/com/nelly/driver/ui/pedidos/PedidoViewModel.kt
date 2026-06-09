@@ -16,6 +16,7 @@ class PedidoViewModel(
 
     private val _syncEstado = MutableStateFlow("IDLE")
     val syncEstado: StateFlow<String> = _syncEstado.asStateFlow()
+    val syncEventos: StateFlow<String> = repository.syncEventos
     private val _bloqueoDeuda = MutableStateFlow(false)
     val bloqueoDeuda: StateFlow<Boolean> = _bloqueoDeuda.asStateFlow()
 
