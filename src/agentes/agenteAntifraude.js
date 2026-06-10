@@ -8,20 +8,38 @@ const calcularDistancia = (lat1, lon1, lat2, lon2) => {
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(Math.sqrt(a) * Math.sqrt(1 - a)), Math.sqrt(1 - a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 };
 
+const obtenerRadioAntifraudeKm = async (rtdb) => {
+    try {
+        const snapshot = await rtdb.ref('configuracion/sistema/radio_antifraude_metros').once('value');
+        const radioMetros = Number(snapshot.val());
+        if (Number.isFinite(radioMetros) && radioMetros > 0) {
+            return radioMetros / 1000;
+        }
+    } catch (error) {
+        console.warn('⚠️ [Antifraude] No se pudo leer radio_antifraude_metros, usando valor por defecto.', error.message);
+    }
+
+    return 0.5;
+};
+
 export const auditarEntrega = async ({ pedido, datosConductor, pedidoId, rtdb }) => {
-    if (!datosConductor || !datosConductor.lat || !datosConductor.lng) {
+    if (
+        !datosConductor ||
+        datosConductor.lat == null ||
+        datosConductor.lng == null
+    ) {
         console.log(`⚠️ [Alerta Menor] GPS no encontrado para el conductor ${pedido.conductorId} en el momento de la entrega.`);
         return { alerta: 'gps_faltante' };
     }
 
-    const latDestino = pedido.latCliente || pedido.latTienda || pedido.lat_cliente || pedido.lat;
-    const lngDestino = pedido.lngCliente || pedido.lngTienda || pedido.lng_cliente || pedido.lng;
+    const latDestino = pedido.latCliente ?? pedido.latTienda ?? pedido.lat_cliente ?? pedido.lat;
+    const lngDestino = pedido.lngCliente ?? pedido.lngTienda ?? pedido.lng_cliente ?? pedido.lng;
     console.log('Destino:', { latDestino, lngDestino });
-    if (!latDestino || !lngDestino) {
+    if (latDestino == null || lngDestino == null) {
         console.log(`⚠️ [Alerta Menor] Coordenadas de destino no encontradas en el pedido ${pedidoId}.`);
         return { alerta: 'destino_faltante' };
     }
@@ -30,16 +48,18 @@ export const auditarEntrega = async ({ pedido, datosConductor, pedidoId, rtdb })
         datosConductor.lat, datosConductor.lng,
         latDestino, lngDestino
     );
+    const radioAntifraudeKm = await obtenerRadioAntifraudeKm(rtdb);
     console.log('Distancia calculada (km):', distanciaReal);
 
-    if (distanciaReal > 0.5) {
+    if (distanciaReal > radioAntifraudeKm) {
         console.log(`🚨 [FRAUDE DETECTADO] Conductor ${pedido.conductorId} marcó entregado a ${distanciaReal.toFixed(2)} km de distancia.`);
         if (rtdb) {
             const refConductor = rtdb.ref(`conductores_activos/${pedido.conductorId}`);
             await rtdb.ref(`pedidos/${pedidoId}`).update({
                 alertaFraude: true,
                 distanciaFalloKm: distanciaReal,
-                notasAuditoria: 'Marcado como entregado fuera del radio permitido.'
+                notasAuditoria: 'Marcado como entregado fuera del radio permitido.',
+                radioAntifraudeKm
             });
             await refConductor.update({ estado: 'EN_REVISION' });
         }

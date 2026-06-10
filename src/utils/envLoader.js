@@ -18,6 +18,18 @@ function failFastIfMissing(vars) {
   }
 }
 
+function hasFirebaseAdminCredentials() {
+  return Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT ||
+    process.env.FIREBASE_ADMIN_JSON ||
+    (
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      process.env.FIREBASE_PRIVATE_KEY
+    )
+  );
+}
+
 export function loadEnv(envFile = '.env.local') {
   const envPath = path.resolve(process.cwd(), envFile);
   if (fs.existsSync(envPath)) {
@@ -32,9 +44,6 @@ export function loadEnv(envFile = '.env.local') {
 
 export function validateEnv() {
   const required = {
-    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
-    FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
-    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
     FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL,
     REDIS_URL: process.env.REDIS_URL,
     JWT_SECRET: process.env.JWT_SECRET,
@@ -42,6 +51,12 @@ export function validateEnv() {
     RENDER_API_KEY: process.env.RENDER_API_KEY
   };
   failFastIfMissing(required);
+
+  if (!hasFirebaseAdminCredentials()) {
+    console.error('❌ FALTA credencial Firebase Admin compatible con el backend');
+    throw new Error('Faltan credenciales compatibles de Firebase Admin. Deteniendo startup.');
+  }
+
   // Log seguro (masking)
   Object.entries(required).forEach(([k, v]) => {
     console.log(`ENV ${k}: ${maskSecret(v)}`);

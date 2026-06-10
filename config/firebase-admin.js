@@ -14,13 +14,16 @@ export async function getAdmin() {
             }
         } else {
             try {
-                serviceAccount = await import('../nelly-admin.json', { assert: { type: 'json' } }).then(m => m.default);
+                serviceAccount = await import('../nelly-admin.json', { with: { type: 'json' } }).then(m => m.default);
             } catch (e) {
                 console.error('❌ No se encontró FIREBASE_SERVICE_ACCOUNT ni nelly-admin.json:', e.message);
             }
         }
         if (serviceAccount) {
-            admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+            admin.initializeApp({ 
+                credential: admin.credential.cert(serviceAccount),
+                databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com'
+            });
             console.log('🔥 Firebase Admin inicializado correctamente');
         }
         initialized = true;

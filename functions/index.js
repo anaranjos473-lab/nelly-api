@@ -13,31 +13,54 @@ const calcularDistancia = (lat1, lon1, lat2, lon2) => {
     return R * c;
 };
 
-exports.antifraudePedidoEntregado = functions.firestore
-    .document('pedidos/{pedidoId}')
+const obtenerRadioAntifraudeKm = async () => {
+    try {
+        const snapshot = await admin.database().ref('configuracion/sistema/radio_antifraude_metros').once('value');
+        const radioMetros = Number(snapshot.val());
+        if (Number.isFinite(radioMetros) && radioMetros > 0) {
+            return radioMetros / 1000;
+        }
+    } catch (error) {
+        console.warn('[Antifraude] No se pudo leer radio_antifraude_metros, usando valor por defecto.', error.message);
+    }
+
+    return 0.5;
+};
+
+const esEstadoEntregado = (estado) => {
+    const normalizado = String(estado || '').trim().toLowerCase();
+    return normalizado === 'entregado';
+};
+
+exports.antifraudePedidoEntregado = functions.database
+    .ref('/pedidos/{pedidoId}')
     .onUpdate(async (change, context) => {
-        const before = change.before.data();
-        const after = change.after.data();
+        const before = change.before.val() || {};
+        const after = change.after.val() || {};
         const pedidoId = context.params.pedidoId;
 
-        // Solo auditar si el estado cambió a ENTREGADO
-        if (before.estado !== 'ENTREGADO' && after.estado === 'ENTREGADO' && after.conductorId) {
-            console.log(`[Antifraude] Pedido ${pedidoId} marcado como ENTREGADO. Iniciando auditoría...`);
+        // Solo auditar si el estado cambió a entregado
+        if (!esEstadoEntregado(before.estado) && esEstadoEntregado(after.estado) && after.conductorId) {
+            console.log(`[Antifraude] Pedido ${pedidoId} marcado como entregado. Iniciando auditoría...`);
             try {
                 // Obtener última ubicación del conductor en RTDB
                 const refConductor = admin.database().ref(`conductores_activos/${after.conductorId}`);
                 const snapshotConductor = await refConductor.once('value');
                 const datosConductor = snapshotConductor.val();
 
-                if (!datosConductor || !datosConductor.lat || !datosConductor.lng) {
+                if (
+                    !datosConductor ||
+                    datosConductor.lat == null ||
+                    datosConductor.lng == null
+                ) {
                     console.log(`[Antifraude] GPS no encontrado para el conductor ${after.conductorId}.`);
                     return null;
                 }
 
                 // Usar latCliente/lngCliente si existen, si no latTienda/lngTienda
-                const latDestino = after.latCliente || after.latTienda;
-                const lngDestino = after.lngCliente || after.lngTienda;
-                if (!latDestino || !lngDestino) {
+                const latDestino = after.latCliente ?? after.latTienda;
+                const lngDestino = after.lngCliente ?? after.lngTienda;
+                if (latDestino == null || lngDestino == null) {
                     console.log(`[Antifraude] Coordenadas de destino no encontradas en el pedido ${pedidoId}.`);
                     return null;
                 }
@@ -46,14 +69,16 @@ exports.antifraudePedidoEntregado = functions.firestore
                     datosConductor.lat, datosConductor.lng,
                     latDestino, lngDestino
                 );
+                const radioAntifraudeKm = await obtenerRadioAntifraudeKm();
 
-                if (distancia > 0.5) {
+                if (distancia > radioAntifraudeKm) {
                     console.log(`[FRAUDE DETECTADO] Pedido ${pedidoId} entregado a ${distancia.toFixed(2)} km del destino.`);
                     // Marcar pedido y conductor
                     await change.after.ref.update({
                         alertaFraude: true,
                         distanciaFalloKm: distancia,
-                        notasAuditoria: "Marcado como entregado fuera del radio permitido."
+                        notasAuditoria: "Marcado como entregado fuera del radio permitido.",
+                        radioAntifraudeKm
                     });
                     await refConductor.update({ estado: 'EN_REVISION' });
                 } else {

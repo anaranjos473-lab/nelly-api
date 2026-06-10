@@ -10,14 +10,17 @@ const evaluarMercado = async () => {
     try {
         console.log("📊 [Agente Financiero] Evaluando oferta y demanda en Tuxtla...");
         const admin = await getAdmin();
-        const db = admin.firestore();
         const rtdb = admin.database();
 
-        // 1. Contar pedidos PENDIENTES (Demanda)
-        const snapshotPedidos = await db.collection('pedidos')
-            .where('estado', '==', 'PENDIENTE')
-            .get();
-        const totalPedidos = snapshotPedidos.size;
+        // 1. Contar pedidos pendientes (Demanda)
+        const snapshotPedidos = await rtdb.ref('pedidos').once('value');
+        const pedidos = snapshotPedidos.val() || {};
+        let totalPedidos = 0;
+        for (const pedido of Object.values(pedidos)) {
+            if (pedido?.estado === 'PENDIENTE' || pedido?.estado === 'pendiente') {
+                totalPedidos++;
+            }
+        }
 
         // 2. Contar conductores DISPONIBLES (Oferta)
         const snapshotConductores = await rtdb.ref('conductores_activos').once('value');
@@ -50,12 +53,12 @@ const evaluarMercado = async () => {
             }
         }
 
-        // 4. Actualizar la configuración global en Firestore
-        await db.collection('configuracion').doc('sistema').set({
+        // 4. Actualizar la configuración global en RTDB
+        await rtdb.ref('configuracion/sistema').update({
             multiplicadorTarifa: nuevoMultiplicador,
             estadoDemanda: nivelDemanda,
             ultimaActualizacion: new Date().toISOString()
-        }, { merge: true });
+        });
 
         console.log(`📈 [Mercado] Demanda: ${nivelDemanda} | Multiplicador: x${nuevoMultiplicador} | Pedidos: ${totalPedidos} | Conductores Libres: ${totalConductoresLibres}`);
 

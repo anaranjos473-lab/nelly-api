@@ -21,6 +21,10 @@ import errorHandler from './src/middlewares/errorHandler.js';
 import { loadEnv, validateEnv } from './src/utils/envLoader.js';
 import { validateCriticalSecrets } from './src/config/secrets.js';
 
+// Cargar variables de entorno según NODE_ENV antes de validar secretos
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : (process.env.NODE_ENV === 'staging' ? '.env.staging' : '.env.local');
+loadEnv(envFile);
+validateEnv();
 validateCriticalSecrets();
 
 const app = express();
@@ -34,11 +38,6 @@ app.use(cors({
     ],
     credentials: true
 }));
-
-// Cargar variables de entorno según NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : (process.env.NODE_ENV === 'staging' ? '.env.staging' : '.env.local');
-loadEnv(envFile);
-validateEnv();
 
 app.use(secureHeaders);
 app.use(rateLimiter);
@@ -222,7 +221,3 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 export default app;
-
-// Arranque para Render y local
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Servidor activo en puerto', PORT));

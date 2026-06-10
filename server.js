@@ -2,26 +2,25 @@ import app from './app.js';
 import { iniciarAgenteDespacho, limpiarAgenteDespacho } from './src/agentes/agenteDespacho.js';
 import { iniciarAgenteFinanciero } from './src/agentes/agenteTarifaDinamica.js';
 import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
-import { iniciarAgenteSoporte } from './src/agentes/agenteSoporte.js';
-import { iniciarFirestoreRtdbBridge, limpiarFirestoreRtdbBridge } from './src/services/firestoreRtdbBridgeService.js';
+import { iniciarAgenteSoporte, limpiarAgenteSoporte } from './src/agentes/agenteSoporte.js';
 
 async function iniciarAgentes() {
   iniciarAgenteDespacho();
   iniciarAgenteFinanciero();
   iniciarAgenteAntifraude();
   await iniciarAgenteSoporte();
-  await iniciarFirestoreRtdbBridge();
+  console.log('✅ Runtime principal operando sin Firestore bridge');
 }
 
 // Limpieza de listeners al cerrar el proceso
 process.on('SIGINT', () => {
   limpiarAgenteDespacho();
-  limpiarFirestoreRtdbBridge();
+  limpiarAgenteSoporte();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
   limpiarAgenteDespacho();
-  limpiarFirestoreRtdbBridge();
+  limpiarAgenteSoporte();
   process.exit(0);
 });
 
