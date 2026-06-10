@@ -107,6 +107,13 @@ const ui = {
   metricDrivers: document.getElementById("metric-drivers"),
   metricBlocked: document.getElementById("metric-blocked"),
   metricOrders: document.getElementById("metric-orders"),
+  metricPedidosCreados: document.getElementById("metric-pedidos-creados"),
+  metricPedidosEntregados: document.getElementById("metric-pedidos-entregados"),
+  metricPedidosCancelados: document.getElementById("metric-pedidos-cancelados"),
+  metricConductoresActivos: document.getElementById("metric-conductores-activos"),
+  metricTiempoAsignacion: document.getElementById("metric-tiempo-asignacion"),
+  metricTiempoEntrega: document.getElementById("metric-tiempo-entrega"),
+  metricFraudesDetectados: document.getElementById("metric-fraudes-detectados"),
   orderForm: document.getElementById("manual-order-form"),
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
@@ -354,6 +361,13 @@ async function refreshDriversFromBackend() {
 async function refreshOrdersMetricsFromBackend() {
   const payload = await fetchAdminApi("/api/admin/pedidos/metricas");
   ui.metricOrders.textContent = String(Number(payload?.activos || 0));
+  ui.metricPedidosCreados.textContent = String(Number(payload?.pedidosCreadosHoy || 0));
+  ui.metricPedidosEntregados.textContent = String(Number(payload?.pedidosEntregadosHoy || 0));
+  ui.metricPedidosCancelados.textContent = String(Number(payload?.pedidosCanceladosHoy || 0));
+  ui.metricConductoresActivos.textContent = String(Number(payload?.conductoresActivos || 0));
+  ui.metricTiempoAsignacion.textContent = `${Number(payload?.avgAsignacionMinutos || 0).toFixed(1)} min`;
+  ui.metricTiempoEntrega.textContent = `${Number(payload?.avgEntregaMinutos || 0).toFixed(1)} min`;
+  ui.metricFraudesDetectados.textContent = String(Number(payload?.fraudesDetectadosHoy || 0));
 }
 
 async function syncDashboardData() {
@@ -373,6 +387,13 @@ async function syncDashboardData() {
     ui.metricDrivers.textContent = "0";
     ui.metricBlocked.textContent = "0";
     ui.metricOrders.textContent = "0";
+    ui.metricPedidosCreados.textContent = "0";
+    ui.metricPedidosEntregados.textContent = "0";
+    ui.metricPedidosCancelados.textContent = "0";
+    ui.metricConductoresActivos.textContent = "0";
+    ui.metricTiempoAsignacion.textContent = "0 min";
+    ui.metricTiempoEntrega.textContent = "0 min";
+    ui.metricFraudesDetectados.textContent = "0";
     setDriversTableMessage(`No se pudo cargar el dashboard: ${error.message}`);
     document.getElementById("metric-ventas-brutas").textContent = "$0.00";
     document.getElementById("metric-comisiones-nelly").textContent = "$0.00";

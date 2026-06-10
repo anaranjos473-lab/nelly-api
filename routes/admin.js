@@ -83,17 +83,152 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
     }
 });
 
+// --- UTILIDADES DE METRICAS ---
+const parseTimestamp = (value) => {
+    if (value == null) return null;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric) && numeric > 0) return numeric;
+    const parsed = Date.parse(String(value));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const getOrderTimestamp = (pedido, keys) => {
+    if (!pedido || typeof pedido !== 'object') return null;
+    for (const key of keys) {
+        const candidate = pedido[key];
+        const timestamp = parseTimestamp(candidate);
+        if (timestamp) return timestamp;
+    }
+    const logistica = pedido.logistica;
+    if (logistica && typeof logistica === 'object') {
+        for (const key of keys) {
+            const candidate = logistica[key];
+            const timestamp = parseTimestamp(candidate);
+            if (timestamp) return timestamp;
+        }
+    }
+    return null;
+};
+
+const normalizeEstado = (pedido) => {
+    const values = [pedido?.estado, pedido?.estado_pedido, pedido?.logistica?.estado];
+    for (const raw of values) {
+        if (!raw) continue;
+        const estado = String(raw).trim().toLowerCase();
+        if (estado) return estado;
+    }
+    return '';
+};
+
+const isDeliveredState = (pedido) => {
+    const estado = normalizeEstado(pedido);
+    return estado === 'entregado';
+};
+
+const isCancelledState = (pedido) => {
+    const estado = normalizeEstado(pedido);
+    return estado === 'cancelado';
+};
+
+const getTodayStartMexicoCity = () => {
+    const formatter = new Intl.DateTimeFormat('sv', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const formatted = formatter.format(new Date());
+    const iso = formatted.replace(' ', 'T');
+    const mexicoNow = new Date(`${iso}.000`);
+    return new Date(mexicoNow.getFullYear(), mexicoNow.getMonth(), mexicoNow.getDate(), 0, 0, 0, 0).getTime();
+};
+
+const isFraudAlert = (pedido) => {
+    if (pedido == null || typeof pedido !== 'object') return false;
+    if (pedido.alertaFraude === true) return true;
+    return String(pedido.alertaFraude || '').trim().toLowerCase() === 'true';
+};
+
 // --- ENDPOINT: METRICAS DE PEDIDOS ---
 router.get('/pedidos/metricas', requirePanelAdminEmailAuth, async (req, res) => {
     try {
         const admin = await getAdmin();
         const db = admin.database();
-        const snapshot = await db.ref('pedidos_activos').once('value');
-        const orders = snapshot.val() || {};
+        const [pedidosSnap, pedidosActivosSnap, conductoresSnap] = await Promise.all([
+            db.ref('pedidos').once('value'),
+            db.ref('pedidos_activos').once('value'),
+            db.ref('conductores_activos').once('value')
+        ]);
+
+        const pedidosObj = pedidosSnap.val() || {};
+        const pedidosActivosObj = pedidosActivosSnap.val() || {};
+        const conductoresObj = conductoresSnap.val() || {};
+
+        const todayStart = getTodayStartMexicoCity();
+
+        let pedidosCreadosHoy = 0;
+        let pedidosEntregadosHoy = 0;
+        let pedidosCanceladosHoy = 0;
+        let fraudesDetectadosHoy = 0;
+        let totalAssignmentMinutes = 0;
+        let assignmentCount = 0;
+        let totalDeliveryMinutes = 0;
+        let deliveryCount = 0;
+
+        Object.values(pedidosObj).forEach((pedido) => {
+            const createdAt = getOrderTimestamp(pedido, ['createdAt', 'created_at', 'fecha_creacion', 'fechaCreacion', 'fecha_creado', 'created_at']);
+            const assignedAt = getOrderTimestamp(pedido, ['aceptado_en', 'tomado_en', 'aceptadoEn', 'tomadoEn', 'repartidor_asignado_en']);
+            const deliveredAt = getOrderTimestamp(pedido, ['entregado_en', 'entregadoEn']);
+            const isDelivered = isDeliveredState(pedido);
+            const isCancelled = isCancelledState(pedido);
+            const fraudAlert = isFraudAlert(pedido);
+
+            if (createdAt && createdAt >= todayStart) {
+                pedidosCreadosHoy += 1;
+            }
+
+            if (deliveredAt && deliveredAt >= todayStart) {
+                pedidosEntregadosHoy += 1;
+            } else if (isDelivered && createdAt && createdAt >= todayStart) {
+                pedidosEntregadosHoy += 1;
+            }
+
+            if (isCancelled && createdAt && createdAt >= todayStart) {
+                pedidosCanceladosHoy += 1;
+            }
+
+            if (fraudAlert && deliveredAt && deliveredAt >= todayStart) {
+                fraudesDetectadosHoy += 1;
+            }
+
+            if (createdAt && assignedAt && assignedAt >= createdAt) {
+                totalAssignmentMinutes += (assignedAt - createdAt) / 60000;
+                assignmentCount += 1;
+            }
+
+            if (assignedAt && deliveredAt && deliveredAt >= assignedAt) {
+                totalDeliveryMinutes += (deliveredAt - assignedAt) / 60000;
+                deliveryCount += 1;
+            }
+        });
+
+        const avgAsignacionMinutos = assignmentCount > 0 ? Number((totalAssignmentMinutes / assignmentCount).toFixed(1)) : 0;
+        const avgEntregaMinutos = deliveryCount > 0 ? Number((totalDeliveryMinutes / deliveryCount).toFixed(1)) : 0;
 
         return res.status(200).json({
             ok: true,
-            activos: Object.keys(orders).length,
+            activos: Object.keys(pedidosActivosObj).length,
+            pedidosCreadosHoy,
+            pedidosEntregadosHoy,
+            pedidosCanceladosHoy,
+            avgAsignacionMinutos,
+            avgEntregaMinutos,
+            conductoresActivos: Object.keys(conductoresObj).length,
+            fraudesDetectadosHoy
         });
     } catch (error) {
         console.error('[ADMIN][ORDERS_METRICS] Error:', error.message);
