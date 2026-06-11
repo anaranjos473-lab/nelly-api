@@ -1,0 +1,18 @@
+--------- beginning of main
+06-10 17:22:59.826 D/NellyApp( 2143): 📶 Agente de Sincronización: Persistencia activada
+06-10 17:27:19.791 D/NellyApp( 2557): 📶 Agente de Sincronización: Persistencia activada
+06-10 17:36:04.002 D/MainViewModel( 2557): 🚀 Activando Agentes de Inteligencia Nelly Driver Pro...
+06-10 17:36:04.505 D/TacticalTelemetry( 2557): 📊 [TELEMETRY] NETWORK_LOST 
+06-10 17:36:04.512 D/TacticalTelemetry( 2557): 📍 [STATE] IS_ONLINE: false
+06-10 17:36:04.521 D/TacticalTelemetry( 2557): 📊 [TELEMETRY] COUNTER_INCREMENT {counter=SHADOW_MODE_ENTRIES, timestamp=1781112964520}
+06-10 17:36:10.094 D/TacticalTelemetry( 2557): 📊 [TELEMETRY] NETWORK_RESTORED 
+06-10 17:36:10.098 D/TacticalTelemetry( 2557): 📍 [STATE] IS_ONLINE: true
+06-10 17:36:10.102 D/TacticalTelemetry( 2557): 📊 [TELEMETRY] ROOM_SYNC_STARTED 
+06-10 17:36:10.508 D/TacticalTelemetry( 2557): 📊 [TELEMETRY] ROOM_SYNC_FINISHED {count=0, failures=0, duration_ms=401}
+06-10 17:36:10.538 D/TacticalTelemetry( 2557): 📍 [STATE] LAST_SYNC_DURATION: 401
+06-10 17:36:28.104 D/NellyApp( 4138): 📶 Agente de Sincronización: Persistencia activada
+06-10 17:37:03.920 D/NellyApp( 4257): 📶 Agente de Sincronización: Persistencia activada
+06-10 17:37:17.689 D/MainViewModel( 4257): ✅ Sesión existente: ID fE8uV6dke3XziYNhuO3kZU93xQj1
+06-10 17:37:17.690 D/TacticalTelemetry( 4257): 📊 [TELEMETRY] SESSION_RECOVERED {uid=fE8uV6dke3XziYNhuO3kZU93xQj1}
+06-10 17:37:17.697 D/MainViewModel( 4257): 🚀 Activando Agentes de Inteligencia Nelly Driver Pro...
+06-10 17:43:05.453 D/NellyApp( 4611): 📶 Agente de Sincronización: Persistencia activada
