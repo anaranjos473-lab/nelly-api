@@ -1,14 +1,14 @@
-const path = require('path');
-const fs = require('fs');
-const admin = require('firebase-admin');
-require('dotenv').config();
+import path from 'path';
+import fs from 'fs';
+import admin from 'firebase-admin';
+import 'dotenv/config';
 
 function loadServiceAccount() {
   const secretPath = '/etc/secrets/nelly-admin.json';
   const localPath = path.join(process.cwd(), 'nelly-admin.json');
 
   if (fs.existsSync(secretPath)) {
-    return require(secretPath);
+    return JSON.parse(fs.readFileSync(secretPath, 'utf8'));
   }
 
   if (process.env.FIREBASE_ADMIN_JSON) {
@@ -19,7 +19,7 @@ function loadServiceAccount() {
   }
 
   if (fs.existsSync(localPath)) {
-    return require(localPath);
+    return JSON.parse(fs.readFileSync(localPath, 'utf8'));
   }
 
   throw new Error('No se encontro credencial Firebase Admin');
@@ -36,22 +36,28 @@ async function main() {
     });
   }
 
-  const pedidoId = `test_${Date.now()}`;
+  const pedidoId = `PED_${Date.now()}`;
   const pedido = {
     id: pedidoId,
     id_pedido: pedidoId,
-    cliente_nombre: 'Cliente Prueba',
-    descripcion: 'Hamburguesa + papas (prueba automatica)',
+    cliente_nombre: 'Cliente Validacion Flujo',
+    telefono: '9610000000',
+    direccion: 'Validacion operativa Nelly',
+    descripcion: 'Pedido real de validacion Admin-Cocina-Driver',
     monto: 129.0,
     estado: 'pendiente',
-    timestamp: Date.now(),
+    repartidor_id: null,
+    fecha_creacion: Date.now(),
+    origen: 'panel_admin',
   };
 
   await admin.database().ref(`pedidos/${pedidoId}`).set(pedido);
 
-  console.log('Pedido de prueba creado en RTDB.');
+  console.log('Pedido de validacion creado en RTDB.');
   console.log(`Nodo: pedidos/${pedidoId}`);
-  console.log('Abre el panel web y presiona LISTO PARA REPARTO para validar el flujo completo.');
+  console.log(`ID: ${pedidoId}`);
+  console.log('Abre Cocina y presiona DESPACHAR para validar el flujo completo.');
+  process.exit(0);
 }
 
 main().catch((error) => {

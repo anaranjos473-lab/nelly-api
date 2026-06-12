@@ -1,6 +1,7 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/debtLockService.js';
+import { evaluarElegibilidadPedido, obtenerMontoPedido } from '../src/services/smartDispatchService.js';
 
 const router = express.Router();
 
@@ -32,6 +33,213 @@ function isDebtBlocked(driver) {
   return bloqueado || (limite > 0 && deuda > limite);
 }
 
+function roundMoney(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round((n + Number.EPSILON) * 100) / 100 : 0;
+}
+
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === '') continue;
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function emitSmartDispatchMetric(event, payload = {}) {
+  console.info(JSON.stringify({
+    event,
+    source: 'smart_dispatch',
+    timestamp: Date.now(),
+    ...payload
+  }));
+}
+
+function metricForRejection(faltantes = []) {
+  if (faltantes.includes('billetera_guerra')) return 'SMART_DISPATCH_REJECTED_CAPITAL';
+  if (faltantes.includes('radio_km') || faltantes.includes('ubicacion')) return 'SMART_DISPATCH_REJECTED_DISTANCE';
+  if (faltantes.some((campo) => ['caja_grande', 'tensor', 'mochila_termica'].includes(campo))) {
+    return 'SMART_DISPATCH_REJECTED_EQUIPMENT';
+  }
+  return 'SMART_DISPATCH_REJECTED';
+}
+
+function getReservaCapital(driver = {}, pedidoId) {
+  return driver.finanzas?.reservas_capital?.[pedidoId]
+    || driver.billetera?.reservas_capital?.[pedidoId]
+    || null;
+}
+
+function aplicarReservaCapital(actual, pedidoId, monto, timestamp) {
+  const billetera = actual.billetera || {};
+  const finanzas = actual.finanzas || {};
+  const reservas = { ...(finanzas.reservas_capital || {}) };
+  const reservaActual = reservas[pedidoId];
+
+  if (reservaActual?.estado === 'activa') {
+    return actual;
+  }
+
+  const reservadoActual = firstFiniteNumber(
+    billetera.capital_reservado,
+    finanzas.capital_reservado,
+    actual.capital_reservado
+  ) || 0;
+  const billeteraTotal = firstFiniteNumber(
+    actual.billetera_guerra,
+    billetera.billetera_guerra,
+    finanzas.billetera_guerra,
+    actual.perfil?.billetera_guerra
+  );
+  const capitalDisponibleActual = firstFiniteNumber(
+    billetera.capital_disponible,
+    billetera.efectivo_disponible,
+    finanzas.capital_disponible,
+    finanzas.efectivo_disponible
+  );
+  const nuevoReservado = roundMoney(reservadoActual + monto);
+  const nuevoDisponible = billeteraTotal !== null
+    ? Math.max(0, roundMoney(billeteraTotal - nuevoReservado))
+    : (capitalDisponibleActual === null ? undefined : Math.max(0, roundMoney(capitalDisponibleActual - monto)));
+
+  reservas[pedidoId] = {
+    monto,
+    estado: 'activa',
+    creado_en: timestamp,
+    actualizado_en: timestamp
+  };
+
+  return {
+    ...actual,
+    capital_reservado: nuevoReservado,
+    billetera: {
+      ...billetera,
+      capital_reservado: nuevoReservado,
+      ...(nuevoDisponible === undefined ? {} : { capital_disponible: nuevoDisponible }),
+      reservas_capital: {
+        ...(billetera.reservas_capital || {}),
+        [pedidoId]: reservas[pedidoId]
+      }
+    },
+    finanzas: {
+      ...finanzas,
+      capital_reservado: nuevoReservado,
+      ...(nuevoDisponible === undefined ? {} : { capital_disponible: nuevoDisponible }),
+      reservas_capital: reservas
+    }
+  };
+}
+
+function aplicarLiberacionCapital(actual, pedidoId, montoLiberar, timestamp) {
+  if (!actual || typeof actual !== 'object') return;
+
+  const billetera = actual.billetera || {};
+  const finanzas = actual.finanzas || {};
+  const reservas = { ...(finanzas.reservas_capital || {}) };
+  const reservasBilletera = { ...(billetera.reservas_capital || {}) };
+  const reserva = reservas[pedidoId] || reservasBilletera[pedidoId] || null;
+  const monto = roundMoney(montoLiberar || reserva?.monto || 0);
+  if (monto <= 0 && reserva?.estado !== 'activa') {
+    return actual;
+  }
+
+  const reservadoActual = firstFiniteNumber(
+    billetera.capital_reservado,
+    finanzas.capital_reservado,
+    actual.capital_reservado
+  ) || 0;
+  const billeteraTotal = firstFiniteNumber(
+    actual.billetera_guerra,
+    billetera.billetera_guerra,
+    finanzas.billetera_guerra,
+    actual.perfil?.billetera_guerra
+  );
+  const capitalDisponibleActual = firstFiniteNumber(
+    billetera.capital_disponible,
+    billetera.efectivo_disponible,
+    finanzas.capital_disponible,
+    finanzas.efectivo_disponible
+  );
+  const nuevoReservado = Math.max(0, roundMoney(reservadoActual - monto));
+  const nuevoDisponible = billeteraTotal !== null
+    ? Math.max(0, roundMoney(billeteraTotal - nuevoReservado))
+    : (capitalDisponibleActual === null ? undefined : roundMoney(capitalDisponibleActual + monto));
+
+  delete reservas[pedidoId];
+  delete reservasBilletera[pedidoId];
+
+  return {
+    ...actual,
+    capital_reservado: nuevoReservado,
+    billetera: {
+      ...billetera,
+      capital_reservado: nuevoReservado,
+      ...(nuevoDisponible === undefined ? {} : { capital_disponible: nuevoDisponible }),
+      reservas_capital: reservasBilletera
+    },
+    finanzas: {
+      ...finanzas,
+      capital_reservado: nuevoReservado,
+      ...(nuevoDisponible === undefined ? {} : { capital_disponible: nuevoDisponible }),
+      reservas_capital: reservas
+    }
+  };
+}
+
+async function reservarCapitalTx(db, { uid, pedidoId, pedido, timestamp }) {
+  const monto = roundMoney(obtenerMontoPedido(pedido));
+  if (monto <= 0) {
+    return { ok: true, montoReservado: 0, elegibilidad: evaluarElegibilidadPedido(pedido, await getDriverState(db, uid)) };
+  }
+
+  const ref = db.ref(`repartidores/${uid}`);
+  let elegibilidadFinal = null;
+  let reservaExistente = false;
+
+  const tx = await ref.transaction((actual) => {
+    if (!actual || typeof actual !== 'object') {
+      return;
+    }
+
+    const reserva = getReservaCapital(actual, pedidoId);
+    if (reserva?.estado === 'activa') {
+      reservaExistente = true;
+      elegibilidadFinal = evaluarElegibilidadPedido(pedido, actual);
+      return actual;
+    }
+
+    elegibilidadFinal = evaluarElegibilidadPedido(pedido, actual);
+    if (!elegibilidadFinal.ok) {
+      return;
+    }
+
+    return aplicarReservaCapital(actual, pedidoId, monto, timestamp);
+  });
+
+  if (!tx.committed || !tx.snapshot.exists()) {
+    return {
+      ok: false,
+      error: 'Repartidor no elegible para este pedido',
+      faltantes: elegibilidadFinal?.faltantes || ['billetera_guerra'],
+      elegibilidad: elegibilidadFinal
+    };
+  }
+
+  return {
+    ok: true,
+    montoReservado: monto,
+    reservaExistente,
+    elegibilidad: elegibilidadFinal || evaluarElegibilidadPedido(pedido, tx.snapshot.val() || {})
+  };
+}
+
+async function liberarCapitalReservadoTx(db, { uid, pedidoId, monto, timestamp }) {
+  const ref = db.ref(`repartidores/${uid}`);
+  const tx = await ref.transaction((actual) => aplicarLiberacionCapital(actual, pedidoId, monto, timestamp));
+  return tx.committed && tx.snapshot.exists();
+}
+
 router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
   try {
     const { pedidoId } = req.body;
@@ -53,34 +261,144 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     if (!pedido) {
       return res.status(404).json({ ok: false, error: 'Pedido no disponible' });
     }
-    if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
+    const repartidorActual = pedido.repartidor_id || pedido.conductorId || pedido.idConductor || pedido.logistica?.repartidor_id;
+    if (repartidorActual && repartidorActual !== uid) {
+      return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+    }
+    const estadoPedidoActual = String(pedido.estado_pedido || pedido.estado || pedido.logistica?.estado || '').trim().toLowerCase();
+    if (repartidorActual === uid && ['en_camino', 'tomado'].includes(estadoPedidoActual)) {
+      const elegibilidadActual = evaluarElegibilidadPedido(pedido, driver);
+      return res.json({ ok: true, pedidoId, repartidorId: uid, alreadyAccepted: true, elegibilidad: elegibilidadActual });
+    }
+
+    const elegibilidad = evaluarElegibilidadPedido(pedido, driver);
+    if (!elegibilidad.ok) {
+      emitSmartDispatchMetric(metricForRejection(elegibilidad.faltantes), {
+        pedidoId,
+        repartidorId: uid,
+        faltantes: elegibilidad.faltantes,
+        dispatchScore: elegibilidad.dispatchScore
+      });
+      return res.status(403).json({
+        ok: false,
+        error: 'Repartidor no elegible para este pedido',
+        faltantes: elegibilidad.faltantes,
+        elegibilidad
+      });
+    }
+    emitSmartDispatchMetric('SMART_DISPATCH_ELIGIBLE', {
+      pedidoId,
+      repartidorId: uid,
+      dispatchScore: elegibilidad.dispatchScore
+    });
+
+    const acceptedAt = Date.now();
+    const reserva = await reservarCapitalTx(db, { uid, pedidoId, pedido, timestamp: acceptedAt });
+    if (!reserva.ok) {
+      emitSmartDispatchMetric(metricForRejection(reserva.faltantes), {
+        pedidoId,
+        repartidorId: uid,
+        faltantes: reserva.faltantes,
+        dispatchScore: reserva.elegibilidad?.dispatchScore || 0
+      });
+      return res.status(403).json({
+        ok: false,
+        error: reserva.error,
+        faltantes: reserva.faltantes,
+        elegibilidad: reserva.elegibilidad
+      });
+    }
+
+    const tx = await pedidoRef.transaction((actual) => {
+      if (!actual || typeof actual !== 'object') {
+        return;
+      }
+
+      const logistica = actual.logistica && typeof actual.logistica === 'object' ? actual.logistica : {};
+      const asignadoActual = actual.repartidor_id || actual.conductorId || actual.idConductor || logistica.repartidor_id;
+      const estadoActual = String(actual.estado_pedido || actual.estado || logistica.estado || '').trim().toLowerCase();
+      const disponible = !asignadoActual
+        || asignadoActual === uid
+        || ['listo', 'listo_para_reparto', 'esperando_repartidor', 'disponible'].includes(estadoActual);
+
+      if (!disponible) {
+        return;
+      }
+
+      return {
+        ...actual,
+        id_pedido: actual.id_pedido || actual.id || pedidoId,
+        repartidor_id: uid,
+        conductorId: uid,
+        idConductor: uid,
+        estado: 'EN_CAMINO',
+        estado_pedido: 'EN_CAMINO',
+        aceptado_en: acceptedAt,
+        capital_reserva: {
+          monto: reserva.montoReservado,
+          repartidor_id: uid,
+          estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
+          reservado_en: acceptedAt
+        },
+        logistica: {
+          ...logistica,
+          estado: 'tomado',
+          repartidor_id: uid,
+          tomado_en: acceptedAt,
+          dispatchScore: reserva.elegibilidad.dispatchScore,
+          capital_reserva: {
+            monto: reserva.montoReservado,
+            estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
+            reservado_en: acceptedAt
+          }
+        }
+      };
+    });
+
+    if (!tx.committed || !tx.snapshot.exists()) {
+      await liberarCapitalReservadoTx(db, {
+        uid,
+        pedidoId,
+        monto: reserva.montoReservado,
+        timestamp: Date.now()
+      });
       return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
     }
 
-    const acceptedAt = Date.now();
-    const payload = {
-      ...pedido,
-      id_pedido: pedido.id_pedido || pedido.id || pedidoId,
-      repartidor_id: uid,
-      conductorId: uid,
-      estado: 'EN_CAMINO',
-      estado_pedido: 'EN_CAMINO',
-      aceptado_en: acceptedAt
-    };
+    const payload = tx.snapshot.val();
 
     await Promise.all([
       db.ref(`pedidos_en_camino/${pedidoId}`).set(payload),
-      pedidoRef.update({
+      db.ref(`pedidos/${pedidoId}`).update({
         repartidor_id: uid,
         conductorId: uid,
+        idConductor: uid,
         estado: 'EN_CAMINO',
         estado_pedido: 'EN_CAMINO',
-        aceptado_en: acceptedAt
+        aceptado_en: acceptedAt,
+        capital_reserva: payload.capital_reserva || null,
+        logistica: {
+          ...(pedido.logistica || {}),
+          ...(payload.logistica || {})
+        }
       }),
       db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId)
     ]);
 
-    return res.json({ ok: true, pedidoId, repartidorId: uid });
+    emitSmartDispatchMetric('SMART_DISPATCH_ACCEPTED', {
+      pedidoId,
+      repartidorId: uid,
+      montoReservado: reserva.montoReservado,
+      dispatchScore: reserva.elegibilidad.dispatchScore
+    });
+
+    return res.json({
+      ok: true,
+      pedidoId,
+      repartidorId: uid,
+      montoReservado: reserva.montoReservado,
+      elegibilidad: reserva.elegibilidad
+    });
   } catch (error) {
     return next(error);
   }
@@ -140,9 +458,30 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
     }
 
     const completedAt = Date.now();
+    const reserva = pedido.capital_reserva || pedido.logistica?.capital_reserva || {};
+    const montoReservado = roundMoney(reserva.monto || obtenerMontoPedido(pedido));
     await Promise.all([
-      pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      db.ref(`pedidos/${pedidoId}`).update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
+      pedidoRef.update({
+        estado: 'ENTREGADO',
+        estado_pedido: 'ENTREGADO',
+        entregado_en: completedAt,
+        capital_reserva: {
+          ...reserva,
+          estado: 'liberada',
+          liberado_en: completedAt
+        }
+      }),
+      db.ref(`pedidos/${pedidoId}`).update({
+        estado: 'ENTREGADO',
+        estado_pedido: 'ENTREGADO',
+        entregado_en: completedAt,
+        capital_reserva: {
+          ...reserva,
+          estado: 'liberada',
+          liberado_en: completedAt
+        }
+      }),
+      liberarCapitalReservadoTx(db, { uid, pedidoId, monto: montoReservado, timestamp: completedAt }),
       db.ref(`repartidores/${uid}/pedido_activo`).remove()
     ]);
 

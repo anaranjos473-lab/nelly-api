@@ -34,16 +34,17 @@ async function main() {
   });
 
   const db = admin.database();
-  const paths = [
-    `pedidos/${pedidoId}`,
-    `pedidos_para_reparto/${pedidoId}`,
-    `pedidos_en_camino/${pedidoId}`,
+  const nodes = [
+    'pedidos',
+    'pedidos_para_reparto',
+    'pedidos_en_camino',
   ];
 
   const result = {};
-  for (const path of paths) {
+  for (const node of nodes) {
+    const path = `${node}/${pedidoId}`;
     const snap = await db.ref(path).once('value');
-    result[path] = snap.exists() ? snap.val() : null;
+    result[node] = snap.exists() ? snap.val() : null;
   }
 
   function summaryFields(nodeData) {
@@ -52,8 +53,10 @@ async function main() {
       id: nodeData.id || nodeData.id_pedido || nodeData.pedido_id || null,
       estado: nodeData.estado || null,
       estado_pedido: nodeData.estado_pedido || null,
-      repartidor_id: nodeData.repartidor_id || nodeData.conductorId || nodeData.logistica?.repartidor_id || null,
       conductorId: nodeData.conductorId || null,
+      idConductor: nodeData.idConductor || null,
+      repartidor_id: nodeData.repartidor_id || null,
+      logistica_repartidor_id: nodeData.logistica?.repartidor_id || null,
       logistica_estado: nodeData.logistica?.estado || null,
       cliente_nombre: nodeData.cliente_nombre || nodeData.cliente?.nombre || nodeData.cliente || null,
       monto: nodeData.monto || nodeData.total || null,
@@ -64,10 +67,17 @@ async function main() {
   }
 
   function buildSummary() {
-    return paths.reduce((summary, path) => {
-      summary[path] = {
-        exists: result[path] !== null,
-        fields: summaryFields(result[path])
+    return nodes.reduce((summary, node) => {
+      const fields = summaryFields(result[node]);
+      summary[node] = {
+        exists: result[node] !== null,
+        estado: fields?.estado || null,
+        estado_pedido: fields?.estado_pedido || null,
+        conductorId: fields?.conductorId || null,
+        idConductor: fields?.idConductor || null,
+        repartidor_id: fields?.repartidor_id || null,
+        logistica_repartidor_id: fields?.logistica_repartidor_id || null,
+        fields
       };
       return summary;
     }, {});

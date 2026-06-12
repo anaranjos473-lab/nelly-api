@@ -9,6 +9,8 @@
 
 ## Prioridad 1 – Validación E2E
 
+Tablero rector: `CERTIFICATION_DASHBOARD.md`.
+
 ### Escenario 1
 Cliente crea pedido
 
