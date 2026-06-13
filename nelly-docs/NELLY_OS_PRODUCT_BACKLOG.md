@@ -9,6 +9,50 @@
 - [ ] Crear ledger financiero inmutable
 - [ ] Simular pedido de $100 en entorno controlado
 
+### FIN-006
+
+Motor de cálculo Servicio Nelly
+
+Objetivo:
+
+- Calcular automáticamente:
+  - Envío
+  - Tarifa Nelly
+  - Fondos
+  - Lluvia
+  - Residencial
+  - Nocturno
+  - Peso
+  - Riesgo
+
+- y devolver:
+  - Servicio Nelly Final
+
+### FIN-007
+
+Financial Transparency Dashboard
+
+Estado:
+
+- NO INICIAR AUN.
+- Requiere completar validacion de campo y certificacion de fondos internos.
+
+Objetivo:
+
+- Mostrar internamente:
+  - Fondos SAT
+  - Fondos Riesgo
+  - Fondos Emergencias
+  - Fondos Tecnologia
+  - Fondos Juridicos
+  - Fondos Operativos
+
+- Por cada fondo:
+  - Ingresos
+  - Egresos
+  - Saldo
+  - Historial
+
 ### 2. Auditoría
 - [ ] Documentar métricas de conciliación
 - [ ] Asegurar trazabilidad por pedido

@@ -1,5 +1,26 @@
 # FINANCIAL_POLICY
 
+## DOCUMENTOS RECTORES RELACIONADOS
+
+Este documento define las políticas financieras oficiales de Nelly.
+
+Las tarifas, recargos, retenciones y valores operativos vigentes se encuentran en:
+
+- TARIFF_CATALOG_V1.md
+
+Las simulaciones oficiales de certificación financiera se encuentran en:
+
+- FINANCIAL_LEDGER_SIMULATION_001.md
+
+En caso de conflicto:
+
+1. FINANCIAL_POLICY.md
+2. TARIFF_CATALOG_V1.md
+3. FINANCIAL_LEDGER_SIMULATION_001.md
+
+La política prevalece sobre las tarifas.
+Las tarifas prevalecen sobre las simulaciones.
+
 ## Propósito
 
 Cerrar el contrato financiero del ecosistema Nelly antes de agregar cualquier regla nueva de tarifas dinámicas, bonos o IA de despacho.
@@ -37,6 +58,16 @@ La comisión de plataforma se calcula siempre como:
 
 `monto_repartidor = pedido.total - comision_plataforma`
 
+### Definición interna de servicios
+
+El pedido se estructura como:
+
+`Producto + Servicio Nelly`
+
+Donde:
+
+`Servicio Nelly = Envío + Tarifa Nelly + Fondos Internos + Recargos Operativos`
+
 ### Fuente oficial
 
 Esta política debe ser implementada desde una única capa de cálculo central, preferiblemente:
@@ -55,6 +86,121 @@ Hasta que la política se consolide, se declaran como legacy:
 ### Nota
 
 Si el producto decide cambiar la comisión en el futuro, deberá hacerse con una sola política oficial y actualizar todas estas referencias antes de desplegar.
+
+### Riesgo documental abierto
+
+Existen referencias legacy al 18% en documentación histórica, scripts antiguos, prompts y rutas no certificadas.
+
+La regla oficial vigente para V1 es:
+
+`COMISION_OFICIAL = 15%`
+
+FIN-006 ServicioNellyCalculator deberá leer únicamente:
+
+- FINANCIAL_POLICY.md
+- TARIFF_CATALOG_V1.md
+
+FIN-006 no deberá derivar reglas financieras desde:
+
+- README
+- router.js
+- scripts viejos
+- prompts históricos
+- protocolos de prueba anteriores a la certificación V1
+
+### Política de Visualización al Cliente
+
+El cliente visualizará únicamente:
+
+- Producto
+- Servicio Nelly
+- Total
+
+El cliente no visualizará:
+
+- Tarifa Nelly
+- Fondos Internos
+- SAT
+- Operación
+- Equipamiento
+- Riesgo
+- Jurídico
+- Tecnología
+- Emergencias
+- Soporte
+- Auditoría
+- Personal
+- Seguros
+
+Todos estos conceptos forman parte del cálculo interno del Servicio Nelly.
+
+### Proteccion de Fondos Internos Estrategicos
+
+Los fondos internos son reservas operativas trazables. No deberan mezclarse con gasto general ni usarse para fines distintos a su proposito.
+
+#### Fondo de Riesgo
+
+Monto vigente segun catalogo:
+
+`$1.50 por pedido`
+
+Uso permitido:
+
+- Fraudes
+- Perdidas certificadas
+- Incidentes aprobados
+
+Uso prohibido:
+
+- Bonos
+- Promociones
+- Marketing
+- Descuentos
+- Campanas
+- Desarrollo
+- Operacion diaria
+
+#### Fondo de Emergencias
+
+Monto vigente segun catalogo:
+
+`$1.25 por pedido`
+
+Uso permitido:
+
+- Accidentes
+- Eventos climaticos severos
+- Contingencias mayores
+
+Uso prohibido:
+
+- Flujo operativo normal
+- Bonos
+- Promociones
+- Gasto general
+
+#### Fondo Tecnologico
+
+Monto vigente segun catalogo:
+
+`$1.50 por pedido`
+
+Uso permitido:
+
+- Infraestructura
+- Firebase
+- Servidores
+- Mapas
+- IA futura
+- Smart Dispatch
+- Automatizacion
+
+Uso prohibido:
+
+- Gastos generales
+- Bonos
+- Promociones
+- Operacion diaria no tecnologica
 
 ## 2. Billetera oficial
 

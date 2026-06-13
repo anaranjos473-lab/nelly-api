@@ -21,6 +21,14 @@ Documento rector del ecosistema Nelly. Contiene la visión, alcance y prioridade
 4. Simular un pedido de $100
 5. No introducir IA, tarifas dinámicas, bonos o ranking avanzado
 
+## Principio rector
+
+- La complejidad operativa nunca será trasladada al cliente.
+- El cliente verá únicamente el costo del producto y el Servicio Nelly.
+- La distribución financiera será administrada internamente por el Ledger Financiero.
+- La precision operativa tiene prioridad sobre el volumen de pedidos.
+- Nelly OS V1 operara bajo el principio `1 Repartidor = 1 Pedido = 1 Cadena de Custodia`, salvo excepciones certificadas por politica.
+
 ## Áreas de riesgo crítico
 
 - Financial Ledger

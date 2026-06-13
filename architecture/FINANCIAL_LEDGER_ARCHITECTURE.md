@@ -48,6 +48,28 @@ Backend
 - Auditoría
 - Liquidaciones
 
+## Vistas
+
+### Vista Cliente
+
+- Producto
+- Servicio Nelly
+- Total
+
+### Vista Repartidor
+
+- Servicio generado
+- Retención operativa
+- Ganancia neta
+
+### Vista Administrativa
+
+- Servicio generado
+- Tarifa Nelly
+- Fondos
+- Utilidad
+- Ledger
+
 ## ¿Quién modifica?
 
 Nadie.
