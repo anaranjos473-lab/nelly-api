@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { Worker } from 'worker_threads';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import usuariosRouter from './routes/usuarios.js';
 import repartidoresRouter from './routes/repartidores.js';
 import { getAdmin } from './config/firebase-admin-esm.js';
@@ -43,6 +44,11 @@ app.use(secureHeaders);
 app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
 
 function isProduction() {
     return process.env.NODE_ENV === 'production';

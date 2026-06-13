@@ -1,0 +1,15 @@
+import { getAdmin } from './config/firebase-admin-esm.js';
+import { evaluarElegibilidadPedido } from './src/services/smartDispatchService.js';
+const admin = await getAdmin();
+const db = admin.database();
+const pedidoId = 'AUTO_1776641400683';
+const driverUid = 'driver_test_001';
+const pedidoSnap = await db.ref(`pedidos_para_reparto/${pedidoId}`).once('value');
+const driverSnap = await db.ref(`repartidores/${driverUid}`).once('value');
+const pedido = pedidoSnap.val();
+const driver = driverSnap.val();
+console.log('PEDIDO', JSON.stringify(pedido, null, 2));
+console.log('DRIVER', JSON.stringify(driver, null, 2));
+console.log('ELEGIBILIDAD', JSON.stringify(evaluarElegibilidadPedido(pedido, driver), null, 2));
+await admin.app().delete();
+process.exit(0);

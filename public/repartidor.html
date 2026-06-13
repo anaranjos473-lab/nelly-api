@@ -60,12 +60,17 @@
         const listaDisponibles = document.getElementById('lista-disponibles');
         const listaMios = document.getElementById('lista-mios');
 
+        const API_BASE_URL =
+            window.location.hostname === 'nelly-delivery.web.app'
+                ? 'https://nelly-api-8lh1.onrender.com'
+                : window.location.origin;
+
         const DRIVER_TOKEN_ENDPOINTS = [
-            'https://nelly-api-8lh1.onrender.com/api/auth/driver-token'
+            `${API_BASE_URL}/api/auth/driver-token`
         ];
 
         const DELIVERY_ACCEPT_ENDPOINTS = [
-            'https://nelly-api-8lh1.onrender.com/api/delivery/accept-order'
+            `${API_BASE_URL}/api/delivery/accept-order`
         ];
 
         let authRequestInFlight = false;

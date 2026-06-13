@@ -1,3 +1,6 @@
+// ROUTER LEGADO / COMPATIBILIDAD
+// No usar para nuevas implementaciones.
+// Este router es un stub de soporte y no es la fuente de verdad del flujo de pedidos.
 import express from 'express';
 const router = express.Router();
 

@@ -48,7 +48,7 @@ export const createOrder = async (req, res) => {
       items,
       total: Number(total),
       createdAt: Date.now(),
-      estado: 'Pendiente'
+      estado: 'pendiente'
     };
 
     await newPedidoRef.set(pedido);
@@ -77,7 +77,11 @@ export const updateOrder = async (req, res) => {
   try {
     const admin = await getAdmin();
     const db = admin.database();
-    await db.ref(`pedidos/${req.params.id}`).update(req.body);
+    const updates = { ...req.body };
+    if (updates.estado !== undefined && updates.estado !== null) {
+      updates.estado = String(updates.estado).trim().toLowerCase();
+    }
+    await db.ref(`pedidos/${req.params.id}`).update(updates);
     res.json({ message: 'Pedido actualizado', id: req.params.id });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });

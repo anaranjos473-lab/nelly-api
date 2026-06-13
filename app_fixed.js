@@ -24,6 +24,11 @@ const verificarIntegridad = async () => {
     }
 };
 require('dotenv').config();
+// LEGACY / HISTORICAL REFERENCE
+// NO USAR
+// NO DESPLEGAR
+// Este archivo contiene una versión antigua del flujo de pedidos
+// y no forma parte del runtime oficial actual.
 const express = require('express');
 const admin = require('firebase-admin');
 const axios = require('axios');

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -594,7 +594,7 @@
         const API_BASE_URL =
             window.location.hostname === 'nelly-delivery.web.app'
                 ? 'https://nelly-api-8lh1.onrender.com'
-                : window.location.origin;
+                : '';
 
             // Mostrar/ocultar modal del mapa de repartidores activos
             window.addEventListener('DOMContentLoaded', () => {
@@ -960,7 +960,7 @@
         };
         let metricasInicioMs = Date.now();
         const PANEL_TOKEN_ENDPOINTS = [
-            `${API_BASE_URL}/api/auth/panel-token`
+            `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auth/panel-token`
         ];
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
@@ -1832,3 +1832,4 @@
     </script>
 </body>
 </html>
+

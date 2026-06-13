@@ -139,8 +139,12 @@ function aplicarLiberacionCapital(actual, pedidoId, montoLiberar, timestamp) {
   const reservas = { ...(finanzas.reservas_capital || {}) };
   const reservasBilletera = { ...(billetera.reservas_capital || {}) };
   const reserva = reservas[pedidoId] || reservasBilletera[pedidoId] || null;
+  if (reserva?.estado !== 'activa') {
+    return actual;
+  }
+
   const monto = roundMoney(montoLiberar || reserva?.monto || 0);
-  if (monto <= 0 && reserva?.estado !== 'activa') {
+  if (monto <= 0) {
     return actual;
   }
 
@@ -189,6 +193,7 @@ function aplicarLiberacionCapital(actual, pedidoId, montoLiberar, timestamp) {
 
 async function reservarCapitalTx(db, { uid, pedidoId, pedido, timestamp }) {
   const monto = roundMoney(obtenerMontoPedido(pedido));
+  console.info(JSON.stringify({ event: 'reservarCapitalTx.start', uid, pedidoId, monto, timestamp }));
   if (monto <= 0) {
     return { ok: true, montoReservado: 0, elegibilidad: evaluarElegibilidadPedido(pedido, await getDriverState(db, uid)) };
   }
@@ -196,20 +201,30 @@ async function reservarCapitalTx(db, { uid, pedidoId, pedido, timestamp }) {
   const ref = db.ref(`repartidores/${uid}`);
   let elegibilidadFinal = null;
   let reservaExistente = false;
+  let callbackCount = 0;
 
   const tx = await ref.transaction((actual) => {
+    callbackCount += 1;
+    console.info(JSON.stringify({ event: 'reservarCapitalTx.txCallback', uid, pedidoId, callbackCount, actualType: actual === null ? 'null' : typeof actual }));
+    if (actual === null) {
+      return null;
+    }
+
     if (!actual || typeof actual !== 'object') {
       return;
     }
 
     const reserva = getReservaCapital(actual, pedidoId);
+    console.info(JSON.stringify({ event: 'reservarCapitalTx.reservaCheck', uid, pedidoId, reserva }));
     if (reserva?.estado === 'activa') {
       reservaExistente = true;
       elegibilidadFinal = evaluarElegibilidadPedido(pedido, actual);
+      console.info(JSON.stringify({ event: 'reservarCapitalTx.existingReservation', uid, pedidoId, elegibilidadFinal }));
       return actual;
     }
 
     elegibilidadFinal = evaluarElegibilidadPedido(pedido, actual);
+    console.info(JSON.stringify({ event: 'reservarCapitalTx.elegibilidad', uid, pedidoId, elegibilidadFinal }));
     if (!elegibilidadFinal.ok) {
       return;
     }
@@ -236,7 +251,12 @@ async function reservarCapitalTx(db, { uid, pedidoId, pedido, timestamp }) {
 
 async function liberarCapitalReservadoTx(db, { uid, pedidoId, monto, timestamp }) {
   const ref = db.ref(`repartidores/${uid}`);
-  const tx = await ref.transaction((actual) => aplicarLiberacionCapital(actual, pedidoId, monto, timestamp));
+  const tx = await ref.transaction((actual) => {
+    if (actual === null) {
+      return null;
+    }
+    return aplicarLiberacionCapital(actual, pedidoId, monto, timestamp);
+  });
   return tx.committed && tx.snapshot.exists();
 }
 
@@ -310,6 +330,10 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     }
 
     const tx = await pedidoRef.transaction((actual) => {
+      if (actual === null) {
+        return null;
+      }
+
       if (!actual || typeof actual !== 'object') {
         return;
       }
@@ -460,28 +484,48 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
     const completedAt = Date.now();
     const reserva = pedido.capital_reserva || pedido.logistica?.capital_reserva || {};
     const montoReservado = roundMoney(reserva.monto || obtenerMontoPedido(pedido));
+    const capitalReservaLiberada = {
+      ...reserva,
+      estado: 'liberada',
+      liberado_en: completedAt
+    };
+    const logisticaLiberada = {
+      ...(pedido.logistica || {}),
+      estado: 'entregado',
+      capital_reserva: {
+        ...(pedido.logistica?.capital_reserva || reserva),
+        estado: 'liberada',
+        liberado_en: completedAt
+      }
+    };
+    const capitalLiberado = await liberarCapitalReservadoTx(db, {
+      uid,
+      pedidoId,
+      monto: montoReservado,
+      timestamp: completedAt
+    });
+    if (!capitalLiberado) {
+      return res.status(409).json({
+        ok: false,
+        error: 'No se pudo liberar capital reservado'
+      });
+    }
+
     await Promise.all([
       pedidoRef.update({
         estado: 'ENTREGADO',
         estado_pedido: 'ENTREGADO',
         entregado_en: completedAt,
-        capital_reserva: {
-          ...reserva,
-          estado: 'liberada',
-          liberado_en: completedAt
-        }
+        capital_reserva: capitalReservaLiberada,
+        logistica: logisticaLiberada
       }),
       db.ref(`pedidos/${pedidoId}`).update({
         estado: 'ENTREGADO',
         estado_pedido: 'ENTREGADO',
         entregado_en: completedAt,
-        capital_reserva: {
-          ...reserva,
-          estado: 'liberada',
-          liberado_en: completedAt
-        }
+        capital_reserva: capitalReservaLiberada,
+        logistica: logisticaLiberada
       }),
-      liberarCapitalReservadoTx(db, { uid, pedidoId, monto: montoReservado, timestamp: completedAt }),
       db.ref(`repartidores/${uid}/pedido_activo`).remove()
     ]);
 
