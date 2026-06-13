@@ -20,6 +20,7 @@
 - Resultado:
 - Aceptación Cliente:
 - Aceptación Repartidor:
+- Nivel de Fricción Operativa (1-5):
 - Observaciones:
 
 ## LECCIONES APRENDIDAS
