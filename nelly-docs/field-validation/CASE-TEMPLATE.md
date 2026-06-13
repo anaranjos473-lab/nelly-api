@@ -14,9 +14,17 @@
 - Residencial:
 - Nocturno:
 - Incidencias:
+- Cancelaciones:
 - Evidencia Requerida:
 - Responsabilidad Aplicada:
 - Resultado:
 - Aceptación Cliente:
 - Aceptación Repartidor:
 - Observaciones:
+
+## LECCIONES APRENDIDAS
+
+- ¿Qué funcionó?:
+- ¿Qué no funcionó?:
+- ¿Qué cambiaríamos?:
+- ¿Se requiere modificación documental? Sí / No
