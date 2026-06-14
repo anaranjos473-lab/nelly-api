@@ -14,7 +14,7 @@
     ]
   },
   "database": {
-    "rules": "security_rules.json"
+    "rules": "firebase/database.rules.json"
   },
   "firestore": {
     "rules": "firestore.rules"

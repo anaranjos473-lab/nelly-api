@@ -19,6 +19,7 @@ name: Firebase Deploy
           - public/**
           - firestore.rules
           - database.rules.json
+          - firebase/database.rules.json
           - firebase.json
           - .github/workflows/firebase-deploy.yml
       workflow_dispatch:

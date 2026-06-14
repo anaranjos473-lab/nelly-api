@@ -17,6 +17,8 @@ Detectar y prevenir problemas de integracion entre app, backend y base de datos.
 - No exponer ORDER_INGEST_API_KEY, FIREBASE_ADMIN_JSON ni URLs sensibles.
 - Usar variables de entorno para secretos (process.env).
 - No incluir credenciales en cliente ni en respuestas.
+- No permitir escrituras de `repartidores/$uid/capital` desde clientes.
+- Mantener `firebase/database.rules.json` como fuente oficial de seguridad RTDB.
 
 3. Integracion y rendimiento
 - Mantener sincronia correcta de estados: pendiente, en_reparto, entregado.
