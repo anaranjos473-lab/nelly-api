@@ -260,6 +260,99 @@ async function liberarCapitalReservadoTx(db, { uid, pedidoId, monto, timestamp }
   return tx.committed && tx.snapshot.exists();
 }
 
+// ============================================
+// REGLA 4: Máquina de estados explícita
+// ============================================
+const TRANSICIONES_VALIDAS = {
+  'PENDIENTE': ['LISTO'],
+  'LISTO': ['EN_CAMINO'],
+  'EN_CAMINO': ['ENTREGADO'],
+  'ENTREGADO': []
+};
+
+function esTransicionValida(estadoActual, estadoSiguiente) {
+  const permitidas = TRANSICIONES_VALIDAS[estadoActual] || [];
+  return permitidas.includes(estadoSiguiente);
+}
+
+// ============================================
+// TRANSACCIÓN ATÓMICA CON 4 REGLAS
+// ============================================
+async function executePedidoStateTransition(db, {
+  pedidoId,
+  uid,
+  transicion,  // { from: 'LISTO', to: 'EN_CAMINO' }
+  cambiosPorNodo
+}) {
+  const refPrincipal = db.ref('pedidos_para_reparto').child(pedidoId);
+  const serverTimestamp = Date.now();
+  
+  const tx = await refPrincipal.transaction((actual) => {
+    if (!actual) return null;
+    
+    // ✅ REGLA 3: Idempotencia
+    if (actual.estado === transicion.to) {
+      return undefined;
+    }
+    
+    // ✅ REGLA 4: Máquina de estados
+    if (actual.estado !== transicion.from) {
+      return undefined;
+    }
+    
+    const versionNueva = (actual.version || 0) + 1;
+    
+    return {
+      ...actual,
+      ...cambiosPorNodo['pedidos_para_reparto'],
+      estado: transicion.to,
+      version: versionNueva,
+      updated_at: serverTimestamp
+    };
+  });
+  
+  // ✅ REGLA 3: Detectar idempotencia
+  if (!tx.committed) {
+    const actual = (await refPrincipal.once('value')).val();
+    if (actual && actual.estado === transicion.to) {
+      return {
+        ok: true,
+        alreadyProcessed: true,
+        version: actual.version
+      };
+    }
+    return { ok: false, error: 'Transición no permitida o estado incorrecto' };
+  }
+  
+  // Una vez que transacción pasó, actualizar otros nodos
+  const actualizaciones = {
+    [`pedidos/${pedidoId}`]: {
+      ...cambiosPorNodo['pedidos'] || cambiosPorNodo['pedidos_para_reparto'],
+      estado: transicion.to,
+      version: tx.snapshot.val().version,
+      updated_at: serverTimestamp
+    }
+  };
+  
+  if (cambiosPorNodo['pedidos_en_camino']) {
+    actualizaciones[`pedidos_en_camino/${pedidoId}`] = {
+      ...cambiosPorNodo['pedidos_en_camino'],
+      estado: transicion.to,
+      version: tx.snapshot.val().version,
+      updated_at: serverTimestamp
+    };
+  }
+  
+  if (uid) {
+    actualizaciones[`repartidores/${uid}/pedido_activo`] = 
+      cambiosPorNodo.setActivoPedido ? pedidoId : null;
+  }
+  
+  await db.ref().update(actualizaciones);
+  
+  return { ok: true, snapshot: tx.snapshot.val() };
+}
+
 router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
   try {
     const { pedidoId } = req.body;
@@ -281,6 +374,17 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     if (!pedido) {
       return res.status(404).json({ ok: false, error: 'Pedido no disponible' });
     }
+    
+    // ✅ REGLA 4: Validar transición PREVIA
+    if (!esTransicionValida(pedido.estado, 'EN_CAMINO')) {
+      return res.status(400).json({
+        ok: false,
+        error: `No se puede ir de ${pedido.estado} a EN_CAMINO`,
+        estadoActual: pedido.estado,
+        version: pedido.version
+      });
+    }
+    
     const repartidorActual = pedido.repartidor_id || pedido.conductorId || pedido.idConductor || pedido.logistica?.repartidor_id;
     if (repartidorActual && repartidorActual !== uid) {
       return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
@@ -329,91 +433,97 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       });
     }
 
-    const tx = await pedidoRef.transaction((actual) => {
-      if (actual === null) {
-        return null;
-      }
-
-      if (!actual || typeof actual !== 'object') {
-        return;
-      }
-
-      const logistica = actual.logistica && typeof actual.logistica === 'object' ? actual.logistica : {};
-      const asignadoActual = actual.repartidor_id || actual.conductorId || actual.idConductor || logistica.repartidor_id;
-      const estadoActual = String(actual.estado_pedido || actual.estado || logistica.estado || '').trim().toLowerCase();
-      const disponible = !asignadoActual
-        || asignadoActual === uid
-        || ['listo', 'listo_para_reparto', 'esperando_repartidor', 'disponible'].includes(estadoActual);
-
-      if (!disponible) {
-        return;
-      }
-
-      return {
-        ...actual,
-        id_pedido: actual.id_pedido || actual.id || pedidoId,
-        repartidor_id: uid,
-        conductorId: uid,
-        idConductor: uid,
-        estado: 'EN_CAMINO',
-        estado_pedido: 'EN_CAMINO',
-        aceptado_en: acceptedAt,
-        capital_reserva: {
-          monto: reserva.montoReservado,
+    // ✅ TRANSACCIÓN ATÓMICA ENDURECIDA
+    const estadoTx = await executePedidoStateTransition(db, {
+      pedidoId,
+      uid,
+      transicion: { from: pedido.estado, to: 'EN_CAMINO' },
+      cambiosPorNodo: {
+        'pedidos_para_reparto': {
           repartidor_id: uid,
-          estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
-          reservado_en: acceptedAt
-        },
-        logistica: {
-          ...logistica,
-          estado: 'tomado',
-          repartidor_id: uid,
-          tomado_en: acceptedAt,
-          dispatchScore: reserva.elegibilidad.dispatchScore,
+          conductorId: uid,
+          idConductor: uid,
+          aceptado_en: acceptedAt,
           capital_reserva: {
             monto: reserva.montoReservado,
+            repartidor_id: uid,
+            estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
+            reservado_en: acceptedAt
+          },
+          logistica: {
+            estado: 'tomado',
+            repartidor_id: uid,
+            tomado_en: acceptedAt,
+            dispatchScore: reserva.elegibilidad.dispatchScore,
+            capital_reserva: {
+              monto: reserva.montoReservado,
+              estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
+              reservado_en: acceptedAt
+            }
+          }
+        },
+        'pedidos_en_camino': {
+          repartidor_id: uid,
+          conductorId: uid,
+          idConductor: uid,
+          aceptado_en: acceptedAt,
+          capital_reserva: {
+            monto: reserva.montoReservado,
+            repartidor_id: uid,
             estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
             reservado_en: acceptedAt
           }
-        }
-      };
+        },
+        'pedidos': {
+          repartidor_id: uid,
+          conductorId: uid,
+          idConductor: uid,
+          aceptado_en: acceptedAt,
+          capital_reserva: {
+            monto: reserva.montoReservado,
+            repartidor_id: uid,
+            estado: reserva.montoReservado > 0 ? 'activa' : 'no_requerida',
+            reservado_en: acceptedAt
+          }
+        },
+        setActivoPedido: true
+      }
     });
 
-    if (!tx.committed || !tx.snapshot.exists()) {
+    // ✅ REGLA 3: Manejar idempotencia
+    if (estadoTx.alreadyProcessed) {
+      return res.json({
+        ok: true,
+        alreadyProcessed: true,
+        message: 'Este pedido ya fue aceptado',
+        version: estadoTx.version
+      });
+    }
+
+    if (!estadoTx.ok) {
       await liberarCapitalReservadoTx(db, {
         uid,
         pedidoId,
         monto: reserva.montoReservado,
         timestamp: Date.now()
       });
-      return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+      return res.status(409).json({ ok: false, error: estadoTx.error });
     }
 
-    const payload = tx.snapshot.val();
-
-    await Promise.all([
-      db.ref(`pedidos_en_camino/${pedidoId}`).set(payload),
-      db.ref(`pedidos/${pedidoId}`).update({
-        repartidor_id: uid,
-        conductorId: uid,
-        idConductor: uid,
-        estado: 'EN_CAMINO',
-        estado_pedido: 'EN_CAMINO',
-        aceptado_en: acceptedAt,
-        capital_reserva: payload.capital_reserva || null,
-        logistica: {
-          ...(pedido.logistica || {}),
-          ...(payload.logistica || {})
-        }
-      }),
-      db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId)
-    ]);
+    // ✅ REGLA 2: Evento atómico (indexado por version)
+    await db.ref(`order_events/${pedidoId}/${estadoTx.snapshot.version}`).set({
+      tipo: 'ACEPTADO',
+      actor: uid,
+      timestamp: acceptedAt,
+      version: estadoTx.snapshot.version
+    });
 
     emitSmartDispatchMetric('SMART_DISPATCH_ACCEPTED', {
       pedidoId,
       repartidorId: uid,
       montoReservado: reserva.montoReservado,
-      dispatchScore: reserva.elegibilidad.dispatchScore
+      dispatchScore: reserva.elegibilidad.dispatchScore,
+      version: estadoTx.snapshot.version
     });
 
     return res.json({
@@ -421,7 +531,8 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       pedidoId,
       repartidorId: uid,
       montoReservado: reserva.montoReservado,
-      elegibilidad: reserva.elegibilidad
+      elegibilidad: reserva.elegibilidad,
+      version: estadoTx.snapshot.version
     });
   } catch (error) {
     return next(error);
@@ -471,7 +582,7 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
 
     const admin = await getAdmin();
     const db = admin.database();
-    const pedidoRef = db.ref(`pedidos_en_camino/${pedidoId}`);
+    const pedidoRef = db.ref(`pedidos_para_reparto/${pedidoId}`);
     const snap = await pedidoRef.once('value');
     const pedido = snap.val();
     if (!pedido) {
@@ -480,24 +591,21 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
     if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
       return res.status(403).json({ ok: false, error: 'Pedido asignado a otro repartidor' });
     }
+    
+    // ✅ REGLA 4: Validar transición PREVIA
+    if (!esTransicionValida(pedido.estado, 'ENTREGADO')) {
+      return res.status(400).json({
+        ok: false,
+        error: `No se puede ir de ${pedido.estado} a ENTREGADO`,
+        estadoActual: pedido.estado,
+        version: pedido.version
+      });
+    }
 
     const completedAt = Date.now();
     const reserva = pedido.capital_reserva || pedido.logistica?.capital_reserva || {};
     const montoReservado = roundMoney(reserva.monto || obtenerMontoPedido(pedido));
-    const capitalReservaLiberada = {
-      ...reserva,
-      estado: 'liberada',
-      liberado_en: completedAt
-    };
-    const logisticaLiberada = {
-      ...(pedido.logistica || {}),
-      estado: 'entregado',
-      capital_reserva: {
-        ...(pedido.logistica?.capital_reserva || reserva),
-        estado: 'liberada',
-        liberado_en: completedAt
-      }
-    };
+    
     const capitalLiberado = await liberarCapitalReservadoTx(db, {
       uid,
       pedidoId,
@@ -511,25 +619,86 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
       });
     }
 
-    await Promise.all([
-      pedidoRef.update({
-        estado: 'ENTREGADO',
-        estado_pedido: 'ENTREGADO',
-        entregado_en: completedAt,
-        capital_reserva: capitalReservaLiberada,
-        logistica: logisticaLiberada
-      }),
-      db.ref(`pedidos/${pedidoId}`).update({
-        estado: 'ENTREGADO',
-        estado_pedido: 'ENTREGADO',
-        entregado_en: completedAt,
-        capital_reserva: capitalReservaLiberada,
-        logistica: logisticaLiberada
-      }),
-      db.ref(`repartidores/${uid}/pedido_activo`).remove()
-    ]);
+    // ✅ TRANSACCIÓN ATÓMICA ENDURECIDA
+    const estadoTx = await executePedidoStateTransition(db, {
+      pedidoId,
+      uid,
+      transicion: { from: pedido.estado, to: 'ENTREGADO' },
+      cambiosPorNodo: {
+        'pedidos_para_reparto': {
+          entregado_en: completedAt,
+          capital_reserva: {
+            ...reserva,
+            estado: 'liberada',
+            liberado_en: completedAt
+          },
+          logistica: {
+            ...(pedido.logistica || {}),
+            estado: 'entregado',
+            capital_reserva: {
+              ...(pedido.logistica?.capital_reserva || reserva),
+              estado: 'liberada',
+              liberado_en: completedAt
+            }
+          }
+        },
+        'pedidos_en_camino': {
+          entregado_en: completedAt,
+          capital_reserva: {
+            ...reserva,
+            estado: 'liberada',
+            liberado_en: completedAt
+          }
+        },
+        'pedidos': {
+          entregado_en: completedAt,
+          capital_reserva: {
+            ...reserva,
+            estado: 'liberada',
+            liberado_en: completedAt
+          },
+          logistica: {
+            ...(pedido.logistica || {}),
+            estado: 'entregado',
+            capital_reserva: {
+              ...(pedido.logistica?.capital_reserva || reserva),
+              estado: 'liberada',
+              liberado_en: completedAt
+            }
+          }
+        },
+        setActivoPedido: false
+      }
+    });
 
-    return res.json({ ok: true, pedidoId });
+    // ✅ REGLA 3: Manejar idempotencia
+    if (estadoTx.alreadyProcessed) {
+      return res.json({
+        ok: true,
+        alreadyProcessed: true,
+        message: 'Este pedido ya fue entregado',
+        version: estadoTx.version
+      });
+    }
+
+    if (!estadoTx.ok) {
+      return res.status(409).json({ ok: false, error: estadoTx.error });
+    }
+
+    // ✅ REGLA 2: Evento atómico (indexado por version)
+    await db.ref(`order_events/${pedidoId}/${estadoTx.snapshot.version}`).set({
+      tipo: 'ENTREGADO',
+      actor: uid,
+      timestamp: completedAt,
+      version: estadoTx.snapshot.version
+    });
+
+    return res.json({
+      ok: true,
+      pedidoId,
+      version: estadoTx.snapshot.version,
+      estado: 'ENTREGADO'
+    });
   } catch (error) {
     return next(error);
   }
