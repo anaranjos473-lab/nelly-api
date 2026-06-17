@@ -35,9 +35,9 @@ function initMap() {
         });
     }
 
-    // --- Repartidores activos (RTDB) ---
+    // --- Conductores activos (RTDB) ---
     if (window.firebase?.database) {
-        const dbRef = firebase.database().ref('repartidores_activos');
+        const dbRef = firebase.database().ref('conductores_activos');
         dbRef.on('value', (snapshot) => {
             repartidorMarkers.forEach(marker => marker.setMap(null));
             repartidorMarkers = [];

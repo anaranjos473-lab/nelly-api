@@ -9,7 +9,7 @@ router.get('/diagnostico-tokens', checkAccess, async (req, res) => {
         const admin = await getAdmin();
         // Leer ambos nodos: activos e inactivos
         const [activosSnap, inactivosSnap] = await Promise.all([
-            admin.database().ref('repartidores_activos').once('value'),
+            admin.database().ref('conductores_activos').once('value'),
             admin.database().ref('repartidores').once('value')
         ]);
         const activos = activosSnap.val() || {};
@@ -90,7 +90,7 @@ router.post('/verificar-token', express.urlencoded({ extended: true }), checkAcc
     try {
         const admin = await getAdmin();
         const snapshot = await admin.database()
-            .ref(`repartidores_activos/${idConductor}/fcm_token`)
+            .ref(`conductores_activos/${idConductor}/fcm_token`)
             .once('value');
         const token = snapshot.val();
 

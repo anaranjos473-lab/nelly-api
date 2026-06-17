@@ -58,20 +58,20 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
         console.log('[ADMIN] Firebase Admin OK');
         const db = admin.database();
 
-        console.log('[ADMIN] Leyendo repartidores_activos');
-        const activosSnap = await db.ref('repartidores_activos').once('value');
-        console.log('[ADMIN] Lectura repartidores_activos completada');
+        console.log('[ADMIN] Leyendo conductores_activos');
+        const activosSnap = await db.ref('conductores_activos').once('value');
+        console.log('[ADMIN] Lectura conductores_activos completada');
 
         const activos = activosSnap.val();
         const drivers = activos || {};
 
         console.log('[ADMIN] Enviando respuesta /repartidores', {
-            source: 'repartidores_activos',
+            source: 'conductores_activos',
             total: Object.keys(drivers).length,
         });
         return res.status(200).json({
             ok: true,
-            source: 'repartidores_activos',
+            source: 'conductores_activos',
             drivers,
         });
     } catch (error) {

@@ -23,7 +23,7 @@ function initMap() {
         zoom: 13
     });
 
-    const dbRef = ref(rtdb, 'repartidores_activos');
+    const dbRef = ref(rtdb, 'conductores_activos');
     onValue(dbRef, (snapshot) => {
         // Limpiar marcadores viejos
         markers.forEach(marker => marker.setMap(null));
