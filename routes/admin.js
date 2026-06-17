@@ -317,4 +317,55 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     }
 });
 
+// --- ENDPOINT: MARCAR PEDIDO COMO LISTO Y MOVER A pedidos_para_reparto ---
+router.post('/pedidos/:pedidoId/listo', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const { pedidoId } = req.params;
+        
+        if (!pedidoId) {
+            return res.status(400).json({ error: 'pedidoId es requerido' });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+
+        // Leer el pedido actual
+        const pedidoSnap = await db.ref(`pedidos/${pedidoId}`).once('value');
+        const pedido = pedidoSnap.val();
+
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        const timestamp = Date.now();
+        const pedidoActualizado = {
+            ...pedido,
+            estado: 'LISTO',
+            estado_pedido: 'LISTO',
+            fecha_listo: timestamp,
+            timestamp_listo: timestamp
+        };
+
+        // Actualizar en ambos nodos en una transacción
+        const updates = {
+            [`pedidos/${pedidoId}`]: pedidoActualizado,
+            [`pedidos_para_reparto/${pedidoId}`]: pedidoActualizado
+        };
+
+        await db.ref().update(updates);
+
+        console.log(`[ADMIN] Pedido ${pedidoId} marcado como LISTO y disponible para drivers`);
+
+        return res.status(200).json({ 
+            ok: true, 
+            id: pedidoId, 
+            pedido: pedidoActualizado,
+            message: 'Pedido listo para entrega. Los drivers pueden verlo ahora.'
+        });
+    } catch (error) {
+        console.error('[ADMIN][MARK_LISTO] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo marcar el pedido como listo' });
+    }
+});
+
 export default router;

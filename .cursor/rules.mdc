@@ -1,0 +1,56 @@
+# NELLY DELIVERY CURSOR RULES
+
+## Prioridad máxima
+
+- ARCHITECTURE.md
+
+## Nunca
+
+- refactors masivos
+- cambios financieros automáticos
+- cambios de Smart Dispatch sin aprobación
+- asumir acceso directo RTDB
+- asumir privilegios administrativos desde Android
+- escribir directamente en RTDB desde Android para operaciones críticas
+- modificar capital financiero desde cliente
+- crear rutas paralelas
+- duplicar lógica de Smart Dispatch
+- mover lógica financiera al frontend
+
+## Siempre
+
+- usar Node.js como autoridad
+- usar transacciones RTDB para cambios críticos
+- preservar Single Source of Truth
+- respetar ARCHITECTURE.md
+
+## Secuencia crítica de operaciones
+
+Android
+↓
+Backend
+↓
+Firebase Admin
+↓
+RTDB
+
+Nunca:
+
+Android
+↓
+RTDB directo
+
+## Requisitos de propuesta
+
+Toda propuesta debe ser:
+- atómica
+- reversible
+- compatible con producción
+
+## Reglas base
+
+- `architecture/ARCHITECTURE.md` es la fuente de verdad técnica para Nelly Delivery.
+- Todas las propuestas de cambio deben respetar los pilares y la topología definidos en ese documento.
+- No se deben introducir nuevas rutas paralelas, lógicas duplicadas o escrituras directas desde Android al RTDB.
+- `repartidores/$uid/capital` debe tener `.write = false` en `firebase/database.rules.json`.
+- Los cambios críticos deben implementarse como operaciones backend y documentarse con evidencia E2E.

@@ -3,7 +3,15 @@
     "repartidores_activos": {
       "$uid": {
         ".read": "auth != null",
-        ".write": "$uid === auth.uid"
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.exists()"
+      }
+    },
+    "conductores_activos": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.exists()"
       }
     },
     "seguridad": {
