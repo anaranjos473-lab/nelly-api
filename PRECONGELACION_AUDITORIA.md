@@ -298,6 +298,107 @@ Con estos requisitos:
 
 ---
 
+---
+
+## 🔬 VERIFICACIÓN FINAL REPRODUCIBLE (2026-06-17 T16:45:00Z)
+
+**Comando ejecutado:** Búsquedas automáticas reproducibles en codebase
+
+### [1] `repartidores_activos` - 16 Matches
+
+**Distribución:**
+
+| Categoría | Archivos | Count | Acción |
+|-----------|----------|-------|--------|
+| **UI Readers (CRÍTICOS)** | mapa-logistica.js:26, logistica-maps.js:40, routes/admin.js:62, routes/soporte.js:12 | 4 | 🔴 **MIGRAR A conductores_activos en P0** |
+| **Test/Audit** | rtdb_audit.js, app_test.js, scripts/watch_token_change.js, services/asignadorService.js | 8 | ✅ No bloquea PHASE 2A |
+| **Documentación** | src/constants/gpsContract.js | 4 | ✅ Intencional (definición de invariantes) |
+
+**Veredicto:** Divergencia confirmada. 4 archivos de producción leen de nodo incorrecto.
+
+---
+
+### [2] `conductores_activos` - 27 Matches
+
+**Distribución:**
+
+| Categoría | Archivos | Count | Status |
+|-----------|----------|-------|--------|
+| **Backend Write (Único)** | routes/delivery.js:560-562 | 3 | ✅ ÚNICO ESCRITOR |
+| **Backend Readers** | app.js:132, routes/admin.js:164, functions/index.js:47, agentes/* | 7 | ✅ Correcto |
+| **Tests/Simulation** | simulacion_e2e.js, test-*.js | 17 | ✅ No bloquea |
+
+**Veredicto:** Arquitectura correcta. Backend es única fuente de verdad para GPS.
+
+---
+
+### [3] Client-side Direct Writes to Pedidos - 0 Matches ✅
+
+**Patrones buscados:**
+```javascript
+set(ref(rtdb, 'pedidos/*'))      → 0 matches
+update(ref(rtdb, 'pedidos/*'))   → 0 matches
+push(ref(rtdb, 'pedidos/*'))     → 0 matches
+```
+
+**Veredicto:** ✅ **GATE A CERRADO - Panel tiene 0 escrituras directas**
+
+---
+
+### [4] Client-side Remove Operations - 0 Matches ✅
+
+**Patrones buscados en `public/**/*.js`:**
+```javascript
+remove(ref(...))
+.remove()
+delete(ref(...))
+```
+
+**Veredicto:** ✅ **Panel no tiene operaciones de borrado directo**
+
+---
+
+## 📊 MATRIZ DE DECISIÓN FINAL
+
+| Aspecto | Verificación | Resultado | Go/No-Go |
+|---------|---|---|---|
+| **Gobernanza Pedidos** | Panel → Backend → RTDB lineal | ✅ VERIFICADO | ✅ GO |
+| **Machine Estados** | 4 transiciones bloqueadas | ✅ VERIFICADO | ✅ GO |
+| **Versionado** | Increment en cada transición | ✅ VERIFICADO | ✅ GO |
+| **E2E** | 4/4 reglas PASS | ✅ VERIFICADO | ✅ GO |
+| **Client Bypass** | 0 direct writes | ✅ VERIFICADO | ✅ GO |
+| **Node Divergence** | 4 readers en repartidores_activos | ⚠️ IDENTIFICADO | ✅ GO (P0 PHASE 2B) |
+| **GPS TTL** | No implementado | ⚠️ IDENTIFICADO | ✅ GO (P1 PHASE 2B) |
+| **Stale Cleanup** | No implementado | ⚠️ IDENTIFICADO | ✅ GO (P1 PHASE 2B) |
+
+---
+
+## ✅ VEREDICTO DE CONGELACIÓN
+
+**PHASE 2A puede congelarse con seguridad.**
+
+**Motivo:** La arquitectura de gobernanza de pedidos es verificable y está bloqueada:
+1. Panel no puede escribir directamente a RTDB
+2. Máquina de estados rechaza transiciones inválidas
+3. E2E valida convergencia correcta (v0→v1→v2→v3)
+
+**Riesgos postponidos a PHASE 2B (No bloquean PHASE 2A):**
+- GPS node divergence (PHASE 2B P0)
+- TTL cleanup (PHASE 2B P1)
+- Stale marker filtering (PHASE 2B P2)
+
+---
+
+## 🎬 PRÓXIMO PASO
+
+```bash
+git tag phase2a-certified
+git push origin phase2a-certified
+```
+
+**Exclusividad:** A partir de ahora, TODO trabajo de GPS pasa por PHASE 2B.
+
 **Creado:** 2026-06-17 T16:40:00Z  
-**Rigor:** ✅ Verificación a 3 niveles  
-**Status:** LISTO PARA CONGELAR Y FASE 2B
+**Verificado:** 2026-06-17 T16:45:00Z  
+**Rigor:** ✅ Verificación a 4 niveles (greps reproducibles)  
+**Status:** ✅ LISTO PARA CONGELAR Y FASE 2B
