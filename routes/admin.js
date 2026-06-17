@@ -368,4 +368,71 @@ router.post('/pedidos/:pedidoId/listo', requirePanelAdminEmailAuth, async (req, 
     }
 });
 
+// --- ENDPOINT: CIERRE DE PEDIDO (Eliminar después de entrega confirmada) ---
+router.post('/pedidos/:pedidoId/cierre', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const { pedidoId } = req.params;
+        const { adminEmail } = req.body || {};
+        
+        if (!pedidoId) {
+            return res.status(400).json({ error: 'pedidoId es requerido' });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+
+        // Leer el pedido actual para validar estado
+        const pedidoSnap = await db.ref(`pedidos/${pedidoId}`).once('value');
+        const pedido = pedidoSnap.val();
+
+        if (!pedido) {
+            return res.status(404).json({ error: 'Pedido no encontrado' });
+        }
+
+        // Validar que el pedido está ENTREGADO antes de cerrar
+        if (pedido.estado !== 'ENTREGADO' && pedido.estado !== 'COMPLETADO') {
+            return res.status(400).json({ 
+                error: `No se puede cerrar pedido en estado ${pedido.estado}. Debe estar ENTREGADO.`,
+                estado_actual: pedido.estado
+            });
+        }
+
+        const timestamp = Date.now();
+
+        // Crear evento de auditoría ANTES de eliminar
+        const version = (pedido.version || 0) + 1;
+        const cierreEvent = {
+            tipo: 'CIERRE_PEDIDO',
+            actor: req.user?.email || 'admin-panel',
+            actor_uid: req.user?.uid || 'unknown',
+            pedido_id: pedidoId,
+            estado_previo: pedido.estado,
+            timestamp: timestamp,
+            razon: 'Cierre confirmado por panel admin'
+        };
+
+        // Eliminar pedido y crear evento ATÓMICAMENTE
+        const updates = {
+            [`pedidos/${pedidoId}`]: null,
+            [`pedidos_para_reparto/${pedidoId}`]: null,
+            [`order_events/${pedidoId}/${version}`]: cierreEvent
+        };
+
+        await db.ref().update(updates);
+
+        console.log(`[ADMIN] Pedido ${pedidoId} cerrado. Evento de auditoría creado.`);
+
+        return res.status(200).json({ 
+            ok: true, 
+            id: pedidoId,
+            message: 'Pedido cerrado correctamente',
+            version: version,
+            timestamp: timestamp
+        });
+    } catch (error) {
+        console.error('[ADMIN][CIERRE] Error:', error.message);
+        return res.status(500).json({ error: 'No se pudo cerrar el pedido' });
+    }
+});
+
 export default router;

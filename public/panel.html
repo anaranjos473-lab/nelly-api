@@ -24,9 +24,38 @@
                 console.error('Firebase connection status error:', error);
             });
 
-            window.entregarPedido = function(id) {
+            window.entregarPedido = async function(id) {
                 if (!confirm('¿Confirmas que el pedido está listo?')) return;
-                remove(ref(rtdb, `pedidos/${id}`));
+                
+                try {
+                    const idToken = await obtenerIdTokenPanel();
+                    
+                    // Delegar al backend - POST /api/admin/pedidos/{id}/cierre
+                    const response = await fetch(`/api/admin/pedidos/${encodeURIComponent(id)}/cierre`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({ admin: true })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error al cerrar pedido');
+                    }
+                    
+                    const result = await response.json();
+                    showToast(`Pedido ${id} cerrado correctamente`, 'ok');
+                    logDebug(`[PANEL] Pedido cerrado: ${id}, version=${result.version}`);
+                    
+                    // Actualizar UI
+                    actualizarPanel();
+                } catch (error) {
+                    logDebug(`[PANEL] Error cerrando pedido: ${error.message}`, 'err');
+                    showToast(`Error: ${error.message}`, 'err');
+                    alert('Error al cerrar pedido: ' + error.message);
+                }
             };
         </script>
         <style>
@@ -397,11 +426,35 @@
                 }
             });
 
-            window.entregarPedido = function(id) {
+            window.entregarPedido = async function(id) {
                 const db = window.nellyDb;
                 if (!db) return;
                 if (confirm("¿Confirmas que el pedido está listo?")) {
-                    remove(ref(db, 'pedidos/' + id));
+                    try {
+                        const idToken = await obtenerIdTokenPanel();
+                        
+                        // Delegar al backend - POST /api/admin/pedidos/{id}/cierre
+                        const response = await fetch(`/api/admin/pedidos/${encodeURIComponent(id)}/cierre`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({ admin: true })
+                        });
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Error al cerrar');
+                        }
+                        
+                        const result = await response.json();
+                        console.log('[ENTREGAS] Pedido cerrado:', result);
+                        location.reload();
+                    } catch (error) {
+                        console.error('[ENTREGAS] Error:', error);
+                        alert('Error: ' + error.message);
+                    }
                 }
             };
         }
@@ -586,9 +639,7 @@
             onValue,
             orderByChild,
             query,
-            ref,
-            runTransaction,
-            set
+            ref
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
         const API_BASE_URL =
@@ -964,6 +1015,8 @@
         ];
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
+        const MARK_READY_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
+            .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/admin/pedidos'));
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -1701,22 +1754,41 @@
                 const rtdbKey = pedido._rtdbKey || keyResuelta;
                 const estadoOriginal = pedido.estado || 'pendiente';
 
-                // Reflejo inmediato en UI mientras se persiste en backend.
+                // Reflejo inmediato en UI mientras el Backend persiste la transicion.
                 pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'en_reparto' });
                 actualizarPanel();
 
-                const datos = limpiarPedido(pedido);
-                const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);
+                const idToken = await obtenerIdTokenPanel();
+                let movido = false;
 
-                await set(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`), payloadReparto);
-                logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}`), payloadReparto);
-                logDebug(`set RTDB pedidos_en_camino/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'listo');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=listo`);
+                for (const endpoint of MARK_READY_ENDPOINTS) {
+                    try {
+                        const response = await fetch(`${endpoint}/${encodeURIComponent(rtdbKey)}/listo`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${idToken}`
+                            }
+                        });
 
-                await sumarGanancias(Number(pedido.monto || pedido.total || 0));
+                        if (!response.ok) {
+                            const detalle = await response.text();
+                            throw new Error(`${response.status} ${detalle}`);
+                        }
+
+                        movido = true;
+                        logDebug(`MOVE backend ok endpoint=${endpoint}`);
+                        break;
+                    } catch (networkError) {
+                        logDebug(`MOVE backend fail endpoint=${endpoint} err=${networkError.message}`, 'err');
+                    }
+                }
+
+                if (!movido) {
+                    throw new Error('mark_ready_failed_all_endpoints');
+                }
+
                 showToast('Pedido movido a reparto', 'ok');
             } catch (error) {
                 pedidosPendientes.set(keyResuelta, { ...pedido, estado: estadoOriginal });
@@ -1776,58 +1848,6 @@
             }
         };
         /* === [FIN BLOQUE NUEVO] === */
-
-        function limpiarPedido(pedido) {
-            const limpio = { ...pedido };
-            delete limpio.__source;
-            delete limpio.__legacyPath;
-            delete limpio._rtdbKey;
-            return limpio;
-        }
-
-        function numeroSeguro(valor) {
-            const n = Number(valor);
-            return Number.isFinite(n) ? n : null;
-        }
-
-        function construirPayloadReparto(pedido, datos) {
-            const clienteNombre = pedido.cliente_nombre || pedido.cliente || "Usuario Nelly";
-            const lat = numeroSeguro(pedido.cliente_lat ?? pedido.lat_cliente ?? pedido.lat ?? pedido.latitude);
-            const lng = numeroSeguro(pedido.cliente_lng ?? pedido.lng_cliente ?? pedido.lng ?? pedido.longitude ?? pedido.lon);
-            const tiempoEstimado = String(pedido.tiempo_estimado || "25 min");
-
-            return {
-                ...datos,
-                id: pedido.id,
-                id_pedido: pedido.id,
-                pedido_id: pedido.id,
-                estado: "LISTO",
-                hora_cocina: new Date().toISOString(),
-                fuente_origen: pedido.__source,
-                fase_panel: "Despacho",
-                cliente: {
-                    nombre: clienteNombre,
-                    coords: {
-                        lat,
-                        lng
-                    }
-                },
-                logistica: {
-                    estado: "disponible",
-                    repartidor_id: null,
-                    tiempo_estimado: tiempoEstimado
-                }
-            };
-        }
-
-        async function sumarGanancias(monto) {
-            const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
-            await runTransaction(gananciasRef, (current) => {
-                const totalActual = Number(current?.total || 0);
-                return { total: Number((totalActual + Number(monto || 0)).toFixed(2)) };
-            });
-        }
-
 
     </script>
 </body>
