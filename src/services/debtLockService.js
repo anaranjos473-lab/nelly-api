@@ -54,6 +54,10 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
 
   const ref = db.ref(`repartidores/${uid}`);
   const tx = await ref.transaction((actual) => {
+    if (actual === null) {
+      return null;
+    }
+
     if (!actual || typeof actual !== 'object') {
       return;
     }
@@ -113,6 +117,10 @@ export async function registrarPagoDeudaTx(db, { uid, montoPago, origen = 'panel
 
   const ref = db.ref(`repartidores/${uid}`);
   const tx = await ref.transaction((actual) => {
+    if (actual === null) {
+      return null;
+    }
+
     if (!actual || typeof actual !== 'object') {
       return;
     }

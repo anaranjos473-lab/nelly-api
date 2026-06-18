@@ -325,20 +325,23 @@ async function executePedidoStateTransition(db, {
   }
   
   // Una vez que transacción pasó, actualizar otros nodos
+  const pedidoTransicionado = tx.snapshot.val();
   const actualizaciones = {
     [`pedidos/${pedidoId}`]: {
-      ...cambiosPorNodo['pedidos'] || cambiosPorNodo['pedidos_para_reparto'],
+      ...pedidoTransicionado,
+      ...(cambiosPorNodo['pedidos'] || cambiosPorNodo['pedidos_para_reparto']),
       estado: transicion.to,
-      version: tx.snapshot.val().version,
+      version: pedidoTransicionado.version,
       updated_at: serverTimestamp
     }
   };
   
   if (cambiosPorNodo['pedidos_en_camino']) {
     actualizaciones[`pedidos_en_camino/${pedidoId}`] = {
+      ...pedidoTransicionado,
       ...cambiosPorNodo['pedidos_en_camino'],
       estado: transicion.to,
-      version: tx.snapshot.val().version,
+      version: pedidoTransicionado.version,
       updated_at: serverTimestamp
     };
   }
@@ -567,6 +570,26 @@ router.post('/update-location', requireFirebaseUser, async (req, res, next) => {
 
     await db.ref().update(updates);
     return res.json({ ok: true, ubicacion });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
+  try {
+    const uid = req.firebaseUser.uid;
+    const admin = await getAdmin();
+    const db = admin.database();
+    const timestamp = Date.now();
+
+    await db.ref().update({
+      [`conductores_activos/${uid}`]: null,
+      [`repartidores/${uid}/ultima_conexion`]: timestamp,
+      [`repartidores/${uid}/estado_gps`]: 'offline'
+    });
+
+    console.info(`[OFFLINE] Driver ${uid} removed from conductores_activos`);
+    return res.json({ ok: true, uid, offlineAt: timestamp });
   } catch (error) {
     return next(error);
   }

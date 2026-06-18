@@ -71,6 +71,10 @@ function setAt(path, value) {
     current[part] = current[part] || {};
     return current[part];
   }, state);
+  if (value === null) {
+    delete parent[last];
+    return;
+  }
   parent[last] = value;
 }
 
@@ -111,24 +115,28 @@ jest.unstable_mockModule('firebase-admin', () => ({
       }))
     }),
     database: () => ({
-      ref: (path = '') => ({
-        once: jest.fn(async () => ({
-          val: () => getAt(path),
-          exists: () => getAt(path) !== undefined && getAt(path) !== null
-        })),
-        set: jest.fn(async (value) => setAt(path, value)),
-        update: jest.fn(async (value) => updateAt(path, value)),
-        remove: jest.fn(async () => removeAt(path)),
-        transaction: jest.fn(async (updater) => {
-          const current = getAt(path);
-          const next = updater(current);
-          if (next === undefined) {
-            return { committed: false, snapshot: { exists: () => false, val: () => null } };
-          }
-          setAt(path, next);
-          return { committed: true, snapshot: { exists: () => true, val: () => next } };
-        })
-      })
+      ref: (path = '') => {
+        const makeRef = (refPath = '') => ({
+          child: jest.fn((childPath) => makeRef([refPath, childPath].filter(Boolean).join('/'))),
+          once: jest.fn(async () => ({
+            val: () => getAt(refPath),
+            exists: () => getAt(refPath) !== undefined && getAt(refPath) !== null
+          })),
+          set: jest.fn(async (value) => setAt(refPath, value)),
+          update: jest.fn(async (value) => updateAt(refPath, value)),
+          remove: jest.fn(async () => removeAt(refPath)),
+          transaction: jest.fn(async (updater) => {
+            const current = getAt(refPath);
+            const next = updater(current);
+            if (next === undefined) {
+              return { committed: false, snapshot: { exists: () => false, val: () => null } };
+            }
+            setAt(refPath, next);
+            return { committed: true, snapshot: { exists: () => true, val: () => next } };
+          })
+        });
+        return makeRef(path);
+      }
     }),
     firestore: () => ({
       collection: () => ({ get: async () => ({ docs: [] }) })
@@ -151,6 +159,10 @@ describe('Delivery y panel API', () => {
     expect(res.body.elegibilidad.dispatchScore).toBeGreaterThan(0);
     expect(state.pedidos_en_camino.pedido_ok.repartidor_id).toBe('driver_ok');
     expect(state.pedidos_en_camino.pedido_ok.idConductor).toBe('driver_ok');
+    expect(state.pedidos_en_camino.pedido_ok.id_pedido).toBe('pedido_ok');
+    expect(state.pedidos_en_camino.pedido_ok.monto_total).toBe(120);
+    expect(state.pedidos.pedido_ok.id_pedido).toBe('pedido_ok');
+    expect(state.pedidos.pedido_ok.monto_total).toBe(120);
     expect(state.pedidos_en_camino.pedido_ok.capital_reserva.monto).toBe(120);
     expect(state.repartidores.driver_ok.billetera.capital_reservado).toBe(120);
     expect(state.repartidores.driver_ok.billetera.capital_disponible).toBe(880);
@@ -235,6 +247,22 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(state.repartidores.driver_ok.ubicacion.lat).toBe(16.75);
     expect(state.conductores_activos.driver_ok.lng).toBe(-93.11);
+  });
+
+  it('elimina al repartidor de conductores_activos al marcar offline', async () => {
+    state.conductores_activos = {
+      driver_ok: { lat: 16.75, lng: -93.11, timestamp: Date.now() }
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/driver-offline')
+      .set('Authorization', 'Bearer driver-token')
+      .send({});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(state.conductores_activos.driver_ok).toBeUndefined();
+    expect(state.repartidores.driver_ok.estado_gps).toBe('offline');
   });
 
   it('registra pago de deuda desde panel', async () => {
