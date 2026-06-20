@@ -86,7 +86,7 @@ app.get('/api/salud', (req, res) => {
 app.get('/api/health', (req, res) => {
     res.status(200).json({
         success: true,
-        status: 'OK',
+        status: 'OK_TEST_20260620',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development'
