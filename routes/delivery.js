@@ -119,6 +119,27 @@ router.post('/update-location', requireFirebaseUser, async (req, res, next) => {
   }
 });
 
+router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
+  try {
+    const uid = req.firebaseUser.uid;
+    const admin = await getAdmin();
+    const db = admin.database();
+    const timestamp = Date.now();
+
+    await db.ref().update({
+      [`conductores_activos/${uid}`]: null,
+      [`repartidores/${uid}/disponible`]: false,
+      [`repartidores/${uid}/estado`]: 'OFFLINE',
+      [`repartidores/${uid}/ultima_conexion`]: timestamp,
+      [`repartidores/${uid}/offline_en`]: timestamp
+    });
+
+    return res.json({ ok: true, repartidorId: uid, estado: 'OFFLINE', offlineEn: timestamp });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
   try {
     const pedidoId = req.body.pedidoId || req.body.orderId;

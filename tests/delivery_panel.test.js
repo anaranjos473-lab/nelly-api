@@ -125,6 +125,32 @@ describe('Delivery y panel API', () => {
     expect(state.conductores_activos.driver_ok.lng).toBe(-93.11);
   });
 
+  it('protege driver-offline cuando falta token', async () => {
+    const res = await request(app)
+      .post('/api/delivery/driver-offline')
+      .send({});
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.error).toBe('Token requerido');
+  });
+
+  it('marca offline al repartidor autenticado y remueve presencia activa', async () => {
+    state.conductores_activos = {
+      driver_ok: { lat: 16.75, lng: -93.11, estado: 'DISPONIBLE' }
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/driver-offline')
+      .set('Authorization', 'Bearer driver-token')
+      .send({});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(state.repartidores.driver_ok.disponible).toBe(false);
+    expect(state.repartidores.driver_ok.estado).toBe('OFFLINE');
+    expect(state.conductores_activos.driver_ok).toBeNull();
+  });
+
   it('registra pago de deuda desde panel', async () => {
     const res = await request(app)
       .post('/api/panel/finanzas/registrar-pago-deuda')
