@@ -4,6 +4,13 @@ import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/de
 
 const router = express.Router();
 
+// Configuración de emails autorizados
+const PANEL_ADMIN_EMAILS = new Set(
+    String(process.env.PANEL_ADMIN_EMAILS || 'admin@nellydelivery.com,operaciones@nellydelivery.com')
+        .split(',')
+        .map(e => e.trim().toLowerCase())
+);
+
 async function requireFirebaseUser(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
   if (!token) {
@@ -14,6 +21,29 @@ async function requireFirebaseUser(req, res, next) {
     const admin = await getAdmin();
     req.firebaseUser = await admin.auth().verifyIdToken(token);
     return next();
+  } catch (error) {
+    return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
+  }
+}
+
+async function requireAdminOrPanel(req, res, next) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+  if (!token) {
+    return res.status(401).json({ ok: false, error: 'Token requerido' });
+  }
+
+  try {
+    const admin = await getAdmin();
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    // Validar que sea admin o panel
+    const email = String(decodedToken.email || '').toLowerCase();
+    if (decodedToken.admin === true || decodedToken.role === 'panel_cocina' || PANEL_ADMIN_EMAILS.has(email)) {
+      req.user = decodedToken;
+      return next();
+    }
+    
+    return res.status(403).json({ ok: false, error: 'No autorizado' });
   } catch (error) {
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
   }
@@ -140,10 +170,9 @@ router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
   }
 });
 
-router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
+router.post('/complete-order', requireAdminOrPanel, async (req, res, next) => {
   try {
     const pedidoId = req.body.pedidoId || req.body.orderId;
-    const uid = req.firebaseUser.uid;
     if (!pedidoId) {
       return res.status(400).json({ ok: false, error: 'pedidoId es requerido' });
     }
@@ -156,15 +185,12 @@ router.post('/complete-order', requireFirebaseUser, async (req, res, next) => {
     if (!pedido) {
       return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
     }
-    if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
-      return res.status(403).json({ ok: false, error: 'Pedido asignado a otro repartidor' });
-    }
 
     const completedAt = Date.now();
     await Promise.all([
       pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
       db.ref(`pedidos/${pedidoId}`).update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      db.ref(`repartidores/${uid}/pedido_activo`).remove()
+      db.ref(`repartidores/${pedido.repartidor_id}/pedido_activo`).remove()
     ]);
 
     return res.json({ ok: true, pedidoId });

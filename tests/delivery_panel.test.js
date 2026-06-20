@@ -59,10 +59,15 @@ jest.unstable_mockModule('firebase-admin', () => ({
     initializeApp: jest.fn(),
     apps: { length: 1 },
     auth: () => ({
-      verifyIdToken: jest.fn(async (token) => ({
-        uid: token === 'blocked-token' ? 'driver_blocked' : 'driver_ok',
-        admin: token === 'panel-token'
-      }))
+      verifyIdToken: jest.fn(async (token) => {
+        if (token === 'panel-token') {
+          return { uid: 'admin_panel', admin: true, email: 'admin@nellydelivery.com' };
+        }
+        if (token === 'blocked-token') {
+          return { uid: 'driver_blocked', admin: false };
+        }
+        return { uid: 'driver_ok', admin: false };
+      })
     }),
     database: () => ({
       ref: (path = '') => ({
@@ -160,5 +165,44 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.bloqueadoPorDeuda).toBe(false);
     expect(state.repartidores.driver_blocked.finanzas.deuda_actual).toBe(0);
+  });
+
+  it('protege complete-order cuando falta token', async () => {
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body.error).toBe('Token requerido');
+  });
+
+  it('rechaza complete-order si usuario no es admin/panel', async () => {
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.error).toContain('No autorizado');
+  });
+
+  it('completa un pedido cuando admin tiene token valido', async () => {
+    state.pedidos_en_camino.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'EN_CAMINO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer panel-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.pedidoId).toBe('pedido_ok');
+    expect(state.pedidos_en_camino.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
   });
 });
