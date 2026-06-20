@@ -5,11 +5,16 @@ import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
 import { iniciarAgenteSoporte, limpiarAgenteSoporte } from './src/agentes/agenteSoporte.js';
 
 async function iniciarAgentes() {
-  iniciarAgenteDespacho();
-  iniciarAgenteFinanciero();
-  iniciarAgenteAntifraude();
-  await iniciarAgenteSoporte();
-  console.log('✅ Runtime principal operando sin Firestore bridge');
+  try {
+    await iniciarAgenteDespacho();
+    await iniciarAgenteFinanciero();
+    await iniciarAgenteAntifraude();
+    await iniciarAgenteSoporte();
+    console.log('✅ Runtime principal operando sin Firestore bridge');
+  } catch (error) {
+    console.error('❌ Error inicializando agentes:', error.message);
+    throw error;
+  }
 }
 
 // Limpieza de listeners al cerrar el proceso
