@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: nelly-api
+    env: node
+    plan: free
+    startCommand: node server.js
+    buildCommand: npm ci
+    routes:
+      - path: /
