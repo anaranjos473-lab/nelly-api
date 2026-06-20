@@ -177,13 +177,62 @@ describe('Delivery y panel API', () => {
   });
 
   it('rechaza complete-order si usuario no es admin/panel', async () => {
+    state.pedidos_en_camino.pedido_otro = {
+      id_pedido: 'pedido_otro',
+      estado: 'EN_CAMINO',
+      monto_total: 120,
+      repartidor_id: 'driver_blocked'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_otro' });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.error).toContain('Solo el repartidor asignado');
+  });
+
+  it('completa un pedido desde el repartidor asignado y registra finanzas', async () => {
+    state.repartidores.driver_ok.pedido_activo = 'pedido_ok';
+    state.pedidos_en_camino.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'EN_CAMINO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
     const res = await request(app)
       .post('/api/delivery/complete-order')
       .set('Authorization', 'Bearer driver-token')
       .send({ pedidoId: 'pedido_ok' });
 
-    expect(res.statusCode).toBe(403);
-    expect(res.body.error).toContain('No autorizado');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.comision).toBe(21.6);
+    expect(state.pedidos_en_camino.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.repartidores.driver_ok.pedido_activo).toBeUndefined();
+    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
+  });
+
+  it('no duplica finanzas si complete-order se reintenta sobre pedido entregado', async () => {
+    state.pedidos_en_camino.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'ENTREGADO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+    const deudaAntes = state.repartidores.driver_ok.finanzas.deuda_actual;
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.alreadyCompleted).toBe(true);
+    expect(state.repartidores.driver_ok.finanzas.deuda_actual).toBe(deudaAntes);
   });
 
   it('completa un pedido cuando admin tiene token valido', async () => {

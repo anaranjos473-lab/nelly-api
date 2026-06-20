@@ -21,6 +21,16 @@
         android:text="Estado: IDLE"
         android:textSize="13sp" />
 
+    <Button
+        android:id="@+id/btnCompletarEntrega"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#2563EB"
+        android:text="ENTREGA COMPLETADA"
+        android:textColor="#FFFFFF"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/txtVacio"
         android:layout_width="match_parent"

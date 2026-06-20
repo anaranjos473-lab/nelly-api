@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +34,7 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
     private lateinit var viewModel: PedidoViewModel
     private lateinit var pedidoAdapter: PedidoAdapter
+    private lateinit var btnCompletarEntrega: Button
     private lateinit var txtEstadoSync: TextView
     private lateinit var txtVacio: TextView
     private var currentSyncState = "IDLE"
@@ -52,6 +54,7 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
         txtEstadoSync = findViewById(R.id.txtEstadoSync)
         txtVacio = findViewById(R.id.txtVacio)
+        btnCompletarEntrega = findViewById(R.id.btnCompletarEntrega)
 
         val recyclerView: RecyclerView = findViewById(R.id.recyclerPedidos)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -86,6 +89,8 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         observarEstadoSync()
         observarEventosSync()
         observarBloqueoDeuda()
+        observarPedidoActivo()
+        configurarCompletarEntrega()
     }
 
     override fun onStart() {
@@ -140,6 +145,36 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
                 pedidoAdapter.setBloqueadoPorDeuda(bloqueado)
                 if (bloqueado) {
                     txtEstadoSync.text = "Estado: BLOQUEADO POR DEUDA"
+                }
+            }
+        }
+    }
+
+    private fun observarPedidoActivo() {
+        uiScope.launch {
+            viewModel.pedidoActivoId.collect { pedidoId ->
+                btnCompletarEntrega.visibility = if (pedidoId.isNullOrBlank()) View.GONE else View.VISIBLE
+                btnCompletarEntrega.tag = pedidoId
+            }
+        }
+    }
+
+    private fun configurarCompletarEntrega() {
+        btnCompletarEntrega.setOnClickListener {
+            val pedidoId = btnCompletarEntrega.tag as? String
+            if (pedidoId.isNullOrBlank()) {
+                Toast.makeText(this, "No hay pedido activo", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            btnCompletarEntrega.isEnabled = false
+            viewModel.completarPedido(pedidoId) { ok, mensaje ->
+                runOnUiThread {
+                    btnCompletarEntrega.isEnabled = true
+                    if (ok) {
+                        stopService(Intent(this, DeliveryTrackingService::class.java))
+                    }
+                    Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
                 }
             }
         }

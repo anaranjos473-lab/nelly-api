@@ -41,9 +41,47 @@ async function requireAdminOrPanel(req, res, next) {
   }
 }
 
+async function requireFirebaseUserAnyRole(req, res, next) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+  if (!token) {
+    return res.status(401).json({ ok: false, error: 'Token requerido' });
+  }
+
+  try {
+    const admin = await getAdmin();
+    req.firebaseUser = await admin.auth().verifyIdToken(token);
+    return next();
+  } catch (error) {
+    return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
+  }
+}
+
 async function getDriverState(db, uid) {
   const snap = await db.ref(`repartidores/${uid}`).once('value');
   return snap.val() || {};
+}
+
+function isAdminOrPanelUser(user = {}) {
+  return user.admin === true || user.role === 'panel_cocina';
+}
+
+function roundMoney(value) {
+  return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
+}
+
+function getOrderTotal(pedido = {}) {
+  const total = Number(
+    pedido.monto_total
+      ?? pedido.monto
+      ?? pedido.total
+      ?? pedido.total_pedido
+      ?? 0
+  );
+  return Number.isFinite(total) ? total : 0;
+}
+
+function getDriverUidFromOrder(pedido = {}) {
+  return pedido.repartidor_id || pedido.conductorId || pedido.driverUid || pedido.uid_repartidor || null;
 }
 
 function isDebtBlocked(driver) {
@@ -162,7 +200,7 @@ router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
   }
 });
 
-router.post('/complete-order', requireAdminOrPanel, async (req, res, next) => {
+router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next) => {
   try {
     const pedidoId = req.body.pedidoId || req.body.orderId;
     if (!pedidoId) {
@@ -178,14 +216,67 @@ router.post('/complete-order', requireAdminOrPanel, async (req, res, next) => {
       return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
     }
 
+    const estadoActual = String(pedido.estado_pedido || pedido.estado || '').trim().toUpperCase();
+    if (estadoActual === 'ENTREGADO') {
+      return res.json({
+        ok: true,
+        pedidoId,
+        estado: 'ENTREGADO',
+        alreadyCompleted: true,
+        finanzas: null
+      });
+    }
+    if (estadoActual && !['EN_CAMINO', 'EN_REPARTO', 'REPARTO'].includes(estadoActual)) {
+      return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido aun no esta en reparto', estadoActual });
+    }
+
+    const driverUid = getDriverUidFromOrder(pedido);
+    const user = req.firebaseUser || {};
+    const isPanel = isAdminOrPanelUser(user);
+    if (!isPanel) {
+      if (!driverUid || driverUid !== user.uid) {
+        return res.status(403).json({ ok: false, error: 'Solo el repartidor asignado puede completar este pedido' });
+      }
+
+      const activeSnap = await db.ref(`repartidores/${user.uid}/pedido_activo`).once('value');
+      const activePedidoId = activeSnap.val();
+      if (activePedidoId && activePedidoId !== pedidoId) {
+        return res.status(409).json({ ok: false, error: 'El pedido no coincide con el pedido activo del repartidor' });
+      }
+    }
+
     const completedAt = Date.now();
+    const montoPedido = getOrderTotal(pedido);
+    const comision = roundMoney(
+      req.body.comision
+        ?? req.body.monto_comision
+        ?? (montoPedido * 0.18)
+    );
+    const finanzas = driverUid && comision > 0
+      ? await registrarCobroEfectivoTx(db, {
+        uid: driverUid,
+        montoEfectivo: comision,
+        pedidoId,
+        origen: 'complete-order'
+      })
+      : null;
+
     await Promise.all([
       pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
       db.ref(`pedidos/${pedidoId}`).update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      db.ref(`repartidores/${pedido.repartidor_id}/pedido_activo`).remove()
+      db.ref(`pedidos_para_reparto/${pedidoId}`).remove(),
+      driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve()
     ]);
 
-    return res.json({ ok: true, pedidoId });
+    return res.json({
+      ok: true,
+      pedidoId,
+      estado: 'ENTREGADO',
+      repartidorId: driverUid,
+      montoPedido,
+      comision,
+      finanzas
+    });
   } catch (error) {
     return next(error);
   }

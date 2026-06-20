@@ -9,6 +9,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.nelly.driver.R
 import com.nelly.driver.data.local.PedidoDao
+import com.nelly.driver.data.remote.OrderCompleteClient
 import com.nelly.driver.data.remote.OrderAcceptClient
 import com.nelly.driver.model.PedidoEntity
 import kotlinx.coroutines.CoroutineDispatcher
@@ -26,7 +27,8 @@ class PedidoRepository(
     private val pedidosRef: DatabaseReference,
     context: Context,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val orderAcceptClient: OrderAcceptClient = OrderAcceptClient()
+    private val orderAcceptClient: OrderAcceptClient = OrderAcceptClient(),
+    private val orderCompleteClient: OrderCompleteClient = OrderCompleteClient()
 ) {
     private val appContext = context.applicationContext
     private val syncScope = CoroutineScope(SupervisorJob() + ioDispatcher)
@@ -36,6 +38,8 @@ class PedidoRepository(
     private var cargaInicialCompletada = false
     private val _syncEventos = MutableStateFlow("IDLE")
     val syncEventos: StateFlow<String> = _syncEventos.asStateFlow()
+    private val _pedidoActivoId = MutableStateFlow<String?>(null)
+    val pedidoActivoId: StateFlow<String?> = _pedidoActivoId.asStateFlow()
     private val conexionRef: DatabaseReference = FirebaseDatabase.getInstance().getReference(".info/connected")
 
     fun observarPedidos(): Flow<List<PedidoEntity>> = pedidoDao.obtenerTodosLosPedidos()
@@ -147,6 +151,7 @@ class PedidoRepository(
 
         orderAcceptClient.acceptOrder(pedidoId) { response ->
             if (response.ok) {
+                _pedidoActivoId.value = pedidoId
                 onResult(true, "Pedido aceptado y movido a seguimiento")
                 return@acceptOrder
             }
@@ -159,6 +164,31 @@ class PedidoRepository(
             }
 
             onResult(false, "Servicio de aceptacion no disponible. Intenta nuevamente en unos segundos")
+        }
+    }
+
+    fun completarPedido(
+        pedidoId: String,
+        onResult: (ok: Boolean, mensaje: String) -> Unit
+    ) {
+        if (pedidoId.isBlank()) {
+            onResult(false, "No hay pedido activo para completar")
+            return
+        }
+
+        orderCompleteClient.completeOrder(pedidoId) { response ->
+            if (response.ok) {
+                _pedidoActivoId.value = null
+                onResult(true, "Entrega completada")
+                return@completeOrder
+            }
+
+            val mensaje = if (response.statusCode in listOf(400, 401, 403, 404, 409)) {
+                extraerMensajeErrorBackend(response.body)
+            } else {
+                "Servicio de cierre no disponible. Intenta nuevamente en unos segundos"
+            }
+            onResult(false, mensaje)
         }
     }
 

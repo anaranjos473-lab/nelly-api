@@ -17,6 +17,7 @@ class PedidoViewModel(
     private val _syncEstado = MutableStateFlow("IDLE")
     val syncEstado: StateFlow<String> = _syncEstado.asStateFlow()
     val syncEventos: StateFlow<String> = repository.syncEventos
+    val pedidoActivoId: StateFlow<String?> = repository.pedidoActivoId
     private val _bloqueoDeuda = MutableStateFlow(false)
     val bloqueoDeuda: StateFlow<Boolean> = _bloqueoDeuda.asStateFlow()
 
@@ -48,6 +49,16 @@ class PedidoViewModel(
             } else if (mensaje.contains("Limite de deuda alcanzado", ignoreCase = true)) {
                 _bloqueoDeuda.value = true
             }
+            onResultado(ok, mensaje)
+        }
+    }
+
+    fun completarPedido(
+        pedidoId: String,
+        onResultado: (ok: Boolean, mensaje: String) -> Unit
+    ) {
+        repository.completarPedido(pedidoId) { ok, mensaje ->
+            _syncEstado.value = if (ok) "ENTREGADO" else "ERROR: $mensaje"
             onResultado(ok, mensaje)
         }
     }
