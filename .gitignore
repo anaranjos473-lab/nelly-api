@@ -39,6 +39,7 @@ node_modules/
 deploy_output.txt
 *.log
 logs_pruebas/
+.codex-tmp/
 
 # Datos de prueba con PII / datos financieros reales
 repartidores.json
