@@ -4,13 +4,6 @@ import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/de
 
 const router = express.Router();
 
-// Configuración de emails autorizados
-const PANEL_ADMIN_EMAILS = new Set(
-    String(process.env.PANEL_ADMIN_EMAILS || 'admin@nellydelivery.com,operaciones@nellydelivery.com')
-        .split(',')
-        .map(e => e.trim().toLowerCase())
-);
-
 async function requireFirebaseUser(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
   if (!token) {
@@ -36,9 +29,8 @@ async function requireAdminOrPanel(req, res, next) {
     const admin = await getAdmin();
     const decodedToken = await admin.auth().verifyIdToken(token);
     
-    // Validar que sea admin o panel
-    const email = String(decodedToken.email || '').toLowerCase();
-    if (decodedToken.admin === true || decodedToken.role === 'panel_cocina' || PANEL_ADMIN_EMAILS.has(email)) {
+    // Validar que sea admin o panel - igual que en app_test.js
+    if (decodedToken.admin === true || decodedToken.role === 'panel_cocina') {
       req.user = decodedToken;
       return next();
     }
