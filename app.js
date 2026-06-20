@@ -220,4 +220,40 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
+// Auto-start server when run directly (not when imported)
+const isRunningDirectly = import.meta.url === `file://${process.argv[1]}`;
+if (isRunningDirectly && process.env.NODE_ENV !== 'test') {
+  const { iniciarAgenteDespacho, limpiarAgenteDespacho } = await import('./src/agentes/agenteDespacho.js');
+  const { iniciarAgenteFinanciero } = await import('./src/agentes/agenteTarifaDinamica.js');
+  const { iniciarAgenteAntifraude } = await import('./src/agentes/agenteAntifraude.js');
+  const { iniciarAgenteSoporte, limpiarAgenteSoporte } = await import('./src/agentes/agenteSoporte.js');
+  
+  try {
+    await iniciarAgenteDespacho();
+    await iniciarAgenteFinanciero();
+    await iniciarAgenteAntifraude();
+    await iniciarAgenteSoporte();
+    console.log('✅ Runtime principal operando sin Firestore bridge');
+    
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor de Nelly corriendo en el puerto ${PORT}`);
+    });
+    
+    process.on('SIGINT', () => {
+      limpiarAgenteDespacho();
+      limpiarAgenteSoporte();
+      process.exit(0);
+    });
+    process.on('SIGTERM', () => {
+      limpiarAgenteDespacho();
+      limpiarAgenteSoporte();
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error('❌ Error inicializando agentes:', error.message);
+    process.exit(1);
+  }
+}
+
 export default app;
