@@ -245,6 +245,9 @@ La discrepancia entre Cocina, Admin, Repartidor Web y Android es esperada mientr
 
 Declarar `pedidos/{id}` como unica verdad.
 
+Mapa de migración asociado:
+- [SSOT_MIGRATION_MAP_2026_06_23.md](SSOT_MIGRATION_MAP_2026_06_23.md)
+
 Indices derivados:
 
 - `pedidos_para_reparto`
