@@ -92,6 +92,58 @@ function isDebtBlocked(driver) {
   return bloqueado || (limite > 0 && deuda > limite);
 }
 
+router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
+  try {
+    const pedidoId = String(req.body?.pedidoId || req.body?.orderId || '').trim();
+    if (!pedidoId) {
+      return res.status(400).json({ ok: false, error: 'pedidoId es requerido' });
+    }
+
+    const admin = await getAdmin();
+    const db = admin.database();
+    const pedidoSnap = await db.ref(`pedidos/${pedidoId}`).once('value');
+    const pedidoActual = pedidoSnap.val() || {};
+    const pedidoInput = req.body?.pedido && typeof req.body.pedido === 'object' ? req.body.pedido : {};
+    const dispatchedAt = Date.now();
+    const pedidoBase = {
+      ...pedidoInput,
+      ...pedidoActual,
+      id: pedidoActual.id || pedidoInput.id || pedidoId,
+      id_pedido: pedidoActual.id_pedido || pedidoInput.id_pedido || pedidoId,
+      pedido_id: pedidoActual.pedido_id || pedidoInput.pedido_id || pedidoId
+    };
+    const payloadListo = {
+      ...pedidoBase,
+      estado: 'LISTO',
+      estado_pedido: 'LISTO',
+      hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),
+      despachado_en: dispatchedAt,
+      fuente_origen: pedidoBase.fuente_origen || 'panel_api',
+      fase_panel: 'Despacho',
+      logistica: {
+        ...(pedidoBase.logistica || {}),
+        estado: 'disponible',
+        repartidor_id: null
+      }
+    };
+
+    await Promise.all([
+      db.ref(`pedidos/${pedidoId}`).update({
+        estado: 'LISTO',
+        estado_pedido: 'LISTO',
+        hora_cocina: payloadListo.hora_cocina,
+        despachado_en: dispatchedAt,
+        fase_panel: 'Despacho'
+      }),
+      db.ref(`pedidos_para_reparto/${pedidoId}`).set(payloadListo)
+    ]);
+
+    return res.json({ ok: true, pedidoId, estado: 'LISTO', pedido: payloadListo });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
   try {
     const { pedidoId } = req.body;
@@ -116,6 +168,10 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
       return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
     }
+    const estadoActual = String(pedido.estado_pedido || pedido.estado || '').trim().toUpperCase();
+    if (estadoActual && !['LISTO', 'LISTO_PARA_REPARTO', 'ESPERANDO_REPARTIDOR', 'DESPACHO'].includes(estadoActual)) {
+      return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido no esta listo para reparto', estadoActual });
+    }
 
     const acceptedAt = Date.now();
     const payload = {
@@ -135,6 +191,13 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
         conductorId: uid,
         estado: 'EN_CAMINO',
         estado_pedido: 'EN_CAMINO',
+        aceptado_en: acceptedAt
+      }),
+      db.ref(`pedidos/${pedidoId}`).update({
+        estado: 'EN_CAMINO',
+        estado_pedido: 'EN_CAMINO',
+        repartidor_id: uid,
+        conductorId: uid,
         aceptado_en: acceptedAt
       }),
       db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId)

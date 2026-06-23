@@ -493,6 +493,13 @@
             </div>
             <div id="contenedor-reparto" class="pedidos-grid"></div>
         </div>
+        <div class="column">
+            <div class="column-header entregados" style="background-color:#28a745;">
+                <h3>ENTREGADOS</h3>
+                <span id="count-entregados" class="badge">0</span>
+            </div>
+            <div id="contenedor-entregados" class="pedidos-grid"></div>
+        </div>
     </div>
 
     <div class="floating-menu">
@@ -1007,6 +1014,8 @@
         const PANEL_TOKEN_ENDPOINTS = [
             `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auth/panel-token`
         ];
+        const DISPATCH_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
+            .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/dispatch-order'));
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
 
@@ -1639,11 +1648,14 @@
         function actualizarPanel() {
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
             const contenedorReparto = document.getElementById('contenedor-reparto');
+            const contenedorEntregados = document.getElementById('contenedor-entregados');
             contenedorPendientes.innerHTML = '';
             contenedorReparto.innerHTML = '';
+            contenedorEntregados.innerHTML = '';
 
             let cPendientes = 0;
             let cReparto = 0;
+            let cEntregados = 0;
 
             pedidosPendientes.forEach((pedido, id) => {
                 const fase = obtenerFasePanel(pedido.estado);
@@ -1670,6 +1682,8 @@
                 }
                 const estado = normalizarEstado(pedido.estado);
                 if (estado === 'ENTREGADO') {
+                    contenedorEntregados.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado }, id, false));
+                    cEntregados++;
                     return;
                 }
                 contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado }, id, false));
@@ -1678,6 +1692,7 @@
 
             document.getElementById('count-pendientes').innerText = String(cPendientes);
             document.getElementById('count-reparto').innerText = String(cReparto);
+            document.getElementById('count-entregados').innerText = String(cEntregados);
             document.getElementById('contador').innerText = String(cPendientes + cReparto);
         }
 
@@ -1730,19 +1745,42 @@
                 const estadoOriginal = pedido.estado || 'pendiente';
 
                 // Reflejo inmediato en UI mientras se persiste en backend.
-                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'en_reparto' });
+                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'LISTO' });
                 actualizarPanel();
 
                 const datos = limpiarPedido(pedido);
                 const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);
+                const idToken = await obtenerIdTokenPanel();
+                let despachado = false;
 
-                await set(ref(rtdb, `pedidos_para_reparto/${rtdbKey}`), payloadReparto);
-                logDebug(`set RTDB pedidos_para_reparto/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos_en_camino/${rtdbKey}`), payloadReparto);
-                logDebug(`set RTDB pedidos_en_camino/${rtdbKey}`);
-                await set(ref(rtdb, `pedidos/${rtdbKey}/estado`), 'listo');
-                logDebug(`set RTDB pedidos/${rtdbKey}/estado=listo`);
+                for (const endpoint of DISPATCH_ORDER_ENDPOINTS) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${idToken}`
+                            },
+                            body: JSON.stringify({ pedidoId: rtdbKey, pedido: payloadReparto })
+                        });
+
+                        if (!response.ok) {
+                            const detalle = await response.text();
+                            throw new Error(`${response.status} ${detalle}`);
+                        }
+
+                        despachado = true;
+                        logDebug(`MOVE backend ok endpoint=${endpoint}`);
+                        break;
+                    } catch (networkError) {
+                        logDebug(`MOVE backend fail endpoint=${endpoint} err=${networkError.message}`, 'err');
+                    }
+                }
+
+                if (!despachado) {
+                    throw new Error('dispatch_order_failed_all_endpoints');
+                }
 
                 await sumarGanancias(Number(pedido.monto || pedido.total || 0));
                 showToast('Pedido movido a reparto', 'ok');
