@@ -92,6 +92,25 @@ function isDebtBlocked(driver) {
   return bloqueado || (limite > 0 && deuda > limite);
 }
 
+const ESTADOS_DISPONIBLES = new Set([
+  'LISTO',
+  'PENDIENTE',
+  'LISTO_PARA_REPARTO',
+  'ESPERANDO_REPARTIDOR',
+  'DESPACHO'
+]);
+
+const ESTADOS_EN_CURSO = new Set([
+  'EN_CAMINO',
+  'EN_CURSO',
+  'EN_REPARTO',
+  'REPARTO'
+]);
+
+function normalizarEstadoPedido(estado) {
+  return String(estado || '').trim().toUpperCase();
+}
+
 router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
   try {
     const pedidoId = String(req.body?.pedidoId || req.body?.orderId || '').trim();
@@ -114,7 +133,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
     };
     const payloadListo = {
       ...pedidoBase,
-      estado: 'LISTO',
+      estado: 'PENDIENTE',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),
       despachado_en: dispatchedAt,
@@ -168,8 +187,8 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
       return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
     }
-    const estadoActual = String(pedido.estado_pedido || pedido.estado || '').trim().toUpperCase();
-    if (estadoActual && !['LISTO', 'LISTO_PARA_REPARTO', 'ESPERANDO_REPARTIDOR', 'DESPACHO'].includes(estadoActual)) {
+    const estadoActual = normalizarEstadoPedido(pedido.estado_pedido || pedido.estado);
+    if (estadoActual && !ESTADOS_DISPONIBLES.has(estadoActual)) {
       return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido no esta listo para reparto', estadoActual });
     }
 
@@ -179,7 +198,7 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       id_pedido: pedido.id_pedido || pedido.id || pedidoId,
       repartidor_id: uid,
       conductorId: uid,
-      estado: 'EN_CAMINO',
+      estado: 'EN_CURSO',
       estado_pedido: 'EN_CAMINO',
       aceptado_en: acceptedAt
     };
@@ -189,7 +208,7 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       pedidoRef.update({
         repartidor_id: uid,
         conductorId: uid,
-        estado: 'EN_CAMINO',
+        estado: 'EN_CURSO',
         estado_pedido: 'EN_CAMINO',
         aceptado_en: acceptedAt
       }),
@@ -279,7 +298,7 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
     }
 
-    const estadoActual = String(pedido.estado_pedido || pedido.estado || '').trim().toUpperCase();
+    const estadoActual = normalizarEstadoPedido(pedido.estado_pedido || pedido.estado);
     if (estadoActual === 'ENTREGADO') {
       return res.json({
         ok: true,
@@ -289,7 +308,7 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
         finanzas: null
       });
     }
-    if (estadoActual && !['EN_CAMINO', 'EN_REPARTO', 'REPARTO'].includes(estadoActual)) {
+    if (estadoActual && !ESTADOS_EN_CURSO.has(estadoActual)) {
       return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido aun no esta en reparto', estadoActual });
     }
 
