@@ -3,6 +3,17 @@ console.log("LOGISTICA MAPS CARGADO");
 // Mapa de calor de pedidos en Tuxtla Gutiérrez
 let map, heatmap, repartidorMarkers = [], repartidoresVisible = true;
 
+function safeInitMap() {
+    if (typeof google === 'undefined' || !google.maps || !document.getElementById('map')) {
+        return;
+    }
+    if (typeof window.initMap === 'function') {
+        window.initMap();
+        return;
+    }
+    initMap();
+}
+
 // Estilo "Nelly Night Mode" para Google Maps
 const estilosOscuros = [
     { "elementType": "geometry", "stylers": [{ "color": "#212121" }] },

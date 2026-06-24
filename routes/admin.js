@@ -292,18 +292,33 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         const timestamp = Date.now();
         const pedidoId = `PED_${timestamp}`;
+        const montoRounded = Number(Number(monto).toFixed(2));
 
         const nuevoPedido = {
             id: pedidoId,
+            id_pedido: pedidoId,
+            pedido_id: pedidoId,
             cliente_nombre: String(cliente_nombre).trim(),
+            cliente: String(cliente_nombre).trim(),
             telefono: String(telefono).trim(),
             direccion: String(direccion).trim(),
             descripcion: String(descripcion || '').trim(),
-            monto: Number(monto.toFixed(2)),
+            monto: montoRounded,
+            total: montoRounded,
+            monto_total: montoRounded,
             estado: 'pendiente',
+            estado_pedido: 'PENDIENTE',
+            fase_panel: 'Pendiente',
             repartidor_id: null,
+            conductorId: null,
             fecha_creacion: timestamp,
-            origen: 'panel_admin'
+            createdAt: timestamp,
+            created_at: timestamp,
+            origen: 'panel_admin',
+            logistica: {
+                estado: 'pendiente',
+                repartidor_id: null
+            }
         };
 
         await db.ref(`pedidos/${pedidoId}`).set(nuevoPedido);

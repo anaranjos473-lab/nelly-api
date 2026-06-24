@@ -616,7 +616,6 @@
 
     <!-- Bloque compat de Firebase eliminado. Usar solo inicialización modular con type=module. -->
     <script type="module" src="js/logistica-maps.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUppCEqg5YQ4UvTNxGQHRUy4H2YA3t08Q&libraries=visualization&callback=initMap" async defer></script>
 
     <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicialización -->
                 markersRepartidores.push(marker);
@@ -627,7 +626,6 @@
     </script>
 
     <script type="module">
-        import "./test_evidencia.js";
         import { auth, rtdb } from "./firebase.js";
         import {
             onAuthStateChanged,
