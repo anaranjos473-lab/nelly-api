@@ -227,8 +227,10 @@ class PedidoRepository(
             ?: child("total").getValue(Double::class.java)
             ?: 0.0
 
+        val estadoLogistica = child("logistica").child("estado").getValue(String::class.java)
         val estado = child("estado_pedido").getValue(String::class.java)
             ?: child("estado").getValue(String::class.java)
+            ?: estadoLogistica
             ?: "PENDIENTE"
 
         val timestamp = child("timestamp").getValue(Long::class.java)
@@ -246,7 +248,7 @@ class PedidoRepository(
     private fun normalizarEstado(estadoRaw: String?): String {
         return when (estadoRaw?.trim()?.lowercase()) {
             "pendiente", "preparando", "cocina" -> "PENDIENTE"
-            "listo", "pendiente_aceptacion", "listo_para_reparto", "esperando_repartidor", "despacho" -> "LISTO"
+            "listo", "pendiente_aceptacion", "listo_para_reparto", "esperando_repartidor", "despacho", "disponible", "disponible_para_reparto", "libre" -> "LISTO"
             "en_camino", "en_curso", "en_reparto", "reparto", "pedido_abordo" -> "EN_CURSO"
             "entregado", "finalizado" -> "ENTREGADO"
             "cancelado", "cancelada" -> "CANCELADO"
