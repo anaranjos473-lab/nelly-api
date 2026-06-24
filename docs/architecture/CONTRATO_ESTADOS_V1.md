@@ -1,52 +1,53 @@
 # CONTRATO_ESTADOS_V1
 
-## Objetivo
+## Verdad del sistema
 
-Alinear temporalmente el backend con la APK Android instalada sin iniciar SSOT V2 ni cambiar la estructura de Firebase.
+La fuente unica de verdad operativa es:
 
-Este contrato existe porque la APK instalada reconoce estados diferentes a los que el backend SSOT actual produce en `estado`.
+```text
+pedidos/{id}
+```
 
-## Tabla de compatibilidad
+Los nodos `pedidos_para_reparto`, `pedidos_en_camino`, `pedidos_asignados`, `pedidos_completados` y `dashboard_metrics` son derivados o historicos. Ningun modulo debe tratarlos como contrato oficial.
 
-| Estado canonico | Alias aceptados | Alias Android instalado |
-| --- | --- | --- |
-| `LISTO` | `PENDIENTE`, `LISTO_PARA_REPARTO`, `ESPERANDO_REPARTIDOR`, `DESPACHO` | `PENDIENTE` |
-| `EN_CAMINO` | `EN_CURSO`, `EN_REPARTO`, `REPARTO` | `EN_CURSO` |
-| `ENTREGADO` | `FINALIZADO` | `ENTREGADO` |
+## Flujo oficial
 
-## Regla V1
+```text
+ADMIN -> PENDIENTE
+COCINA -> LISTO
+REPARTIDOR -> EN_CURSO
+REPARTIDOR -> ENTREGADO
+```
 
-- El backend debe aceptar alias canonicos y alias Android durante Gate 3.
-- `pedidos/{id}` sigue siendo el registro maestro operativo actual.
-- `pedidos_para_reparto/{id}` y `pedidos_en_camino/{id}` pueden exponer `estado` en formato Android para compatibilidad con la APK instalada.
-- `estado_pedido` conserva el estado canonico backend cuando exista.
+`CANCELADO` puede cerrar el ciclo desde backend cuando aplique.
 
-## No hacer en V1
+## Estados oficiales
 
-- No iniciar SSOT V2.
-- No cambiar reglas Firebase.
-- No tocar Render como parte de esta decision.
-- No modificar Android hasta confirmar que el backend compatible permite completar Gate 3.
+- `PENDIENTE`
+- `LISTO`
+- `EN_CURSO`
+- `ENTREGADO`
+- `CANCELADO`
 
-## Hipotesis a validar
+## Compatibilidad de migracion
 
-Si `pedidos_para_reparto/{id}/estado = PENDIENTE` y `pedidos_en_camino/{id}/estado = EN_CURSO`, la APK instalada deja de caer en el fallback visual `OPERACION ACTIVA`.
+Los estados antiguos se aceptan solo como entrada heredada y deben traducirse:
 
-## Gate 3
+| Estado antiguo | Estado oficial |
+| --- | --- |
+| `PREPARANDO`, `COCINA` | `PENDIENTE` |
+| `PENDIENTE_ACEPTACION`, `LISTO_PARA_REPARTO`, `ESPERANDO_REPARTIDOR`, `DESPACHO` | `LISTO` |
+| `EN_CAMINO`, `EN_REPARTO`, `REPARTO`, `PEDIDO_ABORDO` | `EN_CURSO` |
+| `FINALIZADO` | `ENTREGADO` |
 
-Validar desde telefono real:
+## Regla de ejecucion
 
-1. Admin crea pedido.
-2. Cocina despacha.
-3. Android ve pedido disponible.
-4. Android acepta.
-5. Android entrega.
-6. Repetir tres veces seguidas.
+El backend es el unico responsable de cambiar estados. Las apps leen `pedidos/{id}` y solicitan transiciones por API.
 
-Resultado requerido:
+## Gate operativo
 
-`PASS`
+El sistema pasa cuando completa tres ciclos consecutivos sin scripts ni manipulacion manual:
 
-`PASS`
-
-`PASS`
+```text
+PENDIENTE -> LISTO -> EN_CURSO -> ENTREGADO
+```

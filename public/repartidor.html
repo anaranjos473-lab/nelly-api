@@ -213,18 +213,27 @@
             const disponibles = [];
             const mios = [];
 
+            function normalizarEstado(valor) {
+                const raw = String(valor || '').trim().toLowerCase();
+                if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
+                if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'pedido_abordo') return 'EN_CURSO';
+                if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
+                if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
+                return raw.toUpperCase();
+            }
+
             Object.entries(data).forEach(([key, value]) => {
                 if (!value || typeof value !== 'object') return;
                 const logistica = value.logistica || {};
-                const repartidorId = String(logistica.repartidor_id || '');
-                const estado = String(logistica.estado || value.estado || 'disponible');
+                const repartidorId = String(value.repartidor_id || value.conductorId || logistica.repartidor_id || '');
+                const estado = normalizarEstado(value.estado_pedido || value.estado || logistica.estado);
 
-                if (repartidorUid && repartidorId === repartidorUid) {
+                if (repartidorUid && repartidorId === repartidorUid && estado === 'EN_CURSO') {
                     mios.push({ key, pedido: value });
                     return;
                 }
 
-                if (!repartidorId || estado === 'disponible' || estado === 'esperando_repartidor') {
+                if (!repartidorId && estado === 'LISTO') {
                     disponibles.push({ key, pedido: value });
                 }
             });
@@ -241,7 +250,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
-                onValue(ref(rtdb, 'pedidos_para_reparto'), (snapshot) => {
+                onValue(ref(rtdb, 'pedidos'), (snapshot) => {
                     renderListas(snapshot.val());
                 }, (error) => {
                     statusEl.textContent = `Error de datos: ${error.message}`;

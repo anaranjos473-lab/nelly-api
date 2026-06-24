@@ -245,11 +245,12 @@ class PedidoRepository(
 
     private fun normalizarEstado(estadoRaw: String?): String {
         return when (estadoRaw?.trim()?.lowercase()) {
-            "pendiente", "preparando", "cocina" -> "PREPARANDO"
-            "listo", "listo_para_reparto", "esperando_repartidor", "despacho" -> "LISTO"
-            "en_camino", "en_reparto", "reparto" -> "EN_CAMINO"
+            "pendiente", "preparando", "cocina" -> "PENDIENTE"
+            "listo", "pendiente_aceptacion", "listo_para_reparto", "esperando_repartidor", "despacho" -> "LISTO"
+            "en_camino", "en_curso", "en_reparto", "reparto", "pedido_abordo" -> "EN_CURSO"
             "entregado", "finalizado" -> "ENTREGADO"
-            null, "" -> "PREPARANDO"
+            "cancelado", "cancelada" -> "CANCELADO"
+            null, "" -> "PENDIENTE"
             else -> estadoRaw.trim().uppercase()
         }
     }

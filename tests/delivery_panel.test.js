@@ -14,7 +14,8 @@ const state = {
   },
   pedidos: {
     pedido_ok: { id_pedido: 'pedido_ok', estado: 'LISTO', monto_total: 120 },
-    pedido_dispatch: { id_pedido: 'pedido_dispatch', estado: 'pendiente', monto_total: 150 }
+    pedido_dispatch: { id_pedido: 'pedido_dispatch', estado: 'pendiente', monto_total: 150 },
+    pedido_invalido: { id_pedido: 'pedido_invalido', estado: 'PENDIENTE', monto_total: 90 }
   },
   pedidos_para_reparto: {
     pedido_ok: { id_pedido: 'pedido_ok', estado: 'LISTO', monto_total: 120 },
@@ -103,7 +104,7 @@ jest.unstable_mockModule('firebase-admin', () => ({
 const { default: app } = await import('../app.js');
 
 describe('Delivery y panel API', () => {
-  it('despacha desde cocina sin crear pedidos_en_camino', async () => {
+  it('despacha desde cocina escribiendo solo en pedidos', async () => {
     const res = await request(app)
       .post('/api/delivery/dispatch-order')
       .set('Authorization', 'Bearer panel-token')
@@ -115,7 +116,8 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(state.pedidos.pedido_dispatch.estado).toBe('LISTO');
-    expect(state.pedidos_para_reparto.pedido_dispatch.estado).toBe('LISTO');
+    expect(state.pedidos.pedido_dispatch.cliente_nombre).toBe('Cliente Dispatch');
+    expect(state.pedidos_para_reparto.pedido_dispatch).toBeUndefined();
     expect(state.pedidos_en_camino.pedido_dispatch).toBeUndefined();
   });
 
@@ -136,8 +138,9 @@ describe('Delivery y panel API', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
-    expect(state.pedidos_en_camino.pedido_ok.repartidor_id).toBe('driver_ok');
-    expect(state.pedidos.pedido_ok.estado).toBe('EN_CAMINO');
+    expect(state.pedidos_en_camino.pedido_ok).toBeUndefined();
+    expect(state.pedidos.pedido_ok.estado).toBe('EN_CURSO');
+    expect(state.pedidos.pedido_ok.estado_pedido).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.repartidor_id).toBe('driver_ok');
   });
 
@@ -150,6 +153,7 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(409);
     expect(String(res.body.error).toLowerCase()).toContain('no esta listo');
     expect(state.pedidos_en_camino.pedido_invalido).toBeUndefined();
+    expect(state.pedidos.pedido_invalido.estado).toBe('PENDIENTE');
   });
 
   it('rechaza aceptar pedido si el repartidor esta bloqueado por deuda', async () => {
@@ -171,6 +175,7 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(state.repartidores.driver_ok.ubicacion.lat).toBe(16.75);
     expect(state.conductores_activos.driver_ok.lng).toBe(-93.11);
+    expect(state.pedidos.pedido_ok.ubicacion_repartidor.lat).toBe(16.75);
   });
 
   it('protege driver-offline cuando falta token', async () => {
@@ -220,9 +225,9 @@ describe('Delivery y panel API', () => {
   });
 
   it('rechaza complete-order si usuario no es admin/panel', async () => {
-    state.pedidos_en_camino.pedido_otro = {
+    state.pedidos.pedido_otro = {
       id_pedido: 'pedido_otro',
-      estado: 'EN_CAMINO',
+      estado: 'EN_CURSO',
       monto_total: 120,
       repartidor_id: 'driver_blocked'
     };
@@ -238,9 +243,9 @@ describe('Delivery y panel API', () => {
 
   it('completa un pedido desde el repartidor asignado y registra finanzas', async () => {
     state.repartidores.driver_ok.pedido_activo = 'pedido_ok';
-    state.pedidos_en_camino.pedido_ok = {
+    state.pedidos.pedido_ok = {
       id_pedido: 'pedido_ok',
-      estado: 'EN_CAMINO',
+      estado: 'EN_CURSO',
       monto_total: 120,
       repartidor_id: 'driver_ok'
     };
@@ -253,14 +258,13 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.comision).toBe(21.6);
-    expect(state.pedidos_en_camino.pedido_ok.estado).toBe('ENTREGADO');
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
     expect(state.repartidores.driver_ok.pedido_activo).toBeUndefined();
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
   });
 
   it('no duplica finanzas si complete-order se reintenta sobre pedido entregado', async () => {
-    state.pedidos_en_camino.pedido_ok = {
+    state.pedidos.pedido_ok = {
       id_pedido: 'pedido_ok',
       estado: 'ENTREGADO',
       monto_total: 120,
@@ -279,9 +283,9 @@ describe('Delivery y panel API', () => {
   });
 
   it('completa un pedido cuando admin tiene token valido', async () => {
-    state.pedidos_en_camino.pedido_ok = {
+    state.pedidos.pedido_ok = {
       id_pedido: 'pedido_ok',
-      estado: 'EN_CAMINO',
+      estado: 'EN_CURSO',
       monto_total: 120,
       repartidor_id: 'driver_ok'
     };
@@ -294,7 +298,6 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.pedidoId).toBe('pedido_ok');
-    expect(state.pedidos_en_camino.pedido_ok.estado).toBe('ENTREGADO');
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
   });
 });

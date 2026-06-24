@@ -94,7 +94,7 @@ function isDebtBlocked(driver) {
 
 const ESTADOS_DISPONIBLES = new Set([
   'LISTO',
-  'PENDIENTE',
+  'PENDIENTE_ACEPTACION',
   'LISTO_PARA_REPARTO',
   'ESPERANDO_REPARTIDOR',
   'DESPACHO'
@@ -109,6 +109,20 @@ const ESTADOS_EN_CURSO = new Set([
 
 function normalizarEstadoPedido(estado) {
   return String(estado || '').trim().toUpperCase();
+}
+
+function estadoOperativo(estado) {
+  const normalized = normalizarEstadoPedido(estado);
+  if (ESTADOS_DISPONIBLES.has(normalized)) {
+    return 'LISTO';
+  }
+  if (ESTADOS_EN_CURSO.has(normalized)) {
+    return 'EN_CURSO';
+  }
+  if (normalized === 'FINALIZADO') {
+    return 'ENTREGADO';
+  }
+  return normalized;
 }
 
 router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
@@ -133,7 +147,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
     };
     const payloadListo = {
       ...pedidoBase,
-      estado: 'PENDIENTE',
+      estado: 'LISTO',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),
       despachado_en: dispatchedAt,
@@ -146,16 +160,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       }
     };
 
-    await Promise.all([
-      db.ref(`pedidos/${pedidoId}`).update({
-        estado: 'LISTO',
-        estado_pedido: 'LISTO',
-        hora_cocina: payloadListo.hora_cocina,
-        despachado_en: dispatchedAt,
-        fase_panel: 'Despacho'
-      }),
-      db.ref(`pedidos_para_reparto/${pedidoId}`).set(payloadListo)
-    ]);
+    await db.ref(`pedidos/${pedidoId}`).update(payloadListo);
 
     return res.json({ ok: true, pedidoId, estado: 'LISTO', pedido: payloadListo });
   } catch (error) {
@@ -178,7 +183,7 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       return res.status(403).json({ ok: false, error: 'Limite de deuda alcanzado' });
     }
 
-    const pedidoRef = db.ref(`pedidos_para_reparto/${pedidoId}`);
+    const pedidoRef = db.ref(`pedidos/${pedidoId}`);
     const pedidoSnap = await pedidoRef.once('value');
     const pedido = pedidoSnap.val();
     if (!pedido) {
@@ -187,8 +192,8 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     if (pedido.repartidor_id && pedido.repartidor_id !== uid) {
       return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
     }
-    const estadoActual = normalizarEstadoPedido(pedido.estado_pedido || pedido.estado);
-    if (estadoActual && !ESTADOS_DISPONIBLES.has(estadoActual)) {
+    const estadoActual = estadoOperativo(pedido.estado_pedido || pedido.estado);
+    if (estadoActual !== 'LISTO') {
       return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido no esta listo para reparto', estadoActual });
     }
 
@@ -199,26 +204,12 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       repartidor_id: uid,
       conductorId: uid,
       estado: 'EN_CURSO',
-      estado_pedido: 'EN_CAMINO',
+      estado_pedido: 'EN_CURSO',
       aceptado_en: acceptedAt
     };
 
     await Promise.all([
-      db.ref(`pedidos_en_camino/${pedidoId}`).set(payload),
-      pedidoRef.update({
-        repartidor_id: uid,
-        conductorId: uid,
-        estado: 'EN_CURSO',
-        estado_pedido: 'EN_CAMINO',
-        aceptado_en: acceptedAt
-      }),
-      db.ref(`pedidos/${pedidoId}`).update({
-        estado: 'EN_CAMINO',
-        estado_pedido: 'EN_CAMINO',
-        repartidor_id: uid,
-        conductorId: uid,
-        aceptado_en: acceptedAt
-      }),
+      pedidoRef.update(payload),
       db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId)
     ]);
 
@@ -251,7 +242,7 @@ router.post('/update-location', requireFirebaseUser, async (req, res, next) => {
       [`conductores_activos/${uid}/timestamp`]: timestamp
     };
     if (pedidoId) {
-      updates[`pedidos_en_camino/${pedidoId}/ubicacion_repartidor`] = ubicacion;
+      updates[`pedidos/${pedidoId}/ubicacion_repartidor`] = ubicacion;
     }
 
     await db.ref().update(updates);
@@ -291,14 +282,14 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
 
     const admin = await getAdmin();
     const db = admin.database();
-    const pedidoRef = db.ref(`pedidos_en_camino/${pedidoId}`);
+    const pedidoRef = db.ref(`pedidos/${pedidoId}`);
     const snap = await pedidoRef.once('value');
     const pedido = snap.val();
     if (!pedido) {
       return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
     }
 
-    const estadoActual = normalizarEstadoPedido(pedido.estado_pedido || pedido.estado);
+    const estadoActual = estadoOperativo(pedido.estado_pedido || pedido.estado);
     if (estadoActual === 'ENTREGADO') {
       return res.json({
         ok: true,
@@ -345,8 +336,6 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
 
     await Promise.all([
       pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      db.ref(`pedidos/${pedidoId}`).update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      db.ref(`pedidos_para_reparto/${pedidoId}`).remove(),
       driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve()
     ]);
 

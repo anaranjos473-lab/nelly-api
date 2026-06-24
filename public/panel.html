@@ -7,7 +7,7 @@
         <script type="module">
             // Inicialización segura de Firebase: config se obtiene vía endpoint seguro
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-            import { getDatabase, ref, onValue, off, query, orderByChild, equalTo, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
             // --- Documentación: Flujo de sincronía ---
             // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
             // 2. Todos los listeners se limpian automáticamente al recargar o cerrar el panel.
@@ -32,11 +32,10 @@
                 window.nellyDb = db;
                 window.dispatchEvent(new Event('firebase-ready'));
 
-                // Listener granular solo para pedidos pendientes
-                const pedidosPendientesQuery = query(ref(db, 'pedidos'), orderByChild('estado'), equalTo('pendiente'));
-                pedidosListenerRef = pedidosPendientesQuery;
+                pedidosListenerRef = ref(db, 'pedidos');
                 pedidosListenerCallback = (snapshot) => {
                     const div = document.getElementById('lista-pedidos');
+                    if (!div) return;
                     div.innerHTML = "";
                     if (!snapshot.exists()) {
                         div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
@@ -44,17 +43,19 @@
                     }
                     snapshot.forEach((child) => {
                         const p = child.val();
+                        const estado = String(p?.estado_pedido || p?.estado || '').trim().toUpperCase();
+                        if (estado !== 'PENDIENTE') return;
                         div.innerHTML += `
                             <div class="card">
                                     <h3>Folio: #${child.key}</h3>
                                     <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
                                     <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
-                                    <button class="btn" onclick="window.entregarPedido('${child.key}')">Marcar como Entregado</button>
+                                    <button class="btn" onclick="window.moverAReparto('${child.key}')">Marcar como LISTO</button>
                             </div>
                         `;
                     });
                 };
-                onValue(pedidosPendientesQuery, pedidosListenerCallback);
+                onValue(pedidosListenerRef, pedidosListenerCallback);
 
                 // Limpieza automática de listeners al cerrar o recargar
                 window.addEventListener('beforeunload', () => {
@@ -412,7 +413,7 @@
         }
     </style>
     <script type="module">
-        import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+        import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
         function initPanelFirebaseConnection() {
             const db = window.nellyDb;
@@ -438,7 +439,9 @@
                 const db = window.nellyDb;
                 if (!db) return;
                 if (confirm("¿Confirmas que el pedido está listo?")) {
-                    remove(ref(db, 'pedidos/' + id));
+                    if (typeof window.moverAReparto === 'function') {
+                        window.moverAReparto(id);
+                    }
                 }
             };
         }
@@ -1048,13 +1051,12 @@
         }
 
         window.ejecutarProtocoloRescate = () => {
-            const consultaPendientes = query(ref(rtdb, 'pedidos'), orderByChild('estado'), equalTo('pendiente'));
             showToast('Ejecutando rescate de pedidos...', 'ok');
-            onValue(consultaPendientes, (snapshot) => {
-                sincronizarPendientesDesdeSnapshot(snapshot, 'rescate-manual');
+            onValue(ref(rtdb, 'pedidos'), (snapshot) => {
+                sincronizarPedidosOperativosDesdeSnapshot(snapshot, 'rescate-manual');
                 const total = snapshot.exists() ? snapshot.size : 0;
-                logDebug(`Rescate manual completado. Pendientes: ${total}`);
-                showToast(`Rescate completado (${total} pendientes)`, 'ok');
+                logDebug(`Rescate manual completado. Pedidos: ${total}`);
+                showToast(`Rescate completado (${total} pedidos)`, 'ok');
             }, {
                 onlyOnce: true
             });
@@ -1245,19 +1247,20 @@
 
         function normalizarEstado(valor) {
             const raw = String(valor || '').trim().toLowerCase();
-            if (!raw) return 'PREPARANDO';
-            if (raw === 'pendiente' || raw === 'preparando' || raw === 'cocina') return 'PREPARANDO';
-            if (raw === 'listo' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
-            if (raw === 'en_camino' || raw === 'en_reparto' || raw === 'reparto') return 'EN_CAMINO';
+            if (!raw) return 'PENDIENTE';
+            if (raw === 'pendiente' || raw === 'preparando' || raw === 'cocina') return 'PENDIENTE';
+            if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
+            if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'pedido_abordo') return 'EN_CURSO';
             if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
+            if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
             return raw.toUpperCase();
         }
 
         function obtenerFasePanel(valorEstado) {
             const estado = normalizarEstado(valorEstado);
-            if (estado === 'PREPARANDO') return 'COCINA';
+            if (estado === 'PENDIENTE') return 'COCINA';
             if (estado === 'LISTO') return 'DESPACHO';
-            if (estado === 'EN_CAMINO') return 'EN_REPARTO';
+            if (estado === 'EN_CURSO') return 'EN_REPARTO';
             if (estado === 'ENTREGADO') return 'FINALIZADO';
             return 'COCINA';
         }
@@ -1316,8 +1319,8 @@
                 return false;
             }
 
-            const estado = String(data.estado || '').trim().toLowerCase();
-            if (estado && estado !== 'pendiente') {
+            const estado = normalizarEstado(data.estado_pedido || data.estado);
+            if (estado !== 'PENDIENTE') {
                 return false;
             }
 
@@ -1366,10 +1369,46 @@
             return Array.from(pedidosReparto.entries()).map(([key, pedido]) => ({
                 key,
                 id_pedido: pedido.id_pedido || pedido.id || key,
-                estado: normalizarEstado(pedido.estado || "EN_CAMINO"),
+                estado: normalizarEstado(pedido.estado || "EN_CURSO"),
                 cliente: pedido.cliente_nombre || pedido.cliente || ""
             }));
         };
+
+        function sincronizarPedidosOperativosDesdeSnapshot(snapshot, origen) {
+            pedidosPendientes.clear();
+            pedidosReparto.clear();
+            pedidosEnCamino.clear();
+
+            const raiz = snapshot.val();
+            if (raiz && typeof raiz === "object") {
+                Object.entries(raiz).forEach(([key, value]) => {
+                    if (!value || typeof value !== "object") {
+                        return;
+                    }
+
+                    const estado = normalizarEstado(value.estado_pedido || value.estado);
+                    const pedidoId = value.id || value.id_pedido || key;
+                    const pedido = {
+                        ...value,
+                        estado,
+                        id: pedidoId,
+                        _rtdbKey: key,
+                        __source: "rtdb_pedidos"
+                    };
+
+                    if (estado === "PENDIENTE") {
+                        pedidosPendientes.set(key, pedido);
+                    } else if (estado === "LISTO") {
+                        pedidosReparto.set(key, pedido);
+                    } else if (estado === "EN_CURSO" || estado === "ENTREGADO") {
+                        pedidosEnCamino.set(key, pedido);
+                    }
+                });
+            }
+
+            registrarEvento('pedidosSnapshot');
+            solicitarRenderPanel(origen || 'onValue-pedidos');
+        }
 
         function resolverKeyPedido(identificador) {
             if (pedidosPendientes.has(identificador) || pedidosReparto.has(identificador)) {
@@ -1489,7 +1528,6 @@
             const listeners = [];
             const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
-            const consultaPendientes = query(dbRef, orderByChild("estado"), equalTo("pendiente"));
             iniciarMonitorMetricas();
             refrescarMetricasDebug();
 
@@ -1498,108 +1536,13 @@
                 document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
             }));
 
-            listeners.push(onValue(consultaPendientes, (snapshot) => {
-                sincronizarPendientesDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pendientes' : 'snapshot-resync-pendientes');
+            listeners.push(onValue(dbRef, (snapshot) => {
+                sincronizarPedidosOperativosDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pedidos' : 'snapshot-resync-pedidos');
                 if (primeraCargaPendientes) {
                     primeraCargaPendientes = false;
                 }
             }, (error) => {
-                reportarErrorListener('onValue(consultaPendientes)', error);
-            }));
-
-            listeners.push(onChildAdded(consultaPendientes, (snapshot) => {
-                const pedido = snapshot.val();
-                if (!pedido || typeof pedido !== "object") {
-                    return;
-                }
-                const key = snapshot.key;
-                const tieneMonto = pedido.monto !== undefined || pedido.total !== undefined;
-                if (!tieneMonto) {
-                    return;
-                }
-                registrarEvento('pendienteAdded');
-                agregarPedidoATablaVisual(key, pedido, {
-                    notificar: !primeraCargaPendientes,
-                    sonido: !primeraCargaPendientes ? 'notificacion_nueva.mp3' : null,
-                    origen: 'onChildAdded-pedidos'
-                });
-            }, (error) => {
-                reportarErrorListener('onChildAdded(pedidos pendientes)', error);
-            }));
-
-            listeners.push(onChildChanged(dbRef, (snapshot) => {
-                const pedidoActualizado = snapshot.val();
-                if (!pedidoActualizado || typeof pedidoActualizado !== "object") {
-                    return;
-                }
-                const key = snapshot.key;
-                const estado = String(pedidoActualizado.estado || "").trim().toLowerCase();
-                if (estado === "pendiente") {
-                    agregarPedidoATablaVisual(key, pedidoActualizado, {
-                        origen: 'onChildChanged-pedidos-pendiente'
-                    });
-                } else {
-                    if (eliminarFilaVisual(key, { origen: 'onChildChanged-pedidos-remover' })) {
-                        console.log(`Pedido ${key} paso a: ${pedidoActualizado.estado}`);
-                    }
-                }
-                registrarEvento('pendienteChanged');
-            }, (error) => {
-                reportarErrorListener('onChildChanged(pedidos)', error);
-            }));
-
-            listeners.push(onChildRemoved(dbRef, (snapshot) => {
-                const key = snapshot.key;
-                registrarEvento('pendienteRemoved');
-                eliminarFilaVisual(key, { origen: 'onChildRemoved-pedidos' });
-            }, (error) => {
-                reportarErrorListener('onChildRemoved(pedidos)', error);
-            }));
-
-            listeners.push(onValue(ref(rtdb, "pedidos_para_reparto"), (snapshot) => {
-                pedidosReparto.clear();
-                const raiz = snapshot.val();
-                if (raiz && typeof raiz === "object") {
-                    Object.entries(raiz).forEach(([key, value]) => {
-                        if (!value || typeof value !== "object") {
-                            return;
-                        }
-                        const pedidoId = value.id || value.id_pedido || key;
-                        pedidosReparto.set(key, {
-                            ...value,
-                            id: pedidoId,
-                            _rtdbKey: key,
-                            __source: "rtdb_reparto"
-                        });
-                    });
-                }
-                registrarEvento('repartoSnapshot');
-                solicitarRenderPanel('onValue-pedidos_para_reparto');
-            }, (error) => {
-                reportarErrorListener('onValue(pedidos_para_reparto)', error);
-            }));
-
-            listeners.push(onValue(ref(rtdb, "pedidos_en_camino"), (snapshot) => {
-                pedidosEnCamino.clear();
-                const raiz = snapshot.val();
-                if (raiz && typeof raiz === "object") {
-                    Object.entries(raiz).forEach(([key, value]) => {
-                        if (!value || typeof value !== "object") {
-                            return;
-                        }
-                        const pedidoId = value.id || value.id_pedido || key;
-                        pedidosEnCamino.set(key, {
-                            ...value,
-                            id: pedidoId,
-                            _rtdbKey: key,
-                            __source: "rtdb_en_camino"
-                        });
-                    });
-                }
-                registrarEvento('caminoSnapshot');
-                solicitarRenderPanel('onValue-pedidos_en_camino');
-            }, (error) => {
-                reportarErrorListener('onValue(pedidos_en_camino)', error);
+                reportarErrorListener('onValue(pedidos)', error);
             }));
 
             listeners.push(onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
@@ -1672,7 +1615,7 @@
                 if (pedidosPendientes.has(id)) {
                     return;
                 }
-                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'EN_CAMINO' }, id, false));
+                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
                 cReparto++;
             });
 
