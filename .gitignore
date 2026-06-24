@@ -48,6 +48,9 @@ repartidores.json
 /firebase.js
 
 # Archivos de audio con extensión incorrecta (renombrar a .mp3)
+
+# Artefactos de despliegue Firebase
+.firebase/
 public/alerta.mp3.mpeg
 
 # IDE y sistema

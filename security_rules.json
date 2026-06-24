@@ -57,6 +57,14 @@
       "$pedido_id": {
         ".write": "auth != null && root.child('repartidores').child(auth.uid).child('estatus').child('bloqueado_por_deuda').val() == false && root.child('repartidores').child(auth.uid).child('finanzas').child('deuda_actual').val() <= root.child('repartidores').child(auth.uid).child('finanzas').child('limite_deuda').val() && (!data.exists() || data.child('repartidor_id').val() == auth.uid) && (!newData.exists() || newData.child('repartidor_id').val() == auth.uid)"
       }
+    },
+    "pedidos_para_reparto": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.admin == true"
+    },
+    "pedidos_en_camino": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.admin == true"
     }
   }
 }
