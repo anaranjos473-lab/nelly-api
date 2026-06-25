@@ -249,7 +249,7 @@ class PedidoRepository(
         return when (estadoRaw?.trim()?.lowercase()) {
             "pendiente", "preparando", "cocina" -> "PENDIENTE"
             "listo", "pendiente_aceptacion", "listo_para_reparto", "esperando_repartidor", "despacho", "disponible", "disponible_para_reparto", "libre" -> "LISTO"
-            "en_camino", "en_curso", "en_reparto", "reparto", "pedido_abordo" -> "EN_CURSO"
+            "en_camino", "en_curso", "en_reparto", "reparto", "llegue_a_tienda", "pedido_abordo", "llegue_a_cliente" -> "EN_CURSO"
             "entregado", "finalizado" -> "ENTREGADO"
             "cancelado", "cancelada" -> "CANCELADO"
             null, "" -> "PENDIENTE"

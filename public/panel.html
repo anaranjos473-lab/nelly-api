@@ -1248,7 +1248,7 @@
             if (!raw) return 'PENDIENTE';
             if (raw === 'pendiente' || raw === 'preparando' || raw === 'cocina') return 'PENDIENTE';
             if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
-            if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'pedido_abordo') return 'EN_CURSO';
+            if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'llegue_a_tienda' || raw === 'pedido_abordo' || raw === 'llegue_a_cliente') return 'EN_CURSO';
             if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
             if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
             return raw.toUpperCase();

@@ -342,4 +342,27 @@ describe('Delivery y panel API', () => {
     expect(res.body.ok).toBe(true);
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
   });
+
+  it('completa un pedido desde subestado PEDIDO_ABORDO', async () => {
+    state.repartidores.driver_ok = {
+      estatus: { nivel: 'BRONCE', bloqueado_por_deuda: false },
+      finanzas: { deuda_actual: 100, limite_deuda: 300, saldo_ganancias: 0 },
+      pedido_activo: 'pedido_ok'
+    };
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'PEDIDO_ABORDO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+  });
 });

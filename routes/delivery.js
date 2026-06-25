@@ -104,7 +104,10 @@ const ESTADOS_EN_CURSO = new Set([
   'EN_CAMINO',
   'EN_CURSO',
   'EN_REPARTO',
-  'REPARTO'
+  'REPARTO',
+  'LLEGUE_A_TIENDA',
+  'PEDIDO_ABORDO',
+  'LLEGUE_A_CLIENTE'
 ]);
 
 function normalizarEstadoPedido(estado) {
