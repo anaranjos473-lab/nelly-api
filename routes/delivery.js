@@ -62,7 +62,7 @@ async function getDriverState(db, uid) {
 }
 
 function isAdminOrPanelUser(user = {}) {
-  return user.admin === true || user.role === 'panel_cocina';
+  return user.admin === true || user.panel === true || user.role === 'panel_cocina';
 }
 
 function roundMoney(value) {

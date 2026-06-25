@@ -1409,19 +1409,15 @@
         }
 
         function resolverKeyPedido(identificador) {
-            if (pedidosPendientes.has(identificador) || pedidosReparto.has(identificador)) {
+            if (pedidosPendientes.has(identificador) || pedidosReparto.has(identificador) || pedidosEnCamino.has(identificador)) {
                 return identificador;
             }
 
-            for (const [key, pedido] of pedidosPendientes.entries()) {
-                if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
-                    return key;
-                }
-            }
-
-            for (const [key, pedido] of pedidosReparto.entries()) {
-                if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
-                    return key;
+            for (const mapa of [pedidosPendientes, pedidosReparto, pedidosEnCamino]) {
+                for (const [key, pedido] of mapa.entries()) {
+                    if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
+                        return key;
+                    }
                 }
             }
 
@@ -1741,7 +1737,7 @@
 
             try {
                 const keyResuelta = resolverKeyPedido(id);
-                const pedido = pedidosReparto.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
+                const pedido = pedidosReparto.get(keyResuelta) || pedidosEnCamino.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
                 const rtdbKey = (pedido && pedido._rtdbKey) ? pedido._rtdbKey : keyResuelta;
                 logDebug(`FINISH start key=${rtdbKey}`);
                 const idToken = await obtenerIdTokenPanel();

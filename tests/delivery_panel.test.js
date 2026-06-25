@@ -69,6 +69,9 @@ jest.unstable_mockModule('firebase-admin', () => ({
         if (token === 'panel-token') {
           return { uid: 'admin_panel', admin: true, email: 'admin@nellydelivery.com' };
         }
+        if (token === 'panel-claim-token') {
+          return { uid: 'panel_only', panel: true, email: 'panel@nellydelivery.com' };
+        }
         if (token === 'blocked-token') {
           return { uid: 'driver_blocked', admin: false };
         }
@@ -263,6 +266,27 @@ describe('Delivery y panel API', () => {
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
   });
 
+  it('completa y crea finanzas si el perfil del repartidor no existe', async () => {
+    delete state.repartidores.driver_ok;
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'EN_CURSO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.repartidores.driver_ok.uid).toBe('driver_ok');
+    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
+  });
+
   it('no duplica finanzas si complete-order se reintenta sobre pedido entregado', async () => {
     state.pedidos.pedido_ok = {
       id_pedido: 'pedido_ok',
@@ -298,6 +322,24 @@ describe('Delivery y panel API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.pedidoId).toBe('pedido_ok');
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+  });
+
+  it('completa un pedido cuando el token tiene claim panel', async () => {
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'EN_CURSO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer panel-claim-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
   });
 });

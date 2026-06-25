@@ -54,33 +54,32 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
 
   const ref = db.ref(`repartidores/${uid}`);
   const tx = await ref.transaction((actual) => {
-    if (!actual || typeof actual !== 'object') {
-      return;
-    }
+    const current = actual && typeof actual === 'object' ? actual : {};
 
-    const nivel = extraerNivel(actual);
+    const nivel = extraerNivel(current);
     const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
-    const deudaActual = extraerDeudaActual(actual);
-    const saldoGanancias = extraerSaldoGanancias(actual);
+    const deudaActual = extraerDeudaActual(current);
+    const saldoGanancias = extraerSaldoGanancias(current);
     const nuevaDeuda = roundMoney(deudaActual + monto);
     const nuevoSaldo = roundMoney(saldoGanancias + monto);
     const bloqueado = nuevaDeuda > limite;
     const ahora = Date.now();
 
     return {
-      ...actual,
+      ...current,
+      uid: current.uid || uid,
       estatus: {
-        ...(actual.estatus || {}),
+        ...(current.estatus || {}),
         nivel,
         bloqueado_por_deuda: bloqueado,
         actualizado_en: ahora
       },
       perfil: {
-        ...(actual.perfil || {}),
+        ...(current.perfil || {}),
         bloqueado_por_deuda: bloqueado
       },
       finanzas: {
-        ...(actual.finanzas || {}),
+        ...(current.finanzas || {}),
         deuda_actual: nuevaDeuda,
         limite_deuda: limite,
         saldo_ganancias: nuevoSaldo,
@@ -92,7 +91,7 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
         }
       },
       billetera: {
-        ...(actual.billetera || {}),
+        ...(current.billetera || {}),
         deuda_comision: nuevaDeuda
       }
     };
