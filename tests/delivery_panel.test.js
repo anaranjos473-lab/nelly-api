@@ -169,6 +169,31 @@ describe('Delivery y panel API', () => {
     expect(String(res.body.error).toLowerCase()).toContain('deuda');
   });
 
+  it('acepta un pedido con token de respaldo de desarrollo cuando está habilitado', async () => {
+    process.env.NODE_ENV = 'development';
+    process.env.DEV_AUTH_TOKEN = 'dev-local-token';
+    process.env.DEV_AUTH_UID = 'dev-driver';
+    state.repartidores['dev-driver'] = {
+      estatus: { nivel: 'BRONCE', bloqueado_por_deuda: false },
+      finanzas: { deuda_actual: 100, limite_deuda: 300, saldo_ganancias: 0 }
+    };
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'LISTO',
+      estado_pedido: 'LISTO',
+      monto_total: 120,
+      repartidor_id: null
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/accept-order')
+      .set('Authorization', 'Bearer dev-local-token')
+      .send({ pedidoId: 'pedido_ok' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
   it('actualiza ubicacion del repartidor autenticado', async () => {
     const res = await request(app)
       .post('/api/delivery/update-location')
@@ -179,6 +204,77 @@ describe('Delivery y panel API', () => {
     expect(state.repartidores.driver_ok.ubicacion.lat).toBe(16.75);
     expect(state.conductores_activos.driver_ok.lng).toBe(-93.11);
     expect(state.pedidos.pedido_ok.ubicacion_repartidor.lat).toBe(16.75);
+  });
+
+  it('persiste un subestado de reparto cuando el payload lo incluye', async () => {
+    const res = await request(app)
+      .post('/api/delivery/update-location')
+      .set('Authorization', 'Bearer driver-token')
+      .send({
+        lat: 16.76,
+        lng: -93.12,
+        pedidoId: 'pedido_ok',
+        estado: 'PEDIDO_ABORDO',
+        estado_pedido: 'PEDIDO_ABORDO',
+        fase_panel: 'En reparto'
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(state.pedidos.pedido_ok.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.estado_pedido).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.fase_panel).toBe('En reparto');
+  });
+
+  it('mantiene el subestado persistido tras un breve intervalo', async () => {
+    const res = await request(app)
+      .post('/api/delivery/update-location')
+      .set('Authorization', 'Bearer driver-token')
+      .send({
+        lat: 16.77,
+        lng: -93.13,
+        pedidoId: 'pedido_ok',
+        estado: 'PEDIDO_ABORDO',
+        estado_pedido: 'PEDIDO_ABORDO',
+        fase_panel: 'En reparto'
+      });
+
+    expect(res.statusCode).toBe(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(state.pedidos.pedido_ok.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.estado_pedido).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.fase_panel).toBe('En reparto');
+  });
+
+  it('no revierte un subestado avanzado cuando llega un estado anterior', async () => {
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'PEDIDO_ABORDO',
+      estado_pedido: 'PEDIDO_ABORDO',
+      logistica: { estado: 'PEDIDO_ABORDO' },
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/update-location')
+      .set('Authorization', 'Bearer driver-token')
+      .send({
+        lat: 16.78,
+        lng: -93.14,
+        pedidoId: 'pedido_ok',
+        estado: 'EN_CURSO',
+        estado_pedido: 'EN_CURSO',
+        fase_panel: 'En reparto'
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(state.pedidos.pedido_ok.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.estado_pedido).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('PEDIDO_ABORDO');
   });
 
   it('protege driver-offline cuando falta token', async () => {

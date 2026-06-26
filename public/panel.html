@@ -1743,6 +1743,7 @@
                 const idToken = await obtenerIdTokenPanel();
                 let completado = false;
 
+                let errorReal = null;
                 for (const endpoint of COMPLETE_ORDER_ENDPOINTS) {
                     try {
                         const response = await fetch(endpoint, {
@@ -1754,21 +1755,32 @@
                             body: JSON.stringify({ orderId: rtdbKey })
                         });
 
+                        const detalleTexto = await response.text();
+                        let payload = null;
+                        try {
+                            payload = detalleTexto ? JSON.parse(detalleTexto) : null;
+                        } catch (_) {
+                            payload = null;
+                        }
+
                         if (!response.ok) {
-                            const detalle = await response.text();
-                            throw new Error(`${response.status} ${detalle}`);
+                            const mensajeReal = payload?.error || payload?.message || detalleTexto || `HTTP ${response.status}`;
+                            errorReal = new Error(mensajeReal);
+                            logDebug(`FINISH backend fail endpoint=${endpoint} err=${mensajeReal}`, 'err');
+                            continue;
                         }
 
                         completado = true;
                         logDebug(`FINISH backend ok endpoint=${endpoint}`);
                         break;
                     } catch (networkError) {
+                        errorReal = networkError;
                         logDebug(`FINISH backend fail endpoint=${endpoint} err=${networkError.message}`, 'err');
                     }
                 }
 
                 if (!completado) {
-                    throw new Error('complete_order_failed_all_endpoints');
+                    throw errorReal || new Error('complete_order_failed_all_endpoints');
                 }
 
                 showToast('Pedido completado', 'ok');
