@@ -1764,7 +1764,8 @@
                         }
 
                         if (!response.ok) {
-                            const mensajeReal = payload?.error || payload?.message || detalleTexto || `HTTP ${response.status}`;
+                            const detalleReal = payload?.error || payload?.message || detalleTexto || response.statusText || 'Error backend';
+                            const mensajeReal = `HTTP ${response.status}: ${detalleReal}`;
                             errorReal = new Error(mensajeReal);
                             logDebug(`FINISH backend fail endpoint=${endpoint} err=${mensajeReal}`, 'err');
                             continue;

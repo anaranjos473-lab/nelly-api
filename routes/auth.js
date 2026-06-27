@@ -1,6 +1,5 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
-import { generateToken } from '../src/utils/jwt.js';
 
 const router = express.Router();
 
@@ -22,7 +21,8 @@ function bootstrapAllowed(req) {
 }
 
 async function createToken(uid, claims = {}) {
-  return generateToken({ uid, ...claims });
+  const admin = await getAdmin();
+  return admin.auth().createCustomToken(uid, claims);
 }
 
 router.get('/driver-token', async (req, res, next) => {
@@ -36,7 +36,7 @@ router.get('/driver-token', async (req, res, next) => {
       return res.status(400).json({ ok: false, error: 'uid es requerido' });
     }
 
-    const token = await createToken(uid, { driver: true });
+    const token = await createToken(uid, { driver: true, role: 'repartidor' });
     return res.json({ ok: true, token });
   } catch (error) {
     return next(error);
@@ -50,7 +50,7 @@ router.get('/panel-token', async (req, res, next) => {
     }
 
     const uid = String(req.query.uid || process.env.PANEL_BOOTSTRAP_UID || 'panel-admin').trim();
-    const token = await createToken(uid, { admin: true, panel: true });
+    const token = await createToken(uid, { admin: true, panel: true, role: 'panel_cocina' });
     return res.json({ ok: true, token });
   } catch (error) {
     return next(error);

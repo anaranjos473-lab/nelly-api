@@ -65,6 +65,7 @@ jest.unstable_mockModule('firebase-admin', () => ({
     initializeApp: jest.fn(),
     apps: { length: 1 },
     auth: () => ({
+      createCustomToken: jest.fn(async (uid, claims) => `custom-token:${uid}:${JSON.stringify(claims)}`),
       verifyIdToken: jest.fn(async (token) => {
         if (token === 'panel-token') {
           return { uid: 'admin_panel', admin: true, email: 'admin@nellydelivery.com' };
@@ -107,7 +108,7 @@ jest.unstable_mockModule('firebase-admin', () => ({
 const { default: app } = await import('../app.js');
 
 describe('Delivery y panel API', () => {
-  it('despacha desde cocina escribiendo solo en pedidos', async () => {
+  it('despacha desde cocina publicando el pedido para reparto', async () => {
     const res = await request(app)
       .post('/api/delivery/dispatch-order')
       .set('Authorization', 'Bearer panel-token')
@@ -120,8 +121,30 @@ describe('Delivery y panel API', () => {
     expect(res.body.ok).toBe(true);
     expect(state.pedidos.pedido_dispatch.estado).toBe('LISTO');
     expect(state.pedidos.pedido_dispatch.cliente_nombre).toBe('Cliente Dispatch');
-    expect(state.pedidos_para_reparto.pedido_dispatch).toBeUndefined();
+    expect(state.pedidos_para_reparto.pedido_dispatch.estado).toBe('LISTO');
     expect(state.pedidos_en_camino.pedido_dispatch).toBeUndefined();
+  });
+
+  it('entrega custom token Firebase para el panel', async () => {
+    const res = await request(app)
+      .get('/api/auth/panel-token?uid=panel-test');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.token).toContain('custom-token:panel-test:');
+    expect(res.body.token).toContain('"panel":true');
+    expect(res.body.token).toContain('"role":"panel_cocina"');
+  });
+
+  it('entrega custom token Firebase para el repartidor', async () => {
+    const res = await request(app)
+      .get('/api/auth/driver-token?uid=driver_ok');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.token).toContain('custom-token:driver_ok:');
+    expect(res.body.token).toContain('"driver":true');
+    expect(res.body.token).toContain('"role":"repartidor"');
   });
 
   it('rechaza despacho de cocina sin token', async () => {
@@ -141,7 +164,7 @@ describe('Delivery y panel API', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
-    expect(state.pedidos_en_camino.pedido_ok).toBeUndefined();
+    expect(state.pedidos_en_camino.pedido_ok.estado).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.estado).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.estado_pedido).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.repartidor_id).toBe('driver_ok');
