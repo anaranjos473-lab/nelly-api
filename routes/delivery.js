@@ -1,8 +1,38 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/debtLockService.js';
+import { verifyToken } from '../src/utils/jwt.js';
 
 const router = express.Router();
+
+async function resolveAuthenticatedUser(token) {
+  if (process.env.DEV_AUTH_TOKEN && token === process.env.DEV_AUTH_TOKEN) {
+    return {
+      uid: process.env.DEV_AUTH_UID || 'dev-user',
+      admin: false,
+      role: 'driver'
+    };
+  }
+
+  try {
+    const admin = await getAdmin();
+    return await admin.auth().verifyIdToken(token);
+  } catch (error) {
+    try {
+      const decoded = verifyToken(token);
+      return {
+        uid: decoded.uid || decoded.sub,
+        admin: Boolean(decoded.admin),
+        panel: Boolean(decoded.panel),
+        role: decoded.role || (decoded.driver ? 'driver' : undefined),
+        ...decoded
+      };
+    } catch (jwtError) {
+      console.error('[AUTH][DELIVERY] No se pudo resolver token', { message: error.message, jwtMessage: jwtError.message });
+      throw error;
+    }
+  }
+}
 
 async function requireFirebaseUser(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
@@ -10,18 +40,8 @@ async function requireFirebaseUser(req, res, next) {
     return res.status(401).json({ ok: false, error: 'Token requerido' });
   }
 
-  if (process.env.DEV_AUTH_TOKEN && token === process.env.DEV_AUTH_TOKEN) {
-    req.firebaseUser = {
-      uid: process.env.DEV_AUTH_UID || 'dev-user',
-      admin: false,
-      role: 'driver'
-    };
-    return next();
-  }
-
   try {
-    const admin = await getAdmin();
-    req.firebaseUser = await admin.auth().verifyIdToken(token);
+    req.firebaseUser = await resolveAuthenticatedUser(token);
     return next();
   } catch (error) {
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
@@ -45,15 +65,13 @@ async function requireAdminOrPanel(req, res, next) {
   }
 
   try {
-    const admin = await getAdmin();
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    
-    // Validar que sea admin o panel - igual que en app_test.js
-    if (decodedToken.admin === true || decodedToken.role === 'panel_cocina') {
+    const decodedToken = await resolveAuthenticatedUser(token);
+
+    if (decodedToken.admin === true || decodedToken.role === 'panel_cocina' || decodedToken.panel === true) {
       req.user = decodedToken;
       return next();
     }
-    
+
     return res.status(403).json({ ok: false, error: 'No autorizado' });
   } catch (error) {
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
@@ -66,18 +84,8 @@ async function requireFirebaseUserAnyRole(req, res, next) {
     return res.status(401).json({ ok: false, error: 'Token requerido' });
   }
 
-  if (process.env.DEV_AUTH_TOKEN && token === process.env.DEV_AUTH_TOKEN) {
-    req.firebaseUser = {
-      uid: process.env.DEV_AUTH_UID || 'dev-user',
-      admin: false,
-      role: 'driver'
-    };
-    return next();
-  }
-
   try {
-    const admin = await getAdmin();
-    req.firebaseUser = await admin.auth().verifyIdToken(token);
+    req.firebaseUser = await resolveAuthenticatedUser(token);
     return next();
   } catch (error) {
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
@@ -219,7 +227,10 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       }
     };
 
-    await db.ref(`pedidos/${pedidoId}`).update(payloadListo);
+    await Promise.all([
+      db.ref(`pedidos/${pedidoId}`).update(payloadListo),
+      db.ref(`pedidos_para_reparto/${pedidoId}`).set(payloadListo)
+    ]);
 
     return res.json({ ok: true, pedidoId, estado: 'LISTO', pedido: payloadListo });
   } catch (error) {
@@ -269,7 +280,9 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
 
     await Promise.all([
       pedidoRef.update(payload),
-      db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId)
+      db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId),
+      db.ref(`pedidos_para_reparto/${pedidoId}`).remove(),
+      db.ref(`pedidos_en_camino/${pedidoId}`).set(payload)
     ]);
 
     return res.json({ ok: true, pedidoId, repartidorId: uid });
@@ -414,7 +427,8 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
 
     await Promise.all([
       pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve()
+      driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve(),
+      db.ref(`pedidos_en_camino/${pedidoId}`).remove()
     ]);
 
     return res.json({

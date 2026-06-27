@@ -1,0 +1,33 @@
+  02eaac: 280c                                   |03d8: goto 03e4 // +000c
+  02eaae: 3819 0700                              |03d9: if-eqz v25, 03e0 // +0007
+  02eab2: 1a02 dd17                              |03db: const-string v2, "PUNTO DE ENTREGA" // string@17dd
+  02eab6: 0834 0200                              |03dd: move-object/from16 v52, v2
+  02eaba: 2805                                   |03df: goto 03e4 // +0005
+> 02eabc: 1a02 c917                              |03e0: const-string v2, "OPERACI+ÙN ACTIVA" // string@17c9
+  02eac0: 0834 0200                              |03e2: move-object/from16 v52, v2
+  02eac4: 0000                                   |03e4: nop // spacer
+  02eac6: 3810 0700                              |03e5: if-eqz v16, 03ec // +0007
+  02eaca: 7702 4001 5100                         |03e7: invoke-static/range {v81, v82}, Landroidx/compose/ui/graphics/ColorKt;.Color:(J)J // method@0140
+  02ead0: 0b02                                   |03ea: move-result-wide v2
+  036fde: 7100 160d 0000                         |0013: invoke-static {}, Lcom/google/firebase/database/FirebaseDatabase;.getInstance:()Lcom/google/firebase/database/FirebaseDatabase; // method@0d16
+  036fe4: 0c00                                   |0016: move-result-object v0
+  036fe6: 5441 8f03                              |0017: iget-object v1, v4, Lcom/example/nellydriver/MainActivityKt$PantallaDetallesPedido$1$1;.$pedidoId:Ljava/lang/String; // field@038f
+  036fea: 2202 4c04                              |0019: new-instance v2, Ljava/lang/StringBuilder; // type@044c
+  036fee: 7010 820d 0200                         |001b: invoke-direct {v2}, Ljava/lang/StringBuilder;.<init>:()V // method@0d82
+> 036ff4: 1a03 6723                              |001e: const-string v3, "pedidos_en_camino/" // string@2367
+  036ff8: 6e20 870d 3200                         |0020: invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@0d87
+  036ffe: 0c02                                   |0023: move-result-object v2
+  037000: 6e20 870d 1200                         |0024: invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@0d87
+  037006: 0c01                                   |0027: move-result-object v1
+  037008: 6e10 890d 0100                         |0028: invoke-virtual {v1}, Ljava/lang/StringBuilder;.toString:()Ljava/lang/String; // method@0d89
+  03778a: 7100 160d 0000                         |0013: invoke-static {}, Lcom/google/firebase/database/FirebaseDatabase;.getInstance:()Lcom/google/firebase/database/FirebaseDatabase; // method@0d16
+  037790: 0c00                                   |0016: move-result-object v0
+  037792: 5451 a303                              |0017: iget-object v1, v5, Lcom/example/nellydriver/MainActivityKt$PantallaMaestraNelly$2$1;.$pedidoId:Ljava/lang/String; // field@03a3
+  037796: 2202 4c04                              |0019: new-instance v2, Ljava/lang/StringBuilder; // type@044c
+  03779a: 7010 820d 0200                         |001b: invoke-direct {v2}, Ljava/lang/StringBuilder;.<init>:()V // method@0d82
+> 0377a0: 1a03 6723                              |001e: const-string v3, "pedidos_en_camino/" // string@2367
+  0377a4: 6e20 870d 3200                         |0020: invoke-virtual {v2, v3}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@0d87
+  0377aa: 0c02                                   |0023: move-result-object v2
+  0377ac: 6e20 870d 1200                         |0024: invoke-virtual {v2, v1}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@0d87
+  0377b2: 0c01                                   |0027: move-result-object v1
+  0377b4: 6e10 890d 0100                         |0028: invoke-virtual {v1}, Ljava/lang/StringBuilder;.toString:()Ljava/lang/String; // method@0d89

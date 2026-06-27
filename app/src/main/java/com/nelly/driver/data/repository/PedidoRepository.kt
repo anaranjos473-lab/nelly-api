@@ -2,6 +2,7 @@ package com.nelly.driver.data.repository
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -42,10 +43,114 @@ class PedidoRepository(
     val pedidoActivoId: StateFlow<String?> = _pedidoActivoId.asStateFlow()
     private val conexionRef: DatabaseReference = FirebaseDatabase.getInstance().getReference(".info/connected")
 
+    data class EstadoOperativo(
+        val pedidoId: String?,
+        val estadoPedido: String?,
+        val destino: Destino
+    )
+
+    enum class Destino {
+        TRACKING,
+        PEDIDOS_DISPONIBLES
+    }
+
     fun observarPedidos(): Flow<List<PedidoEntity>> = pedidoDao.obtenerTodosLosPedidos()
 
     fun observarPedidosPorEstado(estado: String): Flow<List<PedidoEntity>> =
         pedidoDao.obtenerPedidosPorEstado(estado)
+
+    fun limpiarPedidoActivoLocal() {
+        _pedidoActivoId.value = null
+    }
+
+    fun resolverEstadoOperativo(
+        repartidorUid: String?,
+        onResult: (EstadoOperativo) -> Unit
+    ) {
+        val uid = repartidorUid?.trim().orEmpty()
+        Log.i(TAG_APP_START, "APP START")
+        Log.i(TAG_APP_START, "Pedido Room/local: ignorado para navegacion")
+        if (uid.isBlank()) {
+            Log.i(TAG_APP_START, "Sesion: SIN_UID")
+            _pedidoActivoId.value = null
+            onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
+            return
+        }
+
+        Log.i(TAG_APP_START, "Sesion OK: $uid")
+        FirebaseDatabase.getInstance()
+            .getReference("repartidores/$uid/pedido_activo")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val pedidoActivoRtdb = snapshot.getValue(String::class.java)?.trim().orEmpty()
+                    Log.i(TAG_APP_START, "Pedido RTDB repartidor/$uid/pedido_activo: ${pedidoActivoRtdb.ifBlank { "null" }}")
+                    if (pedidoActivoRtdb.isBlank()) {
+                        _pedidoActivoId.value = null
+                        Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                        onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
+                        return
+                    }
+
+                    validarPedidoActivoRemoto(pedidoActivoRtdb, uid, onResult)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(TAG_APP_START, "Error consultando pedido activo RTDB: ${error.message}")
+                    _pedidoActivoId.value = null
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
+                }
+            })
+    }
+
+    private fun validarPedidoActivoRemoto(
+        pedidoId: String,
+        repartidorUid: String,
+        onResult: (EstadoOperativo) -> Unit
+    ) {
+        val pedidoRef = FirebaseDatabase.getInstance().getReference("pedidos/$pedidoId")
+        pedidoRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!snapshot.exists()) {
+                    _pedidoActivoId.value = null
+                    Log.i(TAG_APP_START, "Pedido RTDB detalle: inexistente")
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
+                    return
+                }
+
+                val estado = snapshot.child("estado_pedido").getValue(String::class.java)
+                    ?: snapshot.child("estado").getValue(String::class.java)
+                    ?: snapshot.child("logistica").child("estado").getValue(String::class.java)
+                val normalized = normalizarEstado(estado)
+                val repartidorAsignado = obtenerRepartidorAsignado(snapshot)
+                Log.i(TAG_APP_START, "Pedido RTDB detalle: id=$pedidoId estado=$normalized repartidor=${repartidorAsignado ?: "null"}")
+                if (normalized == "ENTREGADO" || normalized == "CANCELADO") {
+                    _pedidoActivoId.value = null
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
+                    return
+                }
+                if (!repartidorAsignado.isNullOrBlank() && repartidorAsignado != repartidorUid) {
+                    _pedidoActivoId.value = null
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
+                    return
+                }
+
+                _pedidoActivoId.value = pedidoId
+                Log.i(TAG_APP_START, "Destino: TRACKING")
+                onResult(EstadoOperativo(pedidoId, normalized, Destino.TRACKING))
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(TAG_APP_START, "Error validando pedido activo RTDB: ${error.message}")
+                _pedidoActivoId.value = null
+                Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
+            }
+        })
+    }
 
     fun iniciarSincronizacion(onError: (mensaje: String, throwable: Throwable?) -> Unit = { _, _ -> }) {
         if (listener != null) {
@@ -152,6 +257,9 @@ class PedidoRepository(
         orderAcceptClient.acceptOrder(pedidoId) { response ->
             if (response.ok) {
                 _pedidoActivoId.value = pedidoId
+                syncScope.launch {
+                    pedidoDao.borrarTodaLaTabla()
+                }
                 onResult(true, "Pedido aceptado y movido a seguimiento")
                 return@acceptOrder
             }
@@ -179,6 +287,9 @@ class PedidoRepository(
         orderCompleteClient.completeOrder(pedidoId) { response ->
             if (response.ok) {
                 _pedidoActivoId.value = null
+                syncScope.launch {
+                    pedidoDao.borrarTodaLaTabla()
+                }
                 onResult(true, "Entrega completada")
                 return@completeOrder
             }
@@ -245,6 +356,14 @@ class PedidoRepository(
         )
     }
 
+    private fun obtenerRepartidorAsignado(snapshot: DataSnapshot): String? {
+        return snapshot.child("repartidor_id").getValue(String::class.java)
+            ?: snapshot.child("repartidorId").getValue(String::class.java)
+            ?: snapshot.child("conductorId").getValue(String::class.java)
+            ?: snapshot.child("driverUid").getValue(String::class.java)
+            ?: snapshot.child("uid_repartidor").getValue(String::class.java)
+    }
+
     private fun normalizarEstado(estadoRaw: String?): String {
         return when (estadoRaw?.trim()?.lowercase()) {
             "pendiente", "preparando", "cocina" -> "PENDIENTE"
@@ -259,5 +378,9 @@ class PedidoRepository(
 
     private fun esEstadoDisponibleParaDriver(estado: String): Boolean {
         return estado == "LISTO"
+    }
+
+    private companion object {
+        const val TAG_APP_START = "NellyAppStart"
     }
 }

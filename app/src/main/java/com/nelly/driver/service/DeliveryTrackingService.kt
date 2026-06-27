@@ -59,6 +59,7 @@ class DeliveryTrackingService : Service() {
 
     override fun onDestroy() {
         handler.removeCallbacks(trackingRunnable)
+        pedidoIdActivo = null
         super.onDestroy()
     }
 

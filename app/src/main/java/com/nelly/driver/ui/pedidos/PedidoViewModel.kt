@@ -25,6 +25,17 @@ class PedidoViewModel(
         .observarPedidos()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    fun limpiarPedidoActivoLocal() {
+        repository.limpiarPedidoActivoLocal()
+    }
+
+    fun resolverEstadoOperativo(
+        repartidorUid: String?,
+        onResultado: (PedidoRepository.EstadoOperativo) -> Unit
+    ) {
+        repository.resolverEstadoOperativo(repartidorUid, onResultado)
+    }
+
     fun iniciarSincronizacion() {
         _syncEstado.value = "RUNNING"
         repository.iniciarSincronizacion { mensaje, error ->

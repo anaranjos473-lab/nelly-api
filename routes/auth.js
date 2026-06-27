@@ -1,5 +1,6 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
+import { generateToken } from '../src/utils/jwt.js';
 
 const router = express.Router();
 
@@ -21,8 +22,7 @@ function bootstrapAllowed(req) {
 }
 
 async function createToken(uid, claims = {}) {
-  const admin = await getAdmin();
-  return admin.auth().createCustomToken(uid, claims);
+  return generateToken({ uid, ...claims });
 }
 
 router.get('/driver-token', async (req, res, next) => {
