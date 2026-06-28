@@ -52,9 +52,17 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
     throw new Error('uid y montoEfectivo (> 0) son requeridos');
   }
 
+  // FIX: Leer el nodo ANTES de la transacción para evitar null en callback
+  // Firebase RTDB tiene un comportamiento donde el callback puede recibir null
+  // aunque el nodo exista, causando abort automático si retornas undefined
+  const refPreread = db.ref(`repartidores/${uid}`);
+  const snapPreread = await refPreread.once('value');
+  const fallbackData = snapPreread.val() || {};
+
   const ref = db.ref(`repartidores/${uid}`);
   const tx = await ref.transaction((actual) => {
-    const current = actual && typeof actual === 'object' ? actual : {};
+    // Usar fallback si actual es null (sucede con concurrencia en Firebase)
+    const current = (actual && typeof actual === 'object') ? actual : fallbackData;
 
     const nivel = extraerNivel(current);
     const limite = LIMITES_DEUDA_POR_NIVEL[nivel];

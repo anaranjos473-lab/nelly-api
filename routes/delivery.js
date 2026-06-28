@@ -428,7 +428,8 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     await Promise.all([
       pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
       driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve(),
-      db.ref(`pedidos_en_camino/${pedidoId}`).remove()
+      db.ref(`pedidos_en_camino/${pedidoId}`).remove(),
+      db.ref(`pedidos_para_reparto/${pedidoId}`).remove()
     ]);
 
     return res.json({
