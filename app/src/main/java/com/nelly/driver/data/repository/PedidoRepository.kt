@@ -162,6 +162,18 @@ class PedidoRepository(
 
         listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                snapshot.children.forEach { child ->
+                    val estadoRecibido = child.child("estado_pedido").getValue(String::class.java)
+                        ?: child.child("estado").getValue(String::class.java)
+                        ?: child.child("logistica").child("estado").getValue(String::class.java)
+                    val estadoNormalizado = normalizarEstado(estadoRecibido)
+                    val filtroDisponible = esEstadoDisponibleParaDriver(estadoNormalizado)
+                    Log.i(
+                        TAG_APP_START,
+                        "C3_1_DRIVER_TRACE PedidoId=${child.key ?: "?"} estadoRecibido=${estadoRecibido ?: "null"} estadoNormalizado=$estadoNormalizado filtroDisponible=$filtroDisponible insertadoEnLista=$filtroDisponible"
+                    )
+                }
+
                 val pedidos = snapshot.children
                     .mapNotNull { child -> child.toPedidoEntity() }
                     .filter { pedido -> esEstadoDisponibleParaDriver(pedido.estado) }
@@ -329,9 +341,7 @@ class PedidoRepository(
             ?: key
             ?: return null
 
-        val clienteNombre = child("cliente_nombre").getValue(String::class.java)
-            ?: child("cliente").getValue(String::class.java)
-            ?: ""
+        val clienteNombre = obtenerNombreCliente(this)
 
         val montoTotal = child("monto_total").getValue(Double::class.java)
             ?: child("monto").getValue(Double::class.java)
@@ -364,8 +374,26 @@ class PedidoRepository(
             ?: snapshot.child("uid_repartidor").getValue(String::class.java)
     }
 
+    private fun obtenerNombreCliente(snapshot: DataSnapshot): String {
+        val clienteNombrePlano = snapshot.child("cliente_nombre").value as? String
+        if (!clienteNombrePlano.isNullOrBlank()) {
+            return clienteNombrePlano
+        }
+
+        val clienteSnapshot = snapshot.child("cliente")
+        val clientePlano = clienteSnapshot.value as? String
+        if (!clientePlano.isNullOrBlank()) {
+            return clientePlano
+        }
+
+        val nombreDesdeObjeto = clienteSnapshot.child("nombre").value as? String
+            ?: clienteSnapshot.child("nombreCompleto").value as? String
+            ?: clienteSnapshot.child("name").value as? String
+        return nombreDesdeObjeto?.takeIf { it.isNotBlank() } ?: ""
+    }
+
     private fun normalizarEstado(estadoRaw: String?): String {
-        return when (estadoRaw?.trim()?.lowercase()) {
+        val normalized = when (estadoRaw?.trim()?.lowercase()) {
             "pendiente", "preparando", "cocina" -> "PENDIENTE"
             "listo", "pendiente_aceptacion", "listo_para_reparto", "esperando_repartidor", "despacho", "disponible", "disponible_para_reparto", "libre" -> "LISTO"
             "en_camino", "en_curso", "en_reparto", "reparto", "llegue_a_tienda", "pedido_abordo", "llegue_a_cliente" -> "EN_CURSO"
@@ -374,10 +402,14 @@ class PedidoRepository(
             null, "" -> "PENDIENTE"
             else -> estadoRaw.trim().uppercase()
         }
+        Log.i(TAG_APP_START, "C3_1_DRIVER_TRACE normalizarEstado raw=${estadoRaw ?: "null"} normalized=$normalized")
+        return normalized
     }
 
     private fun esEstadoDisponibleParaDriver(estado: String): Boolean {
-        return estado == "LISTO"
+        val resultado = estado == "LISTO"
+        Log.i(TAG_APP_START, "C3_1_DRIVER_TRACE esEstadoDisponibleParaDriver estado=$estado resultado=$resultado")
+        return resultado
     }
 
     private companion object {
