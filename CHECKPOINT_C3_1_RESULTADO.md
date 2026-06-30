@@ -69,6 +69,16 @@ null
 - El mismo pedido aparece también en `pedidos_para_reparto`, que es el nodo que típicamente alimenta al driver disponible.
 - En el instante LISTO, `pedidos_en_camino` permanece ausente, lo cual es consistente con que el pedido todavía no fue aceptado.
 
+## Cadena exacta del Driver para este snapshot
+
+| Paso | Valor observado en el snapshot C3.1 | Resultado |
+|------|--------------------------------------|-----------|
+| Estado recibido por el driver | `estado_pedido = LISTO` | `LISTO` |
+| Normalización en `normalizarEstado()` | `LISTO` permanece `LISTO` | `LISTO` |
+| Filtro en `esEstadoDisponibleParaDriver()` | `estado == "LISTO"` | `true` |
+
+Esto significa que, si el pedido `PED_C3_1_LISTO_1782810938485` llegara al driver con ese snapshot, el flujo interno debería considerarlo disponible.
+
 ## Conclusión C3.1
 - **Backend certificado para el contrato de despacho a LISTO**.
 - El problema de visibilidad para el driver, si persiste, ya no está explicado por un despacho incorrecto en RTDB.
