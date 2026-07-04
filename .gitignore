@@ -73,3 +73,12 @@ firebase*.json
 
 # Archivos de Gradle
 .gradle/
+
+# Artefactos Android generados
+build/
+app/build/
+
+# Capturas y dumps temporales de pruebas locales
+/screen*.png
+/window*.xml
+/temp_*
