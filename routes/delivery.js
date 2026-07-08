@@ -192,6 +192,14 @@ function shouldAdvancePedidoState(currentState, incomingState) {
   return incomingPriority > currentPriority;
 }
 
+function generateShortId(timestamp) {
+  const date = new Date(Number(timestamp) || Date.now());
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const suffix = String(Math.floor(Math.random() * 90) + 10);
+  return `${month}${day}-${suffix}`;
+}
+
 router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
   try {
     const pedidoId = String(req.body?.pedidoId || req.body?.orderId || '').trim();
@@ -214,6 +222,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
     };
     const payloadListo = {
       ...pedidoBase,
+      shortId: pedidoBase.shortId || generateShortId(pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt),
       estado: 'LISTO',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),

@@ -949,7 +949,7 @@
 
                             html += `
                                 <tr>
-                                    <td>${pedido.id_pedido || ''}</td>
+                                    <td>${pedido.shortId || pedido.id_pedido || ''}</td>
                                     <td>${pedido.cliente_nombre || pedido.cliente || ''}</td>
                                     <td>$${montoNumero.toFixed(2)}</td>
                                     <td>${new Date(fechaPedido).toLocaleString('es-MX')}</td>
@@ -1365,6 +1365,7 @@
         window.listarPedidosPendientes = () => {
             return Array.from(pedidosPendientes.entries()).map(([key, pedido]) => ({
                 key,
+                shortId: pedido.shortId || null,
                 id_pedido: pedido.id_pedido || pedido.id || key,
                 estado: pedido.estado || "pendiente",
                 cliente: pedido.cliente_nombre || pedido.cliente || ""
@@ -1374,6 +1375,7 @@
         window.listarPedidosReparto = () => {
             return Array.from(pedidosReparto.entries()).map(([key, pedido]) => ({
                 key,
+                shortId: pedido.shortId || null,
                 id_pedido: pedido.id_pedido || pedido.id || key,
                 estado: normalizarEstado(pedido.estado || "EN_CURSO"),
                 cliente: pedido.cliente_nombre || pedido.cliente || ""
@@ -1650,6 +1652,7 @@
 
         function generarHTMLTarjeta(pedido, id, esPendiente) {
             const monto = Number(pedido.monto || pedido.total || 0);
+            const displayId = pedido.shortId || pedido.id_pedido || id.substring(0, 8);
             const estadoNormalizado = normalizarEstado(pedido.estado);
             const fase = obtenerFasePanel(estadoNormalizado);
             const esListo = estadoNormalizado === 'LISTO';
@@ -1666,7 +1669,7 @@
             return `
                 <div class="card-pedido animate__animated animate__fadeIn">
                     <div class="card-header">
-                        <strong>#${pedido.id_pedido || id.substring(0, 8)}</strong>
+                        <strong>#${displayId}</strong>
                         <span class="monto">$${monto.toFixed(2)}</span>
                     </div>
                     <div class="card-body">

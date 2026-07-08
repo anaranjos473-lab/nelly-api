@@ -278,6 +278,14 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
     }
 });
 
+function generateShortId(timestamp) {
+    const date = new Date(Number(timestamp) || Date.now());
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const suffix = String(Math.floor(Math.random() * 90) + 10);
+    return `${month}${day}-${suffix}`;
+}
+
 // --- ENDPOINT: CREAR PEDIDO ---
 router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     try {
@@ -298,6 +306,7 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             id: pedidoId,
             id_pedido: pedidoId,
             pedido_id: pedidoId,
+            shortId: generateShortId(timestamp),
             cliente_nombre: String(cliente_nombre).trim(),
             cliente: String(cliente_nombre).trim(),
             telefono: String(telefono).trim(),

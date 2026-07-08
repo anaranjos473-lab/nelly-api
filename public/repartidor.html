@@ -116,6 +116,7 @@
         }
 
         function cardHTML(id, pedido, tomar = false) {
+            const shortId = pedido.shortId || pedido.id_pedido || id;
             const monto = Number(pedido.monto || pedido.total || 0).toFixed(2);
             const cliente = pedido.cliente_nombre || pedido.cliente || 'Cliente';
             const descripcion = pedido.descripcion || 'Sin descripcion';
@@ -124,7 +125,7 @@
                 : `<p class="muted">Asignado a ti</p>`;
             return `
                 <div class="card">
-                    <p><strong>#${pedido.id_pedido || id}</strong></p>
+                    <p><strong>#${shortId}</strong></p>
                     <p>${cliente}</p>
                     <p>${descripcion}</p>
                     <p class="money">$${monto}</p>
