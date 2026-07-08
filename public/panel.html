@@ -491,6 +491,13 @@
             <div id="contenedor-pendientes" class="pedidos-grid"></div>
         </div>
         <div class="column">
+            <div class="column-header listo">
+                <h3>ESPERANDO REPARTIDOR</h3>
+                <span id="count-listo" class="badge">0</span>
+            </div>
+            <div id="contenedor-listo" class="pedidos-grid"></div>
+        </div>
+        <div class="column">
             <div class="column-header reparto">
                 <h3>EN REPARTO</h3>
                 <span id="count-reparto" class="badge">0</span>
@@ -1585,13 +1592,16 @@
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
+            const contenedorListo = document.getElementById('contenedor-listo');
             const contenedorReparto = document.getElementById('contenedor-reparto');
             const contenedorEntregados = document.getElementById('contenedor-entregados');
             contenedorPendientes.innerHTML = '';
+            contenedorListo.innerHTML = '';
             contenedorReparto.innerHTML = '';
             contenedorEntregados.innerHTML = '';
 
             let cPendientes = 0;
+            let cListo = 0;
             let cReparto = 0;
             let cEntregados = 0;
 
@@ -1600,7 +1610,10 @@
                 if (fase === 'COCINA') {
                     contenedorPendientes.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, true));
                     cPendientes++;
-                } else if (fase === 'DESPACHO' || fase === 'EN_REPARTO') {
+                } else if (fase === 'DESPACHO') {
+                    contenedorListo.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
+                    cListo++;
+                } else if (fase === 'EN_REPARTO') {
                     contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
                     cReparto++;
                 }
@@ -1610,8 +1623,8 @@
                 if (pedidosPendientes.has(id)) {
                     return;
                 }
-                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
-                cReparto++;
+                contenedorListo.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
+                cListo++;
             });
 
             pedidosEnCamino.forEach((pedido, id) => {
@@ -1629,9 +1642,10 @@
             });
 
             document.getElementById('count-pendientes').innerText = String(cPendientes);
+            document.getElementById('count-listo').innerText = String(cListo);
             document.getElementById('count-reparto').innerText = String(cReparto);
             document.getElementById('count-entregados').innerText = String(cEntregados);
-            document.getElementById('contador').innerText = String(cPendientes + cReparto);
+            document.getElementById('contador').innerText = String(cPendientes + cListo + cReparto);
         }
 
         function generarHTMLTarjeta(pedido, id, esPendiente) {
