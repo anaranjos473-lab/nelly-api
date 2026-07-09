@@ -156,8 +156,16 @@
             <input id="order-client" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Nombre del cliente" />
             <input id="order-phone" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Telefono" />
             <input id="order-address" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
-            <input id="order-amount" required type="number" min="1" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Monto MXN" />
-            <input id="order-driver-id" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="UID repartidor (opcional)" />
+            <textarea id="order-items" required rows="3" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
+            <input id="order-subtotal" required type="number" min="0.01" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Subtotal MXN" />
+            <input id="order-shipping" required type="number" min="0" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Costo de envío MXN" />
+            <input id="order-tip" required type="number" min="0" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Propina MXN" />
+            <select id="order-payment-method" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm">
+              <option value="efectivo">Efectivo</option>
+              <option value="tarjeta">Tarjeta</option>
+              <option value="transferencia">Transferencia</option>
+            </select>
+            <input id="order-total" readonly type="number" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Total calculado MXN" />
             <textarea id="order-notes" rows="3" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Notas del pedido (referencias, observaciones)"></textarea>
             <button type="submit" class="rounded-lg bg-panel-accent px-4 py-2 text-sm font-bold text-slate-950 hover:brightness-110 md:col-span-2">Crear Pedido</button>
           </form>

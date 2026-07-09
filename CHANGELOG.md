@@ -1,5 +1,13 @@
 # Changelog - Nelly Delivery (API & Driver)
 
+## [4.0.1-PILOTO] - 2026-07-09
+### 🧩 Ajuste de Contrato Admin y Pedido Manual
+- Refactorizado `POST /api/admin/pedidos` para exigir payload completo de pedido manual.
+- Validación estricta de `items`, `subtotal`, `costo_envio`, `propina`, `total` y `pago`.
+- Guardado de pedidos admin con `origen: 'panel_admin'`, `logistica.estado: 'pendiente'` y campos de estado canonizados.
+- Actualizada UI de panel admin para capturar ítems, subtotal, envío, propina, método de pago y total calculado.
+- Prueba `tests/admin-order-contract.test.js` actualizada y verificada.
+
 ## [4.0.0-PRO] - 2026-05-09
 ### 🚀 Añadido (Sistema Multi-Agente Autónomo)
 - **Agente de Despacho (`agenteDespacho.js`)**: Implementación de asignación geoespacial inteligente utilizando `worker_threads` y la fórmula de Haversine para cálculos de proximidad sin bloquear el hilo principal.

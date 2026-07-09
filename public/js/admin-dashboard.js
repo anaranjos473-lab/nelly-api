@@ -118,8 +118,12 @@ const ui = {
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
   orderAddress: document.getElementById("order-address"),
-  orderAmount: document.getElementById("order-amount"),
-  orderDriverId: document.getElementById("order-driver-id"),
+  orderItems: document.getElementById("order-items"),
+  orderSubtotal: document.getElementById("order-subtotal"),
+  orderShipping: document.getElementById("order-shipping"),
+  orderTip: document.getElementById("order-tip"),
+  orderPaymentMethod: document.getElementById("order-payment-method"),
+  orderTotal: document.getElementById("order-total"),
   orderNotes: document.getElementById("order-notes"),
   orderFeedback: document.getElementById("order-feedback")
 };
@@ -350,6 +354,14 @@ async function fetchAdminApi(path, options = {}) {
   throw lastError;
 }
 
+function updateOrderTotalValue() {
+  const subtotal = Number(ui.orderSubtotal.value || 0);
+  const shipping = Number(ui.orderShipping.value || 0);
+  const tip = Number(ui.orderTip.value || 0);
+  const total = Number((subtotal + shipping + tip).toFixed(2));
+  ui.orderTotal.value = Number.isFinite(total) ? total : '';
+}
+
 async function refreshDriversFromBackend() {
   const payload = await fetchAdminApi("/api/admin/repartidores");
   activeDriversBasePath = payload?.source || "repartidores";
@@ -424,25 +436,110 @@ function stopDashboardPolling() {
   dashboardPollingId = null;
 }
 
+function parseOrderItems(text) {
+  const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  if (!lines.length) return [];
+
+  return lines.map((line, index) => {
+    let quantity = 1;
+    let description = line;
+
+    const quantityMatch = description.match(/^([0-9]+(?:[.,][0-9]+)?)\s*x\s+/i);
+    if (quantityMatch) {
+      quantity = Number(quantityMatch[1].replace(',', '.')) || 1;
+      description = description.slice(quantityMatch[0].length).trim();
+    } else {
+      const firstToken = description.split(/\s+/)[0];
+      const maybeQty = Number(firstToken.replace(',', '.'));
+      if (Number.isFinite(maybeQty) && maybeQty > 0 && description.split(/\s+/).length > 1) {
+        quantity = maybeQty;
+        description = description.split(/\s+/).slice(1).join(' ').trim();
+      }
+    }
+
+    const tokens = description.split(/\s+/);
+    if (tokens.length < 2) {
+      throw new Error(`Item inválido en la línea ${index + 1}: ${line}`);
+    }
+
+    const rawPrice = tokens[tokens.length - 1].replace(/\$/g, '').replace(',', '.');
+    const price = Number(rawPrice);
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`Precio inválido en la línea ${index + 1}: ${line}`);
+    }
+
+    const name = tokens.slice(0, -1).join(' ').trim();
+    if (!name) {
+      throw new Error(`Nombre de item inválido en la línea ${index + 1}: ${line}`);
+    }
+
+    return {
+      nombre: name,
+      cantidad: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      precio: Number(price.toFixed(2))
+    };
+  });
+}
+
 async function createManualOrder(event) {
   event.preventDefault();
 
-  const client = String(ui.orderClient.value || "").trim();
-  const phone = String(ui.orderPhone.value || "").trim();
-  const address = String(ui.orderAddress.value || "").trim();
-  const amount = Number(ui.orderAmount.value || 0);
-  const driverId = String(ui.orderDriverId.value || "").trim();
-  const notes = String(ui.orderNotes.value || "").trim();
+  const client = String(ui.orderClient.value || '').trim();
+  const phone = String(ui.orderPhone.value || '').trim();
+  const address = String(ui.orderAddress.value || '').trim();
+  const itemsText = String(ui.orderItems.value || '').trim();
+  const subtotal = Number(ui.orderSubtotal.value || 0);
+  const shipping = Number(ui.orderShipping.value || 0);
+  const tip = Number(ui.orderTip.value || 0);
+  const paymentMethod = String(ui.orderPaymentMethod.value || 'efectivo').trim();
+  const notes = String(ui.orderNotes.value || '').trim();
 
-  if (!client || !phone || !address || !Number.isFinite(amount) || amount <= 0) {
-    setOrderFeedback("Completa nombre, telefono, direccion y monto valido.", "error");
+  if (!client || !phone || !address || !itemsText) {
+    setOrderFeedback('Completa cliente, teléfono, dirección y lista de items.', 'error');
     return;
   }
+
+  if (!Number.isFinite(subtotal) || subtotal <= 0) {
+    setOrderFeedback('Subtotal debe ser un número mayor a cero.', 'error');
+    return;
+  }
+
+  if (!Number.isFinite(shipping) || shipping < 0) {
+    setOrderFeedback('Costo de envío inválido.', 'error');
+    return;
+  }
+
+  if (!Number.isFinite(tip) || tip < 0) {
+    setOrderFeedback('Propina inválida.', 'error');
+    return;
+  }
+
+  let items;
+  try {
+    items = parseOrderItems(itemsText);
+  } catch (parseError) {
+    setOrderFeedback(parseError.message, 'error');
+    return;
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    setOrderFeedback('Agrega al menos un item válido al pedido.', 'error');
+    return;
+  }
+
+  const expectedSubtotal = Number(items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0).toFixed(2));
+  if (Math.abs(expectedSubtotal - subtotal) > 0.01) {
+    setOrderFeedback(`El subtotal no coincide con la suma de items (${expectedSubtotal}).`, 'error');
+    return;
+  }
+
+  const total = Number((subtotal + shipping + tip).toFixed(2));
+  ui.orderTotal.value = total;
 
   try {
     const user = auth.currentUser;
     if (!user) {
-      throw new Error("Sesion no activa");
+      throw new Error('Sesion no activa');
     }
 
     const idToken = await user.getIdToken();
@@ -452,17 +549,25 @@ async function createManualOrder(event) {
     for (const baseUrl of ADMIN_API_ENDPOINTS) {
       try {
         const response = await fetch(`${baseUrl}/api/admin/pedidos`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${idToken}`
           },
           body: JSON.stringify({
             cliente_nombre: client,
             telefono: phone,
             direccion: address,
-            monto: Number(amount.toFixed(2)),
-            descripcion: notes || "Pedido telefonico"
+            descripcion: notes || 'Pedido telefonico',
+            items,
+            subtotal: Number(subtotal.toFixed(2)),
+            costo_envio: Number(shipping.toFixed(2)),
+            propina: Number(tip.toFixed(2)),
+            total,
+            pago: {
+              metodo: paymentMethod,
+              estado: 'pendiente'
+            }
           })
         });
 
@@ -476,13 +581,14 @@ async function createManualOrder(event) {
     }
 
     if (!created) {
-      throw new Error("No se pudo crear pedido en backend");
+      throw new Error('No se pudo crear pedido en backend');
     }
 
     ui.orderForm.reset();
-    setOrderFeedback(`Pedido ${pedidoId || "manual"} creado correctamente.`, "ok");
+    ui.orderTotal.value = '';
+    setOrderFeedback(`Pedido ${pedidoId || 'manual'} creado correctamente.`, 'ok');
   } catch (error) {
-    setOrderFeedback(`No se pudo crear el pedido: ${error.message}`, "error");
+    setOrderFeedback(`No se pudo crear el pedido: ${error.message}`, 'error');
   }
 }
 
@@ -507,6 +613,11 @@ ui.loginForm.addEventListener("submit", async (event) => {
 
 ui.btnLogout.addEventListener("click", async () => {
   await signOut(auth);
+});
+
+[ui.orderSubtotal, ui.orderShipping, ui.orderTip].forEach((input) => {
+  if (!input) return;
+  input.addEventListener('input', updateOrderTotalValue);
 });
 
 ui.orderForm.addEventListener("submit", createManualOrder);

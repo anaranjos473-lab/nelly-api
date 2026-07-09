@@ -40,8 +40,19 @@ describe('Admin order creation contract', () => {
         cliente_nombre: 'Ana',
         telefono: '5551234567',
         direccion: 'Calle 1',
-        monto: 250,
-        descripcion: 'Pizza'
+        descripcion: 'Pizza',
+        items: [
+          { nombre: 'Pizza', cantidad: 2, precio: 120 },
+          { nombre: 'Refresco', cantidad: 1, precio: 30 }
+        ],
+        subtotal: 270,
+        costo_envio: 20,
+        propina: 10,
+        total: 300,
+        pago: {
+          metodo: 'efectivo',
+          estado: 'pendiente'
+        }
       });
 
     expect(res.statusCode).toBe(201);
@@ -52,11 +63,21 @@ describe('Admin order creation contract', () => {
       id: expect.any(String),
       cliente_nombre: 'Ana',
       cliente: 'Ana',
-      total: 250,
-      monto_total: 250,
+      subtotal: 270,
+      costo_envio: 20,
+      propina: 10,
+      total: 300,
+      monto_total: 300,
+      pago: {
+        metodo: 'efectivo',
+        estado: 'pendiente'
+      },
       estado: 'pendiente',
       estado_pedido: 'PENDIENTE',
       fase_panel: 'Pendiente',
+      repartidor_id: null,
+      conductorId: null,
+      pedido_activo: null,
       logistica: {
         estado: 'pendiente',
         repartidor_id: null

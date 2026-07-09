@@ -92,6 +92,8 @@ const parseTimestamp = (value) => {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
+class ValidationError extends Error {}
+
 const getOrderTimestamp = (pedido, keys) => {
     if (!pedido || typeof pedido !== 'object') return null;
     for (const key of keys) {
@@ -289,10 +291,70 @@ function generateShortId(timestamp) {
 // --- ENDPOINT: CREAR PEDIDO ---
 router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     try {
-        const { cliente_nombre, telefono, direccion, monto, descripcion } = req.body;
+        const {
+            cliente_nombre,
+            telefono,
+            direccion,
+            descripcion,
+            items,
+            subtotal,
+            costo_envio,
+            propina,
+            total,
+            pago
+        } = req.body;
 
-        if (!cliente_nombre || !telefono || !direccion || typeof monto !== 'number') {
-            return res.status(400).json({ error: 'Faltan campos obligatorios o formato invalido' });
+        if (!cliente_nombre || !telefono || !direccion) {
+            return res.status(400).json({ error: 'Faltan campos de cliente obligatorios' });
+        }
+
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'El pedido debe contener al menos un item' });
+        }
+
+        const normalizedItems = items.map((item, index) => {
+            if (!item || typeof item !== 'object') {
+                throw new Error(`Item ${index + 1} invalido`);
+            }
+            const nombre = String(item.nombre || item.name || '').trim();
+            const cantidad = Number(item.cantidad || item.quantity || 0);
+            const precio = Number(item.precio || item.price || 0);
+
+            if (!nombre || !Number.isFinite(cantidad) || cantidad <= 0 || !Number.isFinite(precio) || precio <= 0) {
+                throw new Error(`Item ${index + 1} incompleto o con valores invalidos`);
+            }
+
+            return {
+                nombre,
+                cantidad,
+                precio: Number(precio.toFixed(2))
+            };
+        });
+
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
+            return res.status(400).json({ error: 'Subtotal invalido' });
+        }
+
+        if (!Number.isFinite(costo_envio) || costo_envio < 0) {
+            return res.status(400).json({ error: 'Costo de envio invalido' });
+        }
+
+        if (!Number.isFinite(propina) || propina < 0) {
+            return res.status(400).json({ error: 'Propina invalida' });
+        }
+
+        const expectedSubtotal = Number(normalizedItems.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2));
+        if (Math.abs(expectedSubtotal - Number(subtotal)) > 0.01) {
+            return res.status(400).json({ error: 'Subtotal no coincide con la suma de items' });
+        }
+
+        const expectedTotal = Number((Number(subtotal) + Number(costo_envio) + Number(propina)).toFixed(2));
+        if (!Number.isFinite(total) || Math.abs(expectedTotal - Number(total)) > 0.01) {
+            return res.status(400).json({ error: 'Total invalido o no coincide con subtotal + envio + propina' });
+        }
+
+        if (!pago || typeof pago !== 'object' || !pago.metodo || !pago.estado) {
+            return res.status(400).json({ error: 'Informacion de pago incompleta' });
         }
 
         const admin = await getAdmin();
@@ -300,7 +362,6 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         const timestamp = Date.now();
         const pedidoId = `PED_${timestamp}`;
-        const montoRounded = Number(Number(monto).toFixed(2));
 
         const nuevoPedido = {
             id: pedidoId,
@@ -312,14 +373,23 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             telefono: String(telefono).trim(),
             direccion: String(direccion).trim(),
             descripcion: String(descripcion || '').trim(),
-            monto: montoRounded,
-            total: montoRounded,
-            monto_total: montoRounded,
+            items: normalizedItems,
+            subtotal: Number(Number(subtotal).toFixed(2)),
+            costo_envio: Number(Number(costo_envio).toFixed(2)),
+            propina: Number(Number(propina).toFixed(2)),
+            monto: Number(Number(total).toFixed(2)),
+            total: Number(Number(total).toFixed(2)),
+            monto_total: Number(Number(total).toFixed(2)),
+            pago: {
+                metodo: String(pago.metodo).trim(),
+                estado: String(pago.estado).trim()
+            },
             estado: 'pendiente',
             estado_pedido: 'PENDIENTE',
             fase_panel: 'Pendiente',
             repartidor_id: null,
             conductorId: null,
+            pedido_activo: null,
             fecha_creacion: timestamp,
             createdAt: timestamp,
             created_at: timestamp,
@@ -337,6 +407,9 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
         return res.status(201).json({ ok: true, id: pedidoId, pedido: nuevoPedido });
     } catch (error) {
         console.error('[ADMIN][CREATE_ORDER] Error:', error.message);
+        if (error instanceof ValidationError) {
+            return res.status(400).json({ error: error.message });
+        }
         return res.status(500).json({ error: 'No se pudo crear el pedido' });
     }
 });
