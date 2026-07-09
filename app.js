@@ -210,6 +210,7 @@ app.use('/api/soporte', soporteRoutes);
 app.use('/soporte', soporteRoutes);
 app.use('/api/pedidos', pedidosRouter);
 app.use('/api/repartidores', repartidoresRouter);
+app.use('/api/drivers', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
 app.use('/api/notificaciones', notificacionesRouter);
 app.use('/api/admin', adminRouter);
