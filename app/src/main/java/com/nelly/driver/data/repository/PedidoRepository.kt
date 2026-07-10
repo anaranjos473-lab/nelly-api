@@ -123,17 +123,26 @@ class PedidoRepository(
                     ?: snapshot.child("estado").getValue(String::class.java)
                     ?: snapshot.child("logistica").child("estado").getValue(String::class.java)
                 val normalized = normalizarEstado(estado)
-                val repartidorAsignado = obtenerRepartidorAsignado(snapshot)
-                Log.i(TAG_APP_START, "Pedido RTDB detalle: id=$pedidoId estado=$normalized repartidor=${repartidorAsignado ?: "null"}")
+                val repartidorAsignado = obtenerDriverAsignadoCanonico(snapshot)
+                Log.i(
+                    TAG_APP_START,
+                    "C3_1_DRIVER_TRACE validarPedidoActivoRemoto pedido=$pedidoId estado=$normalized repartidorAsignado=${repartidorAsignado ?: "null"} repartidorUid=$repartidorUid pedidoActivo=$pedidoId"
+                )
                 if (normalized == "ENTREGADO" || normalized == "CANCELADO") {
                     _pedidoActivoId.value = null
                     Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
                     onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
-                if (!repartidorAsignado.isNullOrBlank() && repartidorAsignado != repartidorUid) {
+                if (normalized != "EN_CURSO") {
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES (pedido_activo no es EN_CURSO)")
+                    onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
+                    return
+                }
+                if (repartidorAsignado.isNullOrBlank() || repartidorAsignado != repartidorUid) {
+                    _pedidoActivoId.value = null
+                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES (repartidor asignado no coincide)")
                     onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
@@ -366,10 +375,11 @@ class PedidoRepository(
         )
     }
 
-    private fun obtenerRepartidorAsignado(snapshot: DataSnapshot): String? {
+    private fun obtenerDriverAsignadoCanonico(snapshot: DataSnapshot): String? {
         return snapshot.child("repartidor_id").getValue(String::class.java)
             ?: snapshot.child("repartidorId").getValue(String::class.java)
             ?: snapshot.child("conductorId").getValue(String::class.java)
+            ?: snapshot.child("idConductor").getValue(String::class.java)
             ?: snapshot.child("driverUid").getValue(String::class.java)
             ?: snapshot.child("uid_repartidor").getValue(String::class.java)
     }
