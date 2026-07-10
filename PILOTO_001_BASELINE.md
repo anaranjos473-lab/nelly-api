@@ -92,3 +92,109 @@ repartidores/8mo8182LJsgV7vKMSpiCekFKAG23/codigo = DR-001
 ## Nota de estabilización
 
 Este baseline es la única forma autorizada de arrancar el piloto. Si alguien quiere empezar, debe hacerlo desde aquí y no desde un conjunto de condiciones diferentes.
+## Checkpoint vivo - 2026-07-10 03:05 America/Mexico_City
+
+### Regla de continuidad
+
+- Este archivo es el punto de reentrada si se agota la sesion o entra otra persona.
+- Guardar cada paso operativo aqui antes o despues de ejecutarlo.
+- Si la app Android se cierra o vuelve a login, NO automatizar credenciales por ADB. Dejar que Alberto ingrese usuario y contrasena manualmente.
+- No commitear `.idea/deploymentTargetSelector.xml`; es estado local de Android Studio/dispositivo.
+
+### Cambio ya subido
+
+- Repo Android real: `C:\Users\hp14\AndroidStudioProjects\NellyDriver`
+- Rama: `master`
+- Commit subido: `0bf0d0f Fix camera permission before delivery evidence`
+- Motivo: evitar crash al tocar `CAPTURAR EVIDENCIA` cuando Android no habia concedido permiso `CAMERA`.
+- APK debug compilada e instalada en telefono `ZY22KQKPS4`.
+
+### Estado observado en telefono
+
+- App al frente: `com.example.nellydriver/.MainActivity`
+- Pantalla visible: mision activa.
+- Textos visibles:
+  - `MXN$129.00`
+  - `DIRIGETE A LA TIENDA`
+  - `ESPERANDO 'LUZ VERDE' DE UBICACION (CLIENTE)`
+  - Boton: `YA ESTOY EN LA TIENDA`
+- No hay crash reciente de `AndroidRuntime` asociado al fix de camara.
+- Firebase RTDB esta conectado; logcat muestra listeners activos.
+
+### Hipotesis actual
+
+- La app no esta cerrada: esta atascada en el subestado inicial de pedido.
+- El boton `YA ESTOY EN LA TIENDA` llama `MainViewModel.reportarLlegadaTienda(pedidoId)`.
+- Ese metodo solo escribe `pedidos/{pedidoId}/estado = LLEGUE_A_TIENDA`.
+- El backend/web usa tambien `estado_pedido` y rutas auxiliares (`pedidos_en_camino`), por lo que puede quedar inconsistente o no avanzar segun el listener.
+
+### Siguiente paso inmediato
+
+1. Identificar el `pedidoId` activo del UID logueado en el telefono.
+2. Verificar en RTDB:
+   - `pedidos/{pedidoId}/estado`
+   - `pedidos/{pedidoId}/estado_pedido`
+   - `pedidos_en_camino/{pedidoId}`
+   - `repartidores/{uid}/pedido_activo`
+3. Corregir el codigo Android para que los subestados de tracking escriban campos canonicos y de compatibilidad:
+   - `estado`
+   - `estado_pedido`
+   - `logistica/estado`
+   - `timestampActualizacion`
+4. Compilar, instalar, probar con ADB/UI.
+5. Si el pedido actual ya quedo colgado, rescatarlo en RTDB a un estado coherente antes de seguir el piloto.
+
+## Checkpoint vivo - 2026-07-10 03:45 America/Mexico_City
+
+### Estado guardado antes de continuar
+
+- Alberto ingreso manualmente de nuevo despues de reinstalar APK. No automatizar credenciales por ADB.
+- Telefono: `ZY22KQKPS4`.
+- App/package: `com.example.nellydriver`.
+- Repo Android real: `C:\Users\hp14\AndroidStudioProjects\NellyDriver`.
+- Archivo Android tocado: `app/src/main/java/com/example/nellydriver/MainViewModel.kt`.
+- APK debug compilada e instalada correctamente despues del parche.
+- Comando de validacion ejecutado: `.\gradlew.bat assembleDebug`.
+- Resultado: `BUILD SUCCESSFUL`.
+- Warning no bloqueante observado: Elvis operator siempre devuelve operando izquierdo en `MainViewModel.kt:690`.
+
+### Cambio Android aplicado
+
+- `reportarLlegadaTienda`, `reportarPedidoAbordo` y `reportarLlegadaCliente` ya no escriben solo `estado`.
+- Ahora llaman a `actualizarEstadoPedidoOperativo(pedidoId, estado)`.
+- Ese helper escribe en `pedidos/{pedidoId}`:
+  - `estado`
+  - `estado_pedido`
+  - `logistica/estado`
+  - `timestampActualizacion`
+- `aceptarPedidoRTDB` y `finalizarPedido` tambien usan escritura compatible para `estado`, `estado_pedido` y `logistica/estado`.
+- `pedidos_en_camino/{pedidoId}` queda como escritura best-effort via `actualizarPedidosEnCaminoBestEffort`; si RTDB responde `Permission denied`, solo registra warning y no rompe el flujo.
+
+### Evidencia ya observada
+
+- Pedido piloto visible: `C3_1_DRIVER_LISTO_1782816297339`.
+- UID driver observado en la app: `8mo8182LJsgV7vKMSpiCekFKAG23`.
+- Tras tocar `YA ESTOY EN LA TIENDA`, la UI avanzo a `COMPRA EN CURSO`.
+- Tras tocar `PEDIDO ABORDO`, RTDB confirmo:
+  - `pedidos/C3_1_DRIVER_LISTO_1782816297339/estado = PEDIDO_ABORDO`
+  - `pedidos/C3_1_DRIVER_LISTO_1782816297339/estado_pedido = PEDIDO_ABORDO`
+  - `pedidos/C3_1_DRIVER_LISTO_1782816297339/logistica/estado = PEDIDO_ABORDO`
+- La UI avanzo a `ENTREGA EN TRAYECTO`.
+- Boton visible siguiente: `LLEGUÉ CON EL CLIENTE`.
+- `pedidos_en_camino/C3_1_DRIVER_LISTO_1782816297339` fallo con `Permission denied`, pero el pedido canonico en `pedidos/*` quedo correcto.
+
+### Siguiente paso inmediato si se corta la sesion
+
+1. No tocar credenciales. Si la app esta en login, esperar a que Alberto ingrese manualmente.
+2. Confirmar pantalla con ADB:
+   - `adb shell uiautomator dump /sdcard/window.xml`
+   - buscar `LLEGUÉ CON EL CLIENTE`, `CAPTURAR EVIDENCIA` o `FINALIZAR`.
+3. Si sigue visible `LLEGUÉ CON EL CLIENTE`, limpiar logs y tocar el boton:
+   - `adb logcat -c`
+   - `adb shell input tap 540 1939`
+4. Esperar 4 segundos, revisar UI y logcat.
+5. Confirmar que `pedidos/C3_1_DRIVER_LISTO_1782816297339` quede coherente:
+   - `estado = LLEGUE_A_CLIENTE`
+   - `estado_pedido = LLEGUE_A_CLIENTE`
+   - `logistica/estado = LLEGUE_A_CLIENTE`
+6. Continuar con evidencia/finalizacion solo despues de confirmar que la UI avanzo.
