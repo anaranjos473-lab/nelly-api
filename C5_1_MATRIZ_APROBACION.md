@@ -2,7 +2,7 @@
 
 Fecha: 2026-07-13
 
-Estado general: **C5.1, C5.2-A Y C5.2-B APROBADAS; B.1 AUTORIZADA Y PENDIENTE; C5.2-C BLOQUEADA**
+Estado general: **C5.1, C5.2-A, C5.2-B Y DISEÑO B.1 APROBADOS; ACTIVACIÓN B.1 PENDIENTE; C5.2-C BLOQUEADA**
 
 Se autoriza únicamente C5.2-A como auditoría estática sin código. C5.2-B, el validador y cualquier migración permanecen bloqueados hasta nueva decisión explícita.
 
@@ -65,6 +65,6 @@ C5.2-B ya implementó pruebas y validador en sombra bajo flag apagado. Su activa
 | Apagado por defecto | 🟢 `ENABLE_C5_SHADOW_VALIDATOR` debe ser `true` explícito |
 | Métricas agregadas y desviaciones | 🟢 Implementadas en memoria/log estructurado |
 | Desactivación y limpieza de listeners | 🟢 Implementadas |
-| Observación controlada B.1 | 🟡 Autorizada; no activada |
+| Observación controlada B.1 | 🟡 Diseño aprobado; checklist/activación pendientes |
 
 La cohorte, duración, abortos, desactivación e informe se rigen por `C5_2_B_1_VENTANA_OBSERVACION.md`.

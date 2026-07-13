@@ -1,6 +1,6 @@
 # C5.2-B.1 - Ventana controlada de observación
 
-Estado: **AUTORIZADA CON CONDICIONES; PENDIENTE DE ACTIVACIÓN MANUAL**
+Estado: **APROBADA Y DEFINIDA; PENDIENTE DE CHECKLIST Y ACTIVACIÓN MANUAL**
 
 Fecha de diseño: 2026-07-13
 
@@ -28,10 +28,38 @@ El único cambio operativo permitido es activar y después desactivar `ENABLE_C5
 
 1. El servicio de prueba/piloto debe tener exactamente una instancia activa, o debe existir una instancia de observación aislada. Si el flag se propaga a varias réplicas, no se inicia la ventana.
 2. Debe estar desplegado exactamente el commit `f0436b3` o un commit posterior sin cambios funcionales al observador.
-3. Debe existir una línea base de las últimas 24 horas para errores HTTP, latencia p95 y memoria.
-4. Debe estar identificado quién puede retirar el flag y reiniciar la instancia.
-5. Las credenciales y cambios de configuración los realiza personalmente el usuario; no se comparten con Codex.
-6. C5.2-C y productores V2 permanecen bloqueados aunque la activación sea exitosa.
+3. No debe existir un despliegue paralelo o pendiente durante la activación.
+4. El reloj del servidor debe comprobarse contra una fuente horaria confiable antes de registrar T0.
+5. Debe existir una línea base de las últimas 24 horas para pedidos, errores HTTP, latencia, memoria y volumen de logs.
+6. Debe estar identificado quién puede retirar el flag y reiniciar la instancia.
+7. Las credenciales y cambios de configuración los realiza personalmente el usuario; no se comparten con Codex.
+8. C5.2-C y productores V2 permanecen bloqueados aunque la activación sea exitosa.
+
+## Checklist previo
+
+### Infraestructura
+
+- [ ] Existe exactamente una instancia observadora.
+- [ ] El despliegue contiene el commit del Shadow Validator esperado.
+- [ ] No hay despliegues paralelos ni pendientes.
+- [ ] El reloj del servidor está sincronizado.
+
+### Línea base de 24 horas
+
+- [ ] Número de pedidos registrado.
+- [ ] Latencia media y p95 registradas.
+- [ ] Número y tasa de errores backend registrados.
+- [ ] Memoria media y máxima registradas.
+- [ ] Volumen normal de logs registrado.
+
+### Estado sombra apagado
+
+- [ ] `ENABLE_C5_SHADOW_VALIDATOR` está ausente/`UNSET`.
+- [ ] No aparecen líneas `[C5_SHADOW]`.
+- [ ] No aparecen métricas sombra.
+- [ ] No hay efectos secundarios atribuibles al observador.
+
+No se activa el flag con una sola casilla pendiente.
 
 ## Cohortes
 
@@ -62,6 +90,8 @@ después de T0. Los eventos `child_changed` sirven para detectar cambios, aliase
 - Si al día 7 hay menos de 25 pedidos, se cierra con la muestra real y el informe se marca `MUESTRA INSUFICIENTE`; no se extiende automáticamente.
 - No se crean pedidos artificiales para alcanzar la cuota.
 
+Alcanzar 25 pedidos antes de 72 horas no cierra la ventana; se respeta el mínimo temporal. El aborto sí la cierra inmediatamente.
+
 ## Umbrales de abortar
 
 Se retira inmediatamente el flag si ocurre cualquiera de estas condiciones:
@@ -91,6 +121,25 @@ La persona autorizada:
 7. comprueba que no existe `listener_error` inicial.
 
 Si falta `initial_metrics`, la ventana no comenzó y el flag se retira.
+
+## Registro formal T0
+
+Al comenzar se completa y conserva esta tabla:
+
+| Campo | Valor a registrar |
+|---|---|
+| Fecha/hora T0 con zona | Pendiente |
+| Instancia/entorno | Pendiente |
+| Commit backend/web desplegado | Pendiente |
+| Commit Android instalado | Pendiente |
+| Commit base del Shadow Validator | `f0436b3` |
+| Estado del flag | `ENABLED` |
+| Pedidos nuevos de la cohorte | `0` |
+| Errores sombra | `0` |
+| Resumen `initial_metrics` | Pendiente |
+| Responsable de desactivación | Pendiente |
+
+La línea base histórica no se suma al contador inicial de la cohorte.
 
 ## Desactivación
 
@@ -129,6 +178,27 @@ No se ejecuta rollback de datos porque el observador no escribe datos.
 - cambios de cumplimiento durante `child_changed`;
 - incidentes y abortos.
 
+### Porcentaje de cumplimiento V2
+
+Indicador principal:
+
+```text
+cumplimiento_v2_cohorte =
+  pedidos nuevos que cumplen V2 completamente
+  ------------------------------------------------ x 100
+  total de pedidos nuevos únicos de la cohorte
+```
+
+El informe siempre mostrará numerador, denominador y porcentaje. Un pedido solo cuenta como cumplidor cuando `valid=true`; cumplir parcialmente o usar aliases no cuenta como válido V2.
+
+También se calculará cumplimiento por familia:
+
+```text
+cumplimiento_familia = pedidos sin errores de esa familia / total cohorte x 100
+```
+
+Familias: ubicación, identidad/aliases, estado/fase, monetario, historial/eventos y evidencia.
+
 Los códigos se agrupan para priorizar:
 
 | Familia | Códigos principales | Frente probable |
@@ -159,8 +229,14 @@ El documento final tendrá:
 9. prioridades propuestas para consumidores;
 10. decisión recomendada `GO/NO-GO` para planificar C5.2-C.
 
-El informe no autoriza automáticamente C5.2-C. La adaptación de cada consumidor requiere una decisión posterior.
+El porcentaje de cumplimiento es una línea base objetiva, no un umbral mínimo automático. Exigir cumplimiento alto antes de adaptar consumidores crearía un bloqueo circular porque los productores V2 siguen apagados. La decisión se interpreta así:
+
+- `GO` para **planificar** C5.2-C: ventana cerrada normalmente, muestra suficiente, sin impacto operativo y Pareto de brechas accionable;
+- `NO-GO`: aborto, integridad dudosa o muestra insuficiente al día 7;
+- un porcentaje bajo con muestra suficiente no es por sí solo NO-GO: indica qué adaptadores deben priorizarse.
+
+El informe no autoriza automáticamente implementar C5.2-C. La adaptación de cada consumidor requiere una decisión posterior.
 
 ## Estado actual
 
-La ventana está autorizada documentalmente, pero no está activa. `ENABLE_C5_SHADOW_VALIDATOR` permanece `UNSET` hasta que el usuario aplique personalmente la configuración y confirme que la instancia controlada está lista.
+La ventana está aprobada documentalmente, pero no está activa. `ENABLE_C5_SHADOW_VALIDATOR` permanece `UNSET` hasta que el usuario complete el checklist, aplique personalmente la configuración y confirme que la instancia controlada está lista.

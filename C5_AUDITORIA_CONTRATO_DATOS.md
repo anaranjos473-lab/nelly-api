@@ -252,4 +252,4 @@ No corregir todavía un panel aislado. C5.1 quedó abierto como arquitectura doc
 - `C5_2_B_SHADOW_VALIDATOR.md`.
 - `C5_2_B_1_VENTANA_OBSERVACION.md`.
 
-C5.1 está validada documentalmente. C5.2-A encontró 0 de 9 grupos integralmente compatibles. C5.2-B está aprobado y apagado. C5.2-B.1 define una ventana autorizada de 72 horas mínimas/25 pedidos, aún sin activar. No se modificaron pedidos ni se habilitaron productores V2.
+C5.1 está validada documentalmente. C5.2-A encontró 0 de 9 grupos integralmente compatibles. C5.2-B está aprobado y apagado. El diseño B.1 está aprobado: 72 horas mínimas/25 pedidos, máximo 7 días, porcentaje de cumplimiento y checklist previo; sigue sin activar. No se modificaron pedidos ni se habilitaron productores V2.
