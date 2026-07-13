@@ -2,40 +2,53 @@
 
 Fecha: 2026-07-13
 
-Estado general: **PENDIENTE DE APROBACIÓN**
+Estado general: **APROBACIÓN DE PRINCIPIO REGISTRADA; RATIFICACIÓN FINAL PENDIENTE**
 
 No se inicia C5.2 hasta que todas las filas estén aprobadas explícitamente. Marcar una fila exige revisar el documento asociado; crear el archivo no equivale a aprobarlo.
 
 | Tema | Documento | Estado |
 |---|---|---|
-| Contrato Canónico V2 | `CONTRATO_CANONICO_V2.md` | ⬜ Pendiente |
-| Máquina de Estados | `MAQUINA_ESTADOS_V2.md` | ⬜ Pendiente |
-| Fases Operativas | `FASES_OPERATIVAS_V2.md` | ⬜ Pendiente |
-| Eventos | `EVENTOS_V2.md` | ⬜ Pendiente |
-| Alias heredados | `CONTRATO_CANONICO_V2.md` | ⬜ Pendiente |
-| Índices derivados | `CONTRATO_CANONICO_V2.md` | ⬜ Pendiente |
-| Productores identificados | `C5_AUDITORIA_CONTRATO_DATOS.md` | ⬜ Pendiente |
-| Consumidores identificados | `C5_AUDITORIA_CONTRATO_DATOS.md` | ⬜ Pendiente |
+| Contrato Canónico V2 | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Máquina de Estados | `MAQUINA_ESTADOS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Fases Operativas | `FASES_OPERATIVAS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Eventos e historial | `EVENTOS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Alias heredados | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Índices derivados | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
+| Productores identificados | `C5_1_INVENTARIO_ECOSISTEMA.md` | 🟡 Inventariado; ratificación pendiente |
+| Consumidores identificados | `C5_1_INVENTARIO_ECOSISTEMA.md` | 🟡 Inventariado; ratificación pendiente |
+| Plan de migración | `PLAN_MIGRACION_V2.md` | 🟡 Borrador; aprobación pendiente |
+| Estrategia de rollback | `PLAN_MIGRACION_V2.md` | 🟡 Borrador; aprobación pendiente |
 
 ## Decisiones sensibles que requieren confirmación
 
-1. Convención canónica `snake_case`.
-2. Importes enteros en centavos y moneda `MXN`.
-3. Coordenadas obligatorias y verificables al crear.
-4. Seis estados exactos y terminales irreversibles.
-5. Seis fases operativas exactas.
-6. Cancelación de `EN_CURSO` solo mediante política reforzada.
-7. Eventos append-only con idempotencia.
-8. Escritura V2 exclusiva; alias limitados al adaptador de migración.
-9. `pedidos/{id}` como única fuente de verdad y proyecciones reconstruibles.
+La revisión arquitectónica registró aprobación de principio para estas nueve decisiones:
+
+1. Un único Contrato Canónico.
+2. `pedidos/{id}` como única fuente de verdad.
+3. Índices reconstruibles.
+4. Un único `logistica.repartidor_uid`.
+5. Alias temporales solo durante la migración.
+6. Coordenadas obligatorias desde la creación.
+7. Estados comerciales separados de fases.
+8. Historial de eventos inmutable.
+9. Importes enteros en centavos.
+
+Antes de ratificar se incorporaron `contract_version`, `producer` e historial explícito de transiciones. También quedan visibles decisiones de detalle que todavía requieren confirmación:
+
+- convención canónica `snake_case`;
+- moneda inicial `MXN`;
+- seis estados y seis fases exactos;
+- cancelación de `EN_CURSO` mediante política reforzada;
+- catálogo inicial de eventos;
+- periodo objetivo de convivencia y criterio temporal para retirar alias.
 
 ## Puerta de entrada a C5.2
 
 C5.2 podrá diseñarse solamente cuando:
 
-- las ocho filas estén en verde;
+- las diez filas estén en verde;
 - las decisiones sensibles tengan respuesta explícita;
-- cualquier observación haya sido incorporada en los cuatro documentos;
+- cualquier observación haya sido incorporada en los documentos C5.1 correspondientes;
 - exista un commit documental de aprobación;
 - continúe vigente la prohibición de modificar datos históricos sin plan de respaldo y migración.
 

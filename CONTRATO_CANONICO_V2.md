@@ -38,8 +38,8 @@ Corolarios:
 {
   "id": "pedido_...",
   "short_id": "NLY-123456",
-  "origen": "PANEL_ADMIN",
-  "version_contrato": 2,
+  "producer": "admin_dashboard",
+  "contract_version": 2,
   "fecha_creacion": 1783970000000,
   "cliente": {
     "nombre": "Nombre",
@@ -84,7 +84,7 @@ Corolarios:
     "mime": null,
     "timestamp": null
   },
-  "eventos": {}
+  "historial": {}
 }
 ```
 
@@ -96,11 +96,13 @@ Corolarios:
 |---|---|---|
 | `id` | string | Obligatorio, único, inmutable e igual a la llave RTDB |
 | `short_id` | string | Obligatorio, único para operación humana e inmutable |
-| `origen` | enum | Obligatorio; productor registrado, no texto libre |
-| `version_contrato` | integer | Obligatorio; valor exacto `2` |
+| `producer` | enum | Obligatorio; identificador técnico estable del productor, no texto libre |
+| `contract_version` | integer | Obligatorio; valor exacto `2` |
 | `fecha_creacion` | integer | Obligatorio, asignado por servidor e inmutable |
 
-Valores iniciales propuestos para `origen`: `PANEL_ADMIN`, `API_ORDENES`, `INTEGRACION_RESTAURANTE`, `SCRIPT_CERTIFICACION`. Incorporar otro origen exige registrarlo en el contrato.
+Valores iniciales propuestos para `producer`: `admin_dashboard`, `api_ordenes`, `panel_cocina`, `api_import`, `cloud_function`, `script_interno`. Un módulo usa su valor solamente cuando realmente crea el pedido; consumirlo o modificarlo no lo convierte en productor. Incorporar otro productor exige registrarlo en el contrato.
+
+`producer` identifica el sistema que creó el pedido y es inmutable. No se sobreescribe cuando Cocina, delivery, Android o un agente modifican posteriormente el pedido. El campo histórico `origen` pasa a ser alias de entrada durante la migración, no un segundo identificador persistido.
 
 ### Cliente y tienda
 
@@ -150,7 +152,7 @@ La fórmula inicial es `subtotal + envio + propina = total`. Descuentos, impuest
 | `evidencia.fallback` | `false` | `true` solo cuando se usó contingencia |
 | `evidencia.mime` | `null` | MIME real validado al capturar |
 | `evidencia.timestamp` | `null` | Timestamp de servidor al persistir |
-| `eventos` | `{}` | Historial append-only conforme a `EVENTOS_V2.md` |
+| `historial` | `{}` | Historial append-only conforme a `EVENTOS_V2.md` |
 
 No se inventa evidencia ni repartidor durante la creación. Su ausencia tiene una representación única y explícita.
 
@@ -176,7 +178,8 @@ Los alias son entradas temporales del adaptador V1; no son campos V2.
 |---|---|
 | `id` | `id_pedido`, `pedido_id` |
 | `short_id` | `shortId` |
-| `version_contrato` | `versionContrato` |
+| `contract_version` | `version_contrato`, `versionContrato` |
+| `producer` | `origen`, `fuente_origen` mediante tabla explícita de equivalencias |
 | `fecha_creacion` | `createdAt`, `fecha_creacion`, `timestamp`, `timestampCreacion` |
 | `cliente.nombre` | `cliente`, `cliente_nombre`, `nombre_cliente` |
 | `cliente.telefono` | `telefono`, `cliente_telefono` |
@@ -200,7 +203,7 @@ Reglas de migración:
 2. Si dos alias discrepan, el pedido se rechaza o se envía a revisión; no se elige silenciosamente.
 3. Estados históricos ambiguos como `EN_CAMINO` o `EN_REPARTO` no se convierten sin contexto suficiente para determinar estado y fase.
 4. Toda escritura nueva persiste únicamente V2.
-5. Durante la ventana de compatibilidad se registran productor, alias usado y resultado.
+5. Durante la ventana de compatibilidad se registran `producer`, alias usado y resultado.
 6. Los alias se eliminan solo tras migrar todos los productores, comprobar cero uso durante el periodo acordado y obtener aprobación explícita.
 
 ## Fuente de verdad e índices derivados
@@ -228,6 +231,7 @@ Reglas:
 - Pedido `ENTREGADO` sin llegada al cliente ni evidencia válida.
 - Pedido cuyo `id` difiere de la llave RTDB.
 - Pedido con importes en pesos mezclados con centavos.
+- Pedido sin `contract_version=2` o sin `producer` registrado.
 - Escritura directa en `pedidos_para_reparto` sin pedido canónico.
 
 ## Condición de aprobación

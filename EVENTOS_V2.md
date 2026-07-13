@@ -8,7 +8,7 @@ Fecha: 2026-07-13
 
 ## Propósito
 
-Un evento es un hecho inmutable que ya ocurrió. No es un estado ni una fase. Los eventos explican cómo llegó el pedido a su situación actual y permiten auditoría, métricas, idempotencia y certificación de campo.
+Un evento es un hecho inmutable que ya ocurrió. No es un estado ni una fase. Los eventos se almacenan bajo `pedidos/{id}/historial/{evento_id}` y explican cómo llegó el pedido a su situación actual. El historial permite auditoría, métricas, idempotencia y certificación de campo.
 
 ## Catálogo inicial
 
@@ -70,6 +70,25 @@ El V2 inicial no separa asignación y aceptación: en el flujo actual ambas ocur
 6. `metadata` no puede sustituir campos canónicos ni introducir estados libres.
 7. Repetir una solicitud con la misma clave devuelve el resultado anterior sin duplicar efectos.
 8. El backend registra evento y cambio canónico de forma atómica o con un mecanismo de consistencia explícito.
+
+## Historial de transiciones
+
+`historial` es el registro canónico único de hechos y transiciones. No se mantiene una segunda lista de estados que pueda divergir.
+
+Cada evento que cambia `estado` conserva `estado_anterior`, `estado_nuevo` y sus timestamps. Por tanto, la secuencia:
+
+```text
+PENDIENTE -> COCINA -> LISTO -> EN_CURSO
+```
+
+se reconstruye filtrando los eventos cuyo estado anterior y nuevo son diferentes. Los cambios de fase y los hechos sin cambio comercial permanecen en el mismo historial, con estado anterior y nuevo iguales.
+
+Reglas adicionales:
+
+1. El estado actual debe coincidir con el último `estado_nuevo` de una transición confirmada.
+2. Crear el pedido y `PEDIDO_CREADO` forma una única operación lógica.
+3. Ningún consumidor calcula el estado actual contando eventos; lee `estado` y usa el historial para comprobar/auditar.
+4. Si estado e historial discrepan, el pedido se bloquea para revisión; no se repara silenciosamente.
 
 ## Eventos geográficos
 
