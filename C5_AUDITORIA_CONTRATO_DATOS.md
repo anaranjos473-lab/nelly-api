@@ -239,4 +239,12 @@ C5 quedará certificada únicamente cuando:
 
 ## Decisión inmediata
 
-No corregir todavía un panel aislado. El siguiente incremento seguro es C5.1: convertir la propuesta de este documento en una decisión de esquema y una matriz de obligatoriedad por transición. Hasta autorizarlo, no se modifica código funcional ni datos reales.
+No corregir todavía un panel aislado. C5.1 quedó abierto como arquitectura documental mediante:
+
+- `CONTRATO_CANONICO_V2.md`;
+- `MAQUINA_ESTADOS_V2.md`;
+- `FASES_OPERATIVAS_V2.md`;
+- `EVENTOS_V2.md`;
+- `C5_1_MATRIZ_APROBACION.md`.
+
+Todos están en estado BORRADOR/PENDIENTE. Hasta aprobar las ocho filas de la matriz no se modifica código funcional ni datos reales y no se inicia C5.2.
