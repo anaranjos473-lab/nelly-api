@@ -1,6 +1,6 @@
 # C5.2-B - Shadow Validator V2
 
-Estado: **IMPLEMENTADO Y PROBADO; APAGADO; OBSERVACIÓN PRODUCTIVA PENDIENTE**
+Estado: **COMPLETO Y APROBADO; APAGADO**
 
 Fecha: 2026-07-13
 
@@ -140,4 +140,4 @@ La primera activación controlada deberá:
 
 ## Puerta siguiente
 
-C5.2-B está construido pero no certificado en producción. Antes de C5.2-C se necesita revisar este incremento y decidir si se autoriza una ventana controlada del flag. C5.2-C adaptará consumidores uno por uno; no forma parte de este commit.
+C5.2-B está aprobado y permanece apagado. La ventana C5.2-B.1 fue autorizada bajo el protocolo `C5_2_B_1_VENTANA_OBSERVACION.md`; su activación manual y sus resultados siguen pendientes. C5.2-C adaptará consumidores uno por uno y continúa bloqueada.

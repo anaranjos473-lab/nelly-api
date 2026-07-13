@@ -250,5 +250,6 @@ No corregir todavía un panel aislado. C5.1 quedó abierto como arquitectura doc
 - `PLAN_MIGRACION_V2.md`.
 - `C5_2_A_COMPATIBILIDAD_V2.md`.
 - `C5_2_B_SHADOW_VALIDATOR.md`.
+- `C5_2_B_1_VENTANA_OBSERVACION.md`.
 
-C5.1 está validada documentalmente. C5.2-A encontró 0 de 9 grupos integralmente compatibles. C5.2-B implementó únicamente un Shadow Validator de solo lectura, apagado por defecto y aún sin observación productiva. No se modificaron pedidos ni se habilitaron productores V2.
+C5.1 está validada documentalmente. C5.2-A encontró 0 de 9 grupos integralmente compatibles. C5.2-B está aprobado y apagado. C5.2-B.1 define una ventana autorizada de 72 horas mínimas/25 pedidos, aún sin activar. No se modificaron pedidos ni se habilitaron productores V2.
