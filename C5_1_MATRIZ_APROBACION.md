@@ -2,7 +2,7 @@
 
 Fecha: 2026-07-13
 
-Estado general: **C5.1 DOCUMENTAL VALIDADA; COMPATIBILIDAD EJECUTABLE PENDIENTE**
+Estado general: **C5.1 VALIDADA; C5.2-B CONSTRUIDO Y APAGADO; COMPATIBILIDAD EJECUTABLE PENDIENTE**
 
 Se autoriza únicamente C5.2-A como auditoría estática sin código. C5.2-B, el validador y cualquier migración permanecen bloqueados hasta nueva decisión explícita.
 
@@ -54,4 +54,15 @@ C5.2-A puede ejecutarse como auditoría. C5.2-B o cualquier implementación podr
 - exista un commit documental de aprobación;
 - continúe vigente la prohibición de modificar datos históricos sin plan de respaldo y migración.
 
-La primera actividad implementable será diseñar pruebas del contrato y del validador en sombra. Ningún productor V2 se habilitará hasta que los consumidores críticos pasen sus pruebas V1/V2.
+C5.2-B ya implementó pruebas y validador en sombra bajo flag apagado. Su activación productiva requiere una ventana controlada. Ningún productor V2 se habilitará hasta que los consumidores críticos pasen sus pruebas V1/V2.
+
+## Estado C5.2-B
+
+| Control | Estado |
+|---|---|
+| No rechaza ni transforma pedidos | 🟢 Probado por diseño puro |
+| No escribe RTDB | 🟢 Prueba con dobles de Firebase |
+| Apagado por defecto | 🟢 `ENABLE_C5_SHADOW_VALIDATOR` debe ser `true` explícito |
+| Métricas agregadas y desviaciones | 🟢 Implementadas en memoria/log estructurado |
+| Desactivación y limpieza de listeners | 🟢 Implementadas |
+| Observación en producción | ⬜ No ejecutada |

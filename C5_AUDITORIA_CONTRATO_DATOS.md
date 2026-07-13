@@ -249,5 +249,6 @@ No corregir todavía un panel aislado. C5.1 quedó abierto como arquitectura doc
 - `C5_1_INVENTARIO_ECOSISTEMA.md`;
 - `PLAN_MIGRACION_V2.md`.
 - `C5_2_A_COMPATIBILIDAD_V2.md`.
+- `C5_2_B_SHADOW_VALIDATOR.md`.
 
-C5.1 está validada documentalmente. C5.2-A quedó limitada a una auditoría estática de consumidores y encontró 0 de 9 grupos integralmente compatibles. No se modifica código funcional ni datos reales y C5.2-B continúa bloqueada.
+C5.1 está validada documentalmente. C5.2-A encontró 0 de 9 grupos integralmente compatibles. C5.2-B implementó únicamente un Shadow Validator de solo lectura, apagado por defecto y aún sin observación productiva. No se modificaron pedidos ni se habilitaron productores V2.

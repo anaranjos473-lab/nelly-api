@@ -84,7 +84,23 @@ Corolarios:
     "mime": null,
     "timestamp": null
   },
-  "historial": {}
+  "historial": {
+    "evt_creado": {
+      "id": "evt_creado",
+      "tipo": "PEDIDO_CREADO",
+      "idempotency_key": "crear-pedido-...",
+      "ocurrido_en": 1783970000000,
+      "registrado_en": 1783970000000,
+      "actor": { "tipo": "SISTEMA", "uid": "backend" },
+      "estado_anterior": null,
+      "estado_nuevo": "PENDIENTE",
+      "fase_anterior": null,
+      "fase_nueva": null,
+      "ubicacion": null,
+      "motivo_codigo": null,
+      "metadata": {}
+    }
+  }
 }
 ```
 
