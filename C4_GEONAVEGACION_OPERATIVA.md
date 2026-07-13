@@ -17,8 +17,8 @@ Durante C4 no se modifican backend de pedidos, flujo de estados, evidencias, Adm
 | Casilla | Estado actual | Evidencia disponible | Falta para PASS |
 |---|---|---|---|
 | 1. Contrato de ubicacion | Pendiente de campo | Android rechaza ofertas sin pares de coordenadas operativas; `Pedido` contiene direcciones de tienda y cliente | Auditar un pedido nacido por el flujo oficial y demostrar origen/destino con lat, lng y direccion |
-| 2. Motor de mapa | Pendiente de campo | APK compila mostrando ubicacion del conductor y marcadores simultaneos de tienda y cliente; encuadre automatico de los tres puntos | Captura en Motorola con un pedido real y los tres puntos visibles |
-| 3. Navegacion | No iniciada | Existe cliente de Directions y decodificador de polyline | Implementar ruta real desde ubicacion actual al destino activo y demostrar cambio tienda -> cliente |
+| 2. Motor de mapa | Pendiente de mision | Google Maps y ubicacion real del conductor validados visualmente en Motorola; APK muestra marcadores simultaneos y encuadre de los tres puntos cuando hay pedido | Captura con un pedido oficial y los tres puntos visibles |
+| 3. Navegacion | Pendiente de mision | Motor Directions implementado desde ubicacion actual; destino tienda en recoleccion y cliente desde `PEDIDO_ABORDO`; refresco cada 100 m o 2 minutos | Demostrar polilinea real y cambio tienda -> cliente |
 | 4. Validacion GPS | Pendiente de campo | Politica pura de 80 m integrada; botones de llegada bloqueados sin GPS o fuera de geocerca; cuatro pruebas unitarias verdes | Intento real fuera de geocerca bloqueado e intento dentro de geocerca permitido para tienda y cliente |
 
 Ninguna casilla se marca verde solo por revision de codigo o compilacion.
@@ -45,6 +45,20 @@ Cambios Android limitados al modulo geografico:
   - bloquea destino invalido.
 
 Validacion local: `testDebugUnitTest assembleDebug` con resultado `BUILD SUCCESSFUL`.
+
+Validacion en Motorola: APK instalada, Google Maps activo y punto azul de ubicacion real visible sin fallos. No habia pedido activo, por lo que esta evidencia no certifica aun los marcadores de tienda/cliente.
+
+## Incremento C4.2 - Navegacion dinamica
+
+- La ruta se solicita a Google Directions desde la ubicacion actual del conductor.
+- `EN_CURSO` y `LLEGUE_A_TIENDA` apuntan a la tienda.
+- `PEDIDO_ABORDO` y `LLEGUE_A_CLIENTE` apuntan al cliente.
+- Al cambiar el destino se descarta la ruta anterior.
+- La ruta se refresca al avanzar 100 m o al cumplir dos minutos.
+- Sin mision activa no se traza una ruta.
+- La suite C4 paso de cuatro a siete pruebas unitarias y la APK volvio a compilar correctamente.
+
+Commit Android: `904cf2c Add C4 dynamic route destination`.
 
 ## Secuencia de trabajo controlada
 
