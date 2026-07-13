@@ -1,6 +1,6 @@
 # C5.1 - Inventario vinculante del ecosistema de pedidos
 
-Estado: **BORRADOR PARA RATIFICACIÓN**
+Estado: **VALIDADO DOCUMENTALMENTE; COMPATIBILIDAD DETALLADA EN C5.2-A**
 
 Fecha: 2026-07-13
 
@@ -77,4 +77,4 @@ Durante la migración, cada consumidor tendrá una ficha o prueba que indique:
 - Importador: no localizado como productor activo; queda reservado como integración futura.
 - Consumidores auditados: Android, Web Driver, Cocina, Admin, delivery, tracking, agentes, Cloud Functions, auditorías y reportes.
 
-El inventario está documentalmente completo para el código localizado, pero su ratificación sigue pendiente. Cualquier productor externo no presente debe declararse antes de aprobar C5.2.
+El inventario está validado para el código localizado. Cualquier productor externo no presente debe declararse antes de habilitar C5.2-B o un productor V2.

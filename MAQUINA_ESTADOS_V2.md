@@ -1,6 +1,6 @@
 # Nelly Delivery - Máquina de Estados V2
 
-Estado: **BORRADOR PARA APROBACIÓN**
+Estado: **VALIDADA DOCUMENTALMENTE; IMPLEMENTACIÓN PENDIENTE**
 
 Fase: C5.1
 
@@ -101,11 +101,11 @@ Una corrección administrativa de datos no equivale a una transición. Si en el 
 
 | Decisión | Estado |
 |---|---|
-| Seis estados exactos | Pendiente |
-| Flujo principal lineal | Pendiente |
-| Cancelación lateral | Pendiente |
-| Cancelación reforzada en `EN_CURSO` | Pendiente |
-| Estados terminales irreversibles | Pendiente |
-| Prohibición de saltos y retrocesos | Pendiente |
+| Seis estados exactos | Validado documentalmente |
+| Flujo principal lineal | Validado documentalmente |
+| Cancelación lateral | Validada documentalmente |
+| Cancelación reforzada en `EN_CURSO` | Validada como principio |
+| Estados terminales irreversibles | Validados documentalmente |
+| Prohibición de saltos y retrocesos | Validada documentalmente |
 
-No se implementará la máquina hasta que estas decisiones y el catálogo de cancelación sean aprobados.
+No se implementará la máquina sin autorización de C5.2-B. El catálogo concreto de motivos de cancelación deberá cerrarse antes de implementar esa transición.

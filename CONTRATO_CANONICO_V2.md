@@ -1,12 +1,12 @@
 # Nelly Delivery - Contrato Canónico V2
 
-Estado: **BORRADOR PARA APROBACIÓN**
+Estado: **VALIDADO DOCUMENTALMENTE; IMPLEMENTACIÓN PENDIENTE**
 
 Fase: C5.1
 
 Fecha: 2026-07-13
 
-Este documento será vinculante para Admin, Cocina, Backend, Driver Android, Web Driver, Cloud Functions, scripts y futuros productores únicamente cuando la matriz de aprobación de C5.1 quede completa. Mientras siga en borrador no autoriza cambios funcionales ni migraciones.
+Este documento es la referencia arquitectónica validada para Admin, Cocina, Backend, Driver Android, Web Driver, Cloud Functions, scripts y futuros productores. Su validación no modifica el runtime ni autoriza por sí sola implementación, despliegue o migración.
 
 ## Principio de Contrato Único
 
@@ -234,6 +234,6 @@ Reglas:
 - Pedido sin `contract_version=2` o sin `producer` registrado.
 - Escritura directa en `pedidos_para_reparto` sin pedido canónico.
 
-## Condición de aprobación
+## Estado de aprobación
 
-Este contrato pasa a APROBADO cuando se acepten expresamente su estructura, nombres, tipos, política monetaria, obligatoriedad por etapa, alias y reglas de proyección. La aprobación documental no despliega el contrato: solamente habilita el diseño de C5.2.
+La estructura, nombres, tipos, política monetaria, obligatoriedad por etapa, alias y reglas de proyección quedaron validados documentalmente el 2026-07-13. La aprobación documental no despliega el contrato: C5.2-A solo comprobó compatibilidad estática y cualquier implementación requiere autorización posterior.

@@ -1,6 +1,6 @@
 # Nelly Delivery - Fases Operativas V2
 
-Estado: **BORRADOR PARA APROBACIÓN**
+Estado: **VALIDADAS DOCUMENTALMENTE; IMPLEMENTACIÓN PENDIENTE**
 
 Fase: C5.1
 
@@ -88,10 +88,10 @@ Admin, Cocina, Android y Web Driver pueden presentar textos distintos, pero leen
 
 | Decisión | Estado |
 |---|---|
-| Seis fases exactas | Pendiente |
-| Fase solo durante `EN_CURSO` | Pendiente |
-| Secuencia y disparadores | Pendiente |
-| Relación fase -> destino del mapa | Pendiente |
-| Política de recuperación excepcional | Pendiente |
+| Seis fases exactas | Validadas documentalmente |
+| Fase solo durante `EN_CURSO` | Validada documentalmente |
+| Secuencia y disparadores | Validados documentalmente |
+| Relación fase -> destino del mapa | Validada documentalmente |
+| Política de recuperación excepcional | Validada como principio; detalle previo a implementación |
 
-La aprobación de estas fases permitirá alinear C4 sin convertir eventos geográficos en estados comerciales.
+Estas fases son la referencia aprobada para alinear C4 sin convertir eventos geográficos en estados comerciales. Su implementación continúa pendiente.

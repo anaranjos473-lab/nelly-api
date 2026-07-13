@@ -2,26 +2,26 @@
 
 Fecha: 2026-07-13
 
-Estado general: **APROBACIÓN DE PRINCIPIO REGISTRADA; RATIFICACIÓN FINAL PENDIENTE**
+Estado general: **C5.1 DOCUMENTAL VALIDADA; COMPATIBILIDAD EJECUTABLE PENDIENTE**
 
-No se inicia C5.2 hasta que todas las filas estén aprobadas explícitamente. Marcar una fila exige revisar el documento asociado; crear el archivo no equivale a aprobarlo.
+Se autoriza únicamente C5.2-A como auditoría estática sin código. C5.2-B, el validador y cualquier migración permanecen bloqueados hasta nueva decisión explícita.
 
 | Tema | Documento | Estado |
 |---|---|---|
-| Contrato Canónico V2 | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Máquina de Estados | `MAQUINA_ESTADOS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Fases Operativas | `FASES_OPERATIVAS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Eventos e historial | `EVENTOS_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Alias heredados | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Índices derivados | `CONTRATO_CANONICO_V2.md` | 🟡 Aprobación de principio; ratificación pendiente |
-| Productores identificados | `C5_1_INVENTARIO_ECOSISTEMA.md` | 🟡 Inventariado; ratificación pendiente |
-| Consumidores identificados | `C5_1_INVENTARIO_ECOSISTEMA.md` | 🟡 Inventariado; ratificación pendiente |
-| Plan de migración | `PLAN_MIGRACION_V2.md` | 🟡 Borrador; aprobación pendiente |
-| Estrategia de rollback | `PLAN_MIGRACION_V2.md` | 🟡 Borrador; aprobación pendiente |
+| Contrato Canónico V2 | `CONTRATO_CANONICO_V2.md` | 🟢 Validado documentalmente |
+| Máquina de Estados | `MAQUINA_ESTADOS_V2.md` | 🟢 Validada documentalmente |
+| Fases Operativas | `FASES_OPERATIVAS_V2.md` | 🟢 Validadas documentalmente |
+| Eventos e historial | `EVENTOS_V2.md` | 🟢 Validados documentalmente |
+| Alias heredados | `CONTRATO_CANONICO_V2.md` | 🟢 Política validada |
+| Índices derivados | `CONTRATO_CANONICO_V2.md` | 🟢 Principio validado |
+| Productores identificados | `C5_1_INVENTARIO_ECOSISTEMA.md` | 🟢 Inventario validado |
+| Consumidores identificados | `C5_2_A_COMPATIBILIDAD_V2.md` | 🟡 Identificados; 0/9 compatibles integralmente |
+| Plan de migración | `PLAN_MIGRACION_V2.md` | 🟢 Validado documentalmente |
+| Estrategia de rollback | `PLAN_MIGRACION_V2.md` | 🟢 Validada documentalmente |
 
-## Decisiones sensibles que requieren confirmación
+## Decisiones ratificadas y control de cambios
 
-La revisión arquitectónica registró aprobación de principio para estas nueve decisiones:
+La revisión arquitectónica ratificó documentalmente estas nueve decisiones:
 
 1. Un único Contrato Canónico.
 2. `pedidos/{id}` como única fuente de verdad.
@@ -33,23 +33,25 @@ La revisión arquitectónica registró aprobación de principio para estas nueve
 8. Historial de eventos inmutable.
 9. Importes enteros en centavos.
 
-Antes de ratificar se incorporaron `contract_version`, `producer` e historial explícito de transiciones. También quedan visibles decisiones de detalle que todavía requieren confirmación:
+Se incorporaron `contract_version`, `producer` e historial explícito de transiciones. Las siguientes decisiones quedan congeladas como parte de la arquitectura documental y solo cambiarán mediante revisión explícita:
 
 - convención canónica `snake_case`;
 - moneda inicial `MXN`;
 - seis estados y seis fases exactos;
 - cancelación de `EN_CURSO` mediante política reforzada;
-- catálogo inicial de eventos;
-- periodo objetivo de convivencia y criterio temporal para retirar alias.
+- catálogo inicial de eventos.
+
+El periodo de convivencia y el umbral temporal de cero uso para retirar aliases siguen siendo parámetros operativos pendientes. No bloquean la auditoría ni el validador en sombra, pero deben aprobarse antes de C5.2-E.
 
 ## Puerta de entrada a C5.2
 
-C5.2 podrá diseñarse solamente cuando:
+C5.2-A puede ejecutarse como auditoría. C5.2-B o cualquier implementación podrá diseñarse solamente cuando:
 
-- las diez filas estén en verde;
+- exista autorización explícita posterior a la auditoría C5.2-A;
+- los consumidores críticos tengan un plan de adaptación y pruebas aceptado;
 - las decisiones sensibles tengan respuesta explícita;
 - cualquier observación haya sido incorporada en los documentos C5.1 correspondientes;
 - exista un commit documental de aprobación;
 - continúe vigente la prohibición de modificar datos históricos sin plan de respaldo y migración.
 
-La primera actividad de C5.2 será diseñar pruebas del contrato y del validador. La implementación vendrá después de esas pruebas y no antes.
+La primera actividad implementable será diseñar pruebas del contrato y del validador en sombra. Ningún productor V2 se habilitará hasta que los consumidores críticos pasen sus pruebas V1/V2.

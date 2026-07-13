@@ -1,6 +1,6 @@
 # Nelly Delivery - Eventos V2
 
-Estado: **BORRADOR PARA APROBACIÓN**
+Estado: **VALIDADOS DOCUMENTALMENTE; IMPLEMENTACIÓN PENDIENTE**
 
 Fase: C5.1
 
@@ -155,11 +155,11 @@ No se infieren estas horas a partir de la última modificación del pedido.
 
 | Decisión | Estado |
 |---|---|
-| Catálogo inicial | Pendiente |
-| Estructura común | Pendiente |
-| Historial append-only | Pendiente |
-| Reglas geográficas | Pendiente |
-| Evidencia como hecho y metadatos | Pendiente |
-| Idempotencia y atomicidad | Pendiente |
+| Catálogo inicial | Validado documentalmente |
+| Estructura común | Validada documentalmente |
+| Historial append-only | Validado documentalmente |
+| Reglas geográficas | Validadas documentalmente |
+| Evidencia como hecho y metadatos | Validada documentalmente |
+| Idempotencia y atomicidad | Validadas documentalmente |
 
-La aprobación del catálogo no autoriza todavía su persistencia; habilita el diseño del validador y del mecanismo transaccional en C5.2.
+La aprobación del catálogo no autoriza todavía su persistencia. El diseño ejecutable del validador y del mecanismo transaccional requiere autorización de C5.2-B.

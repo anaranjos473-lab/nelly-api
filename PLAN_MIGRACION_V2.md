@@ -1,6 +1,6 @@
 # Nelly Delivery - Plan de migración y rollback V2
 
-Estado: **BORRADOR PARA APROBACIÓN**
+Estado: **VALIDADO DOCUMENTALMENTE; EJECUCIÓN PENDIENTE**
 
 Fecha: 2026-07-13
 

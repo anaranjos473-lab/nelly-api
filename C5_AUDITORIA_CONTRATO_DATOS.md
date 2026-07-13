@@ -248,5 +248,6 @@ No corregir todavía un panel aislado. C5.1 quedó abierto como arquitectura doc
 - `C5_1_MATRIZ_APROBACION.md`.
 - `C5_1_INVENTARIO_ECOSISTEMA.md`;
 - `PLAN_MIGRACION_V2.md`.
+- `C5_2_A_COMPATIBILIDAD_V2.md`.
 
-Todos están en estado BORRADOR o aprobación de principio. Hasta ratificar en verde las diez filas de la matriz no se modifica código funcional ni datos reales y no se inicia C5.2.
+C5.1 está validada documentalmente. C5.2-A quedó limitada a una auditoría estática de consumidores y encontró 0 de 9 grupos integralmente compatibles. No se modifica código funcional ni datos reales y C5.2-B continúa bloqueada.
