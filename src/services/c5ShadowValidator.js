@@ -330,9 +330,15 @@ function increment(target, key, amount = 1) {
   target[key] = (target[key] || 0) + amount;
 }
 
-export function buildShadowMetrics(results, { validationRuns = 0, invalidTransitionEvents = 0, generatedAt = Date.now() } = {}) {
+export function buildShadowMetrics(results, {
+  validationRuns = 0,
+  invalidTransitionEvents = 0,
+  generatedAt = Date.now(),
+  observationId = null
+} = {}) {
   const values = results instanceof Map ? [...results.values()] : Object.values(results || {});
   const metrics = {
+    observation_id: observationId,
     generated_at: generatedAt,
     total_orders: values.length,
     v2_orders: 0,

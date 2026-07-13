@@ -20,9 +20,13 @@ async function iniciarC5ShadowValidator() {
     c5ShadowObserver = await startC5ShadowObserver({
       db: admin.database(),
       enabled: true,
+      observationId: process.env.C5_SHADOW_OBSERVATION_ID,
       logger: console
     });
-    console.log('[C5_SHADOW] Observador de solo lectura habilitado');
+    console.log(`[C5_SHADOW] ${JSON.stringify({
+      event: 'enabled',
+      observation_id: process.env.C5_SHADOW_OBSERVATION_ID
+    })}`);
   } catch (error) {
     console.error('[C5_SHADOW] No se pudo iniciar; el flujo operativo continúa sin sombra:', error.message);
     c5ShadowObserver = null;

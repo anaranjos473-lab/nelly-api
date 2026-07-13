@@ -164,6 +164,11 @@ describe('C5 Shadow Observer', () => {
     expect(db.ref).not.toHaveBeenCalled();
   });
 
+  it('habilitado exige un identificador de observación válido', async () => {
+    await expect(startC5ShadowObserver({ db: { ref: jest.fn() }, enabled: true }))
+      .rejects.toThrow('C5_SHADOW_OBSERVATION_ID');
+  });
+
   it('solo usa lecturas/listeners y puede detenerse', async () => {
     const handlers = {};
     const ref = {
@@ -178,16 +183,18 @@ describe('C5 Shadow Observer', () => {
     const observer = await startC5ShadowObserver({
       db: { ref: jest.fn(() => ref) },
       enabled: true,
+      observationId: 'B1-2026-07',
       logger,
       now: () => 123
     });
 
     expect(observer.enabled).toBe(true);
-    expect(observer.getMetrics()).toMatchObject({ total_orders: 1, valid_v2_orders: 1 });
+    expect(observer.getMetrics()).toMatchObject({ observation_id: 'B1-2026-07', total_orders: 1, valid_v2_orders: 1 });
     expect(ref.on).toHaveBeenCalledTimes(3);
     expect(ref.set).not.toHaveBeenCalled();
     expect(ref.update).not.toHaveBeenCalled();
     expect(ref.remove).not.toHaveBeenCalled();
+    expect(logger.info.mock.calls.flat().join(' ')).toContain('B1-2026-07');
 
     const logsIniciales = logger.info.mock.calls.length;
     handlers.child_changed({ key: 'pedido_v2_1', val: () => validOrder() });

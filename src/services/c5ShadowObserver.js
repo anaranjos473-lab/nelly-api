@@ -8,6 +8,7 @@ function logStructured(logger, level, payload) {
 export async function startC5ShadowObserver({
   db,
   enabled = false,
+  observationId = null,
   logger = console,
   now = () => Date.now()
 } = {}) {
@@ -21,15 +22,23 @@ export async function startC5ShadowObserver({
     getMetrics: () => buildShadowMetrics(results, {
       validationRuns,
       invalidTransitionEvents,
-      generatedAt: now()
+      generatedAt: now(),
+      observationId
     }),
     stop: () => {}
   };
 
   if (!enabled) return controller;
+  if (!/^[A-Z0-9][A-Z0-9_-]{2,63}$/.test(String(observationId || ''))) {
+    throw new Error('C5 Shadow Validator requiere C5_SHADOW_OBSERVATION_ID válido');
+  }
   if (!db || typeof db.ref !== 'function') throw new Error('C5 Shadow Validator requiere una instancia RTDB');
 
   const pedidosRef = db.ref('pedidos');
+  const emit = (level, payload) => logStructured(logger, level, {
+    observation_id: observationId,
+    ...payload
+  });
 
   const validateSnapshot = (id, order, previousState = undefined, source = 'change') => {
     const previousEntry = results.get(id);
@@ -51,7 +60,7 @@ export async function startC5ShadowObserver({
     stateById.set(id, order?.estado ?? null);
 
     if (source !== 'initial' && signature !== previousEntry?.signature) {
-      logStructured(logger, result.valid ? 'info' : 'warn', {
+      emit(result.valid ? 'info' : 'warn', {
         event: 'order_validation',
         source,
         pedido_id: id,
@@ -61,7 +70,7 @@ export async function startC5ShadowObserver({
         failure_codes: [...new Set(result.errors.map((error) => error.code))],
         aliases: [...new Set(result.aliasesUsed.map((alias) => alias.alias))]
       });
-      logStructured(logger, 'info', { event: 'metrics', ...controller.getMetrics() });
+      emit('info', { event: 'metrics', ...controller.getMetrics() });
     }
   };
 
@@ -69,7 +78,7 @@ export async function startC5ShadowObserver({
   const initialOrders = initialSnapshot?.val?.() || {};
   for (const [id, order] of Object.entries(initialOrders)) validateSnapshot(id, order, undefined, 'initial');
 
-  logStructured(logger, 'info', { event: 'initial_metrics', ...controller.getMetrics() });
+  emit('info', { event: 'initial_metrics', ...controller.getMetrics() });
 
   const onAdded = (snapshot) => {
     const id = snapshot?.key;
@@ -86,10 +95,10 @@ export async function startC5ShadowObserver({
     if (!id) return;
     results.delete(id);
     stateById.delete(id);
-    logStructured(logger, 'info', { event: 'child_removed', pedido_id: id });
-    logStructured(logger, 'info', { event: 'metrics', ...controller.getMetrics() });
+    emit('info', { event: 'child_removed', pedido_id: id });
+    emit('info', { event: 'metrics', ...controller.getMetrics() });
   };
-  const onError = (error) => logStructured(logger, 'error', {
+  const onError = (error) => emit('error', {
     event: 'listener_error',
     message: String(error?.message || error || 'unknown').slice(0, 240)
   });
@@ -102,7 +111,7 @@ export async function startC5ShadowObserver({
     pedidosRef.off('child_added', onAdded);
     pedidosRef.off('child_changed', onChanged);
     pedidosRef.off('child_removed', onRemoved);
-    logStructured(logger, 'info', { event: 'stopped' });
+    emit('info', { event: 'stopped' });
   };
 
   return controller;
