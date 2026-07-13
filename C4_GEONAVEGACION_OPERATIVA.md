@@ -16,12 +16,22 @@ Durante C4 no se modifican backend de pedidos, flujo de estados, evidencias, Adm
 
 | Casilla | Estado actual | Evidencia disponible | Falta para PASS |
 |---|---|---|---|
-| 1. Contrato de ubicacion | Pendiente de campo | Android rechaza ofertas sin pares de coordenadas operativas; `Pedido` contiene direcciones de tienda y cliente | Auditar un pedido nacido por el flujo oficial y demostrar origen/destino con lat, lng y direccion |
+| 1. Contrato de ubicacion | FAIL - productor oficial | Android rechaza ofertas sin pares de coordenadas operativas, pero el panel oficial envia solo direccion textual y el endpoint crea el pedido sin coordenadas | Definir un productor oficial que ya entregue coordenadas o autorizar una excepcion geografica minima en Admin/backend |
 | 2. Motor de mapa | Pendiente de mision | Google Maps y ubicacion real del conductor validados visualmente en Motorola; APK muestra marcadores simultaneos y encuadre de los tres puntos cuando hay pedido | Captura con un pedido oficial y los tres puntos visibles |
 | 3. Navegacion | Pendiente de mision | Motor Directions implementado desde ubicacion actual; destino tienda en recoleccion y cliente desde `PEDIDO_ABORDO`; refresco cada 100 m o 2 minutos | Demostrar polilinea real y cambio tienda -> cliente |
 | 4. Validacion GPS | Pendiente de campo | Politica pura de 80 m integrada; botones de llegada bloqueados sin GPS o fuera de geocerca; cuatro pruebas unitarias verdes | Intento real fuera de geocerca bloqueado e intento dentro de geocerca permitido para tienda y cliente |
 
 Ninguna casilla se marca verde solo por revision de codigo o compilacion.
+
+### Hallazgo bloqueante de Casilla 1
+
+La auditoria de solo lectura confirmo:
+
+- `public/js/admin-dashboard.js` construye `POST /api/admin/pedidos` con `direccion`, pero no envia lat/lng de origen ni destino.
+- `routes/admin.js` acepta ese payload y crea `nuevoPedido` sin coordenadas de tienda ni cliente.
+- Por tanto, el flujo oficial disponible puede crear pedidos solamente con texto, que es el criterio FAIL expreso de C4.
+
+No se corrigio porque C4 congela Admin, backend y contrato de pedidos. Tampoco se inyecto un pedido directo en RTDB. Para continuar el piloto se requiere uno de estos insumos externos al incremento Android: un productor oficial existente que ya garantice coordenadas, o autorizacion explicita para una excepcion minima y exclusivamente geografica en la frontera congelada.
 
 ## Incremento C4.1 - Base geografica
 
