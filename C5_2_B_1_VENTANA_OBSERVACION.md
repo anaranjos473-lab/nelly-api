@@ -1,6 +1,6 @@
 # C5.2-B.1 - Ventana controlada de observación
 
-Estado: **APROBADA Y DEFINIDA; PENDIENTE DE CHECKLIST Y ACTIVACIÓN MANUAL**
+Estado: **ACTIVA - OBSERVACIÓN B1-2026-07 EN CURSO**
 
 Fecha de diseño: 2026-07-13
 
@@ -128,16 +128,16 @@ Al comenzar se completa y conserva esta tabla:
 
 | Campo | Valor a registrar |
 |---|---|
-| Fecha/hora T0 con zona | Pendiente |
-| Instancia/entorno | Pendiente |
-| Commit backend/web desplegado | Pendiente |
-| Commit Android instalado | Pendiente |
-| Commit base del Shadow Validator | `f0436b3` |
+| Fecha/hora T0 con zona | `2026-07-13 17:18:27.810 -06:00` (Ciudad de México) |
+| Instancia/entorno | Render producción, `nelly-api`, una instancia (`WEB_CONCURRENCY=1`) |
+| Commit backend/web desplegado | `d78395f` (código Shadow base en `aaeb653`) |
+| Commit Android instalado | `904cf2c` |
+| Commit base del Shadow Validator | `aaeb653` |
 | Estado del flag | `ENABLED` |
 | Pedidos nuevos de la cohorte | `0` |
 | Errores sombra | `0` |
-| Resumen `initial_metrics` | Pendiente |
-| Responsable de desactivación | Pendiente |
+| Resumen `initial_metrics` | 85 históricos; 0 V2; 0 válidos V2; 85 inválidos; 84 con aliases; 0 transiciones inválidas |
+| Responsable de desactivación | Usuario/operador autorizado de Render |
 
 La línea base histórica no se suma al contador inicial de la cohorte.
 
@@ -239,4 +239,4 @@ El informe no autoriza automáticamente implementar C5.2-C. La adaptación de ca
 
 ## Estado actual
 
-La ventana está aprobada documentalmente, pero no está activa. `ENABLE_C5_SHADOW_VALIDATOR` permanece `UNSET` hasta que el usuario complete el checklist, aplique personalmente la configuración y confirme que la instancia controlada está lista.
+La ventana está activa desde T0 `2026-07-13 17:18:27.810 -06:00`, con `ENABLE_C5_SHADOW_VALIDATOR=true` y `C5_SHADOW_OBSERVATION_ID=B1-2026-07`. Los 85 pedidos de `initial_metrics` constituyen la línea base histórica y no cuentan para la cohorte nueva. No se observaron errores iniciales del listener ni impacto en la salud del backend.
