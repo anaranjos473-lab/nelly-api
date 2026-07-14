@@ -1,6 +1,6 @@
 # C5.2-B.1 - Ventana controlada de observación
 
-Estado: **ACTIVA - OBSERVACIÓN B1-2026-07 EN CURSO**
+Estado: **CERRADA - INTERRUMPIDA POR SUSPENSIÓN DE INSTANCIA GRATUITA**
 
 Fecha de diseño: 2026-07-13
 
@@ -129,6 +129,9 @@ Al comenzar se completa y conserva esta tabla:
 | Campo | Valor a registrar |
 |---|---|
 | Fecha/hora T0 con zona | `2026-07-13 17:18:27.810 -06:00` (Ciudad de México) |
+| Fecha/hora de interrupción | `2026-07-13 17:34:31 -06:00` (Ciudad de México) |
+| Duración observada | `00:16:03.190` |
+| Motivo de cierre | Suspensión automática por inactividad de la instancia gratuita de Render |
 | Instancia/entorno | Render producción, `nelly-api`, una instancia (`WEB_CONCURRENCY=1`) |
 | Commit backend/web desplegado | `d78395f` (código Shadow base en `aaeb653`) |
 | Commit Android instalado | `904cf2c` |
@@ -239,4 +242,4 @@ El informe no autoriza automáticamente implementar C5.2-C. La adaptación de ca
 
 ## Estado actual
 
-La ventana está activa desde T0 `2026-07-13 17:18:27.810 -06:00`, con `ENABLE_C5_SHADOW_VALIDATOR=true` y `C5_SHADOW_OBSERVATION_ID=B1-2026-07`. Los 85 pedidos de `initial_metrics` constituyen la línea base histórica y no cuentan para la cohorte nueva. No se observaron errores iniciales del listener ni impacto en la salud del backend.
+La campaña `B1-2026-07` quedó cerrada como `INTERRUMPIDA`. Inició en T0 `2026-07-13 17:18:27.810 -06:00` y el observador emitió `event=stopped` a las `2026-07-13 17:34:31 -06:00` cuando Render suspendió la instancia gratuita por inactividad. Duración efectiva: `00:16:03.190`. Cohorte final: `0` pedidos nuevos. Los 85 pedidos de `initial_metrics` permanecen únicamente como línea base histórica. No reutilizar `B1-2026-07`; antes de abrir B2 debe existir una estrategia que evite suspensiones durante toda la ventana.
