@@ -1,6 +1,6 @@
 # C5.2-B.2 - Ventana controlada de observacion B2
 
-Estado: **ACTIVA - EN OBSERVACION**
+Estado: **CERRADA ANTICIPADAMENTE POR SUFICIENCIA DE MUESTRA**
 
 ## Registro oficial T0
 
@@ -65,7 +65,7 @@ Se conserva el protocolo definido en `C5_2_B_1_VENTANA_OBSERVACION.md`. Adiciona
 
 ## Estado de seguimiento
 
-- Cohorte nueva certificada: `13 / 15`.
+- Cohorte nueva certificada: `15 / 15`.
 - Reinicios posteriores a T0 observados: `0` al validar la activacion.
 - Eventos `stopped`: `0` al validar la activacion.
 - Eventos `listener_error`: `0` al validar la activacion.
@@ -716,3 +716,167 @@ La evidencia visual muestra el pedido `#0715-23`, cliente `ALBERTO`, referencia 
 Estas capturas respaldan la aceptacion y visibilidad en el modulo web para la identidad de esa sesion, asi como el estado operativo mostrado. No exponen el UID efectivo, no demuestran por si solas que Web y Android usaron la misma identidad y no constituyen evidencia de recepcion dentro de `NellyDriver`. Esa comprobacion requiere inspeccion read-only de identidad y/o una traza Android correlacionable.
 
 El fragmento suministrado no contiene `initial_metrics`, `stopped` ni `listener_error`. B2 permanece en `13 / 15`; las dos transiciones documentadas no incrementan la cohorte.
+
+## Cohorte 14 - Alta oficial
+
+El pedido anonimizado `PED_1784135980270` ingreso oficialmente como Cohorte 14 a las `2026-07-15 11:19:40.270 -06:00`.
+
+Criterios de ingreso comprobados:
+
+- `observation_id=B2-2026-07`
+- `event=order_validation`
+- `source=child_added`
+- evento posterior a T0
+- productor habitual `panel_admin`
+
+Resultado del Shadow Validator:
+
+- `contract_version=null`
+- `valid=false`
+- cumplimiento V2 acumulado: `0 / 14` (`0%`)
+- cohorte acumulada vigente: `14 / 15`
+- failure codes: `CAMPO_REQUERIDO`, `PRODUCTOR_INVALIDO`, `VERSION_INVALIDA`, `COORDENADAS_INVALIDAS`, `ITEM_INVALIDO`, `PAGO_INVALIDO`, `TIPO_INVALIDO`, `ESTADO_INVALIDO`, `FASE_INVALIDA`, `ASIGNACION_INVALIDA`
+- aliases: `id_pedido`, `pedido_id`, `shortId`, `origen`, `createdAt`, `created_at`, `cliente_nombre`, `telefono`, `monto`, `total`, `monto_total`, `estado_pedido`, `fase_panel`, `logistica.estado`
+
+Las metricas posteriores al alta quedaron en 99 pedidos totales, 0 V2, 0 validos V2, 99 invalidos, 98 pedidos con aliases, 125 corridas de validacion y 13 eventos historicos de transicion invalida. `panel_admin` aumento de 25 a 26 pedidos.
+
+El incremento unitario respecto del checkpoint anterior es coherente con una sola alta nueva. La captura del productor confirma la creacion exitosa del mismo identificador tecnico. El milisegundo de diferencia entre el ID (`1784135980270`) y `metrics.generated_at` (`1784135980271`) corresponde al instante de emision de las metricas y no representa otro pedido.
+
+El fragmento recibido no contiene nuevos `initial_metrics`, `stopped` ni `listener_error`. Esto acredita su ausencia solo en la evidencia suministrada; la continuidad global se verificara al cierre. B2 permanece activa en `14 / 15`: falta un pedido de cohorte y completar las 72 horas hasta `2026-07-17 11:08:19.740 -06:00` sin eventos invalidantes.
+
+### Cohorte 14 - Transicion 1: despacho
+
+A las `2026-07-15 11:23:06.778 -06:00`, el Shadow registro un `order_validation` con `source=child_changed` para el pedido de la Cohorte 14. Se agrego `fuente_origen`, `ESTADO_INVALIDO` dejo de aparecer y la validacion incluyo `TRANSICION_INVALIDA`.
+
+Las metricas quedaron en 99 pedidos totales, 126 corridas de validacion, 98 pedidos con aliases y 14 eventos historicos de transicion invalida. Al tratarse de `child_changed`, la cohorte permanecio en `14 / 15`.
+
+### Cohorte 14 - Transicion 2: aceptacion web
+
+A las `2026-07-15 11:38:09.355 -06:00`, el Shadow registro un segundo `child_changed`. Se agregaron `repartidor_id` y `conductorId`; `TRANSICION_INVALIDA` dejo de aparecer en la validacion actual. Las metricas quedaron en 99 pedidos totales, 127 corridas de validacion, 98 pedidos con aliases y 14 eventos historicos de transicion invalida.
+
+La captura operativa muestra simultaneamente los pedidos 12, 13 y 14. El pedido 14 aparece como `#0715-58`, cliente `ALBERTO`, referencia `pedido 14`, monto `$243.00` y `Estado: EN_CURSO`. Esto respalda el estado visible posterior a la aceptacion, pero no expone el UID efectivo ni demuestra recepcion en Android.
+
+El archivo contiene como unica alta nueva el `child_added` ya contabilizado para la Cohorte 14; los eventos posteriores son transiciones del mismo pedido. No se incrementa la cohorte a 15. En la evidencia suministrada no aparecen nuevos `initial_metrics`, `stopped` ni `listener_error`.
+
+### Cohorte 14 - Validacion pasiva de Android
+
+Despues de la aceptacion de la Cohorte 14 se autorizo ADB y se inspecciono el telefono sin cerrar, reiniciar, limpiar Logcat ni modificar la sesion de `NellyDriver`.
+
+Hallazgos observados:
+
+- dispositivo autorizado: Motorola Edge 50 Fusion;
+- paquete visible y en primer plano: `com.example.nellydriver/.MainActivity`;
+- version instalada: `versionCode=5`, `versionName=5.0.0-PRO`;
+- PID observado: `20604`;
+- tiempo de vida del proceso al comprobarlo: aproximadamente 11 minutos;
+- la interfaz mostraba `BUNKER: MONITOREO TACTICO ONLINE` y `SISTEMA RADAR ACTIVO`;
+- no habia pedido visible en la jerarquia accesible de la pantalla;
+- en el buffer disponible del proceso no aparecieron `listenPedidosEntrantes START`, `LISTENER: iniciar`, `pedidosQuery onDataChange`, eventos de `pedidosDisponibles`, `ACTIVE_ORDER_REJECTED` ni cancelacion de las consultas de pedidos;
+- se repitio `Permission denied` al escribir y configurar `onDisconnect` en `repartidores_activos/{uid}`;
+- el servicio de tracking continuo registrando sincronizacion de ubicacion.
+
+El tiempo de vida del PID demuestra que el proceso actual fue creado o recreado recientemente, aunque la tarea o pantalla pudiera haber permanecido visible/restaurada. Por tanto, no se certifica que el mismo proceso haya estado vivo desde el Pedido 1. La ausencia de trazas del listener en el buffer del proceso actual impide demostrar que la suscripcion de pedidos se inicio o que recibio snapshots en esta ejecucion.
+
+El `Permission denied` de presencia queda como incidente independiente: demuestra un fallo de escritura en `repartidores_activos/{uid}`, pero no prueba por si solo la causa de la ausencia de pedidos, ya que las rutas de consulta son distintas. La interfaz `SISTEMA RADAR ACTIVO` tampoco constituye evidencia de una suscripcion funcional.
+
+Este checkpoint acota el diagnostico posterior a B2 a dos hechos verificables: hubo recreacion del proceso y no existe traza correlacionable del listener en la ejecucion inspeccionada. No autoriza reiniciar la app, reinstalar, instrumentar ni corregir durante B2.
+
+## Cohorte 15 - Alta oficial y meta de muestra completada
+
+El pedido anonimizado `PED_1784138391476` ingreso oficialmente como Cohorte 15 a las `2026-07-15 11:59:51.476 -06:00`.
+
+Criterios de ingreso comprobados:
+
+- `observation_id=B2-2026-07`
+- `event=order_validation`
+- `source=child_added`
+- evento posterior a T0
+- productor habitual `panel_admin`
+
+Resultado del Shadow Validator:
+
+- `contract_version=null`
+- `valid=false`
+- cumplimiento V2 acumulado: `0 / 15` (`0%`)
+- cohorte acumulada vigente: `15 / 15`
+- failure codes: `CAMPO_REQUERIDO`, `PRODUCTOR_INVALIDO`, `VERSION_INVALIDA`, `COORDENADAS_INVALIDAS`, `ITEM_INVALIDO`, `PAGO_INVALIDO`, `TIPO_INVALIDO`, `ESTADO_INVALIDO`, `FASE_INVALIDA`, `ASIGNACION_INVALIDA`
+- aliases: `id_pedido`, `pedido_id`, `shortId`, `origen`, `createdAt`, `created_at`, `cliente_nombre`, `telefono`, `monto`, `total`, `monto_total`, `estado_pedido`, `fase_panel`, `logistica.estado`
+
+Las metricas posteriores al alta quedaron en 100 pedidos totales, 0 V2, 0 validos V2, 100 invalidos, 99 pedidos con aliases, 128 corridas de validacion y 14 eventos historicos de transicion invalida. `panel_admin` aumento de 26 a 27 pedidos.
+
+El incremento unitario respecto de la Cohorte 14 es coherente con una sola alta nueva y la captura del productor confirma la creacion exitosa del mismo identificador tecnico.
+
+Con este evento se completo el criterio de muestra `15 / 15` definido por B2-E2. B2 **no cierra todavia**: debe continuar sin intervenciones hasta cumplir las 72 horas en `2026-07-17 11:08:19.740 -06:00` y verificar globalmente que no existieron reinicios inesperados, `initial_metrics` posteriores a T0, `stopped`, `listener_error` ni otro criterio de invalidacion. No deben crearse pedidos adicionales con el objetivo de ampliar la cohorte ni debe modificarse el sistema durante la espera restante.
+
+### Cohorte 15 - Transicion 1: despacho
+
+A las `2026-07-15 12:02:28.078 -06:00`, el Shadow registro un `order_validation` con `source=child_changed` para el pedido de la Cohorte 15. Se agrego `fuente_origen`, `ESTADO_INVALIDO` dejo de aparecer y la validacion incluyo `TRANSICION_INVALIDA`.
+
+Las metricas quedaron en 100 pedidos totales, 129 corridas de validacion, 99 pedidos con aliases y 15 eventos historicos de transicion invalida. La cohorte permanecio en `15 / 15`.
+
+### Cohorte 15 - Transicion 2: aceptacion web
+
+A las `2026-07-15 12:02:43.338 -06:00`, el Shadow registro otro `child_changed`. Se agregaron `repartidor_id` y `conductorId`; `TRANSICION_INVALIDA` dejo de aparecer en la validacion actual. Las metricas quedaron en 100 pedidos totales, 130 corridas de validacion, 99 pedidos con aliases y 15 eventos historicos de transicion invalida.
+
+### Secuencia visual del modulo Repartidores
+
+Las capturas entregadas conservan esta secuencia observable:
+
+1. El modulo mostro `Error de datos: permission_denied at /pedidos: Client doesn't have permission to access the desired data` mientras el campo contenia el UID `8mo8...AG23`.
+2. Posteriormente el mismo modulo mostro `Activo como 8mo8...AG23` y la seccion `Pedidos Disponibles`, sin el error visible.
+3. La vista `Mis Pedidos` mostro acumulados los pedidos 12, 13, 14 y 15 como `Asignado a ti`.
+4. La vista operativa mostro los pedidos 13, 14 y 15 con `Estado: EN_CURSO`.
+
+La secuencia demuestra que existio al menos una denegacion de lectura en `/pedidos` y que despues la interfaz web alcanzo un estado autenticado/activo capaz de mostrar pedidos asignados a esa sesion. No demuestra por si sola la causa del cambio entre ambos estados, la identidad efectiva del token en el instante del error ni recepcion en Android. El Shadow confirma por separado las transiciones y la persistencia de los aliases de asignacion, pero no registra valores de UID por privacidad.
+
+El archivo no contiene un `child_added` posterior a la Cohorte 15. Las transiciones no aumentan la muestra y B2 permanece activa en `15 / 15` hasta cumplir el criterio temporal y la auditoria global de continuidad.
+
+## Auditoria global previa a T1 para cierre anticipado
+
+Se recibio una exportacion de Render con alcance `Last 2 days` y filtro `[C5_SHADOW]`, suficiente para incluir el arranque de B2 y todos los eventos de la cohorte hasta la metrica final observada.
+
+Conteo para `observation_id=B2-2026-07`:
+
+- `initial_metrics`: 1;
+- `enabled`: 1;
+- `stopped`: 0;
+- `listener_error`: 0;
+- cambios de `observation_id` dentro de B2: 0 observados;
+- metrica inicial: 85 pedidos, 85 validaciones;
+- metrica final previa a T1: 100 pedidos, 130 validaciones, 15 eventos historicos de transicion invalida;
+- cohorte: 15 altas unicas por `child_added`.
+
+La exportacion tambien contiene eventos `B1-2026-07` anteriores a T0; pertenecen a intentos previos ya clasificados y no forman parte de B2. No se observaron reinicios del observador B2, porque solo existe un `initial_metrics` y un `enabled` con su identificador.
+
+Esta auditoria satisface la verificacion global previa a la desactivacion para el intervalo realmente observado. No certifica las 72 horas originales ni constituye por si sola T1. El cierre sigue pendiente de cambiar unicamente `ENABLE_C5_SHADOW_VALIDATOR=false`, completar el reinicio normal, comprobar salud del backend y demostrar ausencia de nuevas lineas `[C5_SHADOW]` con el Shadow apagado.
+
+## Reinicio de desactivacion y T1 tecnico provisional
+
+El operador mostro `ENABLE_C5_SHADOW_VALIDATOR=false` en Render. La consulta publica posterior a `https://nelly-api-8lh1.onrender.com/api/health` devolvio:
+
+- `success=true`;
+- `environment=production`;
+- `timestamp=2026-07-15T18:58:55.979Z`;
+- `uptime=121.592379857` segundos.
+
+Antes de aplicar el cambio, el mismo endpoint reportaba `uptime=92836.35952955` segundos a `2026-07-15T18:55:34.798Z`. La caida del uptime demuestra un reinicio del proceso. Restando el uptime al timestamp posterior, el inicio tecnico estimado del nuevo proceso es `2026-07-15 12:56:54.387 -06:00` (`2026-07-15T18:56:54.387Z`).
+
+Este instante queda establecido como **T1 tecnico** para el cierre anticipado. El backend esta saludable despues del reinicio y la captura de configuracion muestra el flag apagado.
+
+## Certificacion de T1 y cierre
+
+La evidencia final incluyo `event=stopped` con `observation_id=B2-2026-07` despues de la metrica final de 100 pedidos y 130 validaciones. No aparecio un nuevo `enabled` ni un nuevo `initial_metrics` de B2 despues de `stopped`. Junto con el flag `ENABLE_C5_SHADOW_VALIDATOR=false`, el reinicio demostrado por la caida de uptime y el endpoint saludable, esto certifica la retirada del observador.
+
+| Campo | Valor |
+| --- | --- |
+| T0 | `2026-07-14 11:08:19.740 -06:00` |
+| T1 tecnico | `2026-07-15 12:56:54.387 -06:00` |
+| Duracion observada | `25:48:34.647` |
+| Cohorte | `15 / 15` |
+| Motivo | Cierre anticipado por suficiencia de muestra |
+| Criterio no cumplido | Ventana original de 72 horas |
+| Estado del flag | `false` |
+| Backend posterior | Saludable en produccion |
+| Evento de retirada | `stopped` para `B2-2026-07` |
+
+B2 queda **CERRADA ANTICIPADAMENTE POR SUFICIENCIA DE MUESTRA**. No constituye cierre normal exitoso, no certifica continuidad de 72 horas y no satisface automaticamente los gates de B3 que exigen el protocolo original. El acta formal se conserva en `B2_INFORME_CIERRE_ANTICIPADO_2026_07.md`.
