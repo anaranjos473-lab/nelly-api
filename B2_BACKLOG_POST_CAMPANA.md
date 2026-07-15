@@ -2,6 +2,14 @@
 
 Este documento registra hallazgos durante la campana `B2-2026-07`. No autoriza implementar, desplegar ni cambiar configuracion mientras B2 permanezca activa.
 
+## Alcance arquitectonico de Web Repartidores
+
+El modulo `Web Repartidores` utilizado en B1/B2 es una herramienta temporal de observacion y certificacion. Su presencia permite validar identidad, backend y sincronizacion, pero no representa la interfaz definitiva del repartidor.
+
+La arquitectura objetivo esta definida en `docs/architecture/ADR_RADAR_DRIVER_POOL_PEDIDOS.md`: el pool competitivo de pedidos se ubicara en el Radar de `NellyDriver`; Cocina termina su responsabilidad al publicar el estado `LISTO`; y el backend adjudica cada pedido de forma atomica. No se migrara ni retirara el modulo temporal durante B2.
+
+La direccion arquitectonica queda aprobada con la evidencia disponible. Esto no equivale a un diagnostico del consumidor Android: cualquier correccion de listener, snapshot, mapeo, identidad, estado, coordenadas o publicacion de `_pedidoActual` permanece condicionada a la trazabilidad que demuestre el punto exacto de interrupcion.
+
 ## Admin - productor oficial
 
 1. Calcular automaticamente el subtotal a partir de cantidad y precio de los items.
@@ -36,6 +44,8 @@ Este documento registra hallazgos durante la campana `B2-2026-07`. No autoriza i
 8. Agregar pruebas del filtro geografico para ofertas y pedidos activos con coordenadas validas, ausentes, parciales, cero y fuera de rango.
 9. Conservar como caso positivo la Cohorte 12: cuando el UID manual coincidio exactamente con la sesion Android, `conductorId`, `repartidor_id`, `pedidos_en_camino` y `pedido_activo` quedaron alineados. Este control acota P0 al mecanismo de seleccion de identidad y no al procesamiento de asignacion del backend.
 10. **P2 - Hipotesis principal pendiente de certificacion runtime en Cohorte 12:** el codigo del consumidor consulta por `conductorId` y `esPedidoActivoOperativoPara()` excluye de `_pedidoActual` los pedidos sin coordenadas operativas. El pedido tiene identidad correcta y carece de ambas parejas geograficas, pero `logcat` no mostro que el snapshot alcanzara esa rama. Antes de corregir, instrumentar o ejecutar una prueba controlada post-B2 que distinga: evento no recibido, consulta cancelada, fallo de sincronizacion y rechazo explicito por coordenadas. Definir ademas como deben tratarse los pedidos V1 incompletos durante la compatibilidad transitoria, sin permitir navegacion con destinos invalidos.
+11. **P5 - Migracion al Radar:** despues de cerrar B2, trasladar recepcion, visualizacion, aceptacion y rechazo de ofertas al Radar de `NellyDriver`. La aceptacion debe ser una solicitud autenticada al backend y la adjudicacion debe ser atomica; Android no puede reclamar pedidos mediante escritura directa competitiva.
+12. Mantener `Web Repartidores` solo como arnes temporal hasta que la prueba integral Backend/NellyDriver y la prueba de concurrencia tengan evidencia aprobada.
 
 ## Orden de prioridad confirmado
 
@@ -47,7 +57,8 @@ Este documento registra hallazgos durante la campana `B2-2026-07`. No autoriza i
 6. **P2:** corregir el productor oficial para generar coordenadas obligatorias de tienda y cliente.
 7. **P3:** reactivar y certificar C4 solo despues de certificar identidad, productor, consumidores y coordenadas.
 8. **P4:** resolver y certificar por separado la escritura de presencia en `repartidores_activos/{uid}`.
-9. **B3:** abrirla unicamente cuando todas las condiciones obligatorias de `B3_CRITERIOS_DE_ENTRADA.md` tengan evidencia aprobada.
+9. **P5:** certificar el pool del Radar, la aceptacion atomica y el retiro seguro de `Web Repartidores` como dependencia operativa.
+10. **B3:** abrirla unicamente cuando todas las condiciones obligatorias de `B3_CRITERIOS_DE_ENTRADA.md` tengan evidencia aprobada.
 
 ## Trazabilidad obligatoria del consumidor Android
 
@@ -63,6 +74,8 @@ La primera intervencion tecnica despues del cierre formal de B2 debe agregar tra
 8. codigo de motivo unico cuando exista rechazo o error.
 
 La prueba controlada posterior debe mantener identidad coincidente. Solo despues de localizar la etapa exacta se autoriza corregir el bloqueo demostrado. La ausencia de una traza no debe interpretarse como rechazo por coordenadas ni como fallo de identidad.
+
+Esta investigacion no reabre la decision arquitectonica ya aprobada. Su alcance es localizar el defecto de implementacion y corregir exclusivamente la causa demostrada, conservando separadas la evidencia de arquitectura y la evidencia causal de runtime.
 
 ## Clasificacion del incidente Pedido #1
 

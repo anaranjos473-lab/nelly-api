@@ -65,7 +65,7 @@ Se conserva el protocolo definido en `C5_2_B_1_VENTANA_OBSERVACION.md`. Adiciona
 
 ## Estado de seguimiento
 
-- Cohorte nueva certificada: `11 / 12`.
+- Cohorte nueva certificada: `13 / 15`.
 - Reinicios posteriores a T0 observados: `0` al validar la activacion.
 - Eventos `stopped`: `0` al validar la activacion.
 - Eventos `listener_error`: `0` al validar la activacion.
@@ -673,3 +673,46 @@ La version instalada informa `versionCode=5` y `versionName=5.0.0-PRO`, iguales 
 El `Permission denied` recurrente sobre `repartidores_activos/{uid}` permanece como incidente independiente de presencia. No explica este descarte, porque la consulta del pedido, la asignacion y los indices usan rutas distintas y la condicion geografica del consumidor es suficiente para reproducir el resultado.
 
 Este hallazgo no autoriza una correccion durante B2. Debe alimentar la investigacion post-B2 de P2 y del consumidor antes de B3. Tras la enmienda B2-E2, B2 mantiene su cohorte `12 / 15`, continuidad valida y cierre temporal pendiente.
+
+## Cohorte 13 - Alta oficial
+
+El pedido anonimizado `PED_1784126354806` ingreso oficialmente como Cohorte 13 a las `2026-07-15 08:39:14.806 -06:00`.
+
+Criterios de ingreso comprobados:
+
+- `observation_id=B2-2026-07`
+- `event=order_validation`
+- `source=child_added`
+- evento posterior a T0
+- productor habitual `panel_admin`
+
+Resultado del Shadow Validator:
+
+- `contract_version=null`
+- `valid=false`
+- cumplimiento V2 acumulado: `0 / 13` (`0%`)
+- cohorte acumulada vigente: `13 / 15`
+- failure codes: `CAMPO_REQUERIDO`, `PRODUCTOR_INVALIDO`, `VERSION_INVALIDA`, `COORDENADAS_INVALIDAS`, `ITEM_INVALIDO`, `PAGO_INVALIDO`, `TIPO_INVALIDO`, `ESTADO_INVALIDO`, `FASE_INVALIDA`, `ASIGNACION_INVALIDA`
+- aliases: `id_pedido`, `pedido_id`, `shortId`, `origen`, `createdAt`, `created_at`, `cliente_nombre`, `telefono`, `monto`, `total`, `monto_total`, `estado_pedido`, `fase_panel`, `logistica.estado`
+
+Las metricas posteriores al alta quedaron en 98 pedidos totales, 0 V2, 0 validos V2, 98 invalidos, 97 pedidos con aliases, 122 corridas de validacion y 12 eventos historicos de transicion invalida. `panel_admin` aumento de 24 a 25 pedidos.
+
+El incremento unitario de `total_orders`, `orders_with_aliases`, `validation_runs` y `panel_admin` es coherente con un alta nueva unica respecto del ultimo checkpoint documentado. La captura del panel confirma la creacion con el mismo identificador tecnico.
+
+La evidencia suministrada para este checkpoint no contiene `initial_metrics`, `stopped` ni `listener_error`. Esto confirma su ausencia en el fragmento recibido, pero no sustituye la verificacion global de continuidad requerida al cierre. B2 permanece activa en `13 / 15`; faltan dos pedidos de cohorte y completar la ventana minima hasta `2026-07-17 11:08:19.740 -06:00` sin eventos invalidantes.
+
+### Cohorte 13 - Transicion 1: despacho
+
+A las `2026-07-15 08:41:26.531 -06:00`, el Shadow registro un `order_validation` con `source=child_changed` para el mismo pedido. Se agrego el alias `fuente_origen`, `ESTADO_INVALIDO` dejo de aparecer y la observacion incluyo `TRANSICION_INVALIDA`, patron compatible con el despacho intermedio observado en las cohortes anteriores.
+
+Las metricas quedaron en 98 pedidos totales, 123 corridas de validacion, 97 pedidos con aliases y 13 eventos historicos de transicion invalida. La cohorte no aumento porque `child_changed` no contabiliza altas nuevas.
+
+### Cohorte 13 - Transicion 2: aceptacion web
+
+A las `2026-07-15 08:42:17.723 -06:00`, el Shadow registro un segundo `child_changed`. Se agregaron los aliases `repartidor_id` y `conductorId`; `TRANSICION_INVALIDA` dejo de aparecer en la validacion actual. Las metricas quedaron en 98 pedidos totales, 124 corridas de validacion, 97 pedidos con aliases y 13 eventos historicos de transicion invalida.
+
+La evidencia visual muestra el pedido `#0715-23`, cliente `ALBERTO`, referencia `pedido 13` y monto `$243.00` dentro de `Mis Pedidos` con la leyenda `Asignado a ti`. Una segunda captura muestra simultaneamente los pedidos 12 y 13 en esa vista. La vista operativa del pedido 13 muestra `Estado: EN_CURSO`.
+
+Estas capturas respaldan la aceptacion y visibilidad en el modulo web para la identidad de esa sesion, asi como el estado operativo mostrado. No exponen el UID efectivo, no demuestran por si solas que Web y Android usaron la misma identidad y no constituyen evidencia de recepcion dentro de `NellyDriver`. Esa comprobacion requiere inspeccion read-only de identidad y/o una traza Android correlacionable.
+
+El fragmento suministrado no contiene `initial_metrics`, `stopped` ni `listener_error`. B2 permanece en `13 / 15`; las dos transiciones documentadas no incrementan la cohorte.

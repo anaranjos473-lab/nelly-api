@@ -4,6 +4,8 @@ Estado: **BLOQUEADA**
 
 Este documento es una puerta de certificacion. No autoriza cambios durante `B2-2026-07`. B3 solo podra iniciar cuando B2 haya cerrado y todas las condiciones obligatorias siguientes cuenten con evidencia verificable.
 
+La arquitectura objetivo del pool en Radar, la autoridad atomica del backend, la identidad exclusiva de Firebase Authentication, la independencia de Cocina y el retiro operativo de `Web Repartidores` estan aprobados. Esta aprobacion no sustituye la trazabilidad causal ni la certificacion de su implementacion.
+
 ## Regla de apertura
 
 B3 permanece bloqueada si una sola condicion obligatoria esta pendiente, si existe una excepcion sin decision formal o si la evidencia exige modificar produccion durante B2.
@@ -61,12 +63,27 @@ Evidencia minima: pruebas contractuales positivas y negativas, pedidos de certif
 
 ## 6. Consumidores V2
 
-- [ ] Admin, Cocina, Web Driver, Android Driver, Backend y Cloud Functions leen el contrato V2 aprobado.
+- [ ] Admin, Cocina, Web Repartidores temporal, Android Driver, Backend y Cloud Functions leen el contrato V2 aprobado durante la transicion.
 - [ ] Los adaptadores temporales estan documentados y cubiertos por pruebas.
 - [ ] No existen consumidores criticos dependientes exclusivamente de un alias cuya retirada este prevista durante B3.
 - [ ] Shadow Validator no reporta incidencias criticas en la corrida previa a B3.
 
 Evidencia minima: matriz productor-consumidor, resultados de pruebas y metricas del Shadow Validator.
+
+## 6.1 P5 - Pool definitivo en Radar de NellyDriver
+
+- [ ] El Radar de NellyDriver muestra en tiempo real unicamente ofertas elegibles del contrato canonico.
+- [ ] Dos o mas sesiones conectadas con igual zona, disponibilidad y estado visualizan el mismo conjunto de pedidos disponibles, con los mismos identificadores y versiones.
+- [ ] Toda diferencia entre sesiones queda explicada exclusivamente por filtros canonicos de zona, disponibilidad, estado o elegibilidad, evaluados con datos vigentes del backend.
+- [ ] La aceptacion usa la identidad de `FirebaseAuth.currentUser.uid`; no admite UID manual.
+- [ ] Android solicita la aceptacion al backend y no adjudica mediante escritura directa `get -> set`.
+- [ ] Una prueba concurrente con al menos dos sesiones demuestra que solo un repartidor obtiene el pedido.
+- [ ] Publicacion, cancelacion, expiracion y adjudicacion se propagan sin recarga manual; tras la adjudicacion, la oferta desaparece de los dispositivos no ganadores dentro del umbral aprobado para B3.
+- [ ] Rechazo, expiracion, reasignacion y liberacion por percance cuentan con comportamiento y pruebas aprobados.
+- [ ] Cocina termina su responsabilidad al confirmar `LISTO` y no participa en la aceptacion.
+- [ ] `Web Repartidores` ya no es una dependencia del flujo operativo; si se conserva, queda aislado como arnes de diagnostico no productivo.
+
+Evidencia minima: prueba integral Backend/NellyDriver, prueba multidispositivo del mismo pool antes de aceptar, prueba de filtros con casos incluidos y excluidos, medicion de propagacion, prueba de concurrencia, trazas anonimizadas de identidad y asignacion, y verificacion de Cocina sin dependencia del modulo temporal.
 
 ## 7. P3 - C4 y geonavegacion
 
