@@ -156,6 +156,10 @@
             <input id="order-client" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Nombre del cliente" />
             <input id="order-phone" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Telefono" />
             <input id="order-address" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
+            <input id="order-client-lat" required type="number" min="-90" max="90" step="any" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Latitud del cliente" />
+            <input id="order-client-lng" required type="number" min="-180" max="180" step="any" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Longitud del cliente" />
+            <input id="order-store-lat" required type="number" min="-90" max="90" step="any" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Latitud de la tienda" />
+            <input id="order-store-lng" required type="number" min="-180" max="180" step="any" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Longitud de la tienda" />
             <textarea id="order-items" required rows="3" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
             <input id="order-subtotal" required type="number" min="0.01" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Subtotal MXN" />
             <input id="order-shipping" required type="number" min="0" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Costo de envío MXN" />

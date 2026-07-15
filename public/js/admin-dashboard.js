@@ -118,6 +118,10 @@ const ui = {
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
   orderAddress: document.getElementById("order-address"),
+  orderClientLat: document.getElementById("order-client-lat"),
+  orderClientLng: document.getElementById("order-client-lng"),
+  orderStoreLat: document.getElementById("order-store-lat"),
+  orderStoreLng: document.getElementById("order-store-lng"),
   orderItems: document.getElementById("order-items"),
   orderSubtotal: document.getElementById("order-subtotal"),
   orderShipping: document.getElementById("order-shipping"),
@@ -487,6 +491,10 @@ async function createManualOrder(event) {
   const client = String(ui.orderClient.value || '').trim();
   const phone = String(ui.orderPhone.value || '').trim();
   const address = String(ui.orderAddress.value || '').trim();
+  const clientLat = Number(ui.orderClientLat.value);
+  const clientLng = Number(ui.orderClientLng.value);
+  const storeLat = Number(ui.orderStoreLat.value);
+  const storeLng = Number(ui.orderStoreLng.value);
   const itemsText = String(ui.orderItems.value || '').trim();
   const subtotal = Number(ui.orderSubtotal.value || 0);
   const shipping = Number(ui.orderShipping.value || 0);
@@ -496,6 +504,13 @@ async function createManualOrder(event) {
 
   if (!client || !phone || !address || !itemsText) {
     setOrderFeedback('Completa cliente, teléfono, dirección y lista de items.', 'error');
+    return;
+  }
+
+  const coordenadaValida = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) &&
+    lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
+  if (!coordenadaValida(clientLat, clientLng) || !coordenadaValida(storeLat, storeLng)) {
+    setOrderFeedback('Ingresa coordenadas validas para cliente y tienda.', 'error');
     return;
   }
 
@@ -558,6 +573,10 @@ async function createManualOrder(event) {
             cliente_nombre: client,
             telefono: phone,
             direccion: address,
+            cliente_lat: clientLat,
+            cliente_lng: clientLng,
+            tienda_lat: storeLat,
+            tienda_lng: storeLng,
             descripcion: notes || 'Pedido telefonico',
             items,
             subtotal: Number(subtotal.toFixed(2)),

@@ -296,6 +296,10 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             telefono,
             direccion,
             descripcion,
+            cliente_lat,
+            cliente_lng,
+            tienda_lat,
+            tienda_lng,
             items,
             subtotal,
             costo_envio,
@@ -306,6 +310,19 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         if (!cliente_nombre || !telefono || !direccion) {
             return res.status(400).json({ error: 'Faltan campos de cliente obligatorios' });
+        }
+
+        const coordenadas = {
+            clienteLat: Number(cliente_lat),
+            clienteLng: Number(cliente_lng),
+            tiendaLat: Number(tienda_lat),
+            tiendaLng: Number(tienda_lng)
+        };
+        const coordenadaValida = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) &&
+            lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
+        if (!coordenadaValida(coordenadas.clienteLat, coordenadas.clienteLng) ||
+            !coordenadaValida(coordenadas.tiendaLat, coordenadas.tiendaLng)) {
+            return res.status(400).json({ error: 'Coordenadas operativas de cliente y tienda obligatorias' });
         }
 
         if (!Array.isArray(items) || items.length === 0) {
@@ -372,6 +389,10 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             cliente: String(cliente_nombre).trim(),
             telefono: String(telefono).trim(),
             direccion: String(direccion).trim(),
+            lat: coordenadas.clienteLat,
+            lng: coordenadas.clienteLng,
+            latTienda: coordenadas.tiendaLat,
+            lngTienda: coordenadas.tiendaLng,
             descripcion: String(descripcion || '').trim(),
             items: normalizedItems,
             subtotal: Number(Number(subtotal).toFixed(2)),
