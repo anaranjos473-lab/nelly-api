@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+﻿import { jest } from '@jest/globals';
 import request from 'supertest';
 
 const state = {
@@ -238,7 +238,7 @@ describe('Delivery y panel API', () => {
     expect(String(res.body.error).toLowerCase()).toContain('deuda');
   });
 
-  it('acepta un pedido con token de respaldo de desarrollo cuando está habilitado', async () => {
+  it('acepta un pedido con token de respaldo de desarrollo cuando estÃ¡ habilitado', async () => {
     process.env.NODE_ENV = 'development';
     process.env.DEV_AUTH_TOKEN = 'dev-local-token';
     process.env.DEV_AUTH_UID = 'dev-driver';
@@ -427,8 +427,38 @@ describe('Delivery y panel API', () => {
     expect(res.body.ok).toBe(true);
     expect(res.body.comision).toBe(21.6);
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
-    expect(state.repartidores.driver_ok.pedido_activo).toBeUndefined();
+    expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
+  });
+
+  it('reconcilia complete-order idempotente y limpia indices residuales', async () => {
+    state.repartidores.driver_ok.pedido_activo = 'pedido_ok';
+    state.pedidos.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'ENTREGADO',
+      estado_pedido: 'ENTREGADO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+    state.pedidos_en_camino.pedido_ok = {
+      id_pedido: 'pedido_ok',
+      estado: 'LLEGUE_A_CLIENTE',
+      monto_total: 120,
+      repartidor_id: 'driver_ok'
+    };
+
+    const res = await request(app)
+      .post('/api/delivery/complete-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_ok', comision: 20 });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.alreadyCompleted).toBe(true);
+    expect(res.body.finanzas).toBeNull();
+    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.pedidos_en_camino.pedido_ok).toBeNull();
+    expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
   });
 
   it('completa y crea finanzas si el perfil del repartidor no existe', async () => {
@@ -531,3 +561,4 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
   });
 });
+

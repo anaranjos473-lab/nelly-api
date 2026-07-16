@@ -466,16 +466,8 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     }
 
     const estadoActual = estadoOperativo(pedido.estado_pedido || pedido.estado);
-    if (estadoActual === 'ENTREGADO') {
-      return res.json({
-        ok: true,
-        pedidoId,
-        estado: 'ENTREGADO',
-        alreadyCompleted: true,
-        finanzas: null
-      });
-    }
-    if (estadoActual && !ESTADOS_EN_CURSO.has(estadoActual)) {
+    const alreadyCompleted = estadoActual === 'ENTREGADO';
+    if (!alreadyCompleted && estadoActual && !ESTADOS_EN_CURSO.has(estadoActual)) {
       return res.status(409).json({ ok: false, error: 'Transicion invalida: el pedido aun no esta en reparto', estadoActual });
     }
 
@@ -501,7 +493,7 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
         ?? req.body.monto_comision
         ?? (montoPedido * 0.18)
     );
-    const finanzas = driverUid && comision > 0
+    const finanzas = !alreadyCompleted && driverUid && comision > 0
       ? await registrarCobroEfectivoTx(db, {
         uid: driverUid,
         montoEfectivo: comision,
@@ -510,12 +502,36 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       })
       : null;
 
-    await Promise.all([
-      pedidoRef.update({ estado: 'ENTREGADO', estado_pedido: 'ENTREGADO', entregado_en: completedAt }),
-      driverUid ? db.ref(`repartidores/${driverUid}/pedido_activo`).remove() : Promise.resolve(),
-      db.ref(`pedidos_en_camino/${pedidoId}`).remove(),
-      db.ref(`pedidos_para_reparto/${pedidoId}`).remove()
-    ]);
+    const pedidoUpdates = {
+      estado: 'ENTREGADO',
+      estado_pedido: 'ENTREGADO',
+      entregado_en: pedido.entregado_en || completedAt,
+      finalizado_at: pedido.finalizado_at || completedAt,
+      timestampActualizacion: completedAt
+    };
+    if (req.body.evidenciaUrl) {
+      pedidoUpdates.evidencia_url = req.body.evidenciaUrl;
+    }
+    if (req.body.evidenciaFallback) {
+      pedidoUpdates.evidencia_fallback = true;
+      pedidoUpdates.evidencia_tipo = 'base64';
+      pedidoUpdates.evidencia_mime = 'image/jpeg';
+      pedidoUpdates.evidencia_storage_fallback_at = completedAt;
+      pedidoUpdates.evidencia_storage_error = String(req.body.storageError || '').slice(0, 240);
+    }
+    if (comision > 0) {
+      pedidoUpdates.ganancia_neta = comision;
+    }
+
+    const updates = {
+      [`pedidos/${pedidoId}`]: { ...pedido, ...pedidoUpdates },
+      [`pedidos_en_camino/${pedidoId}`]: null,
+      [`pedidos_para_reparto/${pedidoId}`]: null
+    };
+    if (driverUid) {
+      updates[`repartidores/${driverUid}/pedido_activo`] = null;
+    }
+    await db.ref().update(updates);
 
     return res.json({
       ok: true,
@@ -524,7 +540,8 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       repartidorId: driverUid,
       montoPedido,
       comision,
-      finanzas
+      finanzas,
+      alreadyCompleted
     });
   } catch (error) {
     return next(error);
