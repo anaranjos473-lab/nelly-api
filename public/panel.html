@@ -1706,10 +1706,6 @@
                 const rtdbKey = pedido._rtdbKey || keyResuelta;
                 const estadoOriginal = pedido.estado || 'pendiente';
 
-                // Reflejo inmediato en UI mientras se persiste en backend.
-                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'LISTO' });
-                actualizarPanel();
-
                 const datos = limpiarPedido(pedido);
                 const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);
@@ -1744,6 +1740,8 @@
                     throw new Error('dispatch_order_failed_all_endpoints');
                 }
 
+                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'LISTO' });
+                actualizarPanel();
                 await sumarGanancias(Number(pedido.monto || pedido.total || 0));
                 showToast('Pedido movido a reparto', 'ok');
             } catch (error) {

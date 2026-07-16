@@ -120,6 +120,30 @@ function getDriverUidFromOrder(pedido = {}) {
   return pedido.repartidor_id || pedido.conductorId || pedido.driverUid || pedido.uid_repartidor || null;
 }
 
+function limpiarAsignacionParaPool(pedido = {}) {
+  const limpio = { ...pedido };
+  const camposAsignacion = [
+    'conductorId',
+    'idConductor',
+    'repartidor_id',
+    'driverUid',
+    'uid_repartidor',
+    'driverId',
+    'assignedDriver',
+    'assignedTo',
+    'deliveryDriver'
+  ];
+  for (const key of camposAsignacion) {
+    limpio[key] = null;
+  }
+  const logistica = { ...(limpio.logistica || {}) };
+  for (const key of camposAsignacion) {
+    logistica[key] = null;
+  }
+  limpio.logistica = logistica;
+  return limpio;
+}
+
 function isDebtBlocked(driver) {
   const bloqueado = driver?.estatus?.bloqueado_por_deuda === true
     || driver?.perfil?.bloqueado_por_deuda === true;
@@ -231,8 +255,9 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       id_pedido: pedidoActual.id_pedido || pedidoInput.id_pedido || pedidoId,
       pedido_id: pedidoActual.pedido_id || pedidoInput.pedido_id || pedidoId
     };
+    const pedidoPool = limpiarAsignacionParaPool(pedidoBase);
     const payloadListo = {
-      ...pedidoBase,
+      ...pedidoPool,
       shortId: pedidoBase.shortId || generateShortId(pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt),
       estado: 'LISTO',
       estado_pedido: 'LISTO',
@@ -241,10 +266,10 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       fuente_origen: pedidoBase.fuente_origen || 'panel_api',
       fase_panel: 'Despacho',
       logistica: {
-        ...(pedidoBase.logistica || {}),
-        estado: 'disponible',
-        repartidor_id: null
-      }
+        ...(pedidoPool.logistica || {}),
+        estado: 'ESPERANDO_REPARTIDOR'
+      },
+      disponible: true
     };
 
     await Promise.all([

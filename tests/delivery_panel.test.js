@@ -22,7 +22,30 @@ const state = {
       repartidor_id: 'driver_ok',
       conductorId: 'driver_ok'
     },
-    pedido_dispatch: { id_pedido: 'pedido_dispatch', estado: 'pendiente', monto_total: 150 },
+    pedido_dispatch: {
+      id_pedido: 'pedido_dispatch',
+      estado: 'pendiente',
+      monto_total: 150,
+      conductorId: 'driver_heredado',
+      idConductor: 'driver_heredado',
+      repartidor_id: 'driver_heredado',
+      driverUid: 'driver_heredado',
+      driverId: 'driver_heredado',
+      assignedDriver: 'driver_heredado',
+      assignedTo: 'driver_heredado',
+      deliveryDriver: 'driver_heredado',
+      logistica: {
+        estado: 'pendiente',
+        repartidor_id: 'driver_heredado',
+        idConductor: 'driver_heredado',
+        conductorId: 'driver_heredado',
+        driverUid: 'driver_heredado',
+        driverId: 'driver_heredado',
+        assignedDriver: 'driver_heredado',
+        assignedTo: 'driver_heredado',
+        deliveryDriver: 'driver_heredado'
+      }
+    },
     pedido_invalido: { id_pedido: 'pedido_invalido', estado: 'PENDIENTE', monto_total: 90 }
   },
   pedidos_para_reparto: {
@@ -132,6 +155,15 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos.pedido_dispatch.estado).toBe('LISTO');
     expect(state.pedidos.pedido_dispatch.cliente_nombre).toBe('Cliente Dispatch');
     expect(state.pedidos_para_reparto.pedido_dispatch.estado).toBe('LISTO');
+    expect(state.pedidos_para_reparto.pedido_dispatch.estado_pedido).toBe('LISTO');
+    expect(state.pedidos_para_reparto.pedido_dispatch.disponible).toBe(true);
+    expect(state.pedidos_para_reparto.pedido_dispatch.logistica.estado).toBe('ESPERANDO_REPARTIDOR');
+    for (const key of ['conductorId', 'idConductor', 'repartidor_id', 'driverUid', 'driverId', 'assignedDriver', 'assignedTo', 'deliveryDriver']) {
+      expect(state.pedidos_para_reparto.pedido_dispatch[key]).toBeNull();
+      expect(state.pedidos.pedido_dispatch[key]).toBeNull();
+      expect(state.pedidos_para_reparto.pedido_dispatch.logistica[key]).toBeNull();
+      expect(state.pedidos.pedido_dispatch.logistica[key]).toBeNull();
+    }
     expect(state.pedidos_en_camino.pedido_dispatch).toBeUndefined();
   });
 
