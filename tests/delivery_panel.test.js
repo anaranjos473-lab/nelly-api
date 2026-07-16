@@ -157,6 +157,8 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos_para_reparto.pedido_dispatch.estado).toBe('LISTO');
     expect(state.pedidos_para_reparto.pedido_dispatch.estado_pedido).toBe('LISTO');
     expect(state.pedidos_para_reparto.pedido_dispatch.disponible).toBe(true);
+    expect(typeof state.pedidos_para_reparto.pedido_dispatch.fecha).toBe('number');
+    expect(state.pedidos_para_reparto.pedido_dispatch.fecha).toBeGreaterThan(0);
     expect(state.pedidos_para_reparto.pedido_dispatch.logistica.estado).toBe('ESPERANDO_REPARTIDOR');
     for (const key of ['conductorId', 'idConductor', 'repartidor_id', 'driverUid', 'driverId', 'assignedDriver', 'assignedTo', 'deliveryDriver']) {
       expect(state.pedidos_para_reparto.pedido_dispatch[key]).toBeNull();

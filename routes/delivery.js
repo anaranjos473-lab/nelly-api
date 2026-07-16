@@ -285,6 +285,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       estado: 'LISTO',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),
+      fecha: pedidoBase.fecha || pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt,
       despachado_en: dispatchedAt,
       fuente_origen: pedidoBase.fuente_origen || 'panel_api',
       fase_panel: 'Despacho',
