@@ -157,6 +157,10 @@ function estadoPedido(pedido) {
   return String(pedido?.estado_pedido || pedido?.estado || '').trim().toUpperCase();
 }
 
+function estadoLogistica(pedido) {
+  return String(pedido?.logistica?.estado || '').trim().toUpperCase();
+}
+
 async function snapshot(db, pedidoId, driverUid = null) {
   const refs = [
     db.ref(`pedidos/${pedidoId}`).once('value'),
@@ -174,10 +178,11 @@ async function snapshot(db, pedidoId, driverUid = null) {
     pedido_activo: activoSnap ? (activoSnap.exists() ? activoSnap.val() : null) : undefined,
     resumen: {
       estadoPedido: estadoPedido(pedidoSnap.val()),
+      estadoLogistica: estadoLogistica(pedidoSnap.val()),
       enCocina: estadoPedido(pedidoSnap.val()) === 'PENDIENTE',
       listoReparto: estadoPedido(pedidoSnap.val()) === 'LISTO' && repartoSnap.exists(),
-      enCamino: estadoPedido(pedidoSnap.val()) === 'EN_CURSO' && caminoSnap.exists(),
-      entregado: estadoPedido(pedidoSnap.val()) === 'ENTREGADO',
+      enCamino: estadoPedido(pedidoSnap.val()) === 'EN_CURSO' && estadoLogistica(pedidoSnap.val()) === 'EN_CURSO' && caminoSnap.exists(),
+      entregado: estadoPedido(pedidoSnap.val()) === 'ENTREGADO' && estadoLogistica(pedidoSnap.val()) === 'ENTREGADO',
       caminoLimpio: !caminoSnap.exists()
     }
   };
@@ -189,7 +194,22 @@ function buildOrderPayload() {
     cliente_nombre: `Pedido C Campo ${suffix}`,
     telefono: '9610000000',
     direccion: 'Ruta certificacion Pedido C, Tuxtla Gutierrez',
+    cliente_lat: 16.75213,
+    cliente_lng: -93.1167,
+    tienda_lat: 16.75146,
+    tienda_lng: -93.11742,
     monto: 183,
+    items: [
+      { nombre: 'Combo certificacion campo', cantidad: 1, precio: 150 }
+    ],
+    subtotal: 150,
+    costo_envio: 30,
+    propina: 3,
+    total: 183,
+    pago: {
+      metodo: 'efectivo',
+      estado: 'pendiente'
+    },
     descripcion: 'Certificacion campo Pedido C: admin -> cocina -> reparto -> Android -> entrega'
   };
 }

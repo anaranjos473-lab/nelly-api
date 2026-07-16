@@ -209,6 +209,8 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos_en_camino.pedido_ok.estado).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.estado).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.estado_pedido).toBe('EN_CURSO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('EN_CURSO');
+    expect(state.pedidos_en_camino.pedido_ok.logistica.estado).toBe('EN_CURSO');
     expect(state.pedidos.pedido_ok.repartidor_id).toBe('driver_ok');
   });
 
@@ -476,6 +478,7 @@ describe('Delivery y panel API', () => {
     expect(res.body.ok).toBe(true);
     expect(res.body.comision).toBe(21.6);
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('ENTREGADO');
     expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
   });
@@ -506,6 +509,7 @@ describe('Delivery y panel API', () => {
     expect(res.body.alreadyCompleted).toBe(true);
     expect(res.body.finanzas).toBeNull();
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
+    expect(state.pedidos.pedido_ok.logistica.estado).toBe('ENTREGADO');
     expect(state.pedidos_en_camino.pedido_ok).toBeNull();
     expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
   });

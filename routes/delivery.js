@@ -343,6 +343,13 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       conductorId: uid,
       estado: 'EN_CURSO',
       estado_pedido: 'EN_CURSO',
+      logistica: {
+        ...(pedido.logistica || {}),
+        estado: 'EN_CURSO',
+        repartidor_id: uid,
+        repartidor_uid: uid,
+        asignacion_activa: true
+      },
       aceptado_en: acceptedAt
     };
 
@@ -586,6 +593,12 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     const pedidoUpdates = {
       estado: 'ENTREGADO',
       estado_pedido: 'ENTREGADO',
+      logistica: {
+        ...(pedido.logistica || {}),
+        estado: 'ENTREGADO',
+        fase_operativa: null,
+        asignacion_activa: false
+      },
       entregado_en: pedido.entregado_en || completedAt,
       finalizado_at: pedido.finalizado_at || completedAt,
       timestampActualizacion: completedAt
