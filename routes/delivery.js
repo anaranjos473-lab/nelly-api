@@ -116,6 +116,29 @@ function getOrderTotal(pedido = {}) {
   return Number.isFinite(total) ? total : 0;
 }
 
+function firstPositiveMoney(...values) {
+  for (const value of values) {
+    const amount = Number(value);
+    if (Number.isFinite(amount) && amount > 0) {
+      return roundMoney(amount);
+    }
+  }
+  return 0;
+}
+
+function getDeliveryPayout(pedido = {}) {
+  return firstPositiveMoney(
+    pedido.ganancia_neta,
+    pedido.ganancia,
+    pedido.tarifa_entrega,
+    pedido.costo_envio,
+    pedido.costoEnvio,
+    pedido.envio,
+    pedido.shipping,
+    pedido.delivery_fee
+  );
+}
+
 function getDriverUidFromOrder(pedido = {}) {
   return pedido.repartidor_id || pedido.conductorId || pedido.driverUid || pedido.uid_repartidor || null;
 }
@@ -548,11 +571,9 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
 
     const completedAt = Date.now();
     const montoPedido = getOrderTotal(pedido);
-    const comision = roundMoney(
-      req.body.comision
-        ?? req.body.monto_comision
-        ?? (montoPedido * 0.18)
-    );
+    const comisionSolicitada = firstPositiveMoney(req.body.comision, req.body.monto_comision);
+    const comisionFallback = getDeliveryPayout(pedido) || roundMoney(montoPedido * 0.18);
+    const comision = comisionSolicitada || comisionFallback;
     const finanzas = !alreadyCompleted && driverUid && comision > 0
       ? await registrarCobroEfectivoTx(db, {
         uid: driverUid,
@@ -581,6 +602,10 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     }
     if (comision > 0) {
       pedidoUpdates.ganancia_neta = comision;
+    }
+    const tarifaEntrega = firstPositiveMoney(pedido.tarifa_entrega, pedido.costo_envio, pedido.costoEnvio);
+    if (tarifaEntrega > 0) {
+      pedidoUpdates.tarifa_entrega = tarifaEntrega;
     }
 
     const updates = {
