@@ -543,6 +543,7 @@ router.post('/driver-online', requireFirebaseUser, async (req, res, next) => {
 router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next) => {
   try {
     const pedidoId = req.body.pedidoId || req.body.orderId;
+    const completionType = String(req.body.completion_type || req.body.completionType || 'normal').trim().toLowerCase();
     if (!pedidoId) {
       return res.status(400).json({ ok: false, error: 'pedidoId es requerido' });
     }
@@ -614,6 +615,10 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       pedidoUpdates.evidencia_storage_fallback_at = completedAt;
       pedidoUpdates.evidencia_storage_error = String(req.body.storageError || '').slice(0, 240);
     }
+    pedidoUpdates.completion_type = completionType === 'customer_absent' ? 'customer_absent' : 'normal';
+    pedidoUpdates.motivo_cierre = pedidoUpdates.completion_type === 'customer_absent'
+      ? 'cliente_ausente'
+      : 'entrega_normal';
     if (comision > 0) {
       pedidoUpdates.ganancia_neta = comision;
     }
@@ -640,7 +645,8 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       montoPedido,
       comision,
       finanzas,
-      alreadyCompleted
+      alreadyCompleted,
+      completionType: pedidoUpdates.completion_type
     });
   } catch (error) {
     return next(error);
