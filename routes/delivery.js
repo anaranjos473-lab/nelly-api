@@ -170,12 +170,23 @@ function obtenerPrioridadEstado(estado) {
     PENDIENTE: 0,
     LISTO: 1,
     EN_CURSO: 2,
-    PEDIDO_ABORDO: 3,
-    LLEGUE_A_TIENDA: 4,
+    LLEGUE_A_TIENDA: 3,
+    PEDIDO_ABORDO: 4,
     LLEGUE_A_CLIENTE: 5,
     ENTREGADO: 6
   };
   return ranking[normalized] ?? 2;
+}
+
+const TRANSICIONES_OPERATIVAS = new Map([
+  ['EN_CURSO', new Set(['LLEGUE_A_TIENDA'])],
+  ['LLEGUE_A_TIENDA', new Set(['PEDIDO_ABORDO'])],
+  ['PEDIDO_ABORDO', new Set(['LLEGUE_A_CLIENTE'])]
+]);
+
+function esTransicionOperativaPermitida(actual, siguiente) {
+  if (actual === siguiente) return true;
+  return TRANSICIONES_OPERATIVAS.get(actual)?.has(siguiente) === true;
 }
 
 function shouldAdvancePedidoState(currentState, incomingState) {
@@ -295,6 +306,71 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     ]);
 
     return res.json({ ok: true, pedidoId, repartidorId: uid });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post('/transition-order', requireFirebaseUser, async (req, res, next) => {
+  try {
+    const pedidoId = String(req.body?.pedidoId || req.body?.orderId || '').trim();
+    const estadoSiguiente = normalizarEstadoPedido(req.body?.estado || req.body?.estadoSiguiente);
+    const uid = req.firebaseUser.uid;
+    if (!pedidoId || !estadoSiguiente) {
+      return res.status(400).json({ ok: false, error: 'pedidoId y estado son requeridos' });
+    }
+
+    const admin = await getAdmin();
+    const db = admin.database();
+    const pedido = (await db.ref(`pedidos/${pedidoId}`).once('value')).val();
+    if (!pedido) {
+      return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
+    }
+
+    const driverUid = getDriverUidFromOrder(pedido);
+    if (!driverUid || driverUid !== uid) {
+      return res.status(403).json({ ok: false, error: 'Solo el repartidor asignado puede cambiar este pedido' });
+    }
+    const activePedidoId = (await db.ref(`repartidores/${uid}/pedido_activo`).once('value')).val();
+    if (activePedidoId && activePedidoId !== pedidoId) {
+      return res.status(409).json({ ok: false, error: 'El pedido no coincide con el pedido activo del repartidor' });
+    }
+
+    const estadoActual = normalizarEstadoPedido(pedido.estado_pedido || pedido.estado);
+    if (!esTransicionOperativaPermitida(estadoActual, estadoSiguiente)) {
+      return res.status(409).json({
+        ok: false,
+        error: 'Transicion operativa invalida',
+        estadoActual,
+        estadoSiguiente
+      });
+    }
+
+    const updatedAt = Date.now();
+    const estadoUpdates = {
+      estado: estadoSiguiente,
+      estado_pedido: estadoSiguiente,
+      logistica: { ...(pedido.logistica || {}), estado: estadoSiguiente },
+      timestampActualizacion: updatedAt
+    };
+    const pedidoEnCamino = { ...pedido, ...estadoUpdates };
+    const updates = {
+      [`pedidos/${pedidoId}/estado`]: estadoSiguiente,
+      [`pedidos/${pedidoId}/estado_pedido`]: estadoSiguiente,
+      [`pedidos/${pedidoId}/logistica/estado`]: estadoSiguiente,
+      [`pedidos/${pedidoId}/timestampActualizacion`]: updatedAt,
+      [`pedidos_en_camino/${pedidoId}`]: pedidoEnCamino
+    };
+    await db.ref().update(updates);
+
+    return res.json({
+      ok: true,
+      pedidoId,
+      repartidorId: uid,
+      estadoAnterior: estadoActual,
+      estado: estadoSiguiente,
+      idempotent: estadoActual === estadoSiguiente
+    });
   } catch (error) {
     return next(error);
   }
