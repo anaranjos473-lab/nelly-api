@@ -392,6 +392,23 @@ describe('Delivery y panel API', () => {
     expect(res.body.error).toBe('Token requerido');
   });
 
+  it('marca repartidor disponible mediante backend autenticado', async () => {
+    state.repartidores.driver_ok.estado = 'OFFLINE';
+    state.repartidores.driver_ok.disponible = false;
+    state.repartidores.driver_ok.pedido_activo = null;
+
+    const res = await request(app)
+      .post('/api/delivery/driver-online')
+      .set('Authorization', 'Bearer driver-token')
+      .send({});
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(state.repartidores.driver_ok.estado).toBe('DISPONIBLE');
+    expect(state.repartidores.driver_ok.disponible).toBe(true);
+    expect(state.repartidores_activos.driver_ok.estado).toBe('DISPONIBLE');
+  });
+
   it('rechaza complete-order si usuario no es admin/panel', async () => {
     state.pedidos.pedido_otro = {
       id_pedido: 'pedido_otro',

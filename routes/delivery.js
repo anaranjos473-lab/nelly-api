@@ -449,6 +449,41 @@ router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
   }
 });
 
+router.post('/driver-online', requireFirebaseUser, async (req, res, next) => {
+  try {
+    const uid = req.firebaseUser.uid;
+    const admin = await getAdmin();
+    const db = admin.database();
+    const timestamp = Date.now();
+    const activePedidoId = (await db.ref(`repartidores/${uid}/pedido_activo`).once('value')).val();
+
+    const updates = {
+      [`repartidores/${uid}/disponible`]: true,
+      [`repartidores/${uid}/estado`]: 'DISPONIBLE',
+      [`repartidores/${uid}/ultima_conexion`]: timestamp,
+      [`repartidores_activos/${uid}/estado`]: 'DISPONIBLE',
+      [`repartidores_activos/${uid}/disponible`]: true,
+      [`repartidores_activos/${uid}/uid`]: uid,
+      [`repartidores_activos/${uid}/actualizado_en`]: timestamp
+    };
+    if (!activePedidoId) {
+      updates[`repartidores/${uid}/pedido_activo`] = null;
+    }
+
+    await db.ref().update(updates);
+    return res.json({
+      ok: true,
+      repartidorId: uid,
+      estado: 'DISPONIBLE',
+      disponible: true,
+      pedidoActivo: activePedidoId || null,
+      onlineEn: timestamp
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next) => {
   try {
     const pedidoId = req.body.pedidoId || req.body.orderId;
