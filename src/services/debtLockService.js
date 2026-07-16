@@ -68,8 +68,10 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
     const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
     const deudaActual = extraerDeudaActual(current);
     const saldoGanancias = extraerSaldoGanancias(current);
+    const gananciaHoy = toNumberSafe(current?.finanzas?.ganancia_hoy, 0);
     const nuevaDeuda = roundMoney(deudaActual + monto);
     const nuevoSaldo = roundMoney(saldoGanancias + monto);
+    const nuevaGananciaHoy = roundMoney(gananciaHoy + monto);
     const bloqueado = nuevaDeuda > limite;
     const ahora = Date.now();
 
@@ -91,6 +93,7 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
         deuda_actual: nuevaDeuda,
         limite_deuda: limite,
         saldo_ganancias: nuevoSaldo,
+        ganancia_hoy: nuevaGananciaHoy,
         ultimo_cobro_efectivo: {
           monto,
           pedido_id: pedidoId || null,

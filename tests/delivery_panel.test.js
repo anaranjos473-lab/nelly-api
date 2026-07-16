@@ -568,6 +568,8 @@ describe('Delivery y panel API', () => {
     expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.pedido_id).toBe('pedido_ok');
     expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(68);
+    expect(state.repartidores.driver_ok.finanzas.ganancia_hoy).toBe(68);
+    expect(state.repartidores.driver_ok.finanzas.saldo_ganancias).toBe(68);
   });
 
   it('no duplica finanzas si complete-order se reintenta sobre pedido entregado', async () => {
