@@ -731,8 +731,28 @@ app.post('/api/delivery/accept-order', requireDriverAuth, async (req, res) => {
 });
 
 // --- ENDPOINT: COMPLETAR PEDIDO (SERVER-AUTHORITATIVE PANEL) ---
-app.post('/api/delivery/complete-order', requirePanelSessionAuth, async (req, res) => {
+app.post('/api/delivery/complete-order', async (req, res) => {
     if (!requireFirebase(res)) return;
+
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+    if (!idToken) {
+        return res.status(401).json({ error: 'No se proporciono token' });
+    }
+
+    let decodedToken;
+    try {
+        decodedToken = await admin.auth().verifyIdToken(idToken);
+    } catch (error) {
+        console.error('[AUTH ERROR CompleteOrder]:', error.message);
+        return res.status(401).json({ error: 'Token invalido o expirado' });
+    }
+
+    const esPanel = decodedToken.admin === true || decodedToken.role === 'panel_cocina' || decodedToken.panel === true;
+    const esDriver = decodedToken.driver === true || decodedToken.role === 'repartidor';
+    if (!esPanel && !esDriver) {
+        return res.status(403).json({ error: 'Acceso denegado: sesion invalida para completar pedido' });
+    }
 
     const orderId = String(req.body?.orderId || req.body?.pedidoId || '').trim();
     if (!orderId) {
@@ -748,7 +768,13 @@ app.post('/api/delivery/complete-order', requirePanelSessionAuth, async (req, re
 
         const pedidoActual = pedidoSnap.val() || {};
         const estadoActual = String(pedidoActual.estado || '').trim().toLowerCase();
-        const puedeFinalizar = estadoActual === 'en_reparto' || estadoActual === 'en_camino' || estadoActual === 'reparto';
+        const puedeFinalizar =
+            estadoActual === 'en_reparto' ||
+            estadoActual === 'en_camino' ||
+            estadoActual === 'reparto' ||
+            estadoActual === 'llegue_a_cliente' ||
+            estadoActual === 'llegue_al_cliente' ||
+            estadoActual === 'punto_de_entrega';
         if (!puedeFinalizar) {
             return res.status(409).json({
                 error: 'Transicion invalida: el pedido aun no esta en reparto',

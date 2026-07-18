@@ -121,54 +121,54 @@ export async function registrarPagoDeudaTx(db, { uid, montoPago, origen = 'panel
     throw new Error('uid y montoPago (> 0) son requeridos');
   }
 
-  const ref = db.ref(`repartidores/${uid}`);
-  const tx = await ref.transaction((actual) => {
-    if (!actual || typeof actual !== 'object') {
-      return;
-    }
-
-    const nivel = extraerNivel(actual);
-    const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
-    const deudaActual = extraerDeudaActual(actual);
-    const saldoGanancias = extraerSaldoGanancias(actual);
-    const nuevaDeuda = roundMoney(Math.max(0, deudaActual - monto));
-    const nuevoSaldo = roundMoney(Math.max(0, saldoGanancias - monto));
-    const bloqueado = nuevaDeuda > limite;
-    const ahora = Date.now();
-
-    return {
-      ...actual,
-      estatus: {
-        ...(actual.estatus || {}),
-        nivel,
-        bloqueado_por_deuda: bloqueado,
-        actualizado_en: ahora
-      },
-      perfil: {
-        ...(actual.perfil || {}),
-        bloqueado_por_deuda: bloqueado
-      },
-      finanzas: {
-        ...(actual.finanzas || {}),
-        deuda_actual: nuevaDeuda,
-        limite_deuda: limite,
-        saldo_ganancias: nuevoSaldo,
-        ultimo_pago_deuda: {
-          monto,
-          origen,
-          timestamp: ahora
-        }
-      },
-      billetera: {
-        ...(actual.billetera || {}),
-        deuda_comision: nuevaDeuda
-      }
-    };
-  });
-
-  if (!tx.committed || !tx.snapshot.exists()) {
-    throw new Error('No se pudo aplicar el pago en transaccion');
+  // Igual que en el cobro en efectivo, hacemos un pre-read para evitar que
+  // Firebase entregue null al callback de transaction y la operación se aborte.
+  const refPreread = db.ref(`repartidores/${uid}`);
+  const snapPreread = await refPreread.once('value');
+  const fallbackData = snapPreread.val() || {};
+  const current = (fallbackData && typeof fallbackData === 'object') ? fallbackData : null;
+  if (!current) {
+    throw new Error('No se pudo leer el estado actual del repartidor');
   }
 
-  return resumenFinanciero(uid, tx.snapshot.val() || {});
+  const nivel = extraerNivel(current);
+  const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
+  const deudaActual = extraerDeudaActual(current);
+  const saldoGanancias = extraerSaldoGanancias(current);
+  const nuevaDeuda = roundMoney(Math.max(0, deudaActual - monto));
+  const nuevoSaldo = roundMoney(Math.max(0, saldoGanancias - monto));
+  const bloqueado = nuevaDeuda > limite;
+  const ahora = Date.now();
+
+  await refPreread.update({
+    ...current,
+    estatus: {
+      ...(current.estatus || {}),
+      nivel,
+      bloqueado_por_deuda: bloqueado,
+      actualizado_en: ahora
+    },
+    perfil: {
+      ...(current.perfil || {}),
+      bloqueado_por_deuda: bloqueado
+    },
+    finanzas: {
+      ...(current.finanzas || {}),
+      deuda_actual: nuevaDeuda,
+      limite_deuda: limite,
+      saldo_ganancias: nuevoSaldo,
+      ultimo_pago_deuda: {
+        monto,
+        origen,
+        timestamp: ahora
+      }
+    },
+    billetera: {
+      ...(current.billetera || {}),
+      deuda_comision: nuevaDeuda
+    }
+  });
+
+  const refreshed = (await refPreread.once('value')).val() || {};
+  return resumenFinanciero(uid, refreshed);
 }
