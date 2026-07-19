@@ -1,6 +1,7 @@
 package com.nelly.driver.ui.pedidos.adapter
 
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,10 @@ import com.nelly.driver.model.PedidoEntity
 class PedidoAdapter(
     private val onAceptarClick: (PedidoEntity) -> Unit
 ) : ListAdapter<PedidoEntity, PedidoAdapter.PedidoViewHolder>(DiffCallback) {
+
+    private companion object {
+        const val TAG_ICV02_ADAPTER = "ICV02_ACTIVITY"
+    }
 
     private var bloqueadoPorDeuda: Boolean = false
 
@@ -48,6 +53,10 @@ class PedidoAdapter(
             txtCliente.text = if (pedido.clienteNombre.isBlank()) "Cliente Nelly" else pedido.clienteNombre
             txtMonto.text = String.format("$%.2f", pedido.montoTotal)
             txtEstado.text = pedido.estado
+            Log.i(
+                TAG_ICV02_ADAPTER,
+                "bind pedidoId=${pedido.id} estado=${pedido.estado} bloqueadoPorDeuda=$bloqueadoPorDeuda btnClickable=${!bloqueadoPorDeuda}"
+            )
             if (bloqueadoPorDeuda) {
                 btnAceptar.isEnabled = false
                 btnAceptar.text = "BLOQUEADO"
@@ -57,7 +66,10 @@ class PedidoAdapter(
                 btnAceptar.isEnabled = true
                 btnAceptar.text = "ACEPTAR"
                 btnAceptar.setBackgroundColor(Color.parseColor("#16A34A"))
-                btnAceptar.setOnClickListener { onAceptarClick(pedido) }
+                btnAceptar.setOnClickListener {
+                    Log.i(TAG_ICV02_ADAPTER, "onClick aceptar pedidoId=${pedido.id} estado=${pedido.estado}")
+                    onAceptarClick(pedido)
+                }
             }
         }
     }

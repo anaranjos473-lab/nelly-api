@@ -105,7 +105,9 @@ const ui = {
   btnLogout: document.getElementById("btn-logout"),
   tableBody: document.getElementById("drivers-table-body"),
   metricDrivers: document.getElementById("metric-drivers"),
-  metricBlocked: document.getElementById("metric-blocked"),
+  metricBlockedManual: document.getElementById("metric-blocked-manual"),
+  metricBlockedDebt: document.getElementById("metric-blocked-debt"),
+  metricBlockedTotal: document.getElementById("metric-blocked-total"),
   metricOrders: document.getElementById("metric-orders"),
   metricPedidosCreados: document.getElementById("metric-pedidos-creados"),
   metricPedidosEntregados: document.getElementById("metric-pedidos-entregados"),
@@ -161,6 +163,23 @@ function money(value) {
   return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
 }
 
+function clasificarRepartidor(data = {}) {
+  const deuda = Number(data?.finanzas?.deuda_actual || data?.deuda_actual || 0);
+  const limiteDeuda = Number(data?.finanzas?.limite_deuda || 0);
+  const bloqueoManual = data?.estatus?.bloqueo_manual === true || data?.bloqueado_por_deuda === true;
+  const bloqueoPorDeuda = data?.estatus?.bloqueado_por_deuda === true
+    || data?.perfil?.bloqueado_por_deuda === true
+    || (limiteDeuda > 0 && deuda > limiteDeuda);
+
+  return {
+    deuda,
+    limiteDeuda,
+    bloqueoManual,
+    bloqueoPorDeuda,
+    noElegible: bloqueoManual || bloqueoPorDeuda
+  };
+}
+
 function isAuthorizedEmail(email) {
   return AUTHORIZED_ADMIN_EMAILS.has(String(email || "").toLowerCase());
 }
@@ -200,7 +219,9 @@ function switchToLogin() {
   ui.sessionBox.classList.remove("flex");
   ui.tableBody.innerHTML = "";
   ui.metricDrivers.textContent = "0";
-  ui.metricBlocked.textContent = "0";
+  ui.metricBlockedManual.textContent = "0";
+  ui.metricBlockedDebt.textContent = "0";
+  ui.metricBlockedTotal.textContent = "0";
   ui.metricOrders.textContent = "0";
 }
 
@@ -212,7 +233,9 @@ function renderDriversTable(drivers) {
   const rows = Object.entries(drivers);
   ui.metricDrivers.textContent = String(rows.length);
 
-  let blockedCount = 0;
+  let blockedManualCount = 0;
+  let blockedDebtCount = 0;
+  const noElegibles = new Set();
   const html = rows
     .sort((a, b) => {
       const nameA = String(a[1]?.nombre || a[1]?.displayName || a[0]).toLowerCase();
@@ -222,12 +245,17 @@ function renderDriversTable(drivers) {
     .map(([uid, data]) => {
       const nombre = data?.nombre || data?.displayName || "Sin nombre";
       const nivel = normalizeLevel(data?.estatus?.nivel || data?.nivel);
-      const deuda = Number(data?.finanzas?.deuda_actual || data?.deuda_actual || 0);
-      const bloqueado = data?.estatus?.bloqueado_por_deuda === true || data?.bloqueado_por_deuda === true;
+      const clasificacion = clasificarRepartidor(data);
       const uidSafe = escapeHtml(uid);
       const nombreSafe = escapeHtml(nombre);
-      if (bloqueado) {
-        blockedCount += 1;
+      if (clasificacion.bloqueoManual) {
+        blockedManualCount += 1;
+      }
+      if (clasificacion.bloqueoPorDeuda) {
+        blockedDebtCount += 1;
+      }
+      if (clasificacion.noElegible) {
+        noElegibles.add(uid);
       }
 
       return `
@@ -235,16 +263,16 @@ function renderDriversTable(drivers) {
           <td class="px-2 py-2 font-medium sm:px-3">${nombreSafe}</td>
           <td class="hidden px-3 py-2 text-xs text-slate-300 md:table-cell">${uidSafe}</td>
           <td class="px-2 py-2 sm:px-3">${nivel}</td>
-          <td class="px-2 py-2 sm:px-3">$${money(deuda)}</td>
+          <td class="px-2 py-2 sm:px-3">$${money(clasificacion.deuda)}</td>
           <td class="px-2 py-2 sm:px-3">
             <label class="inline-flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 data-uid="${uidSafe}"
                 class="manual-block-toggle h-4 w-4 accent-panel-warn"
-                ${bloqueado ? "checked" : ""}
+                ${clasificacion.bloqueoManual ? "checked" : ""}
               />
-              <span class="text-xs ${bloqueado ? "text-red-300" : "text-emerald-300"}">${bloqueado ? "Bloqueado" : "Activo"}</span>
+              <span class="text-xs ${clasificacion.noElegible ? "text-red-300" : "text-emerald-300"}">${clasificacion.noElegible ? "No elegible" : "Activo"}</span>
             </label>
           </td>
         </tr>
@@ -252,7 +280,9 @@ function renderDriversTable(drivers) {
     })
     .join("");
 
-  ui.metricBlocked.textContent = String(blockedCount);
+  ui.metricBlockedManual.textContent = String(blockedManualCount);
+  ui.metricBlockedDebt.textContent = String(blockedDebtCount);
+  ui.metricBlockedTotal.textContent = String(noElegibles.size);
   ui.tableBody.innerHTML = html || "<tr><td class=\"px-3 py-3 text-sm text-slate-400\" colspan=\"5\">Sin repartidores registrados.</td></tr>";
 }
 
@@ -303,6 +333,8 @@ function bindToggleEvents() {
           if (!success) {
             throw new Error("Sin respuesta valida del backend");
           }
+
+          syncDashboardData();
         } catch (fallbackError) {
           target.checked = !nextValue;
           window.alert(`No se pudo actualizar bloqueo manual: ${fallbackError.message}`);
@@ -401,7 +433,9 @@ async function syncDashboardData() {
   } catch (error) {
     currentDrivers = {};
     ui.metricDrivers.textContent = "0";
-    ui.metricBlocked.textContent = "0";
+    ui.metricBlockedManual.textContent = "0";
+    ui.metricBlockedDebt.textContent = "0";
+    ui.metricBlockedTotal.textContent = "0";
     ui.metricOrders.textContent = "0";
     ui.metricPedidosCreados.textContent = "0";
     ui.metricPedidosEntregados.textContent = "0";

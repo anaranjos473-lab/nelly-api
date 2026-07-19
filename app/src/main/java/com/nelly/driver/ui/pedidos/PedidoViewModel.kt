@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nelly.driver.data.repository.PedidoRepository
 import com.nelly.driver.model.PedidoEntity
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,9 @@ class PedidoViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun limpiarPedidoActivoLocal() {
+        Log.i("ICV02_VM", "limpiarPedidoActivoLocal before pedidoActivoId=${pedidoActivoId.value ?: "null"}")
         repository.limpiarPedidoActivoLocal()
+        Log.i("ICV02_VM", "limpiarPedidoActivoLocal after pedidoActivoId=${pedidoActivoId.value ?: "null"}")
     }
 
     fun resolverEstadoOperativo(
@@ -37,6 +40,7 @@ class PedidoViewModel(
     }
 
     fun iniciarSincronizacion() {
+        Log.i("ICV02_VM", "iniciarSincronizacion syncEstado=${_syncEstado.value} pedidoActivoId=${pedidoActivoId.value ?: "null"}")
         _syncEstado.value = "RUNNING"
         repository.iniciarSincronizacion { mensaje, error ->
             _syncEstado.value = "ERROR: $mensaje ${error?.message ?: ""}".trim()

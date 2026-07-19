@@ -1,0 +1,35 @@
+import { spawnSync } from 'child_process';
+
+const checks = [
+  ['validate-routes', 'node', ['scripts/validation/validate-routes.js']],
+  ['validate-data-model', 'node', ['scripts/validation/validate-data-model.js']],
+  ['validate-contracts', 'node', ['scripts/validation/validate-contracts.js']],
+  ['validate-firebase', 'node', ['scripts/validation/validate-firebase.js']],
+  ['links-check', 'node', ['scripts/validation/links-check.js']],
+  ['docs-check', 'node', ['scripts/validation/docs-check.js']],
+  ['adr-check', 'node', ['scripts/validation/adr-check.js']],
+  ['system-check', 'node', ['scripts/validation/system-check.js']]
+];
+
+const results = [];
+let healthy = true;
+
+for (const [name, cmd, args] of checks) {
+  const result = spawnSync(cmd, args, { stdio: 'pipe', encoding: 'utf8' });
+  const ok = result.status === 0;
+  results.push({ name, ok, output: (result.stdout || '').trim(), error: (result.stderr || '').trim() });
+  if (!ok) healthy = false;
+}
+
+console.log('NELLY OS HEALTH REPORT');
+console.log('');
+for (const result of results) {
+  console.log(`${result.name.padEnd(22, '.')} ${result.ok ? 'OK' : 'FAIL'}`);
+  if (!result.ok && result.error) {
+    console.log(`  ${result.error.split('\n')[0]}`);
+  }
+}
+console.log('');
+console.log(`Overall ................ ${healthy ? 'HEALTHY' : 'UNHEALTHY'}`);
+
+process.exit(healthy ? 0 : 1);

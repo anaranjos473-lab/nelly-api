@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#0c1d35"/>
+    </linearGradient>
+    <style>
+      .title { fill: #f8fafc; font: 700 28px Arial, sans-serif; }
+      .node { fill: #12213b; stroke: #5b7bb8; stroke-width: 2; rx: 18; }
+      .node2 { fill: #102742; stroke: #38bdf8; stroke-width: 2; rx: 18; }
+      .txt { fill: #e2e8f0; font: 600 18px Arial, sans-serif; }
+      .sub { fill: #94a3b8; font: 400 14px Arial, sans-serif; }
+      .arrow { stroke: #94a3b8; stroke-width: 4; fill: none; marker-end: url(#m); }
+    </style>
+    <marker id="m" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1280" height="720" fill="url(#bg)"/>
+  <text x="48" y="60" class="title">Nelly OS Architecture</text>
+  <text x="48" y="92" class="sub">Official operational flow and source-of-truth direction</text>
+
+  <rect x="50" y="150" width="170" height="70" class="node"/>
+  <text x="135" y="192" text-anchor="middle" class="txt">Cliente</text>
+
+  <rect x="270" y="150" width="170" height="70" class="node"/>
+  <text x="355" y="192" text-anchor="middle" class="txt">Admin</text>
+
+  <rect x="490" y="150" width="170" height="70" class="node"/>
+  <text x="575" y="192" text-anchor="middle" class="txt">Cocina</text>
+
+  <rect x="710" y="150" width="170" height="70" class="node2"/>
+  <text x="795" y="192" text-anchor="middle" class="txt">Backend</text>
+
+  <rect x="930" y="150" width="170" height="70" class="node2"/>
+  <text x="1015" y="192" text-anchor="middle" class="txt">Firebase RTDB</text>
+
+  <rect x="50" y="320" width="170" height="70" class="node"/>
+  <text x="135" y="362" text-anchor="middle" class="txt">Radar</text>
+
+  <rect x="270" y="320" width="170" height="70" class="node"/>
+  <text x="355" y="362" text-anchor="middle" class="txt">Tracking</text>
+
+  <rect x="490" y="320" width="170" height="70" class="node"/>
+  <text x="575" y="362" text-anchor="middle" class="txt">Complete Order</text>
+
+  <rect x="710" y="320" width="170" height="70" class="node"/>
+  <text x="795" y="362" text-anchor="middle" class="txt">Finanzas</text>
+
+  <rect x="930" y="320" width="170" height="70" class="node"/>
+  <text x="1015" y="362" text-anchor="middle" class="txt">Historial</text>
+
+  <path d="M220 185 L270 185" class="arrow"/>
+  <path d="M440 185 L490 185" class="arrow"/>
+  <path d="M660 185 L710 185" class="arrow"/>
+  <path d="M880 185 L930 185" class="arrow"/>
+  <path d="M1015 220 L1015 320" class="arrow"/>
+  <path d="M930 355 L880 355" class="arrow"/>
+  <path d="M710 355 L660 355" class="arrow"/>
+  <path d="M490 355 L440 355" class="arrow"/>
+  <path d="M270 355 L220 355" class="arrow"/>
+  <path d="M135 220 L135 320" class="arrow"/>
+
+  <text x="640" y="520" text-anchor="middle" class="title">Backend decides, Android reflects</text>
+  <text x="640" y="555" text-anchor="middle" class="sub">P17 baseline, SSOT, and certified closure contract</text>
+</svg>

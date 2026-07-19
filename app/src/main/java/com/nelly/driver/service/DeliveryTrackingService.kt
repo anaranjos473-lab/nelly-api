@@ -45,11 +45,13 @@ class DeliveryTrackingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.i(TAG_ICV02_SERVICE, "onCreate")
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         pedidoIdActivo = intent?.getStringExtra(EXTRA_PEDIDO_ID)
+        Log.i(TAG_ICV02_SERVICE, "onStartCommand pedidoId=${pedidoIdActivo ?: "null"} flags=$flags startId=$startId")
 
         handler.removeCallbacks(trackingRunnable)
         handler.post(trackingRunnable)
@@ -58,6 +60,7 @@ class DeliveryTrackingService : Service() {
     }
 
     override fun onDestroy() {
+        Log.i(TAG_ICV02_SERVICE, "onDestroy pedidoId=${pedidoIdActivo ?: "null"}")
         handler.removeCallbacks(trackingRunnable)
         pedidoIdActivo = null
         super.onDestroy()
@@ -96,6 +99,7 @@ class DeliveryTrackingService : Service() {
     companion object {
         const val EXTRA_PEDIDO_ID = "PEDIDO_ID"
         private const val TAG = "NellyTracking"
+        private const val TAG_ICV02_SERVICE = "ICV02_SERVICE"
         private const val TRACKING_INTERVAL_MS = 30_000L
     }
 }

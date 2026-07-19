@@ -2,6 +2,7 @@ package com.nelly.driver.ui.pedidos
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -16,7 +17,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.nelly.driver.R
+import com.nelly.driver.BuildConfig
 import com.nelly.driver.di.PedidoSyncModule
 import com.nelly.driver.service.DeliveryTrackingService
 import com.nelly.driver.ui.pedidos.adapter.PedidoAdapter
@@ -26,15 +29,28 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+
+private const val TAG_ICV02_COMPLETE = "ICV02_COMPLETE"
+private const val TAG_ICV02_ACTIVITY = "ICV02_ACTIVITY"
+private const val TAG_ICV02_VM = "ICV02_VM"
+private const val TAG_ICV02_SERVICE = "ICV02_SERVICE"
 
 class PedidosDisponiblesActivity : AppCompatActivity() {
-
-    companion object {
+    private companion object {
         private const val TAG = "PedidosDisponibles"
         private const val TAG_APP_START = "NellyAppStart"
         private const val ECOSYSTEM_VERSION = "4.0.0-PRO"
         private const val REQUEST_LOCATION_STARTUP = 4101
         private const val REQUEST_LOCATION_ACCEPT = 4102
+        private const val PREFS_AUTH = "nelly_driver_auth"
+        private const val PREF_UID = "driver_uid"
+        private const val DEFAULT_DRIVER_UID = "8mo8182LJsgV7vKMSpiCekFKAG23"
+        private const val DRIVER_TOKEN_PATH = "/api/auth/driver-token"
     }
 
     private val uiScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -47,17 +63,22 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private var currentSyncState = "IDLE"
     private var currentSyncEvent = "IDLE"
     private var pantallaCerrada = false
+    private var cierreEnProgreso = false
     private var pedidoTrackingPendiente: String? = null
+    private var authBootstrapEnCurso = false
+    private var authBootstrapListo = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i(TAG_ICV02_ACTIVITY, "onCreate savedInstanceState=${savedInstanceState != null} action=${intent.action ?: "null"} flags=${intent.flags} extras=${intent.extras?.keySet()?.joinToString(",") ?: "null"} pantallaCerrada=$pantallaCerrada")
         if (pantallaCerrada) {
+            Log.i(TAG_ICV02_ACTIVITY, "onCreate aborted because pantallaCerrada=true")
             finish()
             return
         }
         setContentView(R.layout.activity_pedidos_disponibles)
         validarVersionEcosistema()
-        Log.i(TAG_APP_START, "APP START")
+        Log.i(TAG_ICV02_ACTIVITY, "onCreate view initialized")
 
         txtEstadoSync = findViewById(R.id.txtEstadoSync)
         txtVacio = findViewById(R.id.txtVacio)
@@ -69,19 +90,22 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         pedidoAdapter = PedidoAdapter { pedido ->
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid.isNullOrBlank()) {
-                Toast.makeText(this, "Debes iniciar sesion para aceptar pedidos", Toast.LENGTH_SHORT).show()
+                Log.i(TAG_ICV02_ACTIVITY, "aceptarPedido bloqueado por sesion null")
+                bootstrapAuthRepartidor { listo ->
+                    if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                        Log.i(TAG_ICV02_ACTIVITY, "aceptarPedido cancelado por cierre en progreso")
+                        return@bootstrapAuthRepartidor
+                    }
+                    if (!listo) {
+                        Toast.makeText(this, "Debes iniciar sesion para aceptar pedidos", Toast.LENGTH_SHORT).show()
+                        return@bootstrapAuthRepartidor
+                    }
+                    aceptarPedidoConSesion(pedido.id)
+                }
                 return@PedidoAdapter
             }
 
-            viewModel.aceptarPedido(pedido.id, uid) { ok, mensaje ->
-                val text = if (ok) "Pedido aceptado" else mensaje
-                runOnUiThread {
-                    if (ok) {
-                        iniciarTrackingConPermiso(pedido.id)
-                    }
-                    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-                }
-            }
+            aceptarPedidoConSesion(pedido.id)
         }
         recyclerView.adapter = pedidoAdapter
 
@@ -98,6 +122,15 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         configurarCompletarEntrega()
         viewModel.limpiarPedidoActivoLocal()
         stopService(Intent(this, DeliveryTrackingService::class.java))
+        bootstrapAuthRepartidor { listo ->
+            if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo omitido por cierre en progreso")
+                return@bootstrapAuthRepartidor
+            }
+            if (listo) {
+                resolverEstadoOperativo()
+            }
+        }
         solicitarPermisosDeArranque()
     }
 
@@ -126,21 +159,34 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        Log.i(TAG_ICV02_ACTIVITY, "onStart")
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_ACTIVITY, "onStart sin sincronizacion por cierre en progreso")
+            return
+        }
         viewModel.iniciarSincronizacion()
     }
 
     override fun onStop() {
+        Log.i(TAG_ICV02_ACTIVITY, "onStop")
         viewModel.detenerSincronizacion()
         super.onStop()
     }
 
     override fun onDestroy() {
+        Log.i(TAG_ICV02_ACTIVITY, "onDestroy")
         uiScope.cancel()
         super.onDestroy()
     }
 
+    override fun onPause() {
+        Log.i(TAG_ICV02_ACTIVITY, "onPause")
+        super.onPause()
+    }
+
     override fun onBackPressed() {
         pantallaCerrada = true
+        Log.i(TAG_ICV02_ACTIVITY, "onBackPressed pantallaCerrada=true")
         stopService(Intent(this, DeliveryTrackingService::class.java))
         super.onBackPressed()
     }
@@ -148,6 +194,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarPedidos() {
         uiScope.launch {
             viewModel.pedidos.collect { pedidos ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    return@collect
+                }
                 pedidoAdapter.submitList(pedidos)
                 txtVacio.visibility = if (pedidos.isEmpty()) View.VISIBLE else View.GONE
             }
@@ -157,6 +206,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarEstadoSync() {
         uiScope.launch {
             viewModel.syncEstado.collect { estado ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    return@collect
+                }
                 currentSyncState = estado
                 actualizarEstadoSync()
             }
@@ -166,6 +218,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarEventosSync() {
         uiScope.launch {
             viewModel.syncEventos.collect { evento ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    return@collect
+                }
                 currentSyncEvent = evento
                 actualizarEstadoSync()
             }
@@ -179,6 +234,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarBloqueoDeuda() {
         uiScope.launch {
             viewModel.bloqueoDeuda.collect { bloqueado ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    return@collect
+                }
                 pedidoAdapter.setBloqueadoPorDeuda(bloqueado)
                 if (bloqueado) {
                     txtEstadoSync.text = "Estado: BLOQUEADO POR DEUDA"
@@ -190,6 +248,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     private fun observarPedidoActivo() {
         uiScope.launch {
             viewModel.pedidoActivoId.collect { pedidoId ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    return@collect
+                }
                 btnCompletarEntrega.visibility = if (pedidoId.isNullOrBlank()) View.GONE else View.VISIBLE
                 btnCompletarEntrega.tag = pedidoId
             }
@@ -204,15 +265,25 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            Log.i(TAG_ICV02_COMPLETE, "inicio completarPedido pedidoId=$pedidoId uid=${FirebaseAuth.getInstance().currentUser?.uid ?: "null"} hora=${System.currentTimeMillis()}")
             btnCompletarEntrega.isEnabled = false
             viewModel.completarPedido(pedidoId) { ok, mensaje ->
                 runOnUiThread {
+                    Log.i(TAG_ICV02_COMPLETE, "respuesta completarPedido ok=$ok mensaje=$mensaje pantallaCerradaAntes=$pantallaCerrada")
                     btnCompletarEntrega.isEnabled = true
                     if (ok) {
-                        pantallaCerrada = true
+                        cierreEnProgreso = true
+                        pedidoTrackingPendiente = null
+                        Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion tras complete-order")
+                        Log.i(TAG_ICV02_SERVICE, "stopService DeliveryTrackingService")
                         stopService(Intent(this, DeliveryTrackingService::class.java))
+                        Log.i(TAG_ICV02_VM, "limpiarPedidoActivoLocal requested")
                         viewModel.limpiarPedidoActivoLocal()
-                        finish()
+                        cierreEnProgreso = false
+                        pantallaCerrada = false
+                        Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion cleanup finished")
+                        viewModel.iniciarSincronizacion()
+                        resolverEstadoOperativo()
                     }
                     Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
                 }
@@ -222,12 +293,12 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
 
     private fun solicitarPermisosDeArranque() {
         if (tienePermisoUbicacion()) {
-            Log.i(TAG_APP_START, "Permisos ubicacion: OK")
+            Log.i(TAG_ICV02_ACTIVITY, "solicitarPermisosDeArranque permisos=OK")
             resolverEstadoOperativo()
             return
         }
 
-        Log.i(TAG_APP_START, "Solicitando permisos ubicacion")
+        Log.i(TAG_ICV02_ACTIVITY, "solicitarPermisosDeArranque permisos=SOLICITADOS")
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -239,18 +310,24 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     }
 
     private fun resolverEstadoOperativo() {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            Log.i(TAG, "SESSION_RECOVERED: ${currentUser.uid}")
-        } else {
-            Log.i(TAG, "SESSION_NOT_RECOVERED")
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo omitido por cierre en progreso")
+            return
         }
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo uid=${currentUser?.uid ?: "null"}")
 
         viewModel.resolverEstadoOperativo(currentUser?.uid) { estado ->
             runOnUiThread {
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo result ignorado por cierre en progreso")
+                    return@runOnUiThread
+                }
+                Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo result destino=${estado.destino} pedidoId=${estado.pedidoId ?: "null"} estadoPedido=${estado.estadoPedido ?: "null"}")
                 if (estado.destino == com.nelly.driver.data.repository.PedidoRepository.Destino.TRACKING && !estado.pedidoId.isNullOrBlank()) {
                     iniciarTrackingConPermiso(estado.pedidoId)
                 } else {
+                    Log.i(TAG_ICV02_SERVICE, "stopService DeliveryTrackingService from resolverEstadoOperativo")
                     stopService(Intent(this, DeliveryTrackingService::class.java))
                 }
             }
@@ -258,13 +335,18 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     }
 
     private fun iniciarTrackingConPermiso(pedidoId: String) {
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_ACTIVITY, "iniciarTrackingConPermiso omitido por cierre en progreso pedidoId=$pedidoId")
+            return
+        }
         if (tienePermisoUbicacion()) {
+            Log.i(TAG_ICV02_SERVICE, "startService DeliveryTrackingService pedidoId=$pedidoId")
             iniciarServicioTracking(pedidoId)
             return
         }
 
         pedidoTrackingPendiente = pedidoId
-        Log.i(TAG_APP_START, "Tracking pendiente por permisos: $pedidoId")
+        Log.i(TAG_ICV02_ACTIVITY, "tracking pendiente por permisos pedidoId=$pedidoId")
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -276,6 +358,10 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     }
 
     private fun iniciarServicioTracking(pedidoId: String) {
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_SERVICE, "startService omitido por cierre en progreso pedidoId=$pedidoId")
+            return
+        }
         val trackingIntent = Intent(this, DeliveryTrackingService::class.java).apply {
             putExtra(DeliveryTrackingService.EXTRA_PEDIDO_ID, pedidoId)
         }
@@ -296,6 +382,127 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
             finish()
             return
         }
-        Log.i(TAG, "Version del ecosistema validada: $versionSistema")
+        Log.i(TAG_ICV02_ACTIVITY, "validarVersionEcosistema version=$versionSistema")
     }
+
+    private fun aceptarPedidoConSesion(pedidoId: String) {
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_ACTIVITY, "aceptarPedidoConSesion omitido por cierre en progreso pedidoId=$pedidoId")
+            return
+        }
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid.isNullOrBlank()) {
+            Toast.makeText(this, "Debes iniciar sesion para aceptar pedidos", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewModel.aceptarPedido(pedidoId, uid) { ok, mensaje ->
+            val text = if (ok) "Pedido aceptado" else mensaje
+            runOnUiThread {
+                if (ok) {
+                    iniciarTrackingConPermiso(pedidoId)
+                }
+                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun bootstrapAuthRepartidor(onDone: (Boolean) -> Unit) {
+        if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+            Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth omitido por cierre en progreso")
+            onDone(false)
+            return
+        }
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            authBootstrapListo = true
+            onDone(true)
+            return
+        }
+
+        if (authBootstrapEnCurso) {
+            return
+        }
+
+        authBootstrapEnCurso = true
+        val prefs = getSharedPreferences(PREFS_AUTH, MODE_PRIVATE)
+        val uid = obtenerUidRepartidorBootstrap(prefs)
+        Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth start uid=$uid")
+
+        Thread {
+            val result = solicitarCustomToken(uid)
+            runOnUiThread {
+                authBootstrapEnCurso = false
+                if (result == null) {
+                    Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth failed uid=$uid")
+                    onDone(false)
+                    return@runOnUiThread
+                }
+
+                FirebaseAuth.getInstance().signInWithCustomToken(result)
+                    .addOnSuccessListener { authResult ->
+                        val signedUser = authResult.user
+                        persistirUidBootstrap(prefs, signedUser)
+                        authBootstrapListo = true
+                        Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth success uid=${signedUser?.uid ?: uid}")
+                        onDone(true)
+                    }
+                    .addOnFailureListener { error ->
+                        Log.e(TAG_ICV02_ACTIVITY, "bootstrapAuth signIn failure uid=$uid mensaje=${error.message}")
+                        onDone(false)
+                    }
+            }
+        }.start()
+    }
+
+    private fun obtenerUidRepartidorBootstrap(prefs: SharedPreferences): String {
+        val persisted = prefs.getString(PREF_UID, null).orEmpty().trim()
+        if (persisted.isNotBlank()) {
+            return persisted
+        }
+
+        val intentUid = intent.getStringExtra("driver_uid").orEmpty().trim()
+        if (intentUid.isNotBlank()) {
+            return intentUid
+        }
+
+        return DEFAULT_DRIVER_UID
+    }
+
+    private fun persistirUidBootstrap(prefs: SharedPreferences, user: FirebaseUser?) {
+        val uid = user?.uid.orEmpty().trim()
+        if (uid.isBlank()) {
+            return
+        }
+        prefs.edit().putString(PREF_UID, uid).apply()
+    }
+
+    private fun solicitarCustomToken(uid: String): String? {
+        var connection: HttpURLConnection? = null
+        return try {
+            val endpoint = "${BuildConfig.API_BASE_URL}$DRIVER_TOKEN_PATH?uid=${java.net.URLEncoder.encode(uid, Charsets.UTF_8.name())}"
+            connection = (URL(endpoint).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15000
+                readTimeout = 15000
+                doInput = true
+            }
+            val statusCode = connection.responseCode
+            val stream = if (statusCode in 200..299) connection.inputStream else connection.errorStream
+            val body = stream?.use { input -> BufferedReader(InputStreamReader(input)).readText() }.orEmpty()
+            if (statusCode !in 200..299) {
+                Log.e(TAG_ICV02_ACTIVITY, "driver-token http=$statusCode body=$body")
+                return null
+            }
+
+            val token = JSONObject(body).optString("token").trim()
+            token.takeIf { it.isNotBlank() }
+        } catch (error: Exception) {
+            Log.e(TAG_ICV02_ACTIVITY, "driver-token error mensaje=${error.message}")
+            null
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
 }

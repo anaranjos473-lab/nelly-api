@@ -8,7 +8,13 @@
     "dev": "node --watch server.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit --cacheDirectory=.jest-cache",
     "deploy": "firebase deploy",
-    "validate:flow": "node .codex-tmp/validate-fresh-delivery-flow.mjs"
+    "validate:flow": "node .codex-tmp/validate-fresh-delivery-flow.mjs",
+    "validate:routes": "node scripts/validation/validate-routes.js",
+    "validate:data-model": "node scripts/validation/validate-data-model.js",
+    "validate:contracts": "node scripts/validation/validate-contracts.js",
+    "validate:firebase": "node scripts/validation/validate-firebase.js",
+    "validate:all": "npm run validate:routes && npm run validate:data-model && npm run validate:contracts && npm run validate:firebase",
+    "doctor": "node scripts/validation/doctor.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

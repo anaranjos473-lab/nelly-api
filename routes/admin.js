@@ -1,5 +1,6 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
+import { extraerDeudaActual } from '../src/services/debtLockService.js';
 
 const router = express.Router();
 
@@ -123,6 +124,72 @@ router.post('/repartidores/manual-lock', requirePanelAdminEmailAuth, async (req,
     } catch (error) {
         console.error('[ADMIN][MANUAL_LOCK] Error:', error.message);
         return res.status(500).json({ ok: false, error: 'No se pudo actualizar bloqueo manual' });
+    }
+});
+
+// --- ENDPOINT TEMPORAL DE DIAGNOSTICO DE DEUDA ---
+router.get('/debug/deuda/:uid', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const uid = String(req.params.uid || '').trim();
+        if (!uid) {
+            return res.status(400).json({ ok: false, error: 'uid es requerido' });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+        const snap = await db.ref(`repartidores/${uid}`).once('value');
+        const driver = snap.val() || {};
+
+        const deudaActual = Number(extraerDeudaActual(driver) || 0);
+        const limiteDeuda = Number(driver?.finanzas?.limite_deuda || 0);
+        const estatusBloqueado = driver?.estatus?.bloqueado_por_deuda === true;
+        const perfilBloqueado = driver?.perfil?.bloqueado_por_deuda === true;
+        const bloqueoManual = driver?.estatus?.bloqueo_manual === true || driver?.bloqueado_por_deuda === true;
+        const bloqueoPorDeuda = estatusBloqueado || perfilBloqueado || (limiteDeuda > 0 && deudaActual > limiteDeuda);
+        const totalNoElegible = bloqueoManual || bloqueoPorDeuda;
+        let resultadoAcceptOrder = 'ALLOWED';
+        let motivo = 'deuda_actual <= limite_deuda';
+        if (estatusBloqueado) {
+            resultadoAcceptOrder = 'BLOCKED_BY_DEBT';
+            motivo = 'estatus.bloqueado_por_deuda';
+        } else if (perfilBloqueado) {
+            resultadoAcceptOrder = 'BLOCKED_BY_DEBT';
+            motivo = 'perfil.bloqueado_por_deuda';
+        } else if (limiteDeuda > 0 && deudaActual > limiteDeuda) {
+            resultadoAcceptOrder = 'BLOCKED_BY_DEBT';
+            motivo = 'deuda_actual > limite_deuda';
+        }
+
+        console.log('[ADMIN][DEBT_DEBUG]', {
+            uid,
+            deudaActual,
+            limiteDeuda,
+            estatusBloqueado,
+            perfilBloqueado,
+            bloqueoManual,
+            bloqueoPorDeuda,
+            totalNoElegible,
+            resultadoAcceptOrder,
+            motivo
+        });
+
+        return res.status(200).json({
+            ok: true,
+            uid,
+            deuda_actual: deudaActual,
+            limite_deuda: limiteDeuda,
+            bloqueo_manual: bloqueoManual,
+            bloqueo_por_deuda: bloqueoPorDeuda,
+            total_no_elegible: totalNoElegible,
+            estatus_bloqueado_por_deuda: estatusBloqueado,
+            perfil_bloqueado_por_deuda: perfilBloqueado,
+            motivo,
+            resultado_accept_order: resultadoAcceptOrder,
+            bloqueado_por_deuda: resultadoAcceptOrder === 'BLOCKED_BY_DEBT'
+        });
+    } catch (error) {
+        console.error('[ADMIN][DEBT_DEBUG] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo leer el estado de deuda' });
     }
 });
 

@@ -60,7 +60,9 @@ class PedidoRepository(
         pedidoDao.obtenerPedidosPorEstado(estado)
 
     fun limpiarPedidoActivoLocal() {
+        Log.i(TAG_ICV02_REPOSITORY, "limpiarPedidoActivoLocal before pedidoActivoId=${_pedidoActivoId.value ?: "null"}")
         _pedidoActivoId.value = null
+        Log.i(TAG_ICV02_REPOSITORY, "limpiarPedidoActivoLocal after pedidoActivoId=${_pedidoActivoId.value ?: "null"}")
     }
 
     fun resolverEstadoOperativo(
@@ -68,25 +70,23 @@ class PedidoRepository(
         onResult: (EstadoOperativo) -> Unit
     ) {
         val uid = repartidorUid?.trim().orEmpty()
-        Log.i(TAG_APP_START, "APP START")
-        Log.i(TAG_APP_START, "Pedido Room/local: ignorado para navegacion")
+        Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo entry uid=${uid.ifBlank { "null" }} ts=${System.currentTimeMillis()}")
         if (uid.isBlank()) {
-            Log.i(TAG_APP_START, "Sesion: SIN_UID")
+            Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=uid_blank")
             _pedidoActivoId.value = null
             onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
             return
         }
 
-        Log.i(TAG_APP_START, "Sesion OK: $uid")
         FirebaseDatabase.getInstance()
             .getReference("repartidores/$uid/pedido_activo")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val pedidoActivoRtdb = snapshot.getValue(String::class.java)?.trim().orEmpty()
-                    Log.i(TAG_APP_START, "Pedido RTDB repartidor/$uid/pedido_activo: ${pedidoActivoRtdb.ifBlank { "null" }}")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo rtdb uid=$uid pedidoActivoId=${pedidoActivoRtdb.ifBlank { "null" }}")
                     if (pedidoActivoRtdb.isBlank()) {
                         _pedidoActivoId.value = null
-                        Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                        Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=pedido_activo_blank")
                         onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
                         return
                     }
@@ -95,9 +95,9 @@ class PedidoRepository(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.e(TAG_APP_START, "Error consultando pedido activo RTDB: ${error.message}")
+                    Log.e(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo error=consultando_pedido_activo mensaje=${error.message}")
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=error_consultando_pedido_activo")
                     onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
                 }
             })
@@ -113,8 +113,7 @@ class PedidoRepository(
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!snapshot.exists()) {
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Pedido RTDB detalle: inexistente")
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo detalle pedidoId=$pedidoId existe=false regla=pedido_inexistente")
                     onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
@@ -124,38 +123,35 @@ class PedidoRepository(
                     ?: snapshot.child("logistica").child("estado").getValue(String::class.java)
                 val normalized = normalizarEstado(estado)
                 val repartidorAsignado = obtenerDriverAsignadoCanonico(snapshot)
-                Log.i(
-                    TAG_APP_START,
-                    "C3_1_DRIVER_TRACE validarPedidoActivoRemoto pedido=$pedidoId estado=$normalized repartidorAsignado=${repartidorAsignado ?: "null"} repartidorUid=$repartidorUid pedidoActivo=$pedidoId"
-                )
+                Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo detail pedidoId=$pedidoId estadoOriginal=${estado ?: "null"} estadoNormalizado=$normalized repartidorAsignado=${repartidorAsignado ?: "null"} repartidorUid=$repartidorUid")
                 if (normalized == "ENTREGADO" || normalized == "CANCELADO") {
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=estado_terminal_$normalized")
                     onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
                 if (normalized != "EN_CURSO") {
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES (pedido_activo no es EN_CURSO)")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=estado_no_en_curso normalized=$normalized")
                     onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
                 if (repartidorAsignado.isNullOrBlank() || repartidorAsignado != repartidorUid) {
                     _pedidoActivoId.value = null
-                    Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES (repartidor asignado no coincide)")
+                    Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=repartidor_no_coincide repartidorAsignado=${repartidorAsignado ?: "null"} repartidorUid=$repartidorUid")
                     onResult(EstadoOperativo(null, normalized, Destino.PEDIDOS_DISPONIBLES))
                     return
                 }
 
                 _pedidoActivoId.value = pedidoId
-                Log.i(TAG_APP_START, "Destino: TRACKING")
+                Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=TRACKING regla=pedido_activo_en_curso_y_repartidor_coincide")
                 onResult(EstadoOperativo(pedidoId, normalized, Destino.TRACKING))
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG_APP_START, "Error validando pedido activo RTDB: ${error.message}")
+                Log.e(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo error=validando_pedido_detalle mensaje=${error.message}")
                 _pedidoActivoId.value = null
-                Log.i(TAG_APP_START, "Destino: PEDIDOS_DISPONIBLES")
+                Log.i(TAG_ICV02_REPOSITORY, "resolverEstadoOperativo exit destino=PEDIDOS_DISPONIBLES regla=error_validando_pedido_detalle")
                 onResult(EstadoOperativo(null, null, Destino.PEDIDOS_DISPONIBLES))
             }
         })
@@ -186,6 +182,17 @@ class PedidoRepository(
                 val pedidos = snapshot.children
                     .mapNotNull { child -> child.toPedidoEntity() }
                     .filter { pedido -> esEstadoDisponibleParaDriver(pedido.estado) }
+                    .filterNot { pedido ->
+                        val pedidoActivoLocal = _pedidoActivoId.value.orEmpty()
+                        val debeExcluir = pedidoActivoLocal.isNotBlank() && pedido.id == pedidoActivoLocal
+                        if (debeExcluir) {
+                            Log.i(
+                                TAG_ICV02_REPOSITORY,
+                                "syncRadar omitido pedidoActivoLocal=${pedidoActivoLocal} pedidoId=${pedido.id}"
+                            )
+                        }
+                        debeExcluir
+                    }
                 val idsActuales = pedidos.map { it.id }.toSet()
 
                 if (cargaInicialCompletada) {
@@ -424,5 +431,6 @@ class PedidoRepository(
 
     private companion object {
         const val TAG_APP_START = "NellyAppStart"
+        const val TAG_ICV02_REPOSITORY = "ICV02_REPOSITORY"
     }
 }

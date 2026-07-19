@@ -1,78 +1,65 @@
-# Seguridad y protección de inteligencia Nelly
+# Nelly Delivery
 
-## Cambios recientes (2026-05-07)
-- La inicialización de Firebase en el panel ahora se realiza vía endpoint seguro `/api/public/firebase-config`.
-- No se expone ningún secreto ni apiKey sensible en el cliente.
-- La lógica de inteligencia, listeners y sincronización de estados permanece intacta y protegida.
+Nelly Delivery es un ecosistema operativo de pedidos con backend, panel administrativo y app Android para repartidores.
 
-## Nota para desarrolladores
-- Si necesitas acceder a la configuración de Firebase, usa el endpoint seguro y nunca hardcodees valores en el cliente.
-- La inteligencia de Nelly (listeners, debouncing, sincronía de estados) sigue siendo el núcleo y no se elimina ni debilita con este refactor.
-# Consejo Nelly-Ops: Checklist de Onboarding Rápido
+## Componentes
 
-1. No tocar NellyCalculator ni la comisión del 18%.
-2. Nunca exponer ORDER_INGEST_API_KEY, FIREBASE_ADMIN_JSON ni URLs sensibles.
-3. Usar process.env para todos los secretos.
-4. Mantener sincronía de estados: pendiente, en_reparto, entregado.
-5. Optimizar Firebase (listeners granulares, consultas acotadas) y entregar solo diagnóstico, código y justificación breve.
+- `Backend`: reglas de negocio, estado de pedidos, asignación, cierre y finanzas.
+- `Panel`: administración, métricas y operación interna.
+- `Android`: app del repartidor para radar, aceptación, tracking y cierre.
+- `RTDB`: persistencia operativa en tiempo real.
 
-Este checklist es obligatorio para todo colaborador y agente IA en el ecosistema Nelly Delivery.
+## Orden de verdad
 
-# Checklist obligatorio de integridad y seguridad Nelly
+La fuente operativa de verdad sigue este orden:
 
-**Estas reglas deben cumplirse siempre para evitar errores, fugas o regresiones:**
+`Backend -> Firebase RTDB -> Android`
 
-1. Sincronía de claves y variables sensibles
-   - [ ] ORDER_INGEST_API_KEY y otras claves deben ser idénticas en local.properties, Render y GitHub Actions.
-   - [ ] Si se actualiza una clave, replicar el cambio en todos los entornos.
+Android refleja.
+Backend decide.
 
-2. Seguridad y confidencialidad
-   - [ ] Nunca exponer claves ni secrets en archivos públicos (public/, panel, JS del frontend).
-   - [ ] No modificar la lógica de NellyCalculator ni la comisión del 18%.
-   - [ ] Archivos sensibles y de entorno deben estar en .gitignore.
+## Documentación base
 
-3. Despliegue y validación
-   - [ ] Revisar logs del backend tras cada despliegue (Render dashboard > Logs).
-   - [ ] Probar endpoints de diagnóstico: /api/diagnostico/conductores y /api/diagnostico/pedidos.
-   - [ ] Validar que no existan errores 401 ni fugas de información.
+- [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md): reglas operativas para agentes.
+- [`DATA_MODEL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DATA_MODEL.md): modelo de datos canónico.
+- [`SYSTEM_STATE.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/SYSTEM_STATE.md): estado operativo del proyecto.
+- [`CHANGELOG.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CHANGELOG.md): historial funcional certificado.
+- [`CONTRIBUTING.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CONTRIBUTING.md): guía para contribuir.
+- [`ENGINEERING_PRINCIPLES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/ENGINEERING_PRINCIPLES.md): principios de ingeniería.
+- [`DEPENDENCY_MAP.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DEPENDENCY_MAP.md): matriz de dependencias.
+- [`RELEASE_CHECKLIST.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RELEASE_CHECKLIST.md): checklist de liberación.
+- [`RC-01.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RC-01.md): certificación de estabilidad del flujo de entrega.
+- [`docs/adr/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/README.md): índice de decisiones arquitectónicas.
+- [`docs/contracts/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/contracts/README.md): índice de contratos.
+- [`docs/certificaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/README.md): índice de certificaciones.
+- [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): índice de investigaciones.
+- [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): índice de runbooks.
 
-4. Listeners y sincronización de estados
-   - [ ] Listeners de Firebase deben ser granulares (ej. solo pedidos 'pendiente').
-   - [ ] Limpiar/desuscribir listeners al cerrar procesos o recargar páginas.
-   - [ ] Validar que los estados de pedidos se reflejen en tiempo real en panel y app.
+## Baseline
 
-5. Buenas prácticas de desarrollo
-   - [ ] No dejar código de debugging ni logs de claves en producción.
-   - [ ] Mantener actualizado este checklist y revisarlo antes de cada merge o despliegue.
+- P17 es el baseline certificado.
+- `complete-order` debe cerrar con `ENTREGADO`, limpiar `pedido_activo` y retirar nodos auxiliares.
 
----
-**Cualquier incumplimiento puede causar errores críticos, fugas de datos o bloqueos en producción.**
+## Flujo operativo
 
-# Sincronización de ORDER_INGEST_API_KEY
+`Cliente -> Admin -> Cocina -> LISTO -> Radar -> Aceptar -> Entrega -> Complete Order -> ENTREGADO`
 
-1. **Render (Producción):**
-   - Ve a tu dashboard de Render.
-   - Entra a tu servicio backend.
-   - En Environment > Add Environment Variable:
-     - Key: `ORDER_INGEST_API_KEY`
-     - Value: (copia el valor exacto de local.properties)
-   - Guarda y reinicia el servicio.
+## Reglas prácticas
 
-2. **GitHub Actions (CI/CD):**
-   - Ve a tu repositorio en GitHub.
-   - Settings > Secrets and variables > Actions.
-   - Agrega o edita el secret:
-     - Name: `ORDER_INGEST_API_KEY`
-     - Value: (mismo valor que en Render y local.properties)
+- No modificar componentes certificados sin evidencia nueva.
+- No abrir una segunda hipótesis mientras exista una investigación activa.
+- No duplicar fuentes de verdad para la misma entidad.
+- No saltarse el backend para decidir estados finales.
 
-3. **Verificación:**
-   - El valor debe ser idéntico en los tres lugares.
-   - Si hay error 401, revisa los logs generados por el middleware de headers.
+## Inicio rápido
 
-# Troubleshooting Error 401 (API Key)
+1. Leer `AGENTS.md`.
+2. Revisar `DATA_MODEL.md`.
+3. Consultar el ADR relevante.
+4. Cambiar solo el componente investigado.
+5. Compilar y validar una sola corrida.
+6. Si el flujo está estable, ejecutar `RC-01`.
+## Estado actual
 
-- Verifica que el header `x-api-key` se envía correctamente desde el cliente/test.
-- Usa los logs de headers para comparar el valor recibido vs el esperado.
-- Si el valor no coincide, revisa variables de entorno y secrets.
-- Si el valor está vacío, revisa la carga de local.properties y configuración de entorno.
-- Si todo está correcto y persiste el error, reinicia el backend y vuelve a probar.
+- `RC-01` aprobado.
+- `RC-02` aprobado.
