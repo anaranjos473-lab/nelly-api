@@ -1,11 +1,12 @@
-# Certificaciones
+# Certifications
 
-Registro de certificaciones funcionales y baselines aprobados.
+Register of functional certifications and approved baselines.
 
-## Documentos
+## Documents
 
 - [`CERTIFICACION_P17.md`](./../CERTIFICACION_P17.md)
+- [`RC-03.md`](./RC-03.md)
 
-## Regla
+## Rule
 
-Una certificación solo se agrega cuando existe evidencia reproducible y un alcance funcional claro.
+A certification is only added when there is reproducible evidence and a clear functional scope.

@@ -1,16 +1,16 @@
 # REPOSITORY_CERTIFICATION.md
 
-## Certificación del Repositorio
+## Repository Certification
 
-**Proyecto:** Nelly OS  
-**Fecha:** 19 de julio de 2026  
-**Estado:** CERTIFICADO
+**Project:** Nelly OS  
+**Date:** July 19, 2026  
+**State:** CERTIFIED
 
-## Alcance
+## Scope
 
-Esta certificación cubre la fase documental y de coherencia arquitectónica del repositorio.
+This certification covers the documentation and architectural coherence phase of the repository.
 
-## Evidencia Verificada
+## Verified Evidence
 
 - `AGENTS.md`
 - `DATA_MODEL.md`
@@ -30,9 +30,15 @@ Esta certificación cubre la fase documental y de coherencia arquitectónica del
 - `docs/investigaciones/README.md`
 - `docs/runbooks/README.md`
 
-## Validación Ejecutada
+## Completed Certifications
 
-Resultado del health check:
+- `RC-01` - Delivery E2E flow certified.
+- `RC-02` - Post-`complete-order` navigation stability certified.
+- `RC-03` - Map-based courier home currently in validation.
+
+## Validation Executed
+
+Health check result:
 
 - `validate-routes` -> OK
 - `validate-data-model` -> OK
@@ -43,22 +49,18 @@ Resultado del health check:
 - `adr-check` -> OK
 - `system-check` -> OK
 
-Resultado global:
+Global result:
 
 - `HEALTHY`
 
-## Principios de uso
+## Usage Principles
 
-- No reabrir módulos certificados sin evidencia nueva, directa y reproducible.
-- Mantener una sola fuente de verdad por entidad.
-- Mantener separado el bloqueo administrativo del bloqueo por deuda en UI, endpoint y ADR.
-- Evitar introducir cambios funcionales mientras una investigación siga activa.
-- Actualizar esta certificación cuando cambie el estado real del repositorio.
+- Do not reopen certified modules without new, direct, reproducible evidence.
+- Keep a single source of truth per entity.
+- Keep manual blocking separate from debt blocking in UI, endpoint, and ADR.
+- Avoid introducing functional changes while an investigation is active.
+- Update this certification when the real repository state changes.
 
-## Observaciones
+## Observations
 
-La fase documental queda cerrada como base de referencia para trabajo futuro, diagnóstico y mantenimiento.
-## Certificaciones completadas
-
-- `RC-01` - Flujo E2E de entrega certificado.
-- `RC-02` - Estabilidad de navegación post `complete-order` certificada.
+The documentation phase remains a stable reference base for future work, diagnosis, and maintenance.

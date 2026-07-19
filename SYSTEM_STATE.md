@@ -1,43 +1,49 @@
 # SYSTEM_STATE.md
-# Estado Operativo de Nelly OS
+# Nelly OS Operational State
 
-Este documento resume qué está estable, qué está congelado y qué sigue en investigación.
+This document summarizes what is stable, what is frozen, and what is still under investigation.
 
-## Estados
+## States
 
-| Componente | Estado | Nota |
+| Component | State | Note |
 | --- | --- | --- |
-| Backend de entrega | CERTIFICADO | Flujo `complete-order` y cierre base validados. |
-| Cocina -> LISTO | CERTIFICADO | Tramo ya validado y no debe reabrirse sin evidencia nueva. |
-| Radar / publicación | CERTIFICADO | La publicación al repartidor funciona como parte del flujo operativo. |
-| Android Radar / aceptación | ESTABLE | Autenticación y lectura del radar operan; validar sin romper contrato. |
-| Android cierre | CERTIFICADO | La cadena técnica de cierre quedó validada; al completar entrega el Radar vuelve y permanece visible sin caer al launcher. |
-| RC-01 | APROBADO | Corrida E2E limpia validada con pedido nuevo: aceptar, tracking, `complete-order`, limpieza local y regreso al Radar. |
-| RC-02 | APROBADO | Estabilidad de navegación post-`complete-order` validada en corridas consecutivas sin caída al launcher. |
-| Finanzas del repartidor | ESTABLE | La lógica existe y no debe alterarse sin motivo funcional. |
-| Panel administrativo | EN AJUSTE | Debe distinguir bloqueo manual, bloqueo por deuda y total no elegibles. |
-| Modelo de datos | EN CONSOLIDACIÓN | `repartidores/{uid}` es la rama canónica; `usuarios/repartidores` queda como legado/compatibilidad. |
-| Bloqueo de repartidores | CERTIFICADO | Separación operativa entre `bloqueo_manual`, `bloqueo_por_deuda` y `total_no_elegible`. |
+| Delivery backend | CERTIFIED | Base `complete-order` flow and closure contract validated. |
+| Kitchen -> LISTO | CERTIFIED | This segment is validated and must not be reopened without new evidence. |
+| Radar / publication | CERTIFIED | Courier publication works as part of the operational flow. |
+| Android Radar / acceptance | STABLE | Authentication and radar reading work; validate without breaking the contract. |
+| Android closure | CERTIFIED | The technical closure chain was validated; after completion the Radar returns and stays visible without falling back to the launcher. |
+| RC-01 | APPROVED | Clean E2E run validated with a new order: accept, tracking, `complete-order`, local cleanup, and return to Radar. |
+| RC-02 | APPROVED | Post-`complete-order` navigation stability validated across consecutive runs without launcher fallback. |
+| RC-03 | IN VALIDATION | Map-based courier home has been restored visually; full functional parity is still being verified. |
+| Courier finance | STABLE | The logic exists and should not be altered without functional cause. |
+| Admin panel | IN ADJUSTMENT | Must distinguish manual block, debt block, and total ineligible. |
+| Data model | CONSOLIDATING | `repartidores/{uid}` is the canonical branch; `usuarios/repartidores` remains legacy/compatibility. |
+| Courier blocking | CERTIFIED | Operational separation between `bloqueo_manual`, `bloqueo_por_deuda`, and `total_no_elegible`. |
 
-## Congelado
+## Frozen
 
-No tocar sin nueva evidencia:
+Do not touch without new evidence:
 
-- `routes/delivery.js` en el contrato base de cierre
-- el baseline P17
-- el flujo Cocina -> Radar
-- los contratos ya certificados
+- `routes/delivery.js` in the base closure contract
+- the P17 baseline
+- the Kitchen -> Radar flow
+- already certified contracts
 
-## En Investigacion
+## Under Investigation
 
-- consistencia de bloqueo por deuda en el perfil de prueba
-- consolidación final del panel administrativo sobre una sola fuente
-- ajustes finos de UX futuros solo si cambian las reglas de navegación
+- debt-block consistency for the test profile
+- final admin panel consolidation onto a single source
+- future UX tweaks only if navigation rules change
 
-## No Debe Tocarse Sin Evidencia
+## Must Not Change Without Evidence
 
-- estados finales del pedido
-- contratos de cierre
-- reglas SSOT
-- fuentes duplicadas de la misma entidad
-- reinterpretar `bloqueo_manual` como bloqueo por deuda
+- final order states
+- closure contracts
+- SSOT rules
+- duplicate sources for the same entity
+- reinterpreting `bloqueo_manual` as debt blocking
+
+## RC-03A
+
+- State: IN VALIDATION
+- Reason: the tactical UI was restored with a visible map, bottom panel, and visual parity with the reference, but full end-to-end parity is still being confirmed.

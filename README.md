@@ -1,65 +1,75 @@
 # Nelly Delivery
 
-Nelly Delivery es un ecosistema operativo de pedidos con backend, panel administrativo y app Android para repartidores.
+Nelly Delivery is an operational ordering ecosystem with backend, admin panel, and Android app for couriers.
 
-## Componentes
+## Official State
 
-- `Backend`: reglas de negocio, estado de pedidos, asignación, cierre y finanzas.
-- `Panel`: administración, métricas y operación interna.
-- `Android`: app del repartidor para radar, aceptación, tracking y cierre.
-- `RTDB`: persistencia operativa en tiempo real.
+- RC-01: approved
+- RC-02: approved
+- RC-03: in validation
 
-## Orden de verdad
+The main courier interface was restored to the reference map-based layout, while keeping the certified dispatch, tracking, and closure logic intact.
 
-La fuente operativa de verdad sigue este orden:
+## Components
+
+- `Backend`: business rules, order state, assignment, closure, and finance.
+- `Panel`: administration, metrics, and internal operations.
+- `Android`: courier app for radar, acceptance, tracking, and closure.
+- `RTDB`: real-time operational persistence.
+
+## Source Of Truth
+
+The operative source of truth follows this order:
 
 `Backend -> Firebase RTDB -> Android`
 
-Android refleja.
-Backend decide.
+Android reflects.
+Backend decides.
 
-## Documentación base
+## Core Documentation
 
-- [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md): reglas operativas para agentes.
-- [`DATA_MODEL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DATA_MODEL.md): modelo de datos canónico.
-- [`SYSTEM_STATE.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/SYSTEM_STATE.md): estado operativo del proyecto.
-- [`CHANGELOG.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CHANGELOG.md): historial funcional certificado.
-- [`CONTRIBUTING.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CONTRIBUTING.md): guía para contribuir.
-- [`ENGINEERING_PRINCIPLES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/ENGINEERING_PRINCIPLES.md): principios de ingeniería.
-- [`DEPENDENCY_MAP.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DEPENDENCY_MAP.md): matriz de dependencias.
-- [`RELEASE_CHECKLIST.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RELEASE_CHECKLIST.md): checklist de liberación.
-- [`RC-01.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RC-01.md): certificación de estabilidad del flujo de entrega.
-- [`docs/adr/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/README.md): índice de decisiones arquitectónicas.
-- [`docs/contracts/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/contracts/README.md): índice de contratos.
-- [`docs/certificaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/README.md): índice de certificaciones.
-- [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): índice de investigaciones.
-- [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): índice de runbooks.
+- [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md): operating rules for agents.
+- [`DATA_MODEL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DATA_MODEL.md): canonical data model.
+- [`SYSTEM_STATE.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/SYSTEM_STATE.md): project operational state.
+- [`CHANGELOG.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CHANGELOG.md): certified functional history.
+- [`CONTRIBUTING.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CONTRIBUTING.md): contribution guide.
+- [`ENGINEERING_PRINCIPLES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/ENGINEERING_PRINCIPLES.md): engineering principles.
+- [`DEPENDENCY_MAP.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/DEPENDENCY_MAP.md): dependency matrix.
+- [`RELEASE_CHECKLIST.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RELEASE_CHECKLIST.md): release checklist.
+- [`RC-01.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/RC-01.md): delivery flow certification.
+- [`docs/adr/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/README.md): ADR index.
+- [`docs/contracts/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/contracts/README.md): contracts index.
+- [`docs/certificaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/README.md): certifications index.
+- [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): investigations index.
+- [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): runbooks index.
 
 ## Baseline
 
-- P17 es el baseline certificado.
-- `complete-order` debe cerrar con `ENTREGADO`, limpiar `pedido_activo` y retirar nodos auxiliares.
+- P17 is the certified baseline.
+- `complete-order` must end with `ENTREGADO`, clear `pedido_activo`, and remove auxiliary nodes.
 
-## Flujo operativo
+## Operational Flow
 
-`Cliente -> Admin -> Cocina -> LISTO -> Radar -> Aceptar -> Entrega -> Complete Order -> ENTREGADO`
+`Client -> Admin -> Kitchen -> LISTO -> Radar -> Accept -> Delivery -> Complete Order -> ENTREGADO`
 
-## Reglas prácticas
+## Practical Rules
 
-- No modificar componentes certificados sin evidencia nueva.
-- No abrir una segunda hipótesis mientras exista una investigación activa.
-- No duplicar fuentes de verdad para la misma entidad.
-- No saltarse el backend para decidir estados finales.
+- Do not modify certified components without new evidence.
+- Do not open a second hypothesis while an investigation is active.
+- Do not duplicate sources of truth for the same entity.
+- Do not bypass the backend to decide final states.
 
-## Inicio rápido
+## Quick Start
 
-1. Leer `AGENTS.md`.
-2. Revisar `DATA_MODEL.md`.
-3. Consultar el ADR relevante.
-4. Cambiar solo el componente investigado.
-5. Compilar y validar una sola corrida.
-6. Si el flujo está estable, ejecutar `RC-01`.
-## Estado actual
+1. Read `AGENTS.md`.
+2. Review `DATA_MODEL.md`.
+3. Consult the relevant ADR.
+4. Change only the component under investigation.
+5. Compile and validate one run.
+6. If the flow is stable, execute `RC-01`.
 
-- `RC-01` aprobado.
-- `RC-02` aprobado.
+## Current State
+
+- `RC-01` approved.
+- `RC-02` approved.
+- `RC-03` in validation.
