@@ -58,7 +58,7 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
         console.log('[ADMIN] Firebase Admin OK');
         const db = admin.database();
 
-        console.log('[ADMIN] Leyendo usuarios/repartidores y repartidores');
+        console.log('[ADMIN] Leyendo usuarios/repartidores, repartidores y repartidores_activos');
         const [usuariosSnap, repartidoresSnap] = await Promise.all([
             db.ref('usuarios/repartidores').once('value'),
             db.ref('repartidores').once('value')
@@ -67,20 +67,18 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
 
         const usuarios = usuariosSnap.val();
         const repartidores = repartidoresSnap.val();
-        const source = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0
-            ? 'usuarios/repartidores'
-            : 'repartidores';
-        const drivers = source === 'usuarios/repartidores'
-            ? (usuarios || {})
-            : (repartidores || {});
+        const drivers = {
+            ...(repartidores && typeof repartidores === 'object' ? repartidores : {}),
+            ...(usuarios && typeof usuarios === 'object' ? usuarios : {})
+        };
 
         console.log('[ADMIN] Enviando respuesta /repartidores', {
-            source,
+            source: 'usuarios/repartidores+repartidores',
             total: Object.keys(drivers).length,
         });
         return res.status(200).json({
             ok: true,
-            source,
+            source: 'usuarios/repartidores+repartidores',
             drivers,
         });
     } catch (error) {
