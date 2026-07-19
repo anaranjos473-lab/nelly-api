@@ -58,20 +58,29 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
         console.log('[ADMIN] Firebase Admin OK');
         const db = admin.database();
 
-        console.log('[ADMIN] Leyendo repartidores_activos');
-        const activosSnap = await db.ref('repartidores_activos').once('value');
-        console.log('[ADMIN] Lectura repartidores_activos completada');
+        console.log('[ADMIN] Leyendo usuarios/repartidores y repartidores');
+        const [usuariosSnap, repartidoresSnap] = await Promise.all([
+            db.ref('usuarios/repartidores').once('value'),
+            db.ref('repartidores').once('value')
+        ]);
+        console.log('[ADMIN] Lectura de repartidores completada');
 
-        const activos = activosSnap.val();
-        const drivers = activos || {};
+        const usuarios = usuariosSnap.val();
+        const repartidores = repartidoresSnap.val();
+        const source = usuarios && typeof usuarios === 'object' && Object.keys(usuarios).length > 0
+            ? 'usuarios/repartidores'
+            : 'repartidores';
+        const drivers = source === 'usuarios/repartidores'
+            ? (usuarios || {})
+            : (repartidores || {});
 
         console.log('[ADMIN] Enviando respuesta /repartidores', {
-            source: 'repartidores_activos',
+            source,
             total: Object.keys(drivers).length,
         });
         return res.status(200).json({
             ok: true,
-            source: 'repartidores_activos',
+            source,
             drivers,
         });
     } catch (error) {
@@ -80,6 +89,42 @@ router.get('/repartidores', requirePanelAdminEmailAuth, async (req, res) => {
             ok: false,
             error: error.message,
         });
+    }
+});
+
+// --- ENDPOINT: BLOQUEO MANUAL DE REPARTIDOR ---
+router.post('/repartidores/manual-lock', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const uid = String(req.body?.uid || '').trim();
+        const bloqueado = req.body?.bloqueado === true;
+
+        if (!uid) {
+            return res.status(400).json({ ok: false, error: 'uid es requerido' });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+        const now = Date.now();
+        const updates = {};
+
+        updates[`repartidores/${uid}/bloqueado_por_deuda`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/bloqueado_por_deuda`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/bloqueo_manual`] = bloqueado;
+        updates[`repartidores/${uid}/estatus/updated_at`] = now;
+        updates[`repartidores/${uid}/perfil/bloqueado_por_deuda`] = bloqueado;
+
+        updates[`usuarios/repartidores/${uid}/bloqueado_por_deuda`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/bloqueado_por_deuda`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/bloqueo_manual`] = bloqueado;
+        updates[`usuarios/repartidores/${uid}/estatus/updated_at`] = now;
+        updates[`usuarios/repartidores/${uid}/perfil/bloqueado_por_deuda`] = bloqueado;
+
+        await db.ref().update(updates);
+
+        return res.status(200).json({ ok: true, uid, bloqueado });
+    } catch (error) {
+        console.error('[ADMIN][MANUAL_LOCK] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo actualizar bloqueo manual' });
     }
 });
 
