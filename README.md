@@ -45,6 +45,8 @@ Backend decides.
 - [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): investigations index.
 - [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): runbooks index.
 - [`OPERACION_INDEX.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/OPERACION_INDEX.md): pilot and operation entry point.
+- [`CHECKLIST_FINAL_CIERRE_PILOTO_CONTROLADO_2026_07_21.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CHECKLIST_FINAL_CIERRE_PILOTO_CONTROLADO_2026_07_21.md): final pilot closeout checklist.
+- [`ACTA_CIERRE_PILOTO_CONTROLADO_2026_07_21.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/ACTA_CIERRE_PILOTO_CONTROLADO_2026_07_21.md): executive pilot closeout act.
 
 ## Baseline
 
