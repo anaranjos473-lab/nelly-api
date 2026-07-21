@@ -999,9 +999,6 @@
         let alertaMinEventos = 20;
         let alertasDebounceSilenciadas = false;
         // Timers now live in KitchenState to keep B1.4 isolated.
-        const pedidosPendientes = new Map();
-        const pedidosReparto = new Map();
-        const pedidosEnCamino = new Map();
         const liquidacionesAuditProcesadas = new Set();
         const metricasEventos = {
             total: 0,
@@ -1040,7 +1037,7 @@
         }
 
         function sincronizarPendientesDesdeSnapshot(snapshot, origen = 'snapshot-pendientes') {
-            pedidosPendientes.clear();
+            kitchenState.orders.pedidosPendientes.clear();
             snapshot.forEach((child) => {
                 const pedido = child.val();
                 if (!pedido || typeof pedido !== 'object') {
@@ -1327,7 +1324,7 @@
             }
 
             const pedidoId = data.id || data.id_pedido || key;
-            pedidosPendientes.set(key, {
+            kitchenState.orders.pedidosPendientes.set(key, {
                 ...data,
                 id: pedidoId,
                 _rtdbKey: key,
@@ -1350,7 +1347,7 @@
                 return false;
             }
 
-            const eliminado = pedidosPendientes.delete(key);
+            const eliminado = kitchenState.orders.pedidosPendientes.delete(key);
             if (eliminado) {
                 solicitarRenderPanel(opciones.origen || 'eliminarFilaVisual');
             }
@@ -1359,7 +1356,7 @@
 
         // Utilidades de consola para depuración operativa.
         window.listarPedidosPendientes = () => {
-            return Array.from(pedidosPendientes.entries()).map(([key, pedido]) => ({
+            return Array.from(kitchenState.orders.pedidosPendientes.entries()).map(([key, pedido]) => ({
                 key,
                 shortId: pedido.shortId || null,
                 id_pedido: pedido.id_pedido || pedido.id || key,
@@ -1369,7 +1366,7 @@
         };
 
         window.listarPedidosReparto = () => {
-            return Array.from(pedidosReparto.entries()).map(([key, pedido]) => ({
+            return Array.from(kitchenState.orders.pedidosReparto.entries()).map(([key, pedido]) => ({
                 key,
                 shortId: pedido.shortId || null,
                 id_pedido: pedido.id_pedido || pedido.id || key,
@@ -1384,9 +1381,9 @@
                 existe: snapshot.exists(),
                 size: snapshot.size ?? null
             });
-            pedidosPendientes.clear();
-            pedidosReparto.clear();
-            pedidosEnCamino.clear();
+            kitchenState.orders.pedidosPendientes.clear();
+            kitchenState.orders.pedidosReparto.clear();
+            kitchenState.orders.pedidosEnCamino.clear();
 
             const raiz = snapshot.val();
             const idsVisibles = [];
@@ -1407,23 +1404,23 @@
                     };
 
                     if (estado === "PENDIENTE") {
-                        pedidosPendientes.set(key, pedido);
+                        kitchenState.orders.pedidosPendientes.set(key, pedido);
                         idsVisibles.push(pedido.id);
                     } else if (estado === "LISTO") {
-                        pedidosReparto.set(key, pedido);
+                        kitchenState.orders.pedidosReparto.set(key, pedido);
                         idsVisibles.push(pedido.id);
                     } else if (estado === "EN_CURSO" || estado === "ENTREGADO") {
-                        pedidosEnCamino.set(key, pedido);
+                        kitchenState.orders.pedidosEnCamino.set(key, pedido);
                         idsVisibles.push(pedido.id);
                     }
                 });
             }
 
             console.log('[COCINA] Total de pedidos', {
-                pendientes: pedidosPendientes.size,
-                reparto: pedidosReparto.size,
-                enCamino: pedidosEnCamino.size,
-                total: pedidosPendientes.size + pedidosReparto.size + pedidosEnCamino.size
+                pendientes: kitchenState.orders.pedidosPendientes.size,
+                reparto: kitchenState.orders.pedidosReparto.size,
+                enCamino: kitchenState.orders.pedidosEnCamino.size,
+                total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
             });
             console.log('[COCINA] IDs visibles', idsVisibles);
             registrarEvento('pedidosSnapshot');
@@ -1431,11 +1428,11 @@
         }
 
         function resolverKeyPedido(identificador) {
-            if (pedidosPendientes.has(identificador) || pedidosReparto.has(identificador) || pedidosEnCamino.has(identificador)) {
+            if (kitchenState.orders.pedidosPendientes.has(identificador) || kitchenState.orders.pedidosReparto.has(identificador) || kitchenState.orders.pedidosEnCamino.has(identificador)) {
                 return identificador;
             }
 
-            for (const mapa of [pedidosPendientes, pedidosReparto, pedidosEnCamino]) {
+            for (const mapa of [kitchenState.orders.pedidosPendientes, kitchenState.orders.pedidosReparto, kitchenState.orders.pedidosEnCamino]) {
                 for (const [key, pedido] of mapa.entries()) {
                     if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
                         return key;
@@ -1616,12 +1613,12 @@
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {
             console.log('[COCINA] Render pedido', {
-                pendientes: pedidosPendientes.size,
-                reparto: pedidosReparto.size,
-                enCamino: pedidosEnCamino.size,
-                idsPendientes: Array.from(pedidosPendientes.keys()),
-                idsReparto: Array.from(pedidosReparto.keys()),
-                idsEnCamino: Array.from(pedidosEnCamino.keys())
+                pendientes: kitchenState.orders.pedidosPendientes.size,
+                reparto: kitchenState.orders.pedidosReparto.size,
+                enCamino: kitchenState.orders.pedidosEnCamino.size,
+                idsPendientes: Array.from(kitchenState.orders.pedidosPendientes.keys()),
+                idsReparto: Array.from(kitchenState.orders.pedidosReparto.keys()),
+                idsEnCamino: Array.from(kitchenState.orders.pedidosEnCamino.keys())
             });
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
             const contenedorListo = document.getElementById('contenedor-listo');
@@ -1637,7 +1634,7 @@
             let cReparto = 0;
             let cEntregados = 0;
 
-            pedidosPendientes.forEach((pedido, id) => {
+            kitchenState.orders.pedidosPendientes.forEach((pedido, id) => {
                 const fase = obtenerFasePanel(pedido.estado);
                 if (fase === 'COCINA') {
                     contenedorPendientes.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, true));
@@ -1651,16 +1648,16 @@
                 }
             });
 
-            pedidosReparto.forEach((pedido, id) => {
-                if (pedidosPendientes.has(id)) {
+            kitchenState.orders.pedidosReparto.forEach((pedido, id) => {
+                if (kitchenState.orders.pedidosPendientes.has(id)) {
                     return;
                 }
                 contenedorListo.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
                 cListo++;
             });
 
-            pedidosEnCamino.forEach((pedido, id) => {
-                if (pedidosPendientes.has(id) || pedidosReparto.has(id)) {
+            kitchenState.orders.pedidosEnCamino.forEach((pedido, id) => {
+                if (kitchenState.orders.pedidosPendientes.has(id) || kitchenState.orders.pedidosReparto.has(id)) {
                     return;
                 }
                 const estado = normalizarEstado(pedido.estado);
@@ -1732,9 +1729,9 @@
             }
 
             const keyResuelta = resolverKeyPedido(id);
-            const pedido = pedidosPendientes.get(keyResuelta);
+            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta);
             if (!pedido) {
-                const yaEnReparto = pedidosReparto.has(keyResuelta) || pedidosEnCamino.has(keyResuelta);
+                const yaEnReparto = kitchenState.orders.pedidosReparto.has(keyResuelta) || kitchenState.orders.pedidosEnCamino.has(keyResuelta);
                 if (yaEnReparto) {
                     showToast('Pedido listo para repartidor. Espera aceptacion en Driver.', 'ok');
                     return;
@@ -1782,12 +1779,12 @@
                     throw new Error('dispatch_order_failed_all_endpoints');
                 }
 
-                pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'LISTO' });
+                kitchenState.orders.pedidosPendientes.set(rtdbKey, { ...pedido, estado: 'LISTO' });
                 actualizarPanel();
                 await sumarGanancias(Number(pedido.monto || pedido.total || 0));
                 showToast('Pedido movido a reparto', 'ok');
             } catch (error) {
-                pedidosPendientes.set(keyResuelta, { ...pedido, estado: estadoOriginal });
+                kitchenState.orders.pedidosPendientes.set(keyResuelta, { ...pedido, estado: estadoOriginal });
                 actualizarPanel();
                 logDebug(`MOVE error: ${error.message}`, 'err');
                 showToast(`Error mover a reparto: ${error.message}`, 'err');
@@ -1797,7 +1794,7 @@
 
         window.finalizarPedido = async function(id) {
             const keyResuelta = resolverKeyPedido(id);
-            const pedido = pedidosReparto.get(keyResuelta) || pedidosEnCamino.get(keyResuelta) || pedidosPendientes.get(keyResuelta);
+            const pedido = kitchenState.orders.pedidosReparto.get(keyResuelta) || kitchenState.orders.pedidosEnCamino.get(keyResuelta) || kitchenState.orders.pedidosPendientes.get(keyResuelta);
             const estadoNormalizado = pedido ? normalizarEstado(pedido.estado) : null;
 
             if (!pedido) {
