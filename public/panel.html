@@ -19,7 +19,7 @@
 
             const API_BASE_URL = window.location.hostname === 'nelly-delivery.web.app'
                 ? 'https://nelly-api-8lh1.onrender.com'
-                : '';
+                : 'http://127.0.0.1:3001';
 
             async function fetchFirebaseConfig() {
                 const resp = await fetch(`${API_BASE_URL}/api/public/firebase-config`);
@@ -1383,11 +1383,17 @@
         };
 
         function sincronizarPedidosOperativosDesdeSnapshot(snapshot, origen) {
+            console.log('[COCINA] Snapshot recibido', {
+                origen,
+                existe: snapshot.exists(),
+                size: snapshot.size ?? null
+            });
             pedidosPendientes.clear();
             pedidosReparto.clear();
             pedidosEnCamino.clear();
 
             const raiz = snapshot.val();
+            const idsVisibles = [];
             if (raiz && typeof raiz === "object") {
                 Object.entries(raiz).forEach(([key, value]) => {
                     if (!value || typeof value !== "object") {
@@ -1406,14 +1412,24 @@
 
                     if (estado === "PENDIENTE") {
                         pedidosPendientes.set(key, pedido);
+                        idsVisibles.push(pedido.id);
                     } else if (estado === "LISTO") {
                         pedidosReparto.set(key, pedido);
+                        idsVisibles.push(pedido.id);
                     } else if (estado === "EN_CURSO" || estado === "ENTREGADO") {
                         pedidosEnCamino.set(key, pedido);
+                        idsVisibles.push(pedido.id);
                     }
                 });
             }
 
+            console.log('[COCINA] Total de pedidos', {
+                pendientes: pedidosPendientes.size,
+                reparto: pedidosReparto.size,
+                enCamino: pedidosEnCamino.size,
+                total: pedidosPendientes.size + pedidosReparto.size + pedidosEnCamino.size
+            });
+            console.log('[COCINA] IDs visibles', idsVisibles);
             registrarEvento('pedidosSnapshot');
             solicitarRenderPanel(origen || 'onValue-pedidos');
         }
@@ -1479,13 +1495,23 @@
             try {
                 let response = null;
                 const bootstrapToken = window.AUTH_BOOTSTRAP_TOKEN || '';
+                const hasFirebaseSession = Boolean(auth.currentUser);
+                const bearerToken = hasFirebaseSession
+                    ? await auth.currentUser.getIdToken().catch((error) => {
+                        throw new Error(`firebase_id_token_unavailable: ${error?.message || 'unknown'}`);
+                    })
+                    : '';
                 for (const endpoint of PANEL_TOKEN_ENDPOINTS) {
                     try {
+                        const headers = {};
+                        if (bearerToken) {
+                            headers.Authorization = `Bearer ${bearerToken}`;
+                        } else if (!hasFirebaseSession && bootstrapToken) {
+                            headers['x-auth-bootstrap-token'] = bootstrapToken;
+                        }
                         const candidate = await fetch(endpoint, { 
                             method: "GET",
-                            headers: {
-                                'x-auth-bootstrap-token': bootstrapToken
-                            }
+                            headers
                         });
                         if (candidate.ok) {
                             response = candidate;
@@ -1593,6 +1619,14 @@
 
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {
+            console.log('[COCINA] Render pedido', {
+                pendientes: pedidosPendientes.size,
+                reparto: pedidosReparto.size,
+                enCamino: pedidosEnCamino.size,
+                idsPendientes: Array.from(pedidosPendientes.keys()),
+                idsReparto: Array.from(pedidosReparto.keys()),
+                idsEnCamino: Array.from(pedidosEnCamino.keys())
+            });
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
             const contenedorListo = document.getElementById('contenedor-listo');
             const contenedorReparto = document.getElementById('contenedor-reparto');

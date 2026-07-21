@@ -44,6 +44,9 @@ app.use(rateLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Publica el contenido de `public/` por HTTP para que /panel.html y recursos asociados funcionen.
+app.use(express.static('public'));
+
 function isProduction() {
     return process.env.NODE_ENV === 'production';
 }
