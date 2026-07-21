@@ -20,7 +20,7 @@ Una etapa solo cambia de estado cuando existe evidencia validada y el DoD corres
 | B1.3 | 🟢 | e68ddbb | Validacion manual | Migrar flags operativos |
 | B1.4 | 🟢 | 2827d0f | Validacion manual | Migrar temporizadores |
 | B1.5 | 🟢 | 7f54dd2 | Búsqueda de referencias + revisión funcional | Migrar colecciones de pedidos |
-| B1.6 | ⬜ | — | — | Migrar metricas y auditoria |
+| B1.6 | 🟢 | f0ffa1b | Búsqueda de referencias + revisión funcional | Migrar metricas y auditoria |
 | B1.7 | ⬜ | — | — | Eliminar globals legacy |
 | B2 | ⬜ | — | — | Extraer render |
 | B3 | ⬜ | — | — | Extraer acciones de pedidos |
