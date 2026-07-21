@@ -1,4 +1,4 @@
-// --- MÉTRICAS DE RENTABILIDAD DIARIA ---
+﻿// --- MÃ‰TRICAS DE RENTABILIDAD DIARIA ---
 async function refreshRentabilidadMetrics() {
   try {
     const payload = await fetchAdminApi("/api/admin/metricas/rentabilidad");
@@ -44,13 +44,13 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   "operaciones@nellydelivery.com"
 ]);
 
-// Permite cambiar el endpoint desde la consola para pruebas de nómina
+// Permite cambiar el endpoint desde la consola para pruebas de nÃ³mina
 window.setAdminApiEndpoint = function(url) {
   if (typeof url === 'string' && url.startsWith('http')) {
     ADMIN_API_ENDPOINTS[0] = url.replace(/\/+$/, '');
-    console.log('[Nómina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
+    console.log('[NÃ³mina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
   } else {
-    console.warn('URL inválida para ADMIN_API_ENDPOINTS');
+    console.warn('URL invÃ¡lida para ADMIN_API_ENDPOINTS');
   }
 };
 
@@ -60,7 +60,7 @@ const ADMIN_API_ENDPOINTS = [
 const ADMIN_API_TIMEOUT_MS = 15000;
 console.log("ADMIN DASHBOARD VERSION 522db1b");
 
-// Script de validación automática de nómina
+// Script de validaciÃ³n automÃ¡tica de nÃ³mina
 window.validarNomina = async function(uid, montoPago) {
   try {
     if (!uid || !montoPago) throw new Error('Falta uid o montoPago');
@@ -71,7 +71,7 @@ window.validarNomina = async function(uid, montoPago) {
     const liquidaciones = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
-    console.log('[Nómina][Test] Liquidaciones:', liquidaciones);
+    console.log('[NÃ³mina][Test] Liquidaciones:', liquidaciones);
     // 2. Ejecutar pago
     const pago = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/panel/finanzas/registrar-pago-deuda`, {
       method: 'POST',
@@ -81,15 +81,15 @@ window.validarNomina = async function(uid, montoPago) {
       },
       body: JSON.stringify({ uid, monto_pago: montoPago })
     }).then(r => r.json());
-    console.log('[Nómina][Test] Resultado pago:', pago);
+    console.log('[NÃ³mina][Test] Resultado pago:', pago);
     // 3. Consultar liquidaciones nuevamente
     const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
-    console.log('[Nómina][Test] Liquidaciones tras pago:', liquidaciones2);
-    alert('Validación de nómina completada. Revisa la consola para detalles.');
+    console.log('[NÃ³mina][Test] Liquidaciones tras pago:', liquidaciones2);
+    alert('ValidaciÃ³n de nÃ³mina completada. Revisa la consola para detalles.');
   } catch (e) {
-    alert('Error en validación de nómina: ' + e.message);
+    alert('Error en validaciÃ³n de nÃ³mina: ' + e.message);
   }
 };
 
@@ -120,6 +120,10 @@ const ui = {
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
   orderAddress: document.getElementById("order-address"),
+  orderPlaceType: document.getElementById("order-place-type"),
+  orderDeliveryMethod: document.getElementById("order-delivery-method"),
+  orderReference: document.getElementById("order-reference"),
+  orderLocationNotes: document.getElementById("order-location-notes"),
   orderClientLat: document.getElementById("order-client-lat"),
   orderClientLng: document.getElementById("order-client-lng"),
   orderStoreLat: document.getElementById("order-store-lat"),
@@ -131,6 +135,22 @@ const ui = {
   orderPaymentMethod: document.getElementById("order-payment-method"),
   orderTotal: document.getElementById("order-total"),
   orderNotes: document.getElementById("order-notes"),
+  orderPreview: document.getElementById("order-preview"),
+  previewLocation: document.querySelector("[data-preview-location]"),
+  previewOpenMaps: document.getElementById("preview-open-maps"),
+  previewCopyLocation: document.getElementById("preview-copy-location"),
+  locationSearch: document.getElementById("location-search"),
+  locationSearchBtn: document.getElementById("location-search-btn"),
+  locationFoundAddress: document.getElementById("location-found-address"),
+  locationFoundStatus: document.getElementById("location-found-status"),
+  locationCoordsPreview: document.getElementById("location-coords-preview"),
+  locationCaptureState: document.getElementById("location-capture-state"),
+  useCurrentLocation: document.getElementById("use-current-location"),
+  confirmLocation: document.getElementById("confirm-location"),
+  targetClient: document.getElementById("target-client"),
+  targetStore: document.getElementById("target-store"),
+  orderMap: document.getElementById("order-map"),
+  orderSubmit: document.getElementById("order-submit"),
   orderFeedback: document.getElementById("order-feedback")
 };
 
@@ -140,6 +160,205 @@ let dashboardListenersAttached = false;
 let dashboardPollingId = null;
 let activeAdminUser = null;
 let dashboardSyncInFlight = false;
+let orderMapInstance = null;
+let orderMapReady = false;
+let orderMapMarker = null;
+let reverseLookupInFlight = false;
+let activeLocationTarget = "client";
+let locationState = {
+  client: { lat: 16.75, lng: -93.12, address: "", label: "" },
+  store: { lat: 16.7527, lng: -93.1134, address: "", label: "" }
+};
+
+function getActiveLocation() {
+  return locationState[activeLocationTarget];
+}
+
+function updateTargetButtons() {
+  if (ui.targetClient) {
+    ui.targetClient.className = activeLocationTarget === "client"
+      ? "bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950"
+      : "bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-200";
+  }
+  if (ui.targetStore) {
+    ui.targetStore.className = activeLocationTarget === "store"
+      ? "bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950"
+      : "bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-200";
+  }
+}
+
+function setActiveLocationTarget(target) {
+  activeLocationTarget = target === "store" ? "store" : "client";
+  updateTargetButtons();
+  const active = getActiveLocation();
+  if (ui.locationCaptureState) {
+    ui.locationCaptureState.textContent = activeLocationTarget === "client"
+      ? "Capturando ubicaciÃ³n del cliente."
+      : "Capturando ubicaciÃ³n de la tienda.";
+  }
+  if (ui.locationFoundAddress) {
+    ui.locationFoundAddress.textContent = active.address || "Sin ubicaciÃ³n aun";
+  }
+  if (ui.locationCoordsPreview) {
+    ui.locationCoordsPreview.textContent = coordenadaValida(active.lat, active.lng)
+      ? `${active.lat.toFixed(6)}, ${active.lng.toFixed(6)}`
+      : "Lat/Lng pendientes";
+  }
+  if (orderMapInstance && coordenadaValida(active.lat, active.lng)) {
+    updateMapMarker(active.lat, active.lng, 17);
+  }
+}
+
+function setSelectedLocation(next = {}) {
+  const current = getActiveLocation();
+  const updated = {
+    lat: Number.isFinite(next.lat) ? next.lat : current.lat,
+    lng: Number.isFinite(next.lng) ? next.lng : current.lng,
+    address: String(next.address || current.address || "").trim(),
+    label: String(next.label || current.label || "").trim()
+  };
+  locationState[activeLocationTarget] = updated;
+
+  if (activeLocationTarget === "client") {
+    if (ui.orderClientLat) ui.orderClientLat.value = String(updated.lat);
+    if (ui.orderClientLng) ui.orderClientLng.value = String(updated.lng);
+  } else {
+    if (ui.orderStoreLat) ui.orderStoreLat.value = String(updated.lat);
+    if (ui.orderStoreLng) ui.orderStoreLng.value = String(updated.lng);
+  }
+  if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
+
+  if (ui.locationFoundAddress) {
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
+  }
+  if (ui.locationCaptureState) {
+    ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
+      ? "Capturando ubicaciÃ³n del cliente."
+      : "Capturando ubicaciÃ³n de la tienda.");
+  }
+  if (ui.locationCoordsPreview) {
+    ui.locationCoordsPreview.textContent = coordenadaValida(updated.lat, updated.lng)
+      ? `${updated.lat.toFixed(6)}, ${updated.lng.toFixed(6)}`
+      : "Lat/Lng pendientes";
+  }
+  renderOrderPreview();
+  updateOrderValidationState();
+}
+
+function coordenadaValida(lat, lng) {
+  return Number.isFinite(lat) && Number.isFinite(lng) &&
+    lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
+}
+
+function buildMapsUrl(lat, lng) {
+  if (!coordenadaValida(lat, lng)) return "";
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+function updatePreviewActions(lat, lng, locationSummary) {
+  const mapsUrl = buildMapsUrl(lat, lng);
+  if (ui.previewOpenMaps) {
+    ui.previewOpenMaps.href = mapsUrl || "#";
+    ui.previewOpenMaps.style.pointerEvents = mapsUrl ? "auto" : "none";
+    ui.previewOpenMaps.style.opacity = mapsUrl ? "1" : "0.5";
+    ui.previewOpenMaps.setAttribute("aria-disabled", mapsUrl ? "false" : "true");
+  }
+  if (ui.previewCopyLocation) {
+    ui.previewCopyLocation.disabled = !locationSummary;
+  }
+  return mapsUrl;
+}
+
+function updateMapMarker(lat, lng, zoom = 17) {
+  if (!orderMapInstance || !coordenadaValida(lat, lng)) return;
+  orderMapInstance.setView([lat, lng], zoom, { animate: true });
+  if (!orderMapMarker) {
+    orderMapMarker = L.marker([lat, lng], { draggable: false }).addTo(orderMapInstance);
+  } else {
+    orderMapMarker.setLatLng([lat, lng]);
+  }
+}
+
+async function geocodeAddress(query) {
+  const normalized = String(query || "").trim();
+  if (!normalized) return null;
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(normalized)}`, {
+    headers: {
+      "Accept": "application/json"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`Geocoding HTTP ${response.status}`);
+  }
+  const results = await response.json();
+  const first = Array.isArray(results) ? results[0] : null;
+  if (!first) return null;
+  return {
+    lat: Number(first.lat),
+    lng: Number(first.lon),
+    address: first.display_name || normalized
+  };
+}
+
+async function reverseGeocode(lat, lng) {
+  if (!coordenadaValida(lat, lng)) return null;
+  const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+    headers: {
+      "Accept": "application/json"
+    }
+  });
+  if (!response.ok) {
+    throw new Error(`Reverse geocoding HTTP ${response.status}`);
+  }
+  const payload = await response.json();
+  return payload?.display_name || "";
+}
+
+async function refreshLocationFromCenter(trigger = "moved") {
+  if (!orderMapInstance || reverseLookupInFlight) return;
+  const center = orderMapInstance.getCenter();
+  const lat = Number(center.lat);
+  const lng = Number(center.lng);
+  reverseLookupInFlight = true;
+  try {
+    const address = await reverseGeocode(lat, lng);
+    setSelectedLocation({
+      lat,
+      lng,
+      address: address || getActiveLocation().address,
+      label: trigger === "search" ? "DirecciÃ³n encontrada" : "UbicaciÃ³n actualizada"
+    });
+  } catch (_error) {
+    setSelectedLocation({
+      lat,
+      lng,
+      label: "UbicaciÃ³n tÃ©cnica actualizada"
+    });
+  } finally {
+    reverseLookupInFlight = false;
+  }
+}
+
+function initOrderMap() {
+  if (orderMapReady || !ui.orderMap || typeof window.L === "undefined") return;
+
+  orderMapInstance = L.map(ui.orderMap, {
+    zoomControl: true,
+    scrollWheelZoom: true
+  }).setView([getActiveLocation().lat, getActiveLocation().lng], 17);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(orderMapInstance);
+
+  orderMapInstance.on("moveend", () => {
+    refreshLocationFromCenter("moveend");
+  });
+
+  orderMapReady = true;
+  updateMapMarker(getActiveLocation().lat, getActiveLocation().lng, 17);
+}
 
 function escapeHtml(value) {
   return String(value || "")
@@ -396,6 +615,156 @@ function updateOrderTotalValue() {
   const tip = Number(ui.orderTip.value || 0);
   const total = Number((subtotal + shipping + tip).toFixed(2));
   ui.orderTotal.value = Number.isFinite(total) ? total : '';
+  renderOrderPreview();
+  updateOrderValidationState();
+}
+
+function renderOrderPreview() {
+  if (!ui.orderPreview) {
+    return;
+  }
+
+  const client = String(ui.orderClient.value || '').trim();
+  const address = String(ui.orderAddress.value || '').trim();
+  const placeType = String(ui.orderPlaceType.value || 'otro').trim();
+  const deliveryMethod = String(ui.orderDeliveryMethod.value || 'puerta').trim();
+  const reference = String(ui.orderReference.value || '').trim();
+  const locationNotes = String(ui.orderLocationNotes.value || '').trim();
+  const itemsText = String(ui.orderItems.value || '').trim();
+  const total = String(ui.orderTotal.value || '').trim();
+  const paymentMethod = String(ui.orderPaymentMethod.value || 'efectivo').trim();
+  const clientLat = Number(ui.orderClientLat.value);
+  const clientLng = Number(ui.orderClientLng.value);
+  const storeLat = Number(ui.orderStoreLat.value);
+  const storeLng = Number(ui.orderStoreLng.value);
+  const mapsUrl = buildMapsUrl(clientLat, clientLng);
+  const locationSummary = [
+    address,
+    placeType ? `tipo ${placeType}` : '',
+    deliveryMethod ? `entrega ${deliveryMethod}` : '',
+    reference ? `ref ${reference}` : ''
+  ].filter(Boolean).join(' Â· ');
+
+  const lines = [
+    ['Cliente', client || 'Pendiente'],
+    ['Direccion', address || 'Pendiente'],
+    ['Tipo', placeType || 'Pendiente'],
+    ['Entrega', deliveryMethod || 'Pendiente'],
+    ['Referencia', reference || 'Sin referencia'],
+    ['Notas', locationNotes || 'Sin notas'],
+    ['Items', itemsText ? 'Capturados' : 'Pendientes'],
+    ['Pago', paymentMethod || 'Pendiente'],
+    ['Cliente GPS', coordenadaValida(clientLat, clientLng) ? `${clientLat.toFixed(5)}, ${clientLng.toFixed(5)}` : 'Pendiente'],
+    ['Tienda GPS', coordenadaValida(storeLat, storeLng) ? `${storeLat.toFixed(5)}, ${storeLng.toFixed(5)}` : 'Pendiente'],
+    ['Total', total ? `$${Number(total).toFixed(2)}` : 'Pendiente']
+  ];
+
+  ui.orderPreview.innerHTML = lines
+    .map(([label, value], index) => `
+      <div class="rounded-xl border ${index % 2 === 0 ? 'border-emerald-400/20 bg-slate-950/40' : 'border-slate-700/70 bg-slate-950/20'} px-3 py-2 shadow-sm">
+        <p class="text-[11px] uppercase tracking-wide text-slate-400">${label}</p>
+        <p class="mt-1 font-semibold text-slate-100">${escapeHtml(value)}</p>
+      </div>
+    `)
+    .join('');
+
+  if (ui.previewLocation) {
+    ui.previewLocation.textContent = locationSummary || 'Sin ubicacion aun';
+  }
+
+  if (ui.previewOpenMaps) {
+    ui.previewOpenMaps.href = mapsUrl || "#";
+    ui.previewOpenMaps.setAttribute("aria-disabled", mapsUrl ? "false" : "true");
+    ui.previewOpenMaps.style.pointerEvents = mapsUrl ? "auto" : "none";
+    ui.previewOpenMaps.style.opacity = mapsUrl ? "1" : "0.5";
+  }
+
+  if (ui.previewCopyLocation) {
+    ui.previewCopyLocation.disabled = !locationSummary;
+    ui.previewCopyLocation.onclick = async () => {
+      if (!locationSummary) return;
+      const text = `${locationSummary}${mapsUrl ? ` | ${mapsUrl}` : ''}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        setOrderFeedback('Ubicacion copiada al portapapeles.', 'ok');
+      } catch (_error) {
+        setOrderFeedback('No se pudo copiar la ubicacion.', 'error');
+      }
+    };
+  }
+
+  if (ui.locationSearch && ui.locationSearch.value.trim() && !getActiveLocation().address) {
+    getActiveLocation().address = ui.locationSearch.value.trim();
+  }
+}
+
+function setFieldState(input, isValid) {
+  if (!input) return;
+  if (isValid) {
+    input.classList.remove('border-red-400', 'ring-2', 'ring-red-400/30');
+    input.classList.add('border-panel-line');
+  } else {
+    input.classList.add('border-red-400', 'ring-2', 'ring-red-400/30');
+    input.classList.remove('border-panel-line');
+  }
+}
+
+function updateOrderValidationState() {
+  const values = {
+    client: String(ui.orderClient.value || '').trim(),
+    phone: String(ui.orderPhone.value || '').trim(),
+    address: String(ui.orderAddress.value || '').trim(),
+    clientLat: Number(ui.orderClientLat.value),
+    clientLng: Number(ui.orderClientLng.value),
+    storeLat: Number(ui.orderStoreLat.value),
+    storeLng: Number(ui.orderStoreLng.value),
+    items: String(ui.orderItems.value || '').trim(),
+    subtotal: Number(ui.orderSubtotal.value || 0),
+    shipping: Number(ui.orderShipping.value || 0),
+    tip: Number(ui.orderTip.value || 0)
+  };
+
+  const coordenadaOk = coordenadaValida(values.clientLat, values.clientLng) && coordenadaValida(values.storeLat, values.storeLng);
+  const itemsOk = values.items.length > 0;
+  const amountsOk = Number.isFinite(values.subtotal) && values.subtotal > 0
+    && Number.isFinite(values.shipping) && values.shipping >= 0
+    && Number.isFinite(values.tip) && values.tip >= 0;
+
+  const validations = [
+    [ui.orderClient, values.client.length > 0],
+    [ui.orderPhone, values.phone.length > 0],
+    [ui.orderAddress, values.address.length > 0],
+    [ui.orderPlaceType, String(ui.orderPlaceType.value || '').trim().length > 0],
+    [ui.orderDeliveryMethod, String(ui.orderDeliveryMethod.value || '').trim().length > 0],
+    [ui.orderClientLat, coordenadaOk],
+    [ui.orderClientLng, coordenadaOk],
+    [ui.orderStoreLat, coordenadaOk],
+    [ui.orderStoreLng, coordenadaOk],
+    [ui.orderItems, itemsOk],
+    [ui.orderSubtotal, amountsOk && values.subtotal > 0],
+    [ui.orderShipping, amountsOk],
+    [ui.orderTip, amountsOk],
+    [ui.orderPaymentMethod, String(ui.orderPaymentMethod.value || '').trim().length > 0]
+  ];
+
+  validations.forEach(([input, ok]) => setFieldState(input, ok));
+
+  const canSubmit = validations.every(([, ok]) => ok);
+  if (ui.orderSubmit) {
+    ui.orderSubmit.disabled = !canSubmit;
+  }
+
+  if (ui.orderPreview) {
+    const head = ui.orderPreview.querySelector('[data-preview-head]');
+    if (head) {
+      head.textContent = canSubmit ? 'Pedido listo para crear' : 'Completa los campos requeridos';
+      head.className = canSubmit
+        ? 'text-sm font-semibold text-emerald-200'
+        : 'text-sm font-semibold text-amber-200';
+    }
+  }
+
+  return canSubmit;
 }
 
 async function refreshDriversFromBackend() {
@@ -497,18 +866,18 @@ function parseOrderItems(text) {
 
     const tokens = description.split(/\s+/);
     if (tokens.length < 2) {
-      throw new Error(`Item inválido en la línea ${index + 1}: ${line}`);
+      throw new Error(`Item invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
     }
 
     const rawPrice = tokens[tokens.length - 1].replace(/\$/g, '').replace(',', '.');
     const price = Number(rawPrice);
     if (!Number.isFinite(price) || price <= 0) {
-      throw new Error(`Precio inválido en la línea ${index + 1}: ${line}`);
+      throw new Error(`Precio invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
     }
 
     const name = tokens.slice(0, -1).join(' ').trim();
     if (!name) {
-      throw new Error(`Nombre de item inválido en la línea ${index + 1}: ${line}`);
+      throw new Error(`Nombre de item invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
     }
 
     return {
@@ -525,6 +894,10 @@ async function createManualOrder(event) {
   const client = String(ui.orderClient.value || '').trim();
   const phone = String(ui.orderPhone.value || '').trim();
   const address = String(ui.orderAddress.value || '').trim();
+  const placeType = String(ui.orderPlaceType.value || 'otro').trim();
+  const deliveryMethod = String(ui.orderDeliveryMethod.value || 'puerta').trim();
+  const reference = String(ui.orderReference.value || '').trim();
+  const locationNotes = String(ui.orderLocationNotes.value || '').trim();
   const clientLat = Number(ui.orderClientLat.value);
   const clientLng = Number(ui.orderClientLng.value);
   const storeLat = Number(ui.orderStoreLat.value);
@@ -537,29 +910,27 @@ async function createManualOrder(event) {
   const notes = String(ui.orderNotes.value || '').trim();
 
   if (!client || !phone || !address || !itemsText) {
-    setOrderFeedback('Completa cliente, teléfono, dirección y lista de items.', 'error');
+    setOrderFeedback('Completa cliente, telÃ©fono, direcciÃ³n y lista de items.', 'error');
     return;
   }
 
-  const coordenadaValida = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) &&
-    lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
   if (!coordenadaValida(clientLat, clientLng) || !coordenadaValida(storeLat, storeLng)) {
     setOrderFeedback('Ingresa coordenadas validas para cliente y tienda.', 'error');
     return;
   }
 
   if (!Number.isFinite(subtotal) || subtotal <= 0) {
-    setOrderFeedback('Subtotal debe ser un número mayor a cero.', 'error');
+    setOrderFeedback('Subtotal debe ser un nÃºmero mayor a cero.', 'error');
     return;
   }
 
   if (!Number.isFinite(shipping) || shipping < 0) {
-    setOrderFeedback('Costo de envío inválido.', 'error');
+    setOrderFeedback('Costo de envÃ­o invÃ¡lido.', 'error');
     return;
   }
 
   if (!Number.isFinite(tip) || tip < 0) {
-    setOrderFeedback('Propina inválida.', 'error');
+    setOrderFeedback('Propina invÃ¡lida.', 'error');
     return;
   }
 
@@ -572,7 +943,7 @@ async function createManualOrder(event) {
   }
 
   if (!Array.isArray(items) || items.length === 0) {
-    setOrderFeedback('Agrega al menos un item válido al pedido.', 'error');
+    setOrderFeedback('Agrega al menos un item vÃ¡lido al pedido.', 'error');
     return;
   }
 
@@ -584,6 +955,12 @@ async function createManualOrder(event) {
 
   const total = Number((subtotal + shipping + tip).toFixed(2));
   ui.orderTotal.value = total;
+  const locationSummary = [
+    address,
+    placeType ? `tipo ${placeType}` : '',
+    deliveryMethod ? `entrega ${deliveryMethod}` : '',
+    reference ? `ref ${reference}` : ''
+  ].filter(Boolean).join(' Â· ');
 
   try {
     const user = auth.currentUser;
@@ -607,6 +984,10 @@ async function createManualOrder(event) {
             cliente_nombre: client,
             telefono: phone,
             direccion: address,
+            tipo_ubicacion: placeType,
+            metodo_entrega: deliveryMethod,
+            referencia_ubicacion: reference,
+            notas_ubicacion: locationNotes,
             cliente_lat: clientLat,
             cliente_lng: clientLng,
             tienda_lat: storeLat,
@@ -639,7 +1020,7 @@ async function createManualOrder(event) {
 
     ui.orderForm.reset();
     ui.orderTotal.value = '';
-    setOrderFeedback(`Pedido ${pedidoId || 'manual'} creado correctamente.`, 'ok');
+    setOrderFeedback(`Pedido ${pedidoId || 'manual'} creado correctamente. Ubicacion: ${locationSummary}.`, 'ok');
   } catch (error) {
     setOrderFeedback(`No se pudo crear el pedido: ${error.message}`, 'error');
   }
@@ -673,7 +1054,107 @@ ui.btnLogout.addEventListener("click", async () => {
   input.addEventListener('input', updateOrderTotalValue);
 });
 
+[ui.orderClient, ui.orderAddress, ui.orderPlaceType, ui.orderDeliveryMethod, ui.orderReference, ui.orderLocationNotes, ui.orderPaymentMethod, ui.orderItems].forEach((input) => {
+  if (!input) return;
+  input.addEventListener('input', renderOrderPreview);
+  input.addEventListener('change', renderOrderPreview);
+});
+
+[ui.orderClient, ui.orderPhone, ui.orderAddress, ui.orderPlaceType, ui.orderDeliveryMethod, ui.orderReference, ui.orderLocationNotes, ui.orderClientLat, ui.orderClientLng, ui.orderStoreLat, ui.orderStoreLng, ui.orderItems, ui.orderSubtotal, ui.orderShipping, ui.orderTip, ui.orderPaymentMethod].forEach((input) => {
+  if (!input) return;
+  input.addEventListener('input', updateOrderValidationState);
+  input.addEventListener('change', updateOrderValidationState);
+});
+
 ui.orderForm.addEventListener("submit", createManualOrder);
+
+if (ui.locationSearchBtn) {
+  ui.locationSearchBtn.addEventListener("click", async () => {
+    const query = String(ui.locationSearch?.value || "").trim();
+    if (!query) {
+      setOrderFeedback("Escribe una direcciÃ³n para buscar.", "error");
+      return;
+    }
+
+    try {
+      const result = await geocodeAddress(query);
+      if (!result) {
+        setOrderFeedback("No se encontrÃ³ esa direcciÃ³n.", "error");
+        return;
+      }
+      setSelectedLocation({
+        lat: result.lat,
+        lng: result.lng,
+        address: result.address,
+        label: "DirecciÃ³n encontrada"
+      });
+      updateMapMarker(result.lat, result.lng, 17);
+      renderOrderPreview();
+      setOrderFeedback("DirecciÃ³n localizada y centrada en el mapa.", "ok");
+    } catch (error) {
+      setOrderFeedback(`No fue posible buscar la direcciÃ³n: ${error.message}`, "error");
+    }
+  });
+}
+
+if (ui.locationSearch) {
+  ui.locationSearch.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    ui.locationSearchBtn?.click();
+  });
+}
+
+if (ui.useCurrentLocation) {
+  ui.useCurrentLocation.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      setOrderFeedback("El navegador no soporta geolocalizaciÃ³n.", "error");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = Number(position.coords.latitude);
+      const lng = Number(position.coords.longitude);
+      updateMapMarker(lat, lng, 17);
+      try {
+        const address = await reverseGeocode(lat, lng);
+        setSelectedLocation({
+          lat,
+          lng,
+          address: address || "",
+          label: "UbicaciÃ³n actual"
+        });
+      } catch (_error) {
+        setSelectedLocation({ lat, lng, label: "UbicaciÃ³n actual" });
+      }
+      setOrderFeedback("UbicaciÃ³n actual aplicada al mapa.", "ok");
+    }, () => {
+      setOrderFeedback("No se pudo obtener la ubicaciÃ³n actual.", "error");
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 30000
+    });
+  });
+}
+
+if (ui.confirmLocation) {
+  ui.confirmLocation.addEventListener("click", async () => {
+    if (orderMapInstance) {
+      await refreshLocationFromCenter("confirm");
+    }
+    const active = getActiveLocation();
+    setSelectedLocation({
+      lat: active.lat,
+      lng: active.lng,
+      address: active.address,
+      label: activeLocationTarget === "client"
+        ? "Ubicación del cliente confirmada"
+        : "Ubicación de la tienda confirmada"
+    });
+    setOrderFeedback("UbicaciÃ³n confirmada para el pedido.", "ok");
+  });
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -695,8 +1176,19 @@ onAuthStateChanged(auth, async (user) => {
 
   activeAdminUser = user;
   switchToDashboard(email);
+  initOrderMap();
+  setActiveLocationTarget("client");
+  setSelectedLocation({
+    lat: locationState.client.lat,
+    lng: locationState.client.lng,
+    address: locationState.client.address || ui.orderAddress.value || "",
+    label: "Listo para capturar ubicaciÃ³n"
+  });
   if (!dashboardListenersAttached) {
     startDashboardPolling();
     dashboardListenersAttached = true;
   }
+  renderOrderPreview();
+  updateOrderValidationState();
 });
+

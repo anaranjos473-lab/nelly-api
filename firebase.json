@@ -6,9 +6,30 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "headers": [
+      {
+        "source": "/admin-dashboard.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/js/admin-dashboard.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ],
     "cleanUrls": true,
     "rewrites": [
       { "source": "/panel", "destination": "/panel.html" },
+      { "source": "/admin-dashboard", "destination": "/admin-dashboard.html" },
       { "source": "/", "destination": "/index.html" },
       { "source": "**", "destination": "/index.html" }
     ]

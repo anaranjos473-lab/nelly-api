@@ -8,6 +8,8 @@ Guías operativas para desplegar, depurar y recuperar Nelly Delivery.
 - [`RUNBOOK_DEBUG.md`](./RUNBOOK_DEBUG.md)
 - [`RUNBOOK_RELEASE.md`](./RUNBOOK_RELEASE.md)
 - [`RUNBOOK_RECOVERY.md`](./RUNBOOK_RECOVERY.md)
+- [`RUNBOOK_PANEL_UBICACION_MAPA.md`](./RUNBOOK_PANEL_UBICACION_MAPA.md)
+- [`CHECKLIST_PANEL_UBICACION_MAPA.md`](./CHECKLIST_PANEL_UBICACION_MAPA.md)
 
 ## Uso
 
