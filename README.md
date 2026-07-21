@@ -44,6 +44,7 @@ Backend decides.
 - [`docs/certificaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/README.md): certifications index.
 - [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): investigations index.
 - [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): runbooks index.
+- [`OPERACION_INDEX.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/OPERACION_INDEX.md): pilot and operation entry point.
 
 ## Baseline
 
