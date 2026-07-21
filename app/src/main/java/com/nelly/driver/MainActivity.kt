@@ -10,6 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -18,14 +22,25 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.nelly.driver.R
+import com.nelly.driver.di.PedidoSyncModule
+import com.nelly.driver.ui.pedidos.PedidoViewModel
+import com.nelly.driver.ui.pedidos.PedidoViewModelFactory
 import com.nelly.driver.ui.pedidos.PedidosDisponiblesActivity
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private var googleMap: GoogleMap? = null
+    private lateinit var viewModel: PedidoViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        viewModel = ViewModelProvider(
+            this,
+            PedidoViewModelFactory(PedidoSyncModule.providePedidoRepository(applicationContext))
+        )[PedidoViewModel::class.java]
 
         val saldo = intent.getStringExtra(EXTRA_SALDO) ?: "408.00"
         findViewById<TextView>(R.id.txtSaldoValor).text = "MXN$saldo"
@@ -43,10 +58,54 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.map_fragment, it)
                     .commitNow()
-            }
+        }
         fragment.getMapAsync(this)
 
+        iniciarObservacionEstado()
         solicitarPermisosUbicacion()
+    }
+
+    private fun iniciarObservacionEstado() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.syncEventos.collectLatest { evento ->
+                        val titulo = findViewById<TextView>(R.id.txtTituloRadar)
+                        val estado = findViewById<Button>(R.id.btnEstadoOperacion)
+                        when (evento) {
+                            "NETWORK_RESTORED" -> {
+                                titulo.text = "RADAR ONYX: SISTEMA PRO ACTIVO"
+                                estado.text = "SIN PEDIDOS DISPONIBLES"
+                            }
+                            "ROOM_SYNC_STARTED" -> {
+                                titulo.text = "RADAR ONYX: SINCRONIZANDO"
+                                estado.text = "SINCRONIZANDO"
+                            }
+                            "ROOM_SYNC_FINISHED" -> {
+                                titulo.text = "RADAR ONYX: SINCRONIZACION OK"
+                            }
+                            "ERROR_SYNC" -> {
+                                titulo.text = "RADAR ONYX: ERROR DE SINCRONIZACION"
+                                estado.text = "ERROR"
+                            }
+                        }
+                    }
+                }
+                launch {
+                    viewModel.pedidoActivoId.collectLatest { pedidoActivoId ->
+                        val estado = findViewById<Button>(R.id.btnEstadoOperacion)
+                        val titulo = findViewById<TextView>(R.id.txtTituloRadar)
+                        if (pedidoActivoId.isNullOrBlank()) {
+                            estado.text = "SIN PEDIDOS DISPONIBLES"
+                            titulo.text = "RADAR ONYX: SISTEMA PRO ACTIVO"
+                        } else {
+                            estado.text = "PEDIDO ACTIVO"
+                            titulo.text = "RADAR ONYX: PEDIDO ACTIVO"
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
