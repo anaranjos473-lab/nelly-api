@@ -49,6 +49,9 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         private const val REQUEST_LOCATION_ACCEPT = 4102
         private const val PREFS_AUTH = "nelly_driver_auth"
         private const val PREF_UID = "driver_uid"
+        private const val PREFS_CIERRE = "nelly_driver_cierre"
+        private const val PREF_ULTIMO_CIERRE_EXITO_MS = "ultimo_cierre_exito_ms"
+        private const val BLOQUEO_REAPERTURA_MS = 10_000L
         private const val DEFAULT_DRIVER_UID = "8mo8182LJsgV7vKMSpiCekFKAG23"
         private const val DRIVER_TOKEN_PATH = "/api/auth/driver-token"
     }
@@ -71,6 +74,11 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i(TAG_ICV02_ACTIVITY, "onCreate savedInstanceState=${savedInstanceState != null} action=${intent.action ?: "null"} flags=${intent.flags} extras=${intent.extras?.keySet()?.joinToString(",") ?: "null"} pantallaCerrada=$pantallaCerrada")
+        if (debeBloquearReaperturaPostCierre()) {
+            Log.i(TAG_ICV02_ACTIVITY, "onCreate omitido por cierre reciente")
+            finish()
+            return
+        }
         if (pantallaCerrada) {
             Log.i(TAG_ICV02_ACTIVITY, "onCreate aborted because pantallaCerrada=true")
             finish()
@@ -120,15 +128,19 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
         observarBloqueoDeuda()
         observarPedidoActivo()
         configurarCompletarEntrega()
+        // Arranque limpio: no reabrir tracking ni resolver estado si ya se está cerrando.
         viewModel.limpiarPedidoActivoLocal()
         stopService(Intent(this, DeliveryTrackingService::class.java))
-        bootstrapAuthRepartidor { listo ->
-            if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
-                Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo omitido por cierre en progreso")
-                return@bootstrapAuthRepartidor
-            }
-            if (listo) {
-                resolverEstadoOperativo()
+
+        if (!cierreEnProgreso && !pantallaCerrada && !isFinishing && !isDestroyed) {
+            bootstrapAuthRepartidor { listo ->
+                if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
+                    Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth omitido por cierre en progreso")
+                    return@bootstrapAuthRepartidor
+                }
+                if (listo) {
+                    resolverEstadoOperativo()
+                }
             }
         }
         solicitarPermisosDeArranque()
@@ -160,6 +172,10 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.i(TAG_ICV02_ACTIVITY, "onStart")
+        if (debeBloquearReaperturaPostCierre()) {
+            Log.i(TAG_ICV02_ACTIVITY, "onStart omitido por cierre reciente")
+            return
+        }
         if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
             Log.i(TAG_ICV02_ACTIVITY, "onStart sin sincronizacion por cierre en progreso")
             return
@@ -271,20 +287,25 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
                 runOnUiThread {
                     Log.i(TAG_ICV02_COMPLETE, "respuesta completarPedido ok=$ok mensaje=$mensaje pantallaCerradaAntes=$pantallaCerrada")
                     btnCompletarEntrega.isEnabled = true
-                    if (ok) {
-                        cierreEnProgreso = true
-                        pedidoTrackingPendiente = null
-                        Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion tras complete-order")
-                        Log.i(TAG_ICV02_SERVICE, "stopService DeliveryTrackingService")
-                        stopService(Intent(this, DeliveryTrackingService::class.java))
-                        Log.i(TAG_ICV02_VM, "limpiarPedidoActivoLocal requested")
-                        viewModel.limpiarPedidoActivoLocal()
-                        cierreEnProgreso = false
-                        pantallaCerrada = false
-                        Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion cleanup finished")
-                        viewModel.iniciarSincronizacion()
-                        resolverEstadoOperativo()
-                    }
+                if (ok) {
+                    Log.i(TAG_ICV02_ACTIVITY, "Entrega completada correctamente")
+                    registrarCierreExitoso()
+                    cierreEnProgreso = true
+                    pantallaCerrada = true
+                    pedidoTrackingPendiente = null
+
+                    Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion tras complete-order")
+                    Log.i(TAG_ICV02_SERVICE, "stopService DeliveryTrackingService")
+                    stopService(Intent(this, DeliveryTrackingService::class.java))
+
+                    Log.i(TAG_ICV02_VM, "limpiarPedidoActivoLocal requested")
+                    viewModel.limpiarPedidoActivoLocal()
+
+                    Toast.makeText(this, "Pedido completado", Toast.LENGTH_SHORT).show()
+
+                    regresarAlRadarBase()
+                    return@runOnUiThread
+                }
                     Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
                 }
             }
@@ -310,6 +331,10 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     }
 
     private fun resolverEstadoOperativo() {
+        if (debeBloquearReaperturaPostCierre()) {
+            Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo omitido por cierre reciente")
+            return
+        }
         if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
             Log.i(TAG_ICV02_ACTIVITY, "resolverEstadoOperativo omitido por cierre en progreso")
             return
@@ -408,6 +433,11 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
     }
 
     private fun bootstrapAuthRepartidor(onDone: (Boolean) -> Unit) {
+        if (debeBloquearReaperturaPostCierre()) {
+            Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth omitido por cierre reciente")
+            onDone(false)
+            return
+        }
         if (cierreEnProgreso || pantallaCerrada || isFinishing || isDestroyed) {
             Log.i(TAG_ICV02_ACTIVITY, "bootstrapAuth omitido por cierre en progreso")
             onDone(false)
@@ -475,6 +505,36 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
             return
         }
         prefs.edit().putString(PREF_UID, uid).apply()
+    }
+
+    private fun registrarCierreExitoso() {
+        getSharedPreferences(PREFS_CIERRE, MODE_PRIVATE)
+            .edit()
+            .putLong(PREF_ULTIMO_CIERRE_EXITO_MS, System.currentTimeMillis())
+            .apply()
+    }
+
+    private fun regresarAlRadarBase() {
+        Log.i(TAG_ICV02_ACTIVITY, "regresarAlRadarBase pedido completado")
+        val intentBase = Intent(this, com.example.nellydriver.MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            putExtra("from_delivery_finish", true)
+        }
+        startActivity(intentBase)
+        finishAffinity()
+    }
+
+    private fun debeBloquearReaperturaPostCierre(): Boolean {
+        val ultimoCierre = getSharedPreferences(PREFS_CIERRE, MODE_PRIVATE)
+            .getLong(PREF_ULTIMO_CIERRE_EXITO_MS, 0L)
+        if (ultimoCierre <= 0L) {
+            return false
+        }
+
+        val transcurrido = System.currentTimeMillis() - ultimoCierre
+        return transcurrido in 0..BLOQUEO_REAPERTURA_MS
     }
 
     private fun solicitarCustomToken(uid: String): String? {
