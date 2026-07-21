@@ -45,8 +45,14 @@ Backend decides.
 - [`docs/investigaciones/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/README.md): investigations index.
 - [`docs/runbooks/README.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/runbooks/README.md): runbooks index.
 - [`OPERACION_INDEX.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/OPERACION_INDEX.md): pilot and operation entry point.
+- [`docs/architecture/PRD_NELLY_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PRD_NELLY_KITCHEN_PREMIUM_V1.md): product vision and roadmap for the premium kitchen console.
+- [`docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md): technical blueprint for modular migration to premium kitchen.
+- [`docs/architecture/B0_MATRIZ_DEPENDENCIAS_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/B0_MATRIZ_DEPENDENCIAS_KITCHEN_PREMIUM_V1.md): dependency inventory and safe refactor map for kitchen premium.
+- [`docs/architecture/MATRIX_PANEL_DEPENDENCIES_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MATRIX_PANEL_DEPENDENCIES_KITCHEN_PREMIUM_V1.md): practical module-by-module dependency matrix for B1.
 - [`CHECKLIST_FINAL_CIERRE_PILOTO_CONTROLADO_2026_07_21.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/CHECKLIST_FINAL_CIERRE_PILOTO_CONTROLADO_2026_07_21.md): final pilot closeout checklist.
 - [`ACTA_CIERRE_PILOTO_CONTROLADO_2026_07_21.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/ACTA_CIERRE_PILOTO_CONTROLADO_2026_07_21.md): executive pilot closeout act.
+- [`docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md): acceptance standard for Kitchen Premium commits and stages.
+- [`docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md): official progress board for Kitchen Premium migration.
 
 ## Baseline
 
