@@ -14,7 +14,7 @@ This document summarizes what is stable, what is frozen, and what is still under
 | Android closure | CERTIFIED | The technical closure chain was validated; after completion the Radar returns and stays visible without falling back to the launcher. |
 | RC-01 | APPROVED | Clean E2E run validated with a new order: accept, tracking, `complete-order`, local cleanup, and return to Radar. |
 | RC-02 | APPROVED | Post-`complete-order` navigation stability validated across consecutive runs without launcher fallback. |
-| RC-03 | IN VALIDATION | Map-based courier home has been restored visually; full functional parity is still being verified. |
+| RC-03 | IN VALIDATION | Operational flow validated. Comparative financial validation remains pending for `Saldo`, `Proximo corte`, `ISR`, and `IVA`. |
 | Courier finance | STABLE | The logic exists and should not be altered without functional cause. |
 | Admin panel | IN ADJUSTMENT | Must distinguish manual block, debt block, and total ineligible. |
 | Data model | CONSOLIDATING | `repartidores/{uid}` is the canonical branch; `usuarios/repartidores` remains legacy/compatibility. |
@@ -34,6 +34,7 @@ Do not touch without new evidence:
 - debt-block consistency for the test profile
 - final admin panel consolidation onto a single source
 - future UX tweaks only if navigation rules change
+- RC-03 comparative financial validation
 
 ## Must Not Change Without Evidence
 
@@ -47,3 +48,8 @@ Do not touch without new evidence:
 
 - State: IN VALIDATION
 - Reason: the tactical UI was restored with a visible map, bottom panel, and visual parity with the reference, but full end-to-end parity is still being confirmed.
+
+## RC-03
+
+- State: IN VALIDATION
+- Reason: the delivery flow was validated end to end, including `complete-order` and return to Radar Activo without launcher fallback, but the financial indicators still require comparative validation.

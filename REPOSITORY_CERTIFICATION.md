@@ -34,7 +34,7 @@ This certification covers the documentation and architectural coherence phase of
 
 - `RC-01` - Delivery E2E flow certified.
 - `RC-02` - Post-`complete-order` navigation stability certified.
-- `RC-03` - Map-based courier home currently in validation.
+- `RC-03` - Operational flow validated; financial indicators pending comparative validation.
 
 ## Validation Executed
 

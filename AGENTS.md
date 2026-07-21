@@ -47,6 +47,7 @@ Backend decides.
 - `PedidoRepository` is the only layer allowed to interpret operative state.
 - Activities and views must not invent business state.
 - Android should only reflect backend state and lifecycle.
+- UI changes must be made from Android Studio and the Android source tree only; do not modify screens from web, docs, or other non-Android paths when the issue belongs to the Android app.
 - For delivery closure, follow the chain:
   - `complete-order`
   - `resolverEstadoOperativo()`

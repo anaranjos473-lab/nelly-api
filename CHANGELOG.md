@@ -30,6 +30,17 @@ This changelog does not replace Git. It records functional milestones and certif
 - RC-02 was approved with `PED_1784486749978` and `PED_1784487166526`: Radar stability after `complete-order` across consecutive runs.
 - RC-03 was marked as in validation after restoring the courier home map UI.
 
+## 2026-07-20
+
+- RC-03 operational flow validation was consolidated in `docs/certificaciones/RC-03.md`.
+- The certification index was updated to reflect RC-03 as `IN VALIDATION`.
+- The main README was aligned with the current RC-03 state.
+- `SYSTEM_STATE.md` was updated to distinguish the validated delivery flow from the pending financial comparison.
+- `REPOSITORY_CERTIFICATION.md` was aligned with the RC-03 validation state.
+- RC-03-INC-001 was documented after reproducing the post-`FINALIZAR ENTREGA` return to evidence capture twice.
+- The RC-03 certification was linked to the investigation for traceability.
+- The financial comparison remains pending until the delivery flow closes cleanly.
+
 ## Rule
 
 Before adding a new entry, confirm that reproducible evidence exists and, when applicable, that there is a certification or commit link.

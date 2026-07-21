@@ -7,6 +7,8 @@ Nelly Delivery is an operational ordering ecosystem with backend, admin panel, a
 - RC-01: approved
 - RC-02: approved
 - RC-03: in validation
+  - Operational flow validated.
+  - Pending comparative financial validation before promotion to approved.
 
 The main courier interface was restored to the reference map-based layout, while keeping the certified dispatch, tracking, and closure logic intact.
 
@@ -73,3 +75,5 @@ Backend decides.
 - `RC-01` approved.
 - `RC-02` approved.
 - `RC-03` in validation.
+  - Operational flow validated.
+  - Pending comparative financial validation.
