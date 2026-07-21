@@ -15,11 +15,11 @@ Una etapa solo cambia de estado cuando existe evidencia validada y el DoD corres
 
 | Etapa | Estado | Commit | Validacion | Observaciones |
 | --- | --- | --- | --- | --- |
-| B1.1 | ⬜ | — | — | Crear `KitchenState` definitivo |
-| B1.2 | ⬜ | — | — | Crear `KitchenConfig` |
-| B1.3 | ⬜ | — | — | Migrar flags operativos |
-| B1.4 | ⬜ | — | — | Migrar temporizadores |
-| B1.5 | ⬜ | — | — | Migrar colecciones de pedidos |
+| B1.1 | 🟢 | b9e34a1 | node --check | Crear `KitchenState` definitivo |
+| B1.2 | 🟢 | 82d5cbc | node --check | Crear `KitchenConfig` |
+| B1.3 | 🟢 | e68ddbb | Validacion manual | Migrar flags operativos |
+| B1.4 | 🟢 | 2827d0f | Validacion manual | Migrar temporizadores |
+| B1.5 | 🟢 | 7f54dd2 | Búsqueda de referencias + revisión funcional | Migrar colecciones de pedidos |
 | B1.6 | ⬜ | — | — | Migrar metricas y auditoria |
 | B1.7 | ⬜ | — | — | Eliminar globals legacy |
 | B2 | ⬜ | — | — | Extraer render |
