@@ -15,9 +15,10 @@ export async function subirEvidencia(pedidoId, archivo) {
         const refImg = storageRef(storage, `evidencias/${pedidoId}.jpg`);
         await uploadBytes(refImg, archivo);
         const url = await getDownloadURL(refImg);
+        // Mantener el estado canónico del backend para evitar reabrir flujos por comparaciones mixtas.
         await updateDoc(doc(db, 'pedidos', pedidoId), {
             fotoEvidencia: url,
-            estado: 'Entregado',
+            estado: 'ENTREGADO',
             fechaEntrega: serverTimestamp()
         });
         return url;

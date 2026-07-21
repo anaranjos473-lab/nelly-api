@@ -41,7 +41,7 @@ export async function saveEvidenceFallback(pedidoId, file, updateDocFn) {
     fotoEvidencia: dataUrl,
     evidenciaFallback: true,
     fechaEntrega: new Date().toISOString(),
-    estado: 'Entregado'
+    estado: 'ENTREGADO'
   };
 
   if (typeof updateDocFn === 'function') {
