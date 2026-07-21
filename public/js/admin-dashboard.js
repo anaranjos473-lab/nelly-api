@@ -193,11 +193,11 @@ function setActiveLocationTarget(target) {
   const active = getActiveLocation();
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = activeLocationTarget === "client"
-      ? "Capturando ubicaciÃ³n del cliente."
-      : "Capturando ubicaciÃ³n de la tienda.";
+      ? "Capturando ubicación del cliente."
+      : "Capturando ubicación de la tienda.";
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = active.address || "Sin ubicaciÃ³n aun";
+    ui.locationFoundAddress.textContent = active.address || "Sin ubicación aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(active.lat, active.lng)
@@ -207,6 +207,8 @@ function setActiveLocationTarget(target) {
   if (orderMapInstance && coordenadaValida(active.lat, active.lng)) {
     updateMapMarker(active.lat, active.lng, 17);
   }
+  renderOrderPreview();
+  updateOrderValidationState();
 }
 
 function setSelectedLocation(next = {}) {
@@ -229,11 +231,11 @@ function setSelectedLocation(next = {}) {
   if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
 
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
   }
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
-      ? "Capturando ubicaciÃ³n del cliente."
+      ? "Capturando ubicación del cliente."
       : "Capturando ubicaciÃ³n de la tienda.");
   }
   if (ui.locationCoordsPreview) {
@@ -267,6 +269,41 @@ function updatePreviewActions(lat, lng, locationSummary) {
     ui.previewCopyLocation.disabled = !locationSummary;
   }
   return mapsUrl;
+}
+
+function syncLocationFromMapCenter(labelConfirmado) {
+  if (!orderMapInstance) return null;
+  const center = orderMapInstance.getCenter();
+  const lat = Number(center.lat);
+  const lng = Number(center.lng);
+  if (!coordenadaValida(lat, lng)) return null;
+  const active = getActiveLocation();
+  const updated = {
+    lat,
+    lng,
+    address: active.address || String(ui.locationSearch?.value || "").trim(),
+    label: labelConfirmado || "Ubicación actualizada"
+  };
+  locationState[activeLocationTarget] = updated;
+  if (activeLocationTarget === "client") {
+    if (ui.orderClientLat) ui.orderClientLat.value = String(lat);
+    if (ui.orderClientLng) ui.orderClientLng.value = String(lng);
+  } else {
+    if (ui.orderStoreLat) ui.orderStoreLat.value = String(lat);
+    if (ui.orderStoreLng) ui.orderStoreLng.value = String(lng);
+  }
+  if (ui.locationFoundAddress) {
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
+  }
+  if (ui.locationCoordsPreview) {
+    ui.locationCoordsPreview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  }
+  if (ui.locationCaptureState) {
+    ui.locationCaptureState.textContent = updated.label;
+  }
+  renderOrderPreview();
+  updateOrderValidationState();
+  return updated;
 }
 
 function updateMapMarker(lat, lng, zoom = 17) {
@@ -326,13 +363,13 @@ async function refreshLocationFromCenter(trigger = "moved") {
       lat,
       lng,
       address: address || getActiveLocation().address,
-      label: trigger === "search" ? "DirecciÃ³n encontrada" : "UbicaciÃ³n actualizada"
+      label: trigger === "search" ? "Dirección encontrada" : "Ubicación actualizada"
     });
   } catch (_error) {
     setSelectedLocation({
       lat,
       lng,
-      label: "UbicaciÃ³n tÃ©cnica actualizada"
+      label: "Ubicación técnica actualizada"
     });
   } finally {
     reverseLookupInFlight = false;
@@ -380,6 +417,30 @@ function normalizeLevel(value) {
 function money(value) {
   const amount = Number(value || 0);
   return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
+}
+
+function calcularSubtotalDesdeItems(texto) {
+  try {
+    return parseOrderItems(texto).reduce((sum, item) => sum + (Number(item.precio) * Number(item.cantidad)), 0);
+  } catch (_error) {
+    return 0;
+  }
+}
+
+function sincronizarMontosAutomaticos() {
+  const subtotal = calcularSubtotalDesdeItems(String(ui.orderItems?.value || ""));
+  if (ui.orderSubtotal) {
+    ui.orderSubtotal.value = subtotal > 0 ? subtotal.toFixed(2) : "";
+  }
+
+  if (ui.orderShipping) {
+    ui.orderShipping.value = String(Number(ui.orderShipping.value || 45) || 45);
+    if (!ui.orderShipping.value || Number(ui.orderShipping.value) < 45) {
+      ui.orderShipping.value = "45.00";
+    }
+  }
+
+  updateOrderTotalValue();
 }
 
 function clasificarRepartidor(data = {}) {
@@ -643,11 +704,11 @@ function renderOrderPreview() {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' Â· ');
+  ].filter(Boolean).join(' · ');
 
   const lines = [
     ['Cliente', client || 'Pendiente'],
-    ['Direccion', address || 'Pendiente'],
+    ['Dirección', address || 'Pendiente'],
     ['Tipo', placeType || 'Pendiente'],
     ['Entrega', deliveryMethod || 'Pendiente'],
     ['Referencia', reference || 'Sin referencia'],
@@ -669,7 +730,7 @@ function renderOrderPreview() {
     .join('');
 
   if (ui.previewLocation) {
-    ui.previewLocation.textContent = locationSummary || 'Sin ubicacion aun';
+    ui.previewLocation.textContent = locationSummary || 'Sin ubicación aun';
   }
 
   if (ui.previewOpenMaps) {
@@ -686,9 +747,9 @@ function renderOrderPreview() {
       const text = `${locationSummary}${mapsUrl ? ` | ${mapsUrl}` : ''}`;
       try {
         await navigator.clipboard.writeText(text);
-        setOrderFeedback('Ubicacion copiada al portapapeles.', 'ok');
+        setOrderFeedback('Ubicación copiada al portapapeles.', 'ok');
       } catch (_error) {
-        setOrderFeedback('No se pudo copiar la ubicacion.', 'error');
+        setOrderFeedback('No se pudo copiar la ubicación.', 'error');
       }
     };
   }
@@ -960,7 +1021,7 @@ async function createManualOrder(event) {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' Â· ');
+  ].filter(Boolean).join(' · ');
 
   try {
     const user = auth.currentUser;
@@ -1019,6 +1080,12 @@ async function createManualOrder(event) {
     }
 
     ui.orderForm.reset();
+    if (ui.orderShipping) {
+      ui.orderShipping.value = "45.00";
+    }
+    if (ui.orderSubtotal) {
+      ui.orderSubtotal.value = "";
+    }
     ui.orderTotal.value = '';
     setOrderFeedback(`Pedido ${pedidoId || 'manual'} creado correctamente. Ubicacion: ${locationSummary}.`, 'ok');
   } catch (error) {
@@ -1054,11 +1121,22 @@ ui.btnLogout.addEventListener("click", async () => {
   input.addEventListener('input', updateOrderTotalValue);
 });
 
-[ui.orderClient, ui.orderAddress, ui.orderPlaceType, ui.orderDeliveryMethod, ui.orderReference, ui.orderLocationNotes, ui.orderPaymentMethod, ui.orderItems].forEach((input) => {
+[ui.orderClient, ui.orderAddress, ui.orderPlaceType, ui.orderDeliveryMethod, ui.orderReference, ui.orderLocationNotes, ui.orderPaymentMethod].forEach((input) => {
   if (!input) return;
   input.addEventListener('input', renderOrderPreview);
   input.addEventListener('change', renderOrderPreview);
 });
+
+if (ui.orderItems) {
+  ui.orderItems.addEventListener('input', () => {
+    sincronizarMontosAutomaticos();
+    renderOrderPreview();
+  });
+  ui.orderItems.addEventListener('change', () => {
+    sincronizarMontosAutomaticos();
+    renderOrderPreview();
+  });
+}
 
 [ui.orderClient, ui.orderPhone, ui.orderAddress, ui.orderPlaceType, ui.orderDeliveryMethod, ui.orderReference, ui.orderLocationNotes, ui.orderClientLat, ui.orderClientLng, ui.orderStoreLat, ui.orderStoreLng, ui.orderItems, ui.orderSubtotal, ui.orderShipping, ui.orderTip, ui.orderPaymentMethod].forEach((input) => {
   if (!input) return;
@@ -1105,6 +1183,18 @@ if (ui.locationSearch) {
   });
 }
 
+if (ui.targetClient) {
+  ui.targetClient.addEventListener("click", () => {
+    setActiveLocationTarget("client");
+  });
+}
+
+if (ui.targetStore) {
+  ui.targetStore.addEventListener("click", () => {
+    setActiveLocationTarget("store");
+  });
+}
+
 if (ui.useCurrentLocation) {
   ui.useCurrentLocation.addEventListener("click", () => {
     if (!navigator.geolocation) {
@@ -1140,19 +1230,28 @@ if (ui.useCurrentLocation) {
 
 if (ui.confirmLocation) {
   ui.confirmLocation.addEventListener("click", async () => {
-    if (orderMapInstance) {
+    const labelConfirmado = activeLocationTarget === "client"
+      ? "Ubicación del cliente confirmada"
+      : "Ubicación de la tienda confirmada";
+    const updated = syncLocationFromMapCenter(labelConfirmado);
+    if (!updated && orderMapInstance) {
       await refreshLocationFromCenter("confirm");
+      syncLocationFromMapCenter(labelConfirmado);
     }
-    const active = getActiveLocation();
-    setSelectedLocation({
-      lat: active.lat,
-      lng: active.lng,
-      address: active.address,
-      label: activeLocationTarget === "client"
-        ? "Ubicación del cliente confirmada"
-        : "Ubicación de la tienda confirmada"
-    });
-    setOrderFeedback("UbicaciÃ³n confirmada para el pedido.", "ok");
+    setOrderFeedback("Ubicación confirmada para el pedido.", "ok");
+  });
+}
+
+if (ui.previewOpenMaps) {
+  ui.previewOpenMaps.addEventListener("click", (event) => {
+    const href = ui.previewOpenMaps?.href || "";
+    if (!href || href === "#") {
+      event.preventDefault();
+      setOrderFeedback("Selecciona una ubicaciÃ³n antes de abrir Maps.", "error");
+      return;
+    }
+    event.preventDefault();
+    window.open(href, "_blank", "noopener,noreferrer");
   });
 }
 
@@ -1178,12 +1277,16 @@ onAuthStateChanged(auth, async (user) => {
   switchToDashboard(email);
   initOrderMap();
   setActiveLocationTarget("client");
+  if (ui.orderShipping && !ui.orderShipping.value) {
+    ui.orderShipping.value = "45.00";
+  }
   setSelectedLocation({
     lat: locationState.client.lat,
     lng: locationState.client.lng,
     address: locationState.client.address || ui.orderAddress.value || "",
-    label: "Listo para capturar ubicaciÃ³n"
+    label: "Listo para capturar ubicación"
   });
+  sincronizarMontosAutomaticos();
   if (!dashboardListenersAttached) {
     startDashboardPolling();
     dashboardListenersAttached = true;

@@ -221,6 +221,24 @@ Verificación final realizada sobre el panel administrativo:
 - la documentación operativa quedó publicada en runbook y checklist;
 - el contrato del backend permanece sin cambios.
 
+## Pendiente de continuidad
+
+La siguiente sesión debe continuar exactamente en estos puntos, ya confirmados en navegador:
+
+- Al pulsar `Abrir en Maps` se duplica la pantalla o se abre una vista adicional. Ese comportamiento no debe ocurrir.
+- Al usar `Confirmar ubicación`, el panel conserva la primera ubicación capturada y no toma la ubicación actualmente señalada en el mapa.
+- El selector `Tienda` no actualiza el estado de captura como corresponde.
+- Las coordenadas de tienda no se copian ni se habilitan correctamente.
+- El botón de captura/confirmación para tienda no da acceso al flujo esperado.
+
+Objetivo de la siguiente sesión:
+
+1. Corregir la duplicación de pantalla al abrir Maps.
+2. Hacer que `Confirmar ubicación` use la ubicación visible actual, no la primera captura.
+3. Verificar que `Cliente` y `Tienda` cambien realmente el target de captura.
+4. Habilitar la copia y confirmación de coordenadas para tienda.
+5. Dejar ambos flujos, cliente y tienda, funcionando con el mismo contrato técnico pero con estado independiente.
+
 ## Cierre de Implementación
 
 Se completó la implementación de la nueva experiencia de captura de ubicación basada en mapa para el panel administrativo. La interfaz reemplaza la captura manual de coordenadas por un flujo asistido mediante búsqueda de dirección, mapa interactivo y geocodificación, manteniendo intacto el contrato técnico con el backend (`cliente_lat`, `cliente_lng`, `tienda_lat`, `tienda_lng`).

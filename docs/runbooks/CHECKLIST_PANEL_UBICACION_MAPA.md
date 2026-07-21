@@ -60,3 +60,19 @@
 - No debe haber pérdida de información.
 - El backend no debe cambiar.
 
+## Pendiente detectado en navegador
+
+Antes de dar por cerrada esta mejora, quedó pendiente corregir y revalidar lo siguiente:
+
+- `Abrir en Maps` duplica la pantalla o abre una vista adicional.
+- `Confirmar ubicación` conserva la primera ubicación y no la ubicación señalada en ese momento.
+- El modo `Tienda` no cambia correctamente el target de captura.
+- Las coordenadas de tienda no se copian ni se habilitan.
+- El botón de tienda no da acceso al flujo de confirmación esperado.
+
+## Próxima ejecución
+
+- Corregir la lógica de selección de target.
+- Verificar que la confirmación tome la ubicación actual del mapa.
+- Validar por separado `Cliente` y `Tienda`.
+- Repetir la prueba de `Abrir en Maps` para confirmar que ya no duplica la pantalla.
