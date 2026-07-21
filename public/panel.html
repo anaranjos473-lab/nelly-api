@@ -998,9 +998,7 @@
         let alertaMinIntervalMs = 120000;
         let alertaMinEventos = 20;
         let alertasDebounceSilenciadas = false;
-        let renderDebounceTimer = null;
-        let metricasTickerId = null;
-        let ultimaAlertaDebounceMs = 0;
+        // Timers now live in KitchenState to keep B1.4 isolated.
         const pedidosPendientes = new Map();
         const pedidosReparto = new Map();
         const pedidosEnCamino = new Map();
@@ -1114,31 +1112,31 @@
             }
 
             const ahora = Date.now();
-            if (ahora - ultimaAlertaDebounceMs < alertaMinIntervalMs) {
+            if (ahora - kitchenState.alerts.ultimaAlertaDebounceMs < alertaMinIntervalMs) {
                 return;
             }
 
-            ultimaAlertaDebounceMs = ahora;
+            kitchenState.alerts.ultimaAlertaDebounceMs = ahora;
             const msg = `Salud debounce BAJA (${eficienciaNum.toFixed(1)}%)`;
             showToast(msg, 'err');
             logDebug(msg, 'err');
         }
 
         function iniciarMonitorMetricas() {
-            if (metricasTickerId) {
+            if (kitchenState.metrics.metricasTickerId) {
                 return;
             }
-            metricasTickerId = setInterval(() => {
+            kitchenState.metrics.metricasTickerId = setInterval(() => {
                 refrescarMetricasDebug();
             }, METRICAS_REFRESH_MS);
         }
 
         function detenerMonitorMetricas() {
-            if (!metricasTickerId) {
+            if (!kitchenState.metrics.metricasTickerId) {
                 return;
             }
-            clearInterval(metricasTickerId);
-            metricasTickerId = null;
+            clearInterval(kitchenState.metrics.metricasTickerId);
+            kitchenState.metrics.metricasTickerId = null;
         }
 
         window.verMetricasSync = () => {
@@ -1172,7 +1170,7 @@
             });
             metricasEventos.ultimoEvento = '-';
             metricasInicioMs = Date.now();
-            ultimaAlertaDebounceMs = 0;
+            kitchenState.alerts.ultimaAlertaDebounceMs = 0;
             refrescarMetricasDebug();
             return window.verMetricasSync();
         };
@@ -1237,12 +1235,12 @@
             metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · render:${origen}`;
             refrescarMetricasDebug();
 
-            if (renderDebounceTimer) {
-                clearTimeout(renderDebounceTimer);
+            if (kitchenState.ui.renderDebounceTimer) {
+                clearTimeout(kitchenState.ui.renderDebounceTimer);
             }
 
-            renderDebounceTimer = setTimeout(() => {
-                renderDebounceTimer = null;
+            kitchenState.ui.renderDebounceTimer = setTimeout(() => {
+                kitchenState.ui.renderDebounceTimer = null;
                 metricasEventos.renderEjecutados += 1;
                 refrescarMetricasDebug();
                 actualizarPanel();
