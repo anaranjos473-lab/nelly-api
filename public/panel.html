@@ -636,6 +636,7 @@
     <script type="module">
         import { auth, rtdb } from "./firebase.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
+        import { getKitchenConfig } from "./js/premium-kitchen/state/kitchen-config.js";
         import {
             onAuthStateChanged,
             signInWithCustomToken
@@ -992,13 +993,13 @@
             };
 
         const kitchenState = getKitchenState();
-        const RENDER_DEBOUNCE_MS = 90;
-        const METRICAS_REFRESH_MS = 10000;
-        let eficienciaMinimaPct = 35;
-        let alertaMinIntervalMs = 120000;
-        let alertaMinEventos = 20;
+        const kitchenConfig = getKitchenConfig();
+        const RENDER_DEBOUNCE_MS = kitchenConfig.render.debounceMs;
+        const METRICAS_REFRESH_MS = kitchenConfig.metrics.refreshMs;
+        let eficienciaMinimaPct = kitchenConfig.metrics.eficienciaMinimaPct;
+        let alertaMinIntervalMs = kitchenConfig.alerts.minIntervalMs;
+        let alertaMinEventos = kitchenConfig.alerts.minEventos;
         let alertasDebounceSilenciadas = false;
-        // Timers now live in KitchenState to keep B1.4 isolated.
         const liquidacionesAuditProcesadas = kitchenState.alerts.liquidacionesAuditProcesadas;
         const PANEL_TOKEN_ENDPOINTS = [
             `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auth/panel-token`
