@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Nelly Delivery - Panel de Cocina Central</title>
         <script type="module">
-            // Inicialización segura de Firebase: config se obtiene vía endpoint seguro
+            // InicializaciÃ³n segura de Firebase: config se obtiene vÃ­a endpoint seguro
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
             import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-            // --- Documentación: Flujo de sincronía ---
+            // --- DocumentaciÃ³n: Flujo de sincronÃ­a ---
             // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
-            // 2. Todos los listeners se limpian automáticamente al recargar o cerrar el panel.
-            // 3. El flujo de estados es: pendiente → en_reparto → entregado (o eliminado).
+            // 2. Todos los listeners se limpian automÃ¡ticamente al recargar o cerrar el panel.
+            // 3. El flujo de estados es: pendiente â†’ en_reparto â†’ entregado (o eliminado).
             // 4. El rescate manual usa la misma consulta granular.
 
             let pedidosListenerRef = null;
@@ -23,7 +23,7 @@
 
             async function fetchFirebaseConfig() {
                 const resp = await fetch(`${API_BASE_URL}/api/public/firebase-config`);
-                if (!resp.ok) throw new Error('No se pudo obtener configuración segura');
+                if (!resp.ok) throw new Error('No se pudo obtener configuraciÃ³n segura');
                 return await resp.json();
             }
             fetchFirebaseConfig().then(cfg => {
@@ -57,14 +57,14 @@
                 };
                 onValue(pedidosListenerRef, pedidosListenerCallback);
 
-                // Limpieza automática de listeners al cerrar o recargar
+                // Limpieza automÃ¡tica de listeners al cerrar o recargar
                 window.addEventListener('beforeunload', () => {
                     if (pedidosListenerRef && pedidosListenerCallback) {
                         off(pedidosListenerRef, 'value', pedidosListenerCallback);
                     }
                 });
             }).catch(e => {
-                alert('Error de inicialización Firebase: ' + e.message);
+                alert('Error de inicializaciÃ³n Firebase: ' + e.message);
             });
         </script>
         <style>
@@ -94,7 +94,7 @@
                                     50% { transform: scale(1.05); opacity: 0.8; }
                                     100% { transform: scale(1); opacity: 1; }
                                 }
-                                /* Tarjetas de métricas estilo Glassmorphism */
+                                /* Tarjetas de mÃ©tricas estilo Glassmorphism */
                                 .metric-card, .stat-card {
                                     background: rgba(255, 255, 255, 0.05) !important;
                                     backdrop-filter: blur(10px);
@@ -102,7 +102,7 @@
                                     border-radius: 15px;
                                     padding: 20px;
                                 }
-                        /* Modo noche y visualización del mapa */
+                        /* Modo noche y visualizaciÃ³n del mapa */
                         #map {
                             height: 600px;
                             width: 100%;
@@ -431,7 +431,7 @@
                     label.innerText = "SISTEMA ONLINE";
                     label.style.background = "#2ecc71";
                 } else {
-                    label.innerText = "SIN CONEXIÓN";
+                    label.innerText = "SIN CONEXIÃ“N";
                     label.style.background = "#e74c3c";
                 }
             });
@@ -439,7 +439,7 @@
             window.entregarPedido = function(id) {
                 const db = window.nellyDb;
                 if (!db) return;
-                if (confirm("¿Confirmas que el pedido está listo?")) {
+                if (confirm("Â¿Confirmas que el pedido estÃ¡ listo?")) {
                     if (typeof window.moverAReparto === 'function') {
                         window.moverAReparto(id);
                     }
@@ -455,17 +455,17 @@
     <div class="header">
         <h1>Nelly Delivery - Cocina</h1>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-            <a href="./repartidor.html" class="btn-header-action primary">📱 Repartidores</a>
-            <button id="btn-notificaciones" class="btn-header-action">🔔 Alertas</button>
+            <a href="./repartidor.html" class="btn-header-action primary">ðŸ“± Repartidores</a>
+            <button id="btn-notificaciones" class="btn-header-action">ðŸ”” Alertas</button>
             <div id="badge-estado" class="status-badge status-online">CONECTANDO...</div>
             <div class="dropdown" style="display:inline-block;position:relative;">
-                <button id="btn-operativo" class="btn-header-action" title="Controles avanzados">⚙️ Operativo</button>
+                <button id="btn-operativo" class="btn-header-action" title="Controles avanzados">âš™ï¸ Operativo</button>
                 <div id="menu-operativo" class="dropdown-menu" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ddd;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:1002;min-width:220px;">
-                    <button onclick="exportarMetricasJSON()" class="dropdown-item">⬇️ Exportar métricas JSON</button>
-                    <button onclick="exportarMetricasCSV()" class="dropdown-item">⬇️ Exportar métricas CSV</button>
-                    <button onclick="enviarSnapshotDiscord()" class="dropdown-item">📤 Enviar snapshot Discord</button>
-                    <button onclick="ejecutarProtocoloRescate()" class="dropdown-item">🛟 Rescate pedidos fantasma</button>
-                    <button onclick="dispararAlertaManual()" class="dropdown-item" style="color:#b91c1c;">🚨 Disparar alerta manual</button>
+                    <button onclick="exportarMetricasJSON()" class="dropdown-item">â¬‡ï¸ Exportar mÃ©tricas JSON</button>
+                    <button onclick="exportarMetricasCSV()" class="dropdown-item">â¬‡ï¸ Exportar mÃ©tricas CSV</button>
+                    <button onclick="enviarSnapshotDiscord()" class="dropdown-item">ðŸ“¤ Enviar snapshot Discord</button>
+                    <button onclick="ejecutarProtocoloRescate()" class="dropdown-item">ðŸ›Ÿ Rescate pedidos fantasma</button>
+                    <button onclick="dispararAlertaManual()" class="dropdown-item" style="color:#b91c1c;">ðŸš¨ Disparar alerta manual</button>
                 </div>
             </div>
         </div>
@@ -514,9 +514,9 @@
     </div>
 
     <div class="floating-menu">
-        <button id="btn-historial" class="btn-filtro btn-menu">📊 Corte de Caja</button>
-        <button id="btn-heatmap" class="btn-filtro btn-menu">🗺️ Mapa de Calor</button>
-        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">🛵 Ver Mapa Repartidores</button>
+        <button id="btn-historial" class="btn-filtro btn-menu">ðŸ“Š Corte de Caja</button>
+        <button id="btn-heatmap" class="btn-filtro btn-menu">ðŸ—ºï¸ Mapa de Calor</button>
+        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">ðŸ›µ Ver Mapa Repartidores</button>
         <button id="btn-debug" class="debug-btn btn-menu">DEBUG</button>
     </div>
 
@@ -530,7 +530,7 @@
         </div>
     </div>
 
-    <!-- Sección oculta de Heatmap -->
+    <!-- SecciÃ³n oculta de Heatmap -->
     <div id="seccion-heatmap" style="display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;background:#f4f7f6;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
         <div style="width:100%;height:100%;position:relative;">
             <div id="mapa-heatmap" style="width:100%;height:100%;min-height:400px;"></div>
@@ -538,16 +538,16 @@
         </div>
     </div>
 
-        <!-- Sección oculta de historial de ventas/corte de caja -->
+        <!-- SecciÃ³n oculta de historial de ventas/corte de caja -->
         <div id="seccion-historial" class="dashboard-container" style="display:none;flex-direction:column;gap:0;min-height:unset;background:#f4f7f6;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
             <div class="column-full" style="width:100%;">
                 <div class="column-header" style="background-color: #34495e;">
-                    <h3>📊 CORTE DE CAJA Y VENTAS</h3>
+                    <h3>ðŸ“Š CORTE DE CAJA Y VENTAS</h3>
                     <div class="filtros">
                         <button onclick="filtrarVentas('hoy')" class="btn-filtro">Hoy</button>
-                        <button onclick="filtrarVentas('semana')" class="btn-filtro">7 Días</button>
+                        <button onclick="filtrarVentas('semana')" class="btn-filtro">7 DÃ­as</button>
                         <button onclick="filtrarVentas('mes')" class="btn-filtro">Mes</button>
-                        <button onclick="descargarCSV()" class="btn-download">📥 Exportar CSV</button>
+                        <button onclick="descargarCSV()" class="btn-download">ðŸ“¥ Exportar CSV</button>
                     </div>
 
                     <div id="toast-wrap" class="toast-wrap"></div>
@@ -597,7 +597,7 @@
                         <div id="semana-anterior" class="card-value">$0.00</div>
                     </div>
                     <div class="stat-card metric-card">
-                        <div class="card-title">Variación Semanal</div>
+                        <div class="card-title">VariaciÃ³n Semanal</div>
                         <div id="variacion-semanal" class="card-value">0.0%</div>
                     </div>
                 </div>
@@ -622,10 +622,10 @@
 
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
-    <!-- Bloque compat de Firebase eliminado. Usar solo inicialización modular con type=module. -->
+    <!-- Bloque compat de Firebase eliminado. Usar solo inicializaciÃ³n modular con type=module. -->
     <script type="module" src="js/logistica-maps.js"></script>
 
-    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicialización -->
+    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicializaciÃ³n -->
                 markersRepartidores.push(marker);
             });
         });
@@ -669,7 +669,7 @@
                 }
             });
 
-                // --- Cargar Leaflet y Heatmap.js dinámicamente ---
+                // --- Cargar Leaflet y Heatmap.js dinÃ¡micamente ---
                 function cargarLeafletYHeatmap(cb) {
                     if (window.L && window.L.heatLayer) return cb();
                     const leafletCss = document.createElement('link');
@@ -702,7 +702,7 @@
                     };
                 });
 
-            // Mostrar/ocultar sección historial
+            // Mostrar/ocultar secciÃ³n historial
             window.addEventListener('DOMContentLoaded', () => {
                 const btn = document.getElementById('btn-historial');
                 const seccion = document.getElementById('seccion-historial');
@@ -771,7 +771,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast('Métricas exportadas (JSON)', 'ok');
+                showToast('MÃ©tricas exportadas (JSON)', 'ok');
             };
 
             window.exportarMetricasCSV = () => {
@@ -787,14 +787,14 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast('Métricas exportadas (CSV)', 'ok');
+                showToast('MÃ©tricas exportadas (CSV)', 'ok');
             };
 
             window.enviarSnapshotDiscord = async () => {
                 try {
                     const data = window.verMetricasSync ? window.verMetricasSync() : {};
                     const payload = {
-                        content: `📊 Snapshot métricas panel (${location.pathname}):\n\n${'```json\n' + JSON.stringify(data, null, 2) + '\n```'}`
+                        content: `ðŸ“Š Snapshot mÃ©tricas panel (${location.pathname}):\n\n${'```json\n' + JSON.stringify(data, null, 2) + '\n```'}`
                     };
                     const resp = await fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/monitoreo/discord`, {
                         method: 'POST',
@@ -803,7 +803,7 @@
                     });
                     showToast(resp.ok ? 'Snapshot enviado a Discord' : 'Error al enviar snapshot', resp.ok ? 'ok' : 'err');
                 } catch (_e) {
-                    showToast('Fallo conexión Discord', 'err');
+                    showToast('Fallo conexiÃ³n Discord', 'err');
                 }
             };
 
@@ -818,7 +818,7 @@
                     });
                     showToast(resp.ok ? 'Alerta enviada' : 'Error al enviar alerta', resp.ok ? 'ok' : 'err');
                 } catch (_e) {
-                    showToast('Fallo conexión alerta', 'err');
+                    showToast('Fallo conexiÃ³n alerta', 'err');
                 }
             };
 
@@ -889,7 +889,7 @@
                 elVariacion.style.color = variacion >= 0 ? '#166534' : '#b91c1c';
             };
 
-            // Lógica para el Historial de Ventas
+            // LÃ³gica para el Historial de Ventas
             window.filtrarVentas = (rango) => {
                 const pedidosRef = ref(rtdb, 'pedidos');
                 const hoy = new Date();
@@ -999,20 +999,7 @@
         let alertaMinEventos = 20;
         let alertasDebounceSilenciadas = false;
         // Timers now live in KitchenState to keep B1.4 isolated.
-        const liquidacionesAuditProcesadas = new Set();
-        const metricasEventos = {
-            total: 0,
-            pendienteAdded: 0,
-            pendienteChanged: 0,
-            pendienteRemoved: 0,
-            repartoSnapshot: 0,
-            caminoSnapshot: 0,
-            simulacionEventos: 0,
-            renderSolicitudes: 0,
-            renderEjecutados: 0,
-            ultimoEvento: '-'
-        };
-        let metricasInicioMs = Date.now();
+        const liquidacionesAuditProcesadas = kitchenState.alerts.liquidacionesAuditProcesadas;
         const PANEL_TOKEN_ENDPOINTS = [
             `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/auth/panel-token`
         ];
@@ -1069,31 +1056,31 @@
 
             const rendersEvitados = Math.max(
                 0,
-                metricasEventos.renderSolicitudes - metricasEventos.renderEjecutados
+                kitchenState.metrics.metricasEventos.renderSolicitudes - kitchenState.metrics.metricasEventos.renderEjecutados
             );
-            const eficienciaRender = metricasEventos.renderSolicitudes > 0
-                ? ((rendersEvitados / metricasEventos.renderSolicitudes) * 100).toFixed(1)
+            const eficienciaRender = kitchenState.metrics.metricasEventos.renderSolicitudes > 0
+                ? ((rendersEvitados / kitchenState.metrics.metricasEventos.renderSolicitudes) * 100).toFixed(1)
                 : '0.0';
             const eficienciaNum = Number(eficienciaRender);
-            const minutosActivos = Math.max((Date.now() - metricasInicioMs) / 60000, 1 / 60);
-            const eventosPorMin = (metricasEventos.total / minutosActivos).toFixed(1);
-            const rendersPorMin = (metricasEventos.renderEjecutados / minutosActivos).toFixed(1);
+            const minutosActivos = Math.max((Date.now() - kitchenState.metrics.metricasInicioMs) / 60000, 1 / 60);
+            const eventosPorMin = (kitchenState.metrics.metricasEventos.total / minutosActivos).toFixed(1);
+            const rendersPorMin = (kitchenState.metrics.metricasEventos.renderEjecutados / minutosActivos).toFixed(1);
             const saludTexto = eficienciaNum < eficienciaMinimaPct ? 'BAJA' : 'OK';
             const saludColor = eficienciaNum < eficienciaMinimaPct ? '#fca5a5' : '#86efac';
 
             evaluarAlertaDebounce(eficienciaNum);
 
             panel.innerHTML = [
-                `Eventos: ${metricasEventos.total}`,
-                `pendiente+ ${metricasEventos.pendienteAdded} | pendiente~ ${metricasEventos.pendienteChanged} | pendiente- ${metricasEventos.pendienteRemoved}`,
-                `snap reparto ${metricasEventos.repartoSnapshot} | snap camino ${metricasEventos.caminoSnapshot}`,
-                `simulacion ${metricasEventos.simulacionEventos}`,
-                `render req ${metricasEventos.renderSolicitudes} | render ok ${metricasEventos.renderEjecutados}`,
+                `Eventos: ${kitchenState.metrics.metricasEventos.total}`,
+                `pendiente+ ${kitchenState.metrics.metricasEventos.pendienteAdded} | pendiente~ ${kitchenState.metrics.metricasEventos.pendienteChanged} | pendiente- ${kitchenState.metrics.metricasEventos.pendienteRemoved}`,
+                `snap reparto ${kitchenState.metrics.metricasEventos.repartoSnapshot} | snap camino ${kitchenState.metrics.metricasEventos.caminoSnapshot}`,
+                `simulacion ${kitchenState.metrics.metricasEventos.simulacionEventos}`,
+                `render req ${kitchenState.metrics.metricasEventos.renderSolicitudes} | render ok ${kitchenState.metrics.metricasEventos.renderEjecutados}`,
                 `ahorro estimado ${rendersEvitados} renders (${eficienciaRender}%)`,
                 `salud debounce <span style="color:${saludColor};font-weight:700;">${saludTexto}</span>`,
                 `umbral ${eficienciaMinimaPct}% | min eventos ${alertaMinEventos} | cooldown ${Math.round(alertaMinIntervalMs / 1000)}s`,
                 `cadencia ${eventosPorMin} ev/min | ${rendersPorMin} render/min`,
-                `ultimo: ${metricasEventos.ultimoEvento}`
+                `ultimo: ${kitchenState.metrics.metricasEventos.ultimoEvento}`
             ].join('<br>');
         }
 
@@ -1101,7 +1088,7 @@
             if (alertasDebounceSilenciadas) {
                 return;
             }
-            if (metricasEventos.renderSolicitudes < alertaMinEventos) {
+            if (kitchenState.metrics.metricasEventos.renderSolicitudes < alertaMinEventos) {
                 return;
             }
             if (eficienciaNum >= eficienciaMinimaPct) {
@@ -1139,34 +1126,35 @@
         window.verMetricasSync = () => {
             const rendersEvitados = Math.max(
                 0,
-                metricasEventos.renderSolicitudes - metricasEventos.renderEjecutados
+                kitchenState.metrics.metricasEventos.renderSolicitudes - kitchenState.metrics.metricasEventos.renderEjecutados
             );
-            const eficienciaRender = metricasEventos.renderSolicitudes > 0
-                ? Number(((rendersEvitados / metricasEventos.renderSolicitudes) * 100).toFixed(1))
+            const eficienciaRender = kitchenState.metrics.metricasEventos.renderSolicitudes > 0
+                ? Number(((rendersEvitados / kitchenState.metrics.metricasEventos.renderSolicitudes) * 100).toFixed(1))
                 : 0;
-            const minutosActivos = Math.max((Date.now() - metricasInicioMs) / 60000, 1 / 60);
+            const minutosActivos = Math.max((Date.now() - kitchenState.metrics.metricasInicioMs) / 60000, 1 / 60);
 
             return {
-                ...metricasEventos,
+                ...kitchenState.metrics.metricasEventos,
                 rendersEvitados,
                 eficienciaRender,
                 eficienciaMinimaPct,
                 alertaMinIntervalMs,
                 alertaMinEventos,
                 alertasDebounceSilenciadas,
-                eventosPorMin: Number((metricasEventos.total / minutosActivos).toFixed(1)),
-                rendersPorMin: Number((metricasEventos.renderEjecutados / minutosActivos).toFixed(1))
+                eventosPorMin: Number((kitchenState.metrics.metricasEventos.total / minutosActivos).toFixed(1)),
+                rendersPorMin: Number((kitchenState.metrics.metricasEventos.renderEjecutados / minutosActivos).toFixed(1))
             };
         };
 
         window.resetMetricasSync = () => {
+            const metricasEventos = kitchenState.metrics.metricasEventos;
             Object.keys(metricasEventos).forEach((key) => {
                 if (typeof metricasEventos[key] === 'number') {
                     metricasEventos[key] = 0;
                 }
             });
-            metricasEventos.ultimoEvento = '-';
-            metricasInicioMs = Date.now();
+            kitchenState.metrics.metricasEventos.ultimoEvento = '-';
+            kitchenState.metrics.metricasInicioMs = Date.now();
             kitchenState.alerts.ultimaAlertaDebounceMs = 0;
             refrescarMetricasDebug();
             return window.verMetricasSync();
@@ -1219,17 +1207,19 @@
         });
 
         function registrarEvento(nombre) {
-            metricasEventos.total += 1;
+            const metricasEventos = kitchenState.metrics.metricasEventos;
+            kitchenState.metrics.metricasEventos.total += 1;
             if (typeof metricasEventos[nombre] === 'number') {
                 metricasEventos[nombre] += 1;
             }
-            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · ${nombre}`;
+            kitchenState.metrics.metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · ${nombre}`;
             refrescarMetricasDebug();
         }
 
         function solicitarRenderPanel(origen = 'desconocido') {
-            metricasEventos.renderSolicitudes += 1;
-            metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · render:${origen}`;
+            const metricasEventos = kitchenState.metrics.metricasEventos;
+            kitchenState.metrics.metricasEventos.renderSolicitudes += 1;
+            kitchenState.metrics.metricasEventos.ultimoEvento = `${new Date().toLocaleTimeString('es-MX')} · render:${origen}`;
             refrescarMetricasDebug();
 
             if (kitchenState.ui.renderDebounceTimer) {
@@ -1238,7 +1228,7 @@
 
             kitchenState.ui.renderDebounceTimer = setTimeout(() => {
                 kitchenState.ui.renderDebounceTimer = null;
-                metricasEventos.renderEjecutados += 1;
+                kitchenState.metrics.metricasEventos.renderEjecutados += 1;
                 refrescarMetricasDebug();
                 actualizarPanel();
             }, RENDER_DEBOUNCE_MS);
@@ -1289,7 +1279,7 @@
             const monto = Number(pedido.monto || pedido.total || 0).toFixed(2);
             try {
                 new Notification('Nuevo pedido en cocina', {
-                    body: `${cliente} · $${monto}`,
+                    body: `${cliente} Â· $${monto}`,
                     tag: `pedido-${key}`,
                 });
             } catch (_err) {
@@ -1309,7 +1299,7 @@
 
             audio.currentTime = 0;
             audio.play().catch(() => {
-                // Puede fallar si no hubo interacción de usuario; no rompe el flujo.
+                // Puede fallar si no hubo interacciÃ³n de usuario; no rompe el flujo.
             });
         }
 
@@ -1354,7 +1344,7 @@
             return eliminado;
         }
 
-        // Utilidades de consola para depuración operativa.
+        // Utilidades de consola para depuraciÃ³n operativa.
         window.listarPedidosPendientes = () => {
             return Array.from(kitchenState.orders.pedidosPendientes.entries()).map(([key, pedido]) => ({
                 key,
@@ -1443,7 +1433,7 @@
             return identificador;
         }
 
-        // Desbloqueo de audio tras la primera interacción del operador.
+        // Desbloqueo de audio tras la primera interacciÃ³n del operador.
         document.addEventListener('click', () => {
             const audio = document.getElementById('audio-notificacion');
             if (audio) {
@@ -1455,7 +1445,7 @@
             }
         }, { once: true });
 
-        // Optimización: listeners solo tras autenticación exitosa y limpieza previa
+        // OptimizaciÃ³n: listeners solo tras autenticaciÃ³n exitosa y limpieza previa
         let listenersActivos = [];
         function limpiarListeners() {
             listenersActivos.forEach(unsub => { try { unsub(); } catch {} });
@@ -1547,7 +1537,7 @@
         }
 
         function iniciarSincronizacion() {
-            // Devuelve función de limpieza para listeners
+            // Devuelve funciÃ³n de limpieza para listeners
             const listeners = [];
             const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
@@ -1578,10 +1568,10 @@
                     if (!value || typeof value !== "object") {
                         return;
                     }
-                    if (liquidacionesAuditProcesadas.has(key)) {
+                    if (kitchenState.alerts.liquidacionesAuditProcesadas.has(key)) {
                         return;
                     }
-                    liquidacionesAuditProcesadas.add(key);
+                    kitchenState.alerts.liquidacionesAuditProcesadas.add(key);
                     novedades.push(value);
                 });
                 novedades
@@ -1593,7 +1583,7 @@
                             : (estado === 'RECHAZADA'
                                 ? 'Liquidacion rechazada'
                                 : (estado === 'PENDIENTE' ? 'Liquidacion reportada' : `Liquidacion ${estado}`));
-                        const detalle = `${texto} · ${evento.repartidorUid || evento.driverUid || 'driver'}`;
+                        const detalle = `${texto} Â· ${evento.repartidorUid || evento.driverUid || 'driver'}`;
                         const tipo = estado === 'AUTORIZADA' ? 'ok' : (estado === 'RECHAZADA' ? 'err' : 'ok');
                         showToast(detalle, tipo);
                     });
@@ -1601,12 +1591,12 @@
                 reportarErrorListener('onValue(liquidaciones_auditoria)', error);
             }));
 
-            // Devuelve función para limpiar todos los listeners
+            // Devuelve funciÃ³n para limpiar todos los listeners
             return () => listeners.forEach(unsub => { try { if (typeof unsub === 'function') unsub(); } catch {} });
         }
 
         window.addEventListener('online', () => {
-            logDebug('Conexión restaurada. Ejecutando rescate automático.');
+            logDebug('ConexiÃ³n restaurada. Ejecutando rescate automÃ¡tico.');
             window.ejecutarProtocoloRescate();
         });
 
@@ -1693,7 +1683,7 @@
                 metodoEntrega ? `Entrega: ${metodoEntrega}` : '',
                 referenciaUbicacion ? `Referencia: ${referenciaUbicacion}` : '',
                 notasUbicacion ? `Notas: ${notasUbicacion}` : ''
-            ].filter(Boolean).join(' · ');
+            ].filter(Boolean).join(' Â· ');
             const config = esPendiente || fase === 'COCINA'
                 ? { texto: 'DESPACHAR', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
                 : (esListo
@@ -1714,7 +1704,7 @@
                         <p class="estado">Estado: ${estadoLabel}</p>
                         <p class="estado">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
                         ${ubicacionHumanizada ? `<p class="desc">${ubicacionHumanizada}</p>` : ''}
-                        <p class="desc">${pedido.descripcion || 'Sin descripción'}</p>
+                        <p class="desc">${pedido.descripcion || 'Sin descripciÃ³n'}</p>
                     </div>
                     <button ${botonAttrs} class="btn-action ${config.clase}">
                         ${config.texto}
@@ -1724,7 +1714,7 @@
         }
 
         window.moverAReparto = async function(id) {
-            if (!confirm('¿Enviar pedido a la flota de reparto?')) {
+            if (!confirm('Â¿Enviar pedido a la flota de reparto?')) {
                 return;
             }
 
@@ -1804,14 +1794,14 @@
 
             if (estadoNormalizado !== 'EN_CURSO') {
                 const mensaje = estadoNormalizado === 'LISTO'
-                    ? 'El pedido aún no ha sido aceptado por un repartidor. Estado actual: ESPERANDO REPARTIDOR.'
-                    : `El pedido no está en curso de entrega. Estado actual: ${estadoNormalizado}.`;
+                    ? 'El pedido aÃºn no ha sido aceptado por un repartidor. Estado actual: ESPERANDO REPARTIDOR.'
+                    : `El pedido no estÃ¡ en curso de entrega. Estado actual: ${estadoNormalizado}.`;
                 showToast(mensaje, 'err');
                 alert(mensaje);
                 return;
             }
 
-            if (!confirm('¿Confirmar entrega final al cliente?')) {
+            if (!confirm('Â¿Confirmar entrega final al cliente?')) {
                 return;
             }
 
@@ -1926,3 +1916,7 @@
     </script>
 </body>
 </html>
+
+
+
+
