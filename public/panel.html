@@ -635,6 +635,7 @@
 
     <script type="module">
         import { auth, rtdb } from "./firebase.js";
+        import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import {
             onAuthStateChanged,
             signInWithCustomToken
@@ -990,10 +991,7 @@
                 document.body.removeChild(link);
             };
 
-        let sincronizacionIniciada = false;
-        let authRequestInFlight = false;
-        let primeraCargaPendientes = true;
-        let notificacionesHabilitadas = false;
+        const kitchenState = getKitchenState();
         const RENDER_DEBOUNCE_MS = 90;
         const METRICAS_REFRESH_MS = 10000;
         let eficienciaMinimaPct = 35;
@@ -1278,8 +1276,8 @@
             }
 
             Notification.requestPermission().then((permission) => {
-                notificacionesHabilitadas = permission === 'granted';
-                if (notificacionesHabilitadas) {
+                kitchenState.alerts.notificacionesHabilitadas = permission === 'granted';
+                if (kitchenState.alerts.notificacionesHabilitadas) {
                     showToast('Alertas activadas', 'ok');
                 } else {
                     showToast('Permiso de alertas denegado', 'err');
@@ -1288,7 +1286,7 @@
         }
 
         function notificarNuevoPedido(pedido, key) {
-            if (!notificacionesHabilitadas || !('Notification' in window)) {
+            if (!kitchenState.alerts.notificacionesHabilitadas || !('Notification' in window)) {
                 return;
             }
 
@@ -1473,8 +1471,8 @@
             if (user) {
                 badge.textContent = "SISTEMA ONLINE";
                 badge.classList.add('online');
-                if (!sincronizacionIniciada) {
-                    sincronizacionIniciada = true;
+                if (!kitchenState.sync.sincronizacionIniciada) {
+                    kitchenState.sync.sincronizacionIniciada = true;
                     limpiarListeners();
                     listenersActivos.push(iniciarSincronizacion());
                 }
@@ -1485,11 +1483,11 @@
         });
 
         async function autenticarPanelConBackend() {
-            if (authRequestInFlight) {
+            if (kitchenState.auth.authRequestInFlight) {
                 return;
             }
 
-            authRequestInFlight = true;
+            kitchenState.auth.authRequestInFlight = true;
             const badge = document.getElementById('badge-estado');
 
             try {
@@ -1537,7 +1535,7 @@
                 console.error("Error en validacion segura:", error.message);
                 document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
             } finally {
-                authRequestInFlight = false;
+                kitchenState.auth.authRequestInFlight = false;
             }
         }
 
@@ -1567,9 +1565,9 @@
             }));
 
             listeners.push(onValue(dbRef, (snapshot) => {
-                sincronizarPedidosOperativosDesdeSnapshot(snapshot, primeraCargaPendientes ? 'snapshot-inicial-pedidos' : 'snapshot-resync-pedidos');
-                if (primeraCargaPendientes) {
-                    primeraCargaPendientes = false;
+                sincronizarPedidosOperativosDesdeSnapshot(snapshot, kitchenState.sync.primeraCargaPendientes ? 'snapshot-inicial-pedidos' : 'snapshot-resync-pedidos');
+                if (kitchenState.sync.primeraCargaPendientes) {
+                    kitchenState.sync.primeraCargaPendientes = false;
                 }
             }, (error) => {
                 reportarErrorListener('onValue(pedidos)', error);
