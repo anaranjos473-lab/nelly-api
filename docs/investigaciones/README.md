@@ -1,6 +1,6 @@
 # Investigaciones
 
-Documentos para incidencias, ciclos de vida y auditorías en curso.
+Documentos para incidencias, ciclos de vida y auditorias en curso.
 
 ## Documentos
 
@@ -13,4 +13,4 @@ Documentos para incidencias, ciclos de vida y auditorías en curso.
 
 ## Regla
 
-Las investigaciones deben mantenerse separadas de las certificaciones para evitar mezclar hipótesis con hechos cerrados.
+Las investigaciones deben mantenerse separadas de las certificaciones para evitar mezclar hipotesis con hechos cerrados.

@@ -3,17 +3,18 @@
 # MAPA OFICIAL DEL ECOSISTEMA
 
 ## Single Source of Truth (SSOT)
-**Versión:** 1.0
+**Version:** 1.0
 **Estado:** Certificado para desarrollo operativo
 
 ---
 
 # OBJETIVO
-Este documento define oficialmente qué proyecto corresponde a cada aplicación del ecosistema Nelly Delivery.
 
-Todo desarrollador, IA, Copilot, Codex o agente de VS Code deberá consultar este documento antes de modificar cualquier proyecto Android.
+Este documento define oficialmente que proyecto corresponde a cada aplicacion del ecosistema Nelly Delivery.
 
-Su propósito es evitar trabajar sobre el proyecto equivocado.
+Todo desarrollador, IA, Copilot, Codex o agente de VS Code debe consultar este documento antes de modificar cualquier proyecto Android.
+
+Su proposito es evitar trabajar sobre el proyecto equivocado.
 
 ---
 
@@ -22,7 +23,7 @@ Su propósito es evitar trabajar sobre el proyecto equivocado.
 ## 1. NELLY DRIVER
 
 ### Estado
-✅ Proyecto Oficial
+Proyecto Oficial
 
 ### Ruta
 C:\Users\hp14\AndroidStudioProjects\NellyDriver
@@ -30,13 +31,13 @@ C:\Users\hp14\AndroidStudioProjects\NellyDriver
 ### Package
 com.example.nellydriver
 
-### Versión
+### Version
 4.0.0-PRO
 
 ### Rol
-Unidad táctica de reparto.
+Unidad tactica de reparto.
 
-Es la aplicación utilizada por los repartidores.
+Es la aplicacion utilizada por los repartidores.
 
 ### Responsabilidades
 
@@ -44,11 +45,11 @@ Es la aplicación utilizada por los repartidores.
 - Tracking GPS
 - DeliveryTrackingService
 - Radar
-- Recepción de pedidos
+- Recepcion de pedidos
 - Estados del pedido
 - FCM
-- Telemetría
-- Navegación
+- Telemetria
+- Navegacion
 - Complete Order
 
 ### Backend
@@ -68,7 +69,7 @@ nelly-delivery
 ## 2. NELLY STORE
 
 ### Estado
-✅ Proyecto Oficial
+Proyecto Oficial
 
 ### Ruta
 C:\Users\hp14\AndroidStudioProjects\nelly
@@ -76,7 +77,7 @@ C:\Users\hp14\AndroidStudioProjects\nelly
 ### Package actual
 com.example.nelly
 
-### Versión
+### Version
 4.0.0-PRO
 (Code 404)
 
@@ -86,38 +87,35 @@ Nexus / Sentinel OMEGA
 Reactive & Modular
 
 ### Rol
-Aplicación del Comercio / Tienda.
+Aplicacion del Comercio / Tienda.
 
 Es utilizada por restaurantes y comercios.
 
 ### Responsabilidades
 
-- Recepción de pedidos
-- Gestión del comercio
-- Menús
+- Recepcion de pedidos
+- Gestion del comercio
+- Menus
 - Productos
 - Carrito
 - Cobro
 - Estado LISTO
-- Comunicación con el Backend
+- Comunicacion con el Backend
 
 ### Evidencia encontrada
-PantallaDetalleMenu
 
-ModalCarrito
-
-ComercioCard
-
-PantallaPagoExitoso
-
-PantallaSeguimientoPedido
+- PantallaDetalleMenu
+- ModalCarrito
+- ComercioCard
+- PantallaPagoExitoso
+- PantallaSeguimientoPedido
 
 ---
 
 ## 3. NELLY ADMIN V2
 
 ### Estado
-✅ Proyecto Oficial
+Proyecto Oficial
 
 ### Ruta
 C:\Users\hp14\AndroidStudioProjects\nelly2
@@ -132,22 +130,20 @@ Centro de Operaciones.
 
 - Dashboard
 - Heat Maps
-- Telemetría
-- Nómina
+- Telemetria
+- Nomina
 - Sentinel
-- Diagnósticos
+- Diagnosticos
 - Finanzas
-- Auditoría
-- Administración
+- Auditoria
+- Administracion
 
 ### Evidencia encontrada
-HeatMapScreen
 
-NominaScreen
-
-TelemetriaForenseScreen
-
-SentinelDiagnostics
+- HeatMapScreen
+- NominaScreen
+- TelemetriaForenseScreen
+- SentinelDiagnostics
 
 ---
 
@@ -159,25 +155,26 @@ SentinelDiagnostics
 C:\Users\hp14\AndroidStudioProjects\MyApplication
 
 ### Estado
-❌ FUERA DEL DESARROLLO OPERATIVO
+Fuera del desarrollo operativo
 
 ### Motivo
-Durante la certificación se detectó que múltiples modificaciones fueron realizadas en este proyecto mientras las pruebas se ejecutaban realmente sobre NellyDriver.
 
-Esto generó:
+Durante la certificacion se detecto que multiples modificaciones fueron realizadas en este proyecto mientras las pruebas se ejecutaban realmente sobre NellyDriver.
+
+Esto genero:
 
 - cambios sin efecto
-- diagnósticos incorrectos
+- diagnosticos incorrectos
 - tiempo perdido
 - falsas conclusiones
 
 Por lo tanto:
 
-NO debe utilizarse para nuevas implementaciones.
+No debe utilizarse para nuevas implementaciones.
 
-Solo podrá abrirse para:
+Solo puede abrirse para:
 
-- recuperar código
+- recuperar codigo
 - comparar versiones
 - migraciones
 
@@ -186,329 +183,82 @@ Nunca como proyecto principal.
 ---
 
 # BACKEND OFICIAL
-Base API
 
+### Base API
 https://nelly-api-8lh1.onrender.com/api/
 
-Realtime Database
-
+### Realtime Database
 https://nelly-delivery-default-rtdb.firebaseio.com
 
-Firestore
-
+### Firestore
 nelly-delivery
 
 ---
 
-# CONTRATO DE COMUNICACIÓN
+# CONTRATO DE COMUNICACION
 
 ## DRIVER
-Escucha
 
-pedidos_para_reparto/
+Escucha:
 
-Escribe
+- pedidos_para_reparto/
 
-pedidos_en_camino/
+Escribe:
 
-Tracking
+- pedidos_en_camino/
 
-repartidores_activos/
+Tracking:
 
----
+- repartidores_activos/
 
 ## STORE
-Genera pedidos.
 
-Marca pedidos LISTOS.
-
-Publica pedidos hacia el flujo operativo.
-
----
+- Genera pedidos.
+- Marca pedidos LISTOS.
+- Publica pedidos hacia el flujo operativo.
 
 ## ADMIN
-Escucha
 
-pedidos/
+Escucha:
 
-repartidores_activos/
-
-finanzas/
-
-telemetría/
+- pedidos/
+- repartidores_activos/
+- finanzas/
+- telemetria/
 
 Controla:
 
-Dashboard
-
-Auditoría
-
-Operación
+- Dashboard
+- Auditoria
+- Operacion
 
 ---
 
 # REGLAS DEL ECOSISTEMA
 
 ## Driver
-Nunca modifica Finanzas.
 
-Nunca modifica Comercios.
-
----
+- Nunca modifica Finanzas.
+- Nunca modifica Comercios.
 
 ## Store
-Nunca modifica GPS.
 
-Nunca modifica Tracking.
-
----
+- Nunca modifica GPS.
+- Nunca modifica asignacion final.
 
 ## Admin
-Nunca modifica DeliveryTrackingService.
 
-Nunca modifica Tracking interno.
-
----
-
-# REGLA OBLIGATORIA PARA VS CODE
-Antes de modificar cualquier archivo Android responder:
-
-¿Qué módulo voy a modificar?
-
-Si es GPS
-
-→ Abrir NellyDriver
-
-Si es Tracking
-
-→ Abrir NellyDriver
-
-Si es DeliveryTrackingService
-
-→ Abrir NellyDriver
-
-Si es PedidoRepository
-
-→ Abrir NellyDriver
-
-Si es Radar
-
-→ Abrir NellyDriver
-
-Si es Comercio
-
-→ Abrir nelly
-
-Si es Productos
-
-→ Abrir nelly
-
-Si es Restaurante
-
-→ Abrir nelly
-
-Si es Dashboard
-
-→ Abrir nelly2
-
-Si es HeatMap
-
-→ Abrir nelly2
-
-Si es Nómina
-
-→ Abrir nelly2
-
-Si el proyecto abierto es MyApplication
-
-DETENER EL TRABAJO.
-
-Verificar el proyecto correcto.
+- No inventa estados.
+- No reemplaza la autoridad del backend.
 
 ---
 
-# CERTIFICACIÓN DEL FLUJO OPERATIVO
-Estado actual
+# DECISION
 
-Backend
+Este mapa es la referencia oficial para identificar el proyecto correcto antes de tocar cualquier flujo Android.
 
-✅ Certificado
+Si una tarea pertenece al driver, se trabaja en `NellyDriver`.
+Si pertenece a tienda, se trabaja en `nelly`.
+Si pertenece a operaciones, se trabaja en `nelly2`.
 
-RTDB
-
-✅ Certificado
-
-Pruebas Backend
-
-21/21 aprobadas
-
-Autenticación
-
-✅ Corregida
-
-Persistencia
-
-✅ Corregida
-
-Estados monotónicos
-
-✅ Corregidos
-
-Pedido fantasma
-
-✅ Corregido
-
-Limpieza de RTDB
-
-✅ Corregida
-
-Helper de Pedido Fresco
-
-✅ Disponible
-
-Plan de Certificación
-
-✅ Documentado
-
-FCM
-
-⚠️ Pendiente de validar completamente con reglas RTDB.
-
----
-
-# PENDIENTES ANTES DEL PILOTO
-
-1. Confirmar reglas Firebase para permitir escritura del:
-
-repartidores/{uid}/fcm_token
-
-o definir oficialmente si el nodo autorizado será:
-
-repartidores_activos/{uid}/fcm_token
-
-2. Validar Pedido C completamente.
-
-Crear pedido.
-
-Despachar.
-
-Aceptar.
-
-GPS.
-
-Llegar tienda.
-
-Pedido a bordo.
-
-Entrega.
-
-Complete Order.
-
-Verificar limpieza automática.
-
-3. Validar Pedido D.
-
-Repetir exactamente el flujo.
-
-Sin reutilizar pedidos.
-
-4. Validar Push Notification.
-
-Crear pedido real.
-
-Confirmar llegada inmediata al Motorola.
-
-5. Validar Piloto.
-
-Tres pedidos consecutivos.
-
-Sin rebotes.
-
-Sin estados fantasma.
-
-Sin residuos en RTDB.
-
-Sin errores complete-order.
-
----
-
-# METODOLOGÍA OPERATIVA DE CONGELACIÓN
-A partir de este punto, el desarrollo debe entrar en una fase de estabilización operativa y evitar mezclar validación con nuevas funcionalidades.
-
-## Fase 0 – Gobernanza del ecosistema
-- Cerrar la identidad del ecosistema antes de volver a tocar código.
-- Confirmar el proyecto oficial del Driver, de la Tienda, del Admin y el estado de MyApplication como proyecto fuera de servicio.
-- Documentar ruta física, package, versionCode, versionName, backend, Firebase, RTDB, Firestore y responsabilidad de cada aplicación.
-- Definir claramente quién escribe y quién lee cada nodo de RTDB para evitar divergencias operativas.
-- Confirmar si existe una app Kitchen independiente o si esa funcionalidad vive dentro de otro proyecto.
-
-## Fase 1 – Estabilización
-- No agregar nuevas funciones.
-- Corregir únicamente defectos del flujo actual.
-- Priorizar estabilidad, consistencia de estados y limpieza de datos.
-
-## Fase 2 – Certificación
-- Completar los pedidos C y D con evidencia verificable.
-- Registrar evidencia en RTDB, Android, Panel y Backend.
-- Validar que el flujo operativo complete sin estados fantasma ni residuos.
-
-## Fase 3 – Piloto controlado
-- Salir con 2 o 3 restaurantes seleccionados.
-- Trabajar con un repartidor inicial para validar el flujo en condiciones reales.
-- Medir tiempos, reintentos y errores operativos antes de escalar.
-
-## Fase 4 – Escalamiento
-- Una vez que el flujo operativo sea estable, incorporar más comercios y repartidores.
-- Mantener la disciplina de no introducir cambios mayores durante la fase de validación.
-
-Esta metodología reduce el riesgo de introducir regresiones justo antes del piloto y permite validar el núcleo operativo antes de expandir el ecosistema.
-
----
-
-# ESTADO DEL ECOSISTEMA
-Nelly Driver
-
-90%
-
-Nelly Store
-
-85%
-
-Nelly Admin V2
-
-85%
-
-Backend
-
-95%
-
-Firebase
-
-90%
-
-Integración General
-
-88%
-
-Piloto Comercial
-
-NO AUTORIZADO TODAVÍA
-
-Condición para autorizar:
-
-Completar Pedido C.
-
-Completar Pedido D.
-
-Confirmar que las notificaciones FCM llegan de forma consistente.
-
-Verificar que no quedan pedidos residuales ni referencias activas en RTDB al finalizar.
-
-Completar tres ciclos consecutivos extremo a extremo sin intervención manual.
-
----
-
-# REGLA FINAL
-Toda modificación futura deberá comenzar verificando este documento.
-
-El ecosistema se considera certificado únicamente cuando las aplicaciones Driver, Store y Admin trabajen sobre el mismo Backend, la misma RTDB, el mismo contrato de API y un flujo operativo validado extremo a extremo.
+No usar `MyApplication` como base de certificacion operativa.

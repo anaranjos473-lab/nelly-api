@@ -1,6 +1,6 @@
 # ADR Index
 
-Este índice reúne las decisiones arquitectónicas que guían el proyecto. Antes de cambiar contratos o rutas de datos, revisa primero el ADR correspondiente.
+Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de cambiar contratos o rutas de datos, revisa primero el ADR correspondiente.
 
 ## ADRs Principales
 

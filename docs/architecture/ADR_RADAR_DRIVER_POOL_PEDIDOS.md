@@ -31,7 +31,7 @@ La implementacion debe ajustarse al ADR aprobado. Si una evidencia demuestra que
 
 ## Decision de cierre de analisis
 
-La evidencia reunida durante B2 es suficiente para concluir que el mecanismo temporal de aceptacion no representa el diseño definitivo de Nelly Delivery. Esa evidencia permite aprobar la direccion arquitectonica, pero no demuestra por si sola el punto exacto donde se interrumpe el consumidor Android.
+La evidencia reunida durante B2 es suficiente para concluir que el mecanismo temporal de aceptacion no representa el diseno definitivo de Nelly Delivery. Esa evidencia permite aprobar la direccion arquitectonica, pero no demuestra por si sola el punto exacto donde se interrumpe el consumidor Android.
 
 ### Cambios arquitectonicos aprobados
 

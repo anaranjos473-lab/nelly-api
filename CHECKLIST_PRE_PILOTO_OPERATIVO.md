@@ -82,6 +82,20 @@ Pendiente de campo:
 - Confirmar updates GPS.
 - Confirmar entrega y registro financiero.
 
+### Google Maps Platform / Costos
+
+Estado: validar antes del piloto.
+
+Confirmaciones recomendadas:
+- Presupuesto mensual configurado en Google Cloud con alertas activas.
+- API keys restringidas:
+  - Android por paquete y SHA-1.
+  - Backend por IP o por servicio.
+- Solo APIs necesarias habilitadas.
+- Sin geocodificacion, rutas o autocomplete repetitivos si no aportan valor operativo.
+- El uso de Google Maps se limita a lo que realmente necesita la app del conductor.
+- El backend sigue siendo la fuente de verdad; Android solo refleja estado.
+
 ---
 
 ## GO / NO-GO
@@ -102,7 +116,8 @@ Decision actual:
 
 PILOTO_CAMPO_001 = GO para prueba controlada de una orden.
 
-No mas auditorias ni certificaciones teoricas antes del piloto.
+No mas auditorias teoricas del flujo operativo antes del piloto.
+Solo queda la verificacion rapida de costos y restricciones de Google Maps Platform.
 
 ---
 

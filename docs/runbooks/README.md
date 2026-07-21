@@ -1,6 +1,6 @@
 # Runbooks
 
-Guías operativas para desplegar, depurar y recuperar Nelly Delivery.
+Guias operativas para desplegar, depurar y recuperar Nelly Delivery.
 
 ## Documentos
 
@@ -13,4 +13,4 @@ Guías operativas para desplegar, depurar y recuperar Nelly Delivery.
 
 ## Uso
 
-Consulta el runbook correspondiente antes de ejecutar tareas operativas o de producción.
+Consulta el runbook correspondiente antes de ejecutar tareas operativas o de produccion.

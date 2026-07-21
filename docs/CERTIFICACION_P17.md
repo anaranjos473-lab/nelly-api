@@ -1,21 +1,21 @@
-# Certificación P17 — Ganancias del repartidor
+# Certificacion P17 - Ganancias del repartidor
 
 ## Estado
 
-✅ CERRADO Y VALIDADO EN PRODUCCIÓN
+CERRADO Y VALIDADO EN PRODUCCION
 
 ## Objetivo
 
-Corregir el problema por el cual la ganancia diaria del repartidor (`ganancia_hoy`) permanecía en `0` después de completar una entrega.
+Corregir el problema por el cual la ganancia diaria del repartidor (`ganancia_hoy`) permanecia en `0` despues de completar una entrega.
 
-## Evidencia de certificación
+## Evidencia de certificacion
 
-Se ejecutó una entrega completa en producción y se verificó que:
+Se ejecuto una entrega completa en produccion y se verifico que:
 
-- El pedido finalizó en estado `ENTREGADO`.
-- Se registró la ganancia neta del pedido.
-- Se actualizó el saldo financiero del repartidor.
-- `ganancia_hoy` mostró un valor distinto de cero.
+- El pedido finalizo en estado `ENTREGADO`.
+- Se registro la ganancia neta del pedido.
+- Se actualizo el saldo financiero del repartidor.
+- `ganancia_hoy` mostro un valor distinto de cero.
 
 ## Valores observados
 
@@ -30,21 +30,21 @@ La evidencia confirma que el defecto corregido por P17 ya no se reproduce. El ba
 
 | Componente | Estado |
 | --- | --- |
-| P12 | ✅ Estable |
-| P13 | ✅ Estable |
-| P14 | ✅ Cerrado |
-| P14.1 | ✅ Cerrado |
-| Backend E2E | ✅ Certificado |
-| P17 | ✅ Cerrado y validado en producción |
+| P12 | Estable |
+| P13 | Estable |
+| P14 | Cerrado |
+| P14.1 | Cerrado |
+| Backend E2E | Certificado |
+| P17 | Cerrado y validado en produccion |
 
-## Línea base recomendada
+## Linea base recomendada
 
-Esta versión puede tomarse como baseline estable para continuar el desarrollo.
+Esta version puede tomarse como baseline estable para continuar el desarrollo.
 
-Los siguientes trabajos deberían centrarse en:
+Los siguientes trabajos deberian centrarse en:
 
-- Validación visual del Radar.
-- Preparación de la versión candidata para publicación.
-- Incorporación de nuevas funcionalidades sin modificar los componentes ya certificados, salvo que aparezca un defecto reproducible.
+- Validacion visual del Radar.
+- Preparacion de la version candidata para publicacion.
+- Incorporacion de nuevas funcionalidades sin modificar los componentes ya certificados, salvo que aparezca un defecto reproducible.
 
-Este documento constituye una referencia para futuras regresiones: si reaparece un problema relacionado con las ganancias del repartidor, podrá compararse contra esta versión certificada.
+Este documento constituye una referencia para futuras regresiones: si reaparece un problema relacionado con las ganancias del repartidor, podra compararse contra esta version certificada.
