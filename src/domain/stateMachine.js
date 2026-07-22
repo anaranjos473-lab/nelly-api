@@ -19,6 +19,7 @@ export const STATE_EVENTS = Object.freeze({
   PAGADO: 'pedido.pagado',
   VALIDADO: 'pedido.validado',
   EN_PROCESO: 'pedido.en_proceso',
+  EN_CURSO: 'pedido.en_proceso',
   LISTO: 'pedido.listo',
   ASIGNADO: 'pedido.asignado',
   EN_TRANSITO: 'pedido.en_transito',
