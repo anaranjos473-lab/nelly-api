@@ -1,3 +1,9 @@
+import {
+  canTransition,
+  explainTransition as explainOrderStateTransition,
+  normalizeState as normalizeDomainState
+} from '../domain/stateMachine.js';
+
 const NORMALIZED_STATES = {
   PENDIENTE: 'PENDIENTE',
   LISTO: 'LISTO',
@@ -23,18 +29,12 @@ const ESTADOS_EN_CURSO = new Set([
   'LLEGUE_A_CLIENTE'
 ]);
 
-const TRANSICIONES_OPERATIVAS = new Map([
-  ['EN_CURSO', new Set(['LLEGUE_A_TIENDA'])],
-  ['LLEGUE_A_TIENDA', new Set(['PEDIDO_ABORDO'])],
-  ['PEDIDO_ABORDO', new Set(['LLEGUE_A_CLIENTE'])]
-]);
-
 function roundMoney(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 }
 
 function normalizeOrderState(value) {
-  return String(value || '').trim().toUpperCase();
+  return normalizeDomainState(value);
 }
 
 function estadoOperativo(estado) {
@@ -66,8 +66,7 @@ function obtenerPrioridadEstado(estado) {
 }
 
 function esTransicionOperativaPermitida(actual, siguiente) {
-  if (actual === siguiente) return true;
-  return TRANSICIONES_OPERATIVAS.get(actual)?.has(siguiente) === true;
+  return canTransition(actual, siguiente);
 }
 
 function shouldAdvancePedidoState(currentState, incomingState) {
@@ -303,7 +302,6 @@ const ordersManagerApi = {
   NORMALIZED_STATES,
   ESTADOS_DISPONIBLES,
   ESTADOS_EN_CURSO,
-  TRANSICIONES_OPERATIVAS,
   roundMoney,
   normalizeOrderState,
   estadoOperativo,
@@ -332,12 +330,12 @@ export {
   NORMALIZED_STATES,
   ESTADOS_DISPONIBLES,
   ESTADOS_EN_CURSO,
-  TRANSICIONES_OPERATIVAS,
   roundMoney,
   normalizeOrderState,
   estadoOperativo,
   obtenerPrioridadEstado,
   esTransicionOperativaPermitida,
+  explainOrderStateTransition,
   shouldAdvancePedidoState,
   getOrderTotal,
   firstPositiveMoney,
