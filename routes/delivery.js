@@ -2,11 +2,19 @@ import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/debtLockService.js';
 import {
+  buildAcceptSyncWrites,
+  buildCompleteSyncWrites,
+  buildDriverOfflineSyncWrites,
+  buildDriverOnlineSyncWrites,
+  buildDispatchSyncWrites,
+  buildLocationSyncWrites,
+  buildPoolDispatchOrder,
+  buildTransitionSyncWrites
+} from '../src/services/orderSyncService.js';
+import {
   ESTADOS_EN_CURSO,
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
-  buildDriverOfflinePayload,
-  buildDriverOnlinePayload,
   canAcceptOrder,
   canCompleteOrder,
   estadoOperativo,
@@ -14,9 +22,6 @@ import {
   getDeliveryPayout,
   getDriverUidFromOrder,
   getOrderTotal,
-  limpiarAsignacionParaPool,
-  esTransicionOperativaPermitida,
-  shouldAdvancePedidoState,
   roundMoney
 } from '../src/services/ordersManager.js';
 import { verifyToken } from '../src/utils/jwt.js';
@@ -140,14 +145,14 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
     const pedidoActual = pedidoSnap.val() || {};
     const pedidoInput = req.body?.pedido && typeof req.body.pedido === 'object' ? req.body.pedido : {};
     const dispatchedAt = Date.now();
-    const pedidoBase = {
+  const pedidoBase = {
       ...pedidoInput,
       ...pedidoActual,
       id: pedidoActual.id || pedidoInput.id || pedidoId,
       id_pedido: pedidoActual.id_pedido || pedidoInput.id_pedido || pedidoId,
       pedido_id: pedidoActual.pedido_id || pedidoInput.pedido_id || pedidoId
     };
-    const pedidoPool = limpiarAsignacionParaPool(pedidoBase);
+    const pedidoPool = buildPoolDispatchOrder(pedidoBase);
     const payloadListo = {
       ...pedidoPool,
       shortId: pedidoBase.shortId || generateShortId(pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt),
@@ -165,10 +170,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       disponible: true
     };
 
-    await Promise.all([
-      db.ref(`pedidos/${pedidoId}`).update(payloadListo),
-      db.ref(`pedidos_para_reparto/${pedidoId}`).set(payloadListo)
-    ]);
+    await db.ref().update(buildDispatchSyncWrites(pedidoId, pedidoActual, payloadListo));
 
     return res.json({ ok: true, pedidoId, estado: 'LISTO', pedido: payloadListo });
   } catch (error) {
@@ -199,12 +201,7 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     const acceptedAt = Date.now();
     const payload = buildAcceptedOrderPayload(pedido, uid, acceptedAt);
 
-    await Promise.all([
-      pedidoRef.update(payload),
-      db.ref(`repartidores/${uid}/pedido_activo`).set(pedidoId),
-      db.ref(`pedidos_para_reparto/${pedidoId}`).remove(),
-      db.ref(`pedidos_en_camino/${pedidoId}`).set(payload)
-    ]);
+    await db.ref().update(buildAcceptSyncWrites(pedidoId, uid, payload));
 
     return res.json({ ok: true, pedidoId, repartidorId: uid });
   } catch (error) {
@@ -248,21 +245,7 @@ router.post('/transition-order', requireFirebaseUser, async (req, res, next) => 
     }
 
     const updatedAt = Date.now();
-    const estadoUpdates = {
-      estado: estadoSiguiente,
-      estado_pedido: estadoSiguiente,
-      logistica: { ...(pedido.logistica || {}), estado: estadoSiguiente },
-      timestampActualizacion: updatedAt
-    };
-    const pedidoEnCamino = { ...pedido, ...estadoUpdates };
-    const updates = {
-      [`pedidos/${pedidoId}/estado`]: estadoSiguiente,
-      [`pedidos/${pedidoId}/estado_pedido`]: estadoSiguiente,
-      [`pedidos/${pedidoId}/logistica/estado`]: estadoSiguiente,
-      [`pedidos/${pedidoId}/timestampActualizacion`]: updatedAt,
-      [`pedidos_en_camino/${pedidoId}`]: pedidoEnCamino
-    };
-    await db.ref().update(updates);
+    await db.ref().update(buildTransitionSyncWrites(pedidoId, estadoSiguiente, pedido));
 
     return res.json({
       ok: true,
@@ -292,38 +275,23 @@ router.post('/update-location', requireFirebaseUser, async (req, res, next) => {
     const timestamp = Date.now();
     const ubicacion = { lat: latNum, lng: lngNum, timestamp, pedidoId: pedidoId || null };
 
-    const updates = {
-      [`repartidores/${uid}/ubicacion`]: ubicacion,
-      [`repartidores/${uid}/ultima_conexion`]: timestamp,
-      [`conductores_activos/${uid}/lat`]: latNum,
-      [`conductores_activos/${uid}/lng`]: lngNum,
-      [`conductores_activos/${uid}/timestamp`]: timestamp
-    };
-    if (pedidoId) {
-      updates[`pedidos/${pedidoId}/ubicacion_repartidor`] = ubicacion;
-
-      const estadoPayload = String(req.body?.estado || req.body?.estado_pedido || req.body?.subestado || '').trim().toUpperCase();
-      if (estadoPayload) {
-        const estadoPersistido = normalizeOrderState(estadoPayload);
-        const pedidoActual = (await db.ref(`pedidos/${pedidoId}`).once('value')).val() || {};
-        const estadoActual = pedidoActual?.estado_pedido || pedidoActual?.estado || '';
-        if (shouldAdvancePedidoState(estadoActual, estadoPersistido)) {
-          updates[`pedidos/${pedidoId}/estado`] = estadoPersistido;
-          updates[`pedidos/${pedidoId}/estado_pedido`] = estadoPersistido;
-          updates[`pedidos/${pedidoId}/logistica/estado`] = estadoPersistido;
-        }
-      }
-
-      const fasePanel = typeof req.body?.fase_panel === 'string' && req.body.fase_panel.trim()
-        ? req.body.fase_panel.trim()
-        : null;
-      if (fasePanel) {
-        updates[`pedidos/${pedidoId}/fase_panel`] = fasePanel;
-      }
-    }
-
+    const pedidoActual = pedidoId ? (await db.ref(`pedidos/${pedidoId}`).once('value')).val() || {} : null;
+    const estadoPayload = String(req.body?.estado || req.body?.estado_pedido || req.body?.subestado || '').trim().toUpperCase();
+    const fasePanel = typeof req.body?.fase_panel === 'string' && req.body.fase_panel.trim()
+      ? req.body.fase_panel.trim()
+      : null;
+    const { updates, ubicacion: ubicacionSync } = buildLocationSyncWrites({
+      uid,
+      pedidoId: pedidoId || null,
+      lat: latNum,
+      lng: lngNum,
+      timestamp,
+      fasePanel,
+      currentOrder: pedidoActual,
+      stateHint: estadoPayload
+    });
     await db.ref().update(updates);
-    return res.json({ ok: true, ubicacion });
+    return res.json({ ok: true, ubicacion: ubicacionSync });
   } catch (error) {
     return next(error);
   }
@@ -336,7 +304,7 @@ router.post('/driver-offline', requireFirebaseUser, async (req, res, next) => {
     const db = admin.database();
     const timestamp = Date.now();
 
-    await db.ref().update(buildDriverOfflinePayload(uid, timestamp));
+    await db.ref().update(buildDriverOfflineSyncWrites(uid, timestamp));
 
     return res.json({ ok: true, repartidorId: uid, estado: 'OFFLINE', offlineEn: timestamp });
   } catch (error) {
@@ -352,7 +320,7 @@ router.post('/driver-online', requireFirebaseUser, async (req, res, next) => {
     const timestamp = Date.now();
     const activePedidoId = (await db.ref(`repartidores/${uid}/pedido_activo`).once('value')).val();
 
-    const updates = buildDriverOnlinePayload(uid, activePedidoId, timestamp);
+    const updates = buildDriverOnlineSyncWrites(uid, activePedidoId, timestamp);
 
     await db.ref().update(updates);
     return res.json({
@@ -427,15 +395,7 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
       pedidoUpdates.evidencia_storage_fallback_at = completedAt;
       pedidoUpdates.evidencia_storage_error = String(req.body.storageError || '').slice(0, 240);
     }
-    const updates = {
-      [`pedidos/${pedidoId}`]: { ...pedido, ...pedidoUpdates },
-      [`pedidos_en_camino/${pedidoId}`]: null,
-      [`pedidos_para_reparto/${pedidoId}`]: null
-    };
-    if (driverUid) {
-      updates[`repartidores/${driverUid}/pedido_activo`] = null;
-    }
-    await db.ref().update(updates);
+    await db.ref().update(buildCompleteSyncWrites(pedidoId, pedido, driverUid, pedidoUpdates));
 
     return res.json({
       ok: true,
