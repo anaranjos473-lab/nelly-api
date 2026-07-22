@@ -4,7 +4,9 @@ import {
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
   canAcceptOrder,
-  canCompleteOrder
+  canCompleteOrder,
+  getOrderIdentity,
+  getOrderState
 } from '../services/ordersManager.js';
 
 function createFulfillmentEngine({
@@ -21,8 +23,8 @@ function createFulfillmentEngine({
     const acceptedAt = clock();
     const acceptedOrder = buildAcceptedOrderPayload(order, uid, acceptedAt);
     const event = eventBus.recordTransition({
-      aggregate_id: acceptedOrder.id_pedido || acceptedOrder.id || acceptedOrder.pedido_id,
-      from: order?.estado_pedido || order?.estado || 'LISTO',
+      aggregate_id: getOrderIdentity(acceptedOrder),
+      from: getOrderState(order) || 'LISTO',
       to: 'EN_CURSO',
       payload: {
         uid,
@@ -47,11 +49,10 @@ function createFulfillmentEngine({
 
     const completedAt = clock();
     const completedOrder = buildCompletedOrderPayload(order, completedAt, 'normal', comision, tarifaEntrega);
-    const aggregateId = completedOrder.id_pedido || completedOrder.id || completedOrder.pedido_id
-      || order?.id_pedido || order?.id || order?.pedido_id;
+    const aggregateId = getOrderIdentity(completedOrder) || getOrderIdentity(order);
     const event = eventBus.recordTransition({
       aggregate_id: aggregateId,
-      from: order?.estado_pedido || order?.estado || 'EN_TRANSITO',
+      from: getOrderState(order) || 'EN_TRANSITO',
       to: 'ENTREGADO',
       payload: {
         uid,

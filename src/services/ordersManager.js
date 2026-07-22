@@ -37,6 +37,15 @@ function normalizeOrderState(value) {
   return normalizeDomainState(value);
 }
 
+function getOrderIdentity(order = {}) {
+  return String(
+    order.id_pedido
+      || order.id
+      || order.pedido_id
+      || ''
+  ).trim();
+}
+
 function estadoOperativo(estado) {
   const normalized = normalizeOrderState(estado);
   if (ESTADOS_DISPONIBLES.has(normalized)) {
@@ -311,7 +320,7 @@ function getOrderState(order = {}) {
 
 function buildOrderContext(order = {}, meta = {}) {
   return {
-    pedidoId: String(meta.pedidoId || order.id_pedido || order.id || order.pedido_id || '').trim(),
+    pedidoId: String(meta.pedidoId || getOrderIdentity(order)).trim(),
     currentState: getOrderState(order),
     order: { ...order },
     meta: { ...meta }
@@ -338,6 +347,7 @@ const ordersManagerApi = {
   ESTADOS_EN_CURSO,
   roundMoney,
   normalizeOrderState,
+  getOrderIdentity,
   estadoOperativo,
   obtenerPrioridadEstado,
   esTransicionOperativaPermitida,
@@ -368,6 +378,7 @@ export {
   ESTADOS_EN_CURSO,
   roundMoney,
   normalizeOrderState,
+  getOrderIdentity,
   estadoOperativo,
   obtenerPrioridadEstado,
   esTransicionOperativaPermitida,
