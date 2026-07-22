@@ -1,5 +1,6 @@
 
 import { getAdmin } from '../../config/firebase-admin-esm.js';
+import { ORDER_STATES, FULFILLMENT_NODE_STATES } from '../domain/index.js';
 
 
 
@@ -17,7 +18,7 @@ const evaluarMercado = async () => {
         const pedidos = snapshotPedidos.val() || {};
         let totalPedidos = 0;
         for (const pedido of Object.values(pedidos)) {
-            if (pedido?.estado === 'PENDIENTE' || pedido?.estado === 'pendiente') {
+            if (pedido?.estado === ORDER_STATES.PENDIENTE || pedido?.estado === 'pendiente') {
                 totalPedidos++;
             }
         }
@@ -27,7 +28,7 @@ const evaluarMercado = async () => {
         const conductores = snapshotConductores.val() || {};
         let totalConductoresLibres = 0;
         for (const id in conductores) {
-            if (conductores[id].estado === 'DISPONIBLE') {
+            if (conductores[id].estado === FULFILLMENT_NODE_STATES.DISPONIBLE) {
                 totalConductoresLibres++;
             }
         }
