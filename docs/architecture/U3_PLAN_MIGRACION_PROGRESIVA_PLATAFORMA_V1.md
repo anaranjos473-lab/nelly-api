@@ -60,6 +60,16 @@ Integracion inicial iniciada:
 - adaptador de pagos canonico en `src/integrations/paymentAdapter.js`
 - adaptador de facturacion canonico en `src/integrations/billingAdapter.js`
 - adaptador POS canonico en `src/integrations/posAdapter.js`
+- adaptador ERP canonico en `src/integrations/erpAdapter.js`
+- adaptador marketplace canonico en `src/integrations/marketplaceAdapter.js`
+- adaptador identity canonico en `src/integrations/identityAdapter.js`
+- adaptador notifications canonico en `src/integrations/notificationAdapter.js`
+
+Matriz de compatibilidad de referencia:
+- [`U3_3_MATRIZ_COMPATIBILIDAD_INTEGRACIONES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_3_MATRIZ_COMPATIBILIDAD_INTEGRACIONES_V1.md)
+
+Cierre base de U3.3:
+- [`U3_3_CIERRE_INTEGRACIONES_BASE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_3_CIERRE_INTEGRACIONES_BASE_V1.md)
 
 ### U3.4 - Certificacion universal
 Demostrar:
