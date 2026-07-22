@@ -46,6 +46,90 @@ function resumenFinanciero(uid, result = {}) {
   };
 }
 
+function buildDebtChargePayload(current, { uid, monto, pedidoId = null, origen = 'api', now = Date.now(), limite }) {
+  const nivel = extraerNivel(current);
+  const deudaActual = extraerDeudaActual(current);
+  const saldoGanancias = extraerSaldoGanancias(current);
+  const gananciaHoy = toNumberSafe(current?.finanzas?.ganancia_hoy, 0);
+  const nuevaDeuda = roundMoney(deudaActual + monto);
+  const nuevoSaldo = roundMoney(saldoGanancias + monto);
+  const nuevaGananciaHoy = roundMoney(gananciaHoy + monto);
+  const bloqueado = nuevaDeuda > limite;
+
+  return {
+    uid: current.uid || uid,
+    estatus: {
+      ...(current.estatus || {}),
+      nivel,
+      bloqueado_por_deuda: bloqueado,
+      actualizado_en: now
+    },
+    perfil: {
+      ...(current.perfil || {}),
+      bloqueado_por_deuda: bloqueado
+    },
+    finanzas: {
+      ...(current.finanzas || {}),
+      deuda_actual: nuevaDeuda,
+      limite_deuda: limite,
+      saldo_ganancias: nuevoSaldo,
+      ganancia_hoy: nuevaGananciaHoy,
+      ultimo_cobro_efectivo: {
+        monto,
+        pedido_id: pedidoId || null,
+        origen,
+        timestamp: now
+      }
+    },
+    billetera: {
+      ...(current.billetera || {}),
+      deuda_comision: nuevaDeuda
+    }
+  };
+}
+
+function buildDebtPaymentPayload(current, { monto, origen = 'panel', now = Date.now(), limite }) {
+  const nivel = extraerNivel(current);
+  const deudaActual = extraerDeudaActual(current);
+  const saldoGanancias = extraerSaldoGanancias(current);
+  const nuevaDeuda = roundMoney(Math.max(0, deudaActual - monto));
+  const nuevoSaldo = roundMoney(Math.max(0, saldoGanancias - monto));
+  const bloqueado = nuevaDeuda > limite;
+
+  return {
+    estatus: {
+      ...(current.estatus || {}),
+      nivel,
+      bloqueado_por_deuda: bloqueado,
+      actualizado_en: now
+    },
+    perfil: {
+      ...(current.perfil || {}),
+      bloqueado_por_deuda: bloqueado
+    },
+    finanzas: {
+      ...(current.finanzas || {}),
+      deuda_actual: nuevaDeuda,
+      limite_deuda: limite,
+      saldo_ganancias: nuevoSaldo,
+      ultimo_pago_deuda: {
+        monto,
+        origen,
+        timestamp: now
+      }
+    },
+    billetera: {
+      ...(current.billetera || {}),
+      deuda_comision: nuevaDeuda
+    }
+  };
+}
+
+export {
+  buildDebtChargePayload,
+  buildDebtPaymentPayload
+};
+
 export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoId = null, origen = 'api' }) {
   const monto = roundMoney(montoEfectivo);
   if (!uid || monto <= 0) {
@@ -63,48 +147,16 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
   const tx = await ref.transaction((actual) => {
     // Usar fallback si actual es null (sucede con concurrencia en Firebase)
     const current = (actual && typeof actual === 'object') ? actual : fallbackData;
-
-    const nivel = extraerNivel(current);
-    const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
-    const deudaActual = extraerDeudaActual(current);
-    const saldoGanancias = extraerSaldoGanancias(current);
-    const gananciaHoy = toNumberSafe(current?.finanzas?.ganancia_hoy, 0);
-    const nuevaDeuda = roundMoney(deudaActual + monto);
-    const nuevoSaldo = roundMoney(saldoGanancias + monto);
-    const nuevaGananciaHoy = roundMoney(gananciaHoy + monto);
-    const bloqueado = nuevaDeuda > limite;
-    const ahora = Date.now();
-
     return {
       ...current,
-      uid: current.uid || uid,
-      estatus: {
-        ...(current.estatus || {}),
-        nivel,
-        bloqueado_por_deuda: bloqueado,
-        actualizado_en: ahora
-      },
-      perfil: {
-        ...(current.perfil || {}),
-        bloqueado_por_deuda: bloqueado
-      },
-      finanzas: {
-        ...(current.finanzas || {}),
-        deuda_actual: nuevaDeuda,
-        limite_deuda: limite,
-        saldo_ganancias: nuevoSaldo,
-        ganancia_hoy: nuevaGananciaHoy,
-        ultimo_cobro_efectivo: {
-          monto,
-          pedido_id: pedidoId || null,
-          origen,
-          timestamp: ahora
-        }
-      },
-      billetera: {
-        ...(current.billetera || {}),
-        deuda_comision: nuevaDeuda
-      }
+      ...buildDebtChargePayload(current, {
+        uid,
+        monto,
+        pedidoId,
+        origen,
+        now: Date.now(),
+        limite: LIMITES_DEUDA_POR_NIVEL[extraerNivel(current)]
+      })
     };
   });
 
@@ -133,40 +185,14 @@ export async function registrarPagoDeudaTx(db, { uid, montoPago, origen = 'panel
 
   const nivel = extraerNivel(current);
   const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
-  const deudaActual = extraerDeudaActual(current);
-  const saldoGanancias = extraerSaldoGanancias(current);
-  const nuevaDeuda = roundMoney(Math.max(0, deudaActual - monto));
-  const nuevoSaldo = roundMoney(Math.max(0, saldoGanancias - monto));
-  const bloqueado = nuevaDeuda > limite;
-  const ahora = Date.now();
-
   await refPreread.update({
     ...current,
-    estatus: {
-      ...(current.estatus || {}),
-      nivel,
-      bloqueado_por_deuda: bloqueado,
-      actualizado_en: ahora
-    },
-    perfil: {
-      ...(current.perfil || {}),
-      bloqueado_por_deuda: bloqueado
-    },
-    finanzas: {
-      ...(current.finanzas || {}),
-      deuda_actual: nuevaDeuda,
-      limite_deuda: limite,
-      saldo_ganancias: nuevoSaldo,
-      ultimo_pago_deuda: {
-        monto,
-        origen,
-        timestamp: ahora
-      }
-    },
-    billetera: {
-      ...(current.billetera || {}),
-      deuda_comision: nuevaDeuda
-    }
+    ...buildDebtPaymentPayload(current, {
+      monto,
+      origen,
+      now: Date.now(),
+      limite
+    })
   });
 
   const refreshed = (await refPreread.once('value')).val() || {};
