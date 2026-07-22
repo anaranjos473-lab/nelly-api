@@ -1,7 +1,15 @@
 import { normalizeState } from '../domain/stateMachine.js';
 import { ORDER_CONTRACT, validateOrder } from '../domain/contracts/order.js';
+import { ORDER_STATES } from '../domain/index.js';
 
-const ESTADOS = new Set(['PENDIENTE', 'COCINA', 'LISTO', 'EN_CURSO', 'ENTREGADO', 'CANCELADO']);
+const ESTADOS = new Set([
+  ORDER_STATES.PENDIENTE,
+  'COCINA',
+  ORDER_STATES.LISTO,
+  ORDER_STATES.EN_CURSO,
+  ORDER_STATES.ENTREGADO,
+  ORDER_STATES.CANCELADO
+]);
 const FASES = new Set(['ASIGNADO', 'EN_RUTA_TIENDA', 'EN_TIENDA', 'COMPRA_EN_CURSO', 'EN_RUTA_CLIENTE', 'EN_CLIENTE']);
 const PRODUCTORES = new Set(['admin_dashboard', 'api_ordenes', 'panel_cocina', 'api_import', 'cloud_function', 'script_interno']);
 const METODOS_PAGO = new Set(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'OTRO']);
@@ -14,13 +22,13 @@ const EVENTOS = new Set([
 ]);
 
 const TRANSICIONES = new Map([
-  [null, new Set(['PENDIENTE'])],
-  ['PENDIENTE', new Set(['COCINA', 'CANCELADO'])],
+  [null, new Set([ORDER_STATES.PENDIENTE])],
+  [ORDER_STATES.PENDIENTE, new Set(['COCINA', ORDER_STATES.CANCELADO])],
   ['COCINA', new Set(['LISTO', 'CANCELADO'])],
-  ['LISTO', new Set(['EN_CURSO', 'CANCELADO'])],
-  ['EN_CURSO', new Set(['ENTREGADO', 'CANCELADO'])],
-  ['ENTREGADO', new Set()],
-  ['CANCELADO', new Set()]
+  [ORDER_STATES.LISTO, new Set([ORDER_STATES.EN_CURSO, ORDER_STATES.CANCELADO])],
+  [ORDER_STATES.EN_CURSO, new Set([ORDER_STATES.ENTREGADO, ORDER_STATES.CANCELADO])],
+  [ORDER_STATES.ENTREGADO, new Set()],
+  [ORDER_STATES.CANCELADO, new Set()]
 ]);
 
 const ALIASES = new Map([
@@ -312,7 +320,7 @@ export function validateOrderV2(order, { key = null, previousState = undefined }
   const fase = valorRuta(value, 'logistica.fase_operativa');
   const uid = valorRuta(value, 'logistica.repartidor_uid');
   const activa = valorRuta(value, 'logistica.asignacion_activa');
-  if (value.estado === 'EN_CURSO') {
+  if (value.estado === ORDER_STATES.EN_CURSO) {
     if (!FASES.has(fase)) pushError(errors, 'FASE_INVALIDA', 'logistica.fase_operativa', 'EN_CURSO requiere fase operativa válida');
     if (!cadenaValida(uid)) pushError(errors, 'ASIGNACION_INVALIDA', 'logistica.repartidor_uid', 'EN_CURSO requiere repartidor_uid');
     if (activa !== true) pushError(errors, 'ASIGNACION_INVALIDA', 'logistica.asignacion_activa', 'EN_CURSO requiere asignación activa');
@@ -334,7 +342,7 @@ export function validateOrderV2(order, { key = null, previousState = undefined }
     if (value.evidencia.timestamp !== null && (!Number.isInteger(value.evidencia.timestamp) || value.evidencia.timestamp <= 0)) {
       pushError(errors, 'EVIDENCIA_INVALIDA', 'evidencia.timestamp', 'timestamp debe ser null o entero UTC positivo');
     }
-    if (value.estado === 'ENTREGADO') {
+    if (value.estado === ORDER_STATES.ENTREGADO) {
       if (value.evidencia.tipo !== 'FOTO_ENTREGA' || !cadenaValida(value.evidencia.url) || !cadenaValida(value.evidencia.mime) || !Number.isInteger(value.evidencia.timestamp)) {
         pushError(errors, 'EVIDENCIA_REQUERIDA', 'evidencia', 'ENTREGADO requiere evidencia completa');
       }

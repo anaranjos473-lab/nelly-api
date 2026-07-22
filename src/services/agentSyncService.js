@@ -7,6 +7,7 @@ function buildSupportInterventionPayload(pedidoId, message, bonus = 15.0) {
 }
 
 import { normalizeState } from '../domain/stateMachine.js';
+import { ORDER_STATES } from '../domain/index.js';
 
 function buildSupportRescuePayload(pedidoId, conductorId, estadoDestino, timestamp = Date.now()) {
   return {

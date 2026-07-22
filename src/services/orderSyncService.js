@@ -1,5 +1,6 @@
 import { limpiarAsignacionParaPool, shouldAdvancePedidoState } from './ordersManager.js';
 import { normalizeState } from '../domain/stateMachine.js';
+import { FULFILLMENT_NODE_STATES } from '../domain/index.js';
 
 function buildDispatchSyncWrites(pedidoId, order, dispatchedPayload) {
   return {
@@ -70,9 +71,9 @@ function buildDriverOfflineSyncWrites(uid, timestamp = Date.now()) {
 function buildDriverOnlineSyncWrites(uid, activePedidoId, timestamp = Date.now()) {
   const updates = {
     [`repartidores/${uid}/disponible`]: true,
-    [`repartidores/${uid}/estado`]: 'DISPONIBLE',
+    [`repartidores/${uid}/estado`]: FULFILLMENT_NODE_STATES.DISPONIBLE,
     [`repartidores/${uid}/ultima_conexion`]: timestamp,
-    [`repartidores_activos/${uid}/estado`]: 'DISPONIBLE',
+    [`repartidores_activos/${uid}/estado`]: FULFILLMENT_NODE_STATES.DISPONIBLE,
     [`repartidores_activos/${uid}/disponible`]: true,
     [`repartidores_activos/${uid}/uid`]: uid,
     [`repartidores_activos/${uid}/actualizado_en`]: timestamp

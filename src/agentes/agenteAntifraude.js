@@ -1,4 +1,5 @@
 import { getAdmin } from '../../config/firebase-admin-esm.js';
+import { ORDER_STATES } from '../domain/index.js';
 
 // Reutilizamos la fórmula de Haversine para la auditoría
 const calcularDistancia = (lat1, lon1, lat2, lon2) => {
@@ -79,7 +80,7 @@ export const iniciarAgenteAntifraude = async () => {
     pedidosRef.on('child_changed', async (snapshot) => {
         const pedidoNuevo = snapshot.val();
         const pedidoId = snapshot.key;
-        if (!pedidoNuevo || pedidoNuevo.estado !== 'entregado' || !pedidoNuevo.conductorId) {
+        if (!pedidoNuevo || pedidoNuevo.estado !== ORDER_STATES.ENTREGADO || !pedidoNuevo.conductorId) {
             return;
         }
 
