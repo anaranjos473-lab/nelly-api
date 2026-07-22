@@ -1,6 +1,7 @@
 
 import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { ORDER_STATES, FULFILLMENT_NODE_STATES } from '../domain/index.js';
+import { getOrderState } from '../services/ordersManager.js';
 
 
 
@@ -18,7 +19,7 @@ const evaluarMercado = async () => {
         const pedidos = snapshotPedidos.val() || {};
         let totalPedidos = 0;
         for (const pedido of Object.values(pedidos)) {
-            if (pedido?.estado === ORDER_STATES.PENDIENTE || pedido?.estado === 'pendiente') {
+            if (getOrderState(pedido) === ORDER_STATES.PENDIENTE) {
                 totalPedidos++;
             }
         }

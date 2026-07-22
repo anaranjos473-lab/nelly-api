@@ -1,6 +1,7 @@
 import { normalizeState } from '../domain/stateMachine.js';
 import { ORDER_CONTRACT, validateOrder } from '../domain/contracts/order.js';
 import { ORDER_STATES } from '../domain/index.js';
+import { normalizeOrderState } from './ordersManager.js';
 
 const ESTADOS = new Set([
   ORDER_STATES.PENDIENTE,
@@ -219,7 +220,7 @@ function validateCanonicalShadowOrder(order, { key = null, previousState = undef
   const canonical = esObjeto(order)
     ? {
         ...order,
-        estado: normalizeState(order.estado || order.estado_pedido),
+        estado: normalizeOrderState(order.estado || order.estado_pedido),
         contract_version: order.contract_version || 1,
         lineas: Array.isArray(order.lineas) ? order.lineas : (Array.isArray(order.items) ? order.items : [])
       }

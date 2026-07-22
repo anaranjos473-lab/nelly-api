@@ -1,3 +1,5 @@
+import { normalizeOrderState } from './ordersManager.js';
+
 function buildSupportInterventionPayload(pedidoId, message, bonus = 15.0) {
   return {
     [`pedidos/${pedidoId}/intervencionSoporte`]: true,
@@ -6,13 +8,10 @@ function buildSupportInterventionPayload(pedidoId, message, bonus = 15.0) {
   };
 }
 
-import { normalizeState } from '../domain/stateMachine.js';
-import { ORDER_STATES } from '../domain/index.js';
-
 function buildSupportRescuePayload(pedidoId, conductorId, estadoDestino, timestamp = Date.now()) {
   return {
     [`pedidos/${pedidoId}`]: {
-      estado: normalizeState(estadoDestino),
+      estado: normalizeOrderState(estadoDestino),
       conductorAnterior: conductorId,
       conductorId: '',
       timestampActualizacion: timestamp
@@ -27,7 +26,7 @@ function buildDispatchAssignmentPayload(pedidoId, conductorId, timestamp = Date.
   return {
     [`pedidos/${pedidoId}`]: {
       conductorId,
-      estado: 'EN_CURSO',
+      estado: normalizeOrderState('EN_CURSO'),
       timestampActualizacion: timestamp
     }
   };
