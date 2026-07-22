@@ -63,6 +63,10 @@ Indice maestro de documentos para iniciar y ejecutar el piloto controlado.
 ### Indice maestro
 - [docs/architecture/INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md)
 
+### Compatibilidad y U2
+- [docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md)
+- [docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md)
+
 ## Regla
 
 No modificar estos documentos sin evidencia nueva y sin necesidad operativa clara.

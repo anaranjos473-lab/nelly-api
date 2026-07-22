@@ -1,7 +1,7 @@
 # INDEX U1 - FAMILIA PLATAFORMA UNIVERSAL V1
 
 ## Proposito
-Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR y documentos U1.1 a U1.9 para el modelo de dominio universal.
+Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR y documentos U1.1 a U1.10 para el modelo de dominio universal.
 
 ## Uso recomendado
 1. Leer el plan formal de U1.
@@ -15,7 +15,8 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 9. Revisar U1.7 para contratos canonicos.
 10. Revisar U1.8 para maquina de estados.
 11. Revisar U1.9 para arquitectura de extensiones.
-12. Volver al paquete B2/B3 solo como baseline de referencia.
+12. Revisar U1.10 para principios de compatibilidad.
+13. Volver al paquete B2/B3 solo como baseline de referencia.
 
 ## Documentos de U1
 
@@ -38,6 +39,21 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 ### U1.5 - Integraciones
 - [`U1_5_INTEGRACIONES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_5_INTEGRACIONES_V1.md)
 
+### U1.6 - Eventos de dominio
+- [`U1_6_EVENTOS_DOMINIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_6_EVENTOS_DOMINIO_V1.md)
+
+### U1.7 - Contratos canonicos
+- [`U1_7_CONTRATOS_CANONICOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_7_CONTRATOS_CANONICOS_V1.md)
+
+### U1.8 - Maquina de estados
+- [`U1_8_MAQUINA_ESTADOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_8_MAQUINA_ESTADOS_V1.md)
+
+### U1.9 - Arquitectura de extensiones
+- [`U1_9_ARQUITECTURA_EXTENSIONES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_9_ARQUITECTURA_EXTENSIONES_V1.md)
+
+### U1.10 - Principios de compatibilidad
+- [`U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md)
+
 ## Baseline de referencia
 - [`INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md)
 - [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
@@ -47,4 +63,4 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 - [`OPERACION_INDEX.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/OPERACION_INDEX.md)
 
 ## Regla
-No iniciar implementacion U1 sin mantener la baseline certificada de Kitchen Premium en verde y sin respetar el orden de las piezas U1.1 a U1.5.
+No iniciar implementacion U1 sin mantener la baseline certificada de Kitchen Premium en verde y sin respetar el orden de las piezas U1.1 a U1.10.
