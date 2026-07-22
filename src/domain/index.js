@@ -9,3 +9,4 @@ export * from './nodes/supermarketNode.js';
 export * from './nodes/packageNode.js';
 export * from './nodes/warehouseNode.js';
 export * from './nodes/retailNode.js';
+export * from './nodes/lockerNode.js';
