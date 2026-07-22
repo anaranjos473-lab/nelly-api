@@ -23,6 +23,8 @@ import {
   getDeliveryPayout,
   getDriverUidFromOrder,
   getOrderTotal,
+  esTransicionOperativaPermitida,
+  normalizeOrderState,
   roundMoney
 } from '../src/services/ordersManager.js';
 import { verifyToken } from '../src/utils/jwt.js';

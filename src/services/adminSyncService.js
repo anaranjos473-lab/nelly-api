@@ -1,4 +1,5 @@
 import { buildCanonicalOrder } from '../domain/index.js';
+import { normalizeOrderState } from './ordersManager.js';
 
 function roundMoney(value) {
   return Number(Number(value || 0).toFixed(2));
@@ -219,18 +220,18 @@ function normalizeAdminOrderState(pedido) {
   const values = [pedido?.estado, pedido?.estado_pedido, pedido?.logistica?.estado];
   for (const raw of values) {
     if (!raw) continue;
-    const estado = String(raw).trim().toLowerCase();
+    const estado = normalizeOrderState(raw);
     if (estado) return estado;
   }
   return '';
 }
 
 function isDeliveredAdminOrder(pedido) {
-  return normalizeAdminOrderState(pedido) === 'entregado';
+  return normalizeAdminOrderState(pedido) === 'ENTREGADO';
 }
 
 function isCancelledAdminOrder(pedido) {
-  return normalizeAdminOrderState(pedido) === 'cancelado';
+  return normalizeAdminOrderState(pedido) === 'CANCELADO';
 }
 
 function isFraudAlertAdminOrder(pedido) {
