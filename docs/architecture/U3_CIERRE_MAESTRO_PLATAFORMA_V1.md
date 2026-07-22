@@ -83,3 +83,9 @@ U3 queda consolidada como fase de migracion progresiva, certificacion y preparac
 El siguiente ciclo recomendado ya no es una nueva fase arquitectonica amplia. La referencia de continuidad pasa a ser:
 - [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
 - [`PROGRAMA_IMPLEMENTACION_CIERRE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_CIERRE_V1.md)
+
+## Evolucion operativa
+
+Dentro del programa operativo, el siguiente bloque de validacion es:
+- [`P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md)
+- [`P4_CIERRE_PILOTO_CONTROLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_CIERRE_PILOTO_CONTROLADO_V1.md)

@@ -58,6 +58,10 @@ Objetivo:
 - registrar incidencias, excepciones y comportamiento operativo;
 - comparar resultados contra el baseline certificado.
 
+Base documental de P4:
+- [`P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md)
+- [`P4_CIERRE_PILOTO_CONTROLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_CIERRE_PILOTO_CONTROLADO_V1.md)
+
 ### P5 - Release Candidate y congelamiento
 
 Objetivo:
