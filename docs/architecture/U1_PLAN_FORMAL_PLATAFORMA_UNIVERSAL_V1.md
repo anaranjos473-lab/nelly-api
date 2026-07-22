@@ -46,27 +46,13 @@ Responsabilidad:
 - preparar contratos reutilizables para multiples verticales.
 
 ### U1.2 - Fulfillment Engine
-Responsabilidad:
-
-- convertir Kitchen en un nodo de cumplimiento mas dentro del sistema;
-- admitir otros nodos como tiendas, almacenes, farmacias o comercios;
-- coordinar estados sin acoplar el dominio a una interfaz concreta.
+- Ver [`U1_2_FULFILLMENT_ENGINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_2_FULFILLMENT_ENGINE_V1.md).
 
 ### U1.3 - Ledger financiero
-Responsabilidad:
-
-- registrar cada evento financiero como movimiento inmutable;
-- modelar comisiones, propinas, cupones, reembolsos, devoluciones y conciliaciones;
-- evitar que el saldo acumulado sea la unica fuente de verdad.
+- Ver [`U1_3_LEDGER_FINANCIERO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_3_LEDGER_FINANCIERO_V1.md).
 
 ### U1.4 - Inventario desacoplado
-Responsabilidad:
-
-- soportar reservas;
-- disponibilidad;
-- sustituciones;
-- preparacion parcial;
-- multiples almacenes.
+- Ver [`U1_4_INVENTARIO_DESACOPLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_4_INVENTARIO_DESACOPLADO_V1.md).
 
 ### U1.5 - Integraciones
 Responsabilidad:
@@ -118,3 +104,4 @@ U1 se considerara estable cuando exista evidencia de que el nuevo modelo puede s
 - [`docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
 - [`docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md)
 - [`docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md)
+- [`docs/architecture/U1_1_MODELO_DOMINIO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_1_MODELO_DOMINIO_UNIVERSAL_V1.md)
