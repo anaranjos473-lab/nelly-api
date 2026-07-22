@@ -60,6 +60,12 @@ Servir como puerta de entrada tecnica para la nueva etapa U1, orientada a un mod
 ### Indice maestro de U1
 - [`INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md)
 
+### Certificacion U2
+- [`CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md)
+
+### Plan U3
+- [`U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md)
+
 ## Regla
 No iniciar U1 sin confirmar que B4 quedo estable y que la baseline funcional certificada sigue en verde.
 

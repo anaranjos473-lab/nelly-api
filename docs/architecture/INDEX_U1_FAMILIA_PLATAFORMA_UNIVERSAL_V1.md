@@ -54,6 +54,12 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 ### U1.10 - Principios de compatibilidad
 - [`U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md)
 
+### Certificacion U2
+- [`CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md)
+
+### Plan U3
+- [`U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md)
+
 ## Baseline de referencia
 - [`INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md)
 - [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
