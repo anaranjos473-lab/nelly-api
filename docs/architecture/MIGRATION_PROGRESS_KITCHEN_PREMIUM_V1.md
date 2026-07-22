@@ -23,7 +23,7 @@ Una etapa solo cambia de estado cuando existe evidencia validada y el DoD corres
 | B1.6 | 🟢 | f0ffa1b | Búsqueda de referencias + revisión funcional | Migrar metricas y auditoria |
 | B1.7 | 🟢 | a28b438 | Revisión de globals + limpieza legacy | Eliminar globals legacy |
 | B2 | 🟢 | 7cf6d26 | node --check + validacion manual | Render modular consolidado |
-| B3 | ⬜ | — | — | Extraer acciones de pedidos |
+| B3 | ⬜ | — | Validación E2E previa + plan formal | Extraer acciones de pedidos |
 | B4 | ⬜ | — | — | Extraer sincronizacion |
 | B5 | ⬜ | — | — | Extraer metrics |
 | B6 | ⬜ | — | — | Extraer alerts |
@@ -35,6 +35,14 @@ Cuando una etapa cambie de estado debe registrarse:
 - validacion realizada,
 - observaciones relevantes,
 - enlace a documentacion de respaldo si aplica.
+
+## Documentacion de soporte para B3
+- [`docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md)
+- [`docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_1P.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_1P.md)
+- [`docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_MOBILE.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_MOBILE.md)
+- [`docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md)
+- [`docs/certificaciones/functional-metrics-baseline.json`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/functional-metrics-baseline.json)
+- [`docs/architecture/KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md)
 
 ## Secuencia Recomendada
 1. Completar B1.1.

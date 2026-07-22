@@ -8,11 +8,13 @@ Register of functional certifications and approved baselines.
 |---|---|---|
 | P17 | `CLOSED` | Certified production baseline for delivery closure and driver earnings. |
 | RC-03 | `IN VALIDATION` | Operational flow validated. Pending comparative financial validation for `Saldo`, `Proximo corte`, `ISR`, and `IVA`. |
+| Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 
 ## Documents
 
 - [`CERTIFICACION_P17.md`](./../CERTIFICACION_P17.md)
 - [`RC-03.md`](./RC-03.md)
+- [`functional-metrics-baseline.json`](./functional-metrics-baseline.json)
 
 ## Rule
 

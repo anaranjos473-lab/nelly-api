@@ -1,0 +1,25 @@
+{
+  "certification": "Kitchen Premium E2E Pre-B3",
+  "state": "APPROVED",
+  "capturedAt": "2026-07-22T15:34:10.890Z",
+  "pedidoId": "PED_1784700657376",
+  "driverUid": "8mo8182LJsgV7vKMSpiCekFKAG23",
+  "financial": {
+    "saldo_ganancias_before": 1452.87,
+    "saldo_ganancias_after": 1482.87,
+    "delta_saldo_ganancias": 30,
+    "deuda_actual_maxima": 30,
+    "limite_deuda": 300,
+    "saldo_ganancias_minimo": 1482.87,
+    "ganancia_neta_pedido": 30,
+    "tarifa_entrega": 30
+  },
+  "residuals": {
+    "pedidos_para_reparto": 0,
+    "pedidos_en_camino": 0,
+    "pedido_activo": 0
+  },
+  "consistency": {
+    "estado_final": "ENTREGADO"
+  }
+}

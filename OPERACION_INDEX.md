@@ -33,6 +33,27 @@ Indice maestro de documentos para iniciar y ejecutar el piloto controlado.
 10. Usar la matriz de dependencias del panel para iniciar B1 con cambios minimos.
 11. Usar la Definition of Done para cerrar cualquier commit o micro-etapa.
 12. Usar el tablero de progreso para marcar el avance de B1 a B7.
+13. Usar la baseline funcional congelada para comparar finanzas y cierre operativo antes de tocar OrdersManager.
+
+## Paquete Kitchen Premium B2/B3
+
+### Cierre de B2 y preparacion de B3
+- [docs/architecture/KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md)
+
+### Validacion E2E previa a B3
+- [docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md)
+- [docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_1P.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_1P.md)
+- [docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_MOBILE.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1_MOBILE.md)
+
+### Plan formal de B3
+- [docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/B3_PLAN_FORMAL_KITCHEN_PREMIUM_V1.md)
+- [docs/certificaciones/functional-metrics-baseline.json](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/certificaciones/functional-metrics-baseline.json)
+
+### Tablero de progreso
+- [docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MIGRATION_PROGRESS_KITCHEN_PREMIUM_V1.md)
+
+### Indice tecnico del paquete
+- [docs/architecture/INDEX_KITCHEN_PREMIUM_B2_B3.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_KITCHEN_PREMIUM_B2_B3.md)
 
 ## Regla
 
