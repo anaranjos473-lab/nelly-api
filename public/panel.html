@@ -1630,7 +1630,10 @@
                 pedidosPendientes: kitchenState.orders.pedidosPendientes,
                 pedidosReparto: kitchenState.orders.pedidosReparto,
                 pedidosEnCamino: kitchenState.orders.pedidosEnCamino
-            }, generarHTMLTarjeta);
+            }, (pedido, id, esPendiente) => renderManager.renderOrderCard(pedido, id, esPendiente, {
+                normalizarEstado,
+                obtenerFasePanel
+            }));
             renderManager.renderCounters({
                 ganancias: Number(document.getElementById('ganancias')?.innerText?.replace('$', '') || 0),
                 pendientes: conteos.pendientes,
@@ -1638,13 +1641,6 @@
                 reparto: conteos.reparto,
                 entregados: conteos.entregados,
                 total: conteos.pendientes + conteos.listo + conteos.reparto
-            });
-        }
-
-        function generarHTMLTarjeta(pedido, id, esPendiente) {
-            return renderManager.renderOrderCard(pedido, id, esPendiente, {
-                normalizarEstado,
-                obtenerFasePanel
             });
         }
 
