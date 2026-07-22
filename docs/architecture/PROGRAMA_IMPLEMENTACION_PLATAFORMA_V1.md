@@ -98,6 +98,10 @@ U3 representa la consolidacion tecnica y la preparacion multi-vertical. Este pro
 
 Este programa sustituye la idea de abrir una nueva fase arquitectonica amplia. A partir de aqui, el valor principal esta en desplegar, validar y preservar la plataforma sobre el nucleo ya certificado.
 
+## Indice maestro global
+
+- [`INDEX_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_MAESTRO_PLATAFORMA_V1.md)
+
 ## Transicion a RC1
 
 La fase P5 se apoya en:

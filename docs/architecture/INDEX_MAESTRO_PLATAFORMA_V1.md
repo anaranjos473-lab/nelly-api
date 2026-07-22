@@ -1,0 +1,57 @@
+# INDEX MAESTRO PLATAFORMA V1
+
+## Proposito
+Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la estabilizacion inicial hasta RC1, con referencias claras para B, U1, U2, U3 y el programa operativo P1-P5.
+
+## Lectura sugerida
+
+1. Revisar el baseline de Kitchen Premium y la estabilizacion B.
+2. Entrar a la familia U1 para entender el modelo universal.
+3. Consultar la certificacion U2 como nucleo implementado.
+4. Leer el cierre maestro de U3 para entender la migracion progresiva.
+5. Abrir el programa operativo P1-P5.
+6. Revisar el indice maestro del programa.
+7. Consultar RC1 como referencia de congelamiento.
+
+## Bloques principales
+
+### Baseline B
+- [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
+- [`BLUEPRINT_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md)
+- [`DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md)
+- [`PRD_NELLY_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PRD_NELLY_KITCHEN_PREMIUM_V1.md)
+
+### U1 - Arquitectura universal
+- [`INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md)
+- [`INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_FAMILIA_PLATAFORMA_UNIVERSAL_V1.md)
+
+### U2 - Nucleo universal
+- [`CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md)
+- [`U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md)
+
+### U3 - Migracion progresiva
+- [`U3_CIERRE_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_CIERRE_MAESTRO_PLATAFORMA_V1.md)
+- [`U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md)
+
+### Programa operativo
+- [`INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
+- [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
+
+### RC1
+- [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
+- [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
+
+## Estado del recorrido
+
+| Fase | Estado |
+| --- | --- |
+| B | Cerrada |
+| U1 | Definida |
+| U2 | Certificada |
+| U3 | Consolidada |
+| P1-P4 | En adopcion/control |
+| P5 | Congelamiento RC1 |
+
+## Criterio de uso
+
+Este documento debe ser la primera parada cuando se necesite una vision completa de la plataforma y de su estado de madurez.

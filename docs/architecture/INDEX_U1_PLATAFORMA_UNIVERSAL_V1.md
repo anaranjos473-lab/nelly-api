@@ -71,6 +71,9 @@ Servir como puerta de entrada tecnica para la nueva etapa U1, orientada a un mod
 - [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
 - [`PROGRAMA_IMPLEMENTACION_CIERRE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_CIERRE_V1.md)
 
+### Indice maestro global
+- [`INDEX_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_MAESTRO_PLATAFORMA_V1.md)
+
 ## Regla
 No iniciar U1 sin confirmar que B4 quedo estable y que la baseline funcional certificada sigue en verde.
 

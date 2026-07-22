@@ -40,6 +40,10 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
 
+## Indice maestro global
+
+- [`INDEX_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_MAESTRO_PLATAFORMA_V1.md)
+
 ## Criterio de uso
 
 Este indice debe ser la primera parada cuando se quiera entender el ciclo operativo completo desde la migracion tecnica hasta el congelamiento de RC1.
