@@ -637,6 +637,7 @@
         import { auth, rtdb } from "./firebase.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import { getKitchenConfig } from "./js/premium-kitchen/state/kitchen-config.js";
+        import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
         import {
             onAuthStateChanged,
             signInWithCustomToken
@@ -658,6 +659,7 @@
             window.location.hostname === 'nelly-delivery.web.app'
                 ? 'https://nelly-api-8lh1.onrender.com'
                 : '';
+        const renderManager = getRenderManager();
 
             // Mostrar/ocultar modal del mapa de repartidores activos
             window.addEventListener('DOMContentLoaded', () => {
@@ -1453,10 +1455,13 @@
             listenersActivos = [];
         }
         onAuthStateChanged(auth, (user) => {
-            const badge = document.getElementById('badge-estado');
             if (user) {
-                badge.textContent = "SISTEMA ONLINE";
-                badge.classList.add('online');
+                renderManager.renderSystemHealth({
+                    text: 'SISTEMA ONLINE',
+                    className: 'status-badge status-online online',
+                    addClass: 'online',
+                    removeClasses: ['status-error']
+                });
                 if (!kitchenState.sync.sincronizacionIniciada) {
                     kitchenState.sync.sincronizacionIniciada = true;
                     limpiarListeners();
@@ -1474,7 +1479,6 @@
             }
 
             kitchenState.auth.authRequestInFlight = true;
-            const badge = document.getElementById('badge-estado');
 
             try {
                 let response = null;
@@ -1517,7 +1521,11 @@
 
                 await signInWithCustomToken(auth, data.token);
             } catch (error) {
-                badge.textContent = "ERROR DE ACCESO";
+                renderManager.renderSystemHealth({
+                    text: 'ERROR DE ACCESO',
+                    className: 'status-badge status-error',
+                    removeClasses: ['online']
+                });
                 console.error("Error en validacion segura:", error.message);
                 document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
             } finally {
@@ -1547,7 +1555,14 @@
 
             listeners.push(onValue(gananciasRef, (snap) => {
                 const total = snap.exists() ? Number(snap.val().total || 0) : 0;
-                document.getElementById('ganancias').innerText = `$${total.toFixed(2)}`;
+                renderManager.renderCounters({
+                    ganancias: total,
+                    pendientes: kitchenState.orders.pedidosPendientes.size,
+                    listo: kitchenState.orders.pedidosReparto.size,
+                    reparto: kitchenState.orders.pedidosEnCamino.size,
+                    entregados: 0,
+                    total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
+                });
             }));
 
             listeners.push(onValue(dbRef, (snapshot) => {
@@ -1661,11 +1676,14 @@
                 cReparto++;
             });
 
-            document.getElementById('count-pendientes').innerText = String(cPendientes);
-            document.getElementById('count-listo').innerText = String(cListo);
-            document.getElementById('count-reparto').innerText = String(cReparto);
-            document.getElementById('count-entregados').innerText = String(cEntregados);
-            document.getElementById('contador').innerText = String(cPendientes + cListo + cReparto);
+            renderManager.renderCounters({
+                ganancias: Number(document.getElementById('ganancias')?.innerText?.replace('$', '') || 0),
+                pendientes: cPendientes,
+                listo: cListo,
+                reparto: cReparto,
+                entregados: cEntregados,
+                total: cPendientes + cListo + cReparto
+            });
         }
 
         function generarHTMLTarjeta(pedido, id, esPendiente) {

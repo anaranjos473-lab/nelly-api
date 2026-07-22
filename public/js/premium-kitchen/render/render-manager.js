@@ -1,6 +1,8 @@
 const renderState = {
   mounted: false,
   lastRenderAt: null,
+  lastSystemHealth: null,
+  lastCounters: null,
   lastTargets: {
     dashboard: null,
     kanban: null,
@@ -27,6 +29,62 @@ export function createRenderManager() {
     unmount() {
       renderState.mounted = false;
       return renderState;
+    },
+    renderSystemHealth(state = {}) {
+      renderState.lastSystemHealth = {
+        ...state,
+        at: Date.now()
+      };
+
+      const badge = document.getElementById('badge-estado');
+      if (!badge) {
+        return null;
+      }
+
+      const text = String(state.text || '').trim();
+      if (text) {
+        badge.textContent = text;
+      }
+
+      if (state.className) {
+        badge.className = state.className;
+      }
+
+      if (typeof state.addClass === 'string' && state.addClass) {
+        badge.classList.add(state.addClass);
+      }
+
+      if (Array.isArray(state.removeClasses)) {
+        state.removeClasses.forEach((className) => {
+          if (className) {
+            badge.classList.remove(className);
+          }
+        });
+      }
+
+      return badge;
+    },
+    renderCounters(counters = {}) {
+      renderState.lastCounters = {
+        ...counters,
+        at: Date.now()
+      };
+
+      const setText = (id, value) => {
+        const node = document.getElementById(id);
+        if (node) {
+          node.innerText = String(value);
+        }
+      };
+
+      setText('ganancias', `$${Number(counters.ganancias || 0).toFixed(2)}`);
+      setText('count-pendientes', counters.pendientes ?? 0);
+      setText('count-listo', counters.listo ?? 0);
+      setText('count-reparto', counters.reparto ?? 0);
+      setText('count-entregados', counters.entregados ?? 0);
+      setText('contador', counters.total ?? 0);
+
+      return renderState.lastCounters;
     },
     renderDashboard(target = null) {
       updateRenderState({
