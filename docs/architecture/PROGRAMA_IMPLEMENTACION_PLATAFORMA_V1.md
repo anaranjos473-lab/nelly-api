@@ -69,6 +69,10 @@ Objetivo:
 - congelar arquitectura y contratos clave;
 - dejar solo ajustes menores basados en evidencia.
 
+Base documental de P5:
+- [`P5_RELEASE_CANDIDATE_CONGELAMIENTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P5_RELEASE_CANDIDATE_CONGELAMIENTO_V1.md)
+- [`P5_CIERRE_RELEASE_CANDIDATE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P5_CIERRE_RELEASE_CANDIDATE_V1.md)
+
 ## Criterios del programa
 
 1. Ningun bloque avanza sin evidencia verificable.
@@ -93,3 +97,9 @@ U3 representa la consolidacion tecnica y la preparacion multi-vertical. Este pro
 ## Cierre
 
 Este programa sustituye la idea de abrir una nueva fase arquitectonica amplia. A partir de aqui, el valor principal esta en desplegar, validar y preservar la plataforma sobre el nucleo ya certificado.
+
+## Transicion a RC1
+
+La fase P5 se apoya en:
+- [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
+- [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
