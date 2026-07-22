@@ -18,3 +18,4 @@ export * from './nodes/deliveryHubNode.js';
 export { buildMerchantFulfillmentNodeEntry } from './nodes/merchantFulfillmentNode.js';
 export * from './nodes/returnsNode.js';
 export * from './nodes/distributionCenterNode.js';
+export * from './nodes/crossdockNode.js';
