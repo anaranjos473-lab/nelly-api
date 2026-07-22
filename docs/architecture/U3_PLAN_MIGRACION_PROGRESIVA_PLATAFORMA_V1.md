@@ -57,6 +57,7 @@ sin modificar el nucleo.
 
 Integracion inicial iniciada:
 - adaptador de inventario canonico en `src/integrations/inventoryAdapter.js`
+- adaptador de pagos canonico en `src/integrations/paymentAdapter.js`
 
 ### U3.4 - Certificacion universal
 Demostrar:

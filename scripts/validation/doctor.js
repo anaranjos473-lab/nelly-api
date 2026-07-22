@@ -37,6 +37,7 @@ const checks = [
   ['validate-sortation-center-node', 'node', ['scripts/validation/validate-sortation-center-node.js']],
   ['validate-handoff-point-node', 'node', ['scripts/validation/validate-handoff-point-node.js']],
   ['validate-inventory-adapter', 'node', ['scripts/validation/validate-inventory-adapter.js']],
+  ['validate-payment-adapter', 'node', ['scripts/validation/validate-payment-adapter.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],
