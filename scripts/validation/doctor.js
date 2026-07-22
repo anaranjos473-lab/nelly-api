@@ -22,6 +22,7 @@ const checks = [
   ['validate-supermarket-node', 'node', ['scripts/validation/validate-supermarket-node.js']],
   ['validate-package-node', 'node', ['scripts/validation/validate-package-node.js']],
   ['validate-warehouse-node', 'node', ['scripts/validation/validate-warehouse-node.js']],
+  ['validate-retail-node', 'node', ['scripts/validation/validate-retail-node.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],

@@ -8,3 +8,4 @@ export * from './nodes/pharmacyNode.js';
 export * from './nodes/supermarketNode.js';
 export * from './nodes/packageNode.js';
 export * from './nodes/warehouseNode.js';
+export * from './nodes/retailNode.js';

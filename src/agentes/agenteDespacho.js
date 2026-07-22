@@ -2,6 +2,7 @@ import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { Worker } from 'worker_threads';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ORDER_STATES } from '../domain/index.js';
 import { normalizeState } from '../domain/stateMachine.js';
 import { buildDispatchAssignmentPayload } from '../services/agentSyncService.js';
 
@@ -25,12 +26,12 @@ export const iniciarAgenteDespacho = async () => {
     }
 
     const pedidosRef = rtdb.ref('pedidos');
-    pedidosListener = pedidosRef.orderByChild('estado').equalTo('PENDIENTE');
+    pedidosListener = pedidosRef.orderByChild('estado').equalTo(ORDER_STATES.PENDIENTE);
 
     const handlePendiente = async (snapshot) => {
         const pedido = snapshot.val();
         const pedidoId = snapshot.key;
-        if (!pedido || normalizeState(pedido.estado) !== 'PENDIENTE') return;
+        if (!pedido || normalizeState(pedido.estado) !== ORDER_STATES.PENDIENTE) return;
 
         const conductoresSnap = await rtdb.ref('conductores_activos').once('value');
         const conductores = conductoresSnap.val();
