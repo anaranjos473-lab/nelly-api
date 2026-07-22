@@ -1,3 +1,6 @@
+import { normalizeState } from '../domain/stateMachine.js';
+import { ORDER_CONTRACT, validateOrder } from '../domain/contracts/order.js';
+
 const ESTADOS = new Set(['PENDIENTE', 'COCINA', 'LISTO', 'EN_CURSO', 'ENTREGADO', 'CANCELADO']);
 const FASES = new Set(['ASIGNADO', 'EN_RUTA_TIENDA', 'EN_TIENDA', 'COMPRA_EN_CURSO', 'EN_RUTA_CLIENTE', 'EN_CLIENTE']);
 const PRODUCTORES = new Set(['admin_dashboard', 'api_ordenes', 'panel_cocina', 'api_import', 'cloud_function', 'script_interno']);
@@ -204,6 +207,39 @@ function validarHistorial(historial, estadoActual, errors) {
   return ultimaFase;
 }
 
+function validateCanonicalShadowOrder(order, { key = null, previousState = undefined } = {}) {
+  const canonical = esObjeto(order)
+    ? {
+        ...order,
+        estado: normalizeState(order.estado || order.estado_pedido),
+        contract_version: order.contract_version || 1,
+        lineas: Array.isArray(order.lineas) ? order.lineas : (Array.isArray(order.items) ? order.items : [])
+      }
+    : {};
+
+  const validation = validateOrder({
+    id: canonical.id || key || null,
+    cliente: canonical.cliente || {
+      id: canonical.userId || canonical.producer || 'unknown',
+      uid: canonical.userId || canonical.producer || 'unknown'
+    },
+    lineas: canonical.lineas,
+    estado: canonical.estado || 'CREADO',
+    created_at: canonical.created_at || canonical.fecha_creacion || Date.now(),
+    updated_at: canonical.updated_at || canonical.fecha_creacion || Date.now(),
+    metadata: canonical.metadata || {}
+  });
+
+  return {
+    ok: validation.ok,
+    contract: ORDER_CONTRACT,
+    missing: validation.missing || [],
+    key,
+    previousState,
+    canonical
+  };
+}
+
 export function validateOrderV2(order, { key = null, previousState = undefined } = {}) {
   const errors = [];
   const aliasesUsed = [];
@@ -325,6 +361,8 @@ export function validateOrderV2(order, { key = null, previousState = undefined }
     aliasesUsed
   };
 }
+
+export { validateCanonicalShadowOrder };
 
 function increment(target, key, amount = 1) {
   target[key] = (target[key] || 0) + amount;
