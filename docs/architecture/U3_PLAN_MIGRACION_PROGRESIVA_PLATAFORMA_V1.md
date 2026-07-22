@@ -42,6 +42,9 @@ Validar que el fulfillment engine es universal con nuevos tipos de nodo:
 - marketplace
 - paqueteria
 
+Matriz de cobertura de referencia:
+- [`U3_2_MATRIZ_COBERTURA_FULFILLMENT_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_2_MATRIZ_COBERTURA_FULFILLMENT_V1.md)
+
 ### U3.3 - Integraciones
 Conectar gradualmente:
 - POS
