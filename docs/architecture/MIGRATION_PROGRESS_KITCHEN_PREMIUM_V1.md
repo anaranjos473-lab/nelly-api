@@ -22,7 +22,7 @@ Una etapa solo cambia de estado cuando existe evidencia validada y el DoD corres
 | B1.5 | 🟢 | 7f54dd2 | Búsqueda de referencias + revisión funcional | Migrar colecciones de pedidos |
 | B1.6 | 🟢 | f0ffa1b | Búsqueda de referencias + revisión funcional | Migrar metricas y auditoria |
 | B1.7 | 🟢 | a28b438 | Revisión de globals + limpieza legacy | Eliminar globals legacy |
-| B2 | ⬜ | — | — | Extraer render |
+| B2 | 🟢 | 7cf6d26 | node --check + validacion manual | Render modular consolidado |
 | B3 | ⬜ | — | — | Extraer acciones de pedidos |
 | B4 | ⬜ | — | — | Extraer sincronizacion |
 | B5 | ⬜ | — | — | Extraer metrics |
