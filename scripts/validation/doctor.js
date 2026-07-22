@@ -6,6 +6,7 @@ const checks = [
   ['validate-contracts', 'node', ['scripts/validation/validate-contracts.js']],
   ['validate-firebase', 'node', ['scripts/validation/validate-firebase.js']],
   ['validate-orders-manager', 'node', ['scripts/validation/validate-orders-manager.js']],
+  ['validate-domain-contracts', 'node', ['scripts/validation/validate-domain-contracts.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],
   ['validate-admin-sync', 'node', ['scripts/validation/validate-admin-sync.js']],
@@ -20,9 +21,20 @@ const results = [];
 let healthy = true;
 
 for (const [name, cmd, args] of checks) {
-  const result = spawnSync(cmd, args, { stdio: 'pipe', encoding: 'utf8' });
+  const result = spawnSync(cmd, args, {
+    stdio: 'pipe',
+    encoding: 'utf8',
+    timeout: 30000,
+    maxBuffer: 10 * 1024 * 1024
+  });
   const ok = result.status === 0;
-  results.push({ name, ok, output: (result.stdout || '').trim(), error: (result.stderr || '').trim() });
+  results.push({
+    name,
+    ok,
+    timeout: result.error?.code === 'ETIMEDOUT',
+    output: (result.stdout || '').trim(),
+    error: (result.stderr || '').trim()
+  });
   if (!ok) healthy = false;
 }
 
@@ -30,6 +42,9 @@ console.log('NELLY OS HEALTH REPORT');
 console.log('');
 for (const result of results) {
   console.log(`${result.name.padEnd(22, '.')} ${result.ok ? 'OK' : 'FAIL'}`);
+  if (result.timeout) {
+    console.log('  timeout after 30000ms');
+  }
   if (!result.ok && result.error) {
     console.log(`  ${result.error.split('\n')[0]}`);
   }

@@ -1,0 +1,50 @@
+export const ORDER_STATES = Object.freeze({
+  CREADO: 'CREADO',
+  PAGADO: 'PAGADO',
+  VALIDADO: 'VALIDADO',
+  EN_PROCESO: 'EN_PROCESO',
+  PARCIAL: 'PARCIAL',
+  LISTO: 'LISTO',
+  ASIGNADO: 'ASIGNADO',
+  EN_TRANSITO: 'EN_TRANSITO',
+  ENTREGADO: 'ENTREGADO',
+  CERRADO: 'CERRADO',
+  CANCELADO: 'CANCELADO',
+  DEVUELTO: 'DEVUELTO',
+  REEMBOLSADO: 'REEMBOLSADO'
+});
+
+export const PAYMENT_STATES = Object.freeze({
+  PENDIENTE: 'PENDIENTE',
+  CONFIRMADO: 'CONFIRMADO',
+  RECHAZADO: 'RECHAZADO',
+  REEMBOLSADO: 'REEMBOLSADO'
+});
+
+export const FULFILLMENT_NODE_STATES = Object.freeze({
+  DISPONIBLE: 'DISPONIBLE',
+  OCUPADO: 'OCUPADO',
+  PAUSADO: 'PAUSADO',
+  FUERA_DE_SERVICIO: 'FUERA_DE_SERVICIO'
+});
+
+export const INVENTORY_ITEM_STATES = Object.freeze({
+  DISPONIBLE: 'DISPONIBLE',
+  RESERVADO: 'RESERVADO',
+  EN_PREPARACION: 'EN_PREPARACION',
+  AGOTADO: 'AGOTADO',
+  EN_REORDEN: 'EN_REORDEN'
+});
+
+export const DOMAIN_EVENT_TYPES = Object.freeze({
+  PEDIDO_CREADO: 'pedido.creado',
+  PEDIDO_PAGADO: 'pedido.pagado',
+  PEDIDO_VALIDADO: 'pedido.validado',
+  PEDIDO_EN_PROCESO: 'pedido.en_proceso',
+  PEDIDO_LISTO: 'pedido.listo',
+  PEDIDO_ASIGNADO: 'pedido.asignado',
+  PEDIDO_EN_TRANSITO: 'pedido.en_transito',
+  PEDIDO_ENTREGADO: 'pedido.entregado',
+  PEDIDO_CANCELADO: 'pedido.cancelado',
+  PEDIDO_REEMBOLSADO: 'pedido.reembolsado'
+});
