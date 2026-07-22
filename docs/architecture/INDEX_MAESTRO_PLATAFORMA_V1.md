@@ -5,17 +5,19 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 
 ## Lectura sugerida
 
-1. Revisar el baseline de Kitchen Premium y la estabilizacion B.
-2. Entrar a la familia U1 para entender el modelo universal.
-3. Consultar la certificacion U2 como nucleo implementado.
-4. Leer el cierre maestro de U3 para entender la migracion progresiva.
-5. Abrir el programa operativo P1-P5.
-6. Revisar el indice maestro del programa.
-7. Consultar RC1 como referencia de congelamiento.
+1. Abrir la guia de lectura de la plataforma.
+2. Revisar el baseline de Kitchen Premium y la estabilizacion B.
+3. Entrar a la familia U1 para entender el modelo universal.
+4. Consultar la certificacion U2 como nucleo implementado.
+5. Leer el cierre maestro de U3 para entender la migracion progresiva.
+6. Abrir el programa operativo P1-P5.
+7. Revisar el indice maestro del programa.
+8. Consultar RC1 como referencia de congelamiento.
 
 ## Bloques principales
 
 ### Baseline B
+- [`GUIA_DE_LECTURA_PLATAFORMA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GUIA_DE_LECTURA_PLATAFORMA.md)
 - [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
 - [`BLUEPRINT_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md)
 - [`DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md)
