@@ -2,6 +2,7 @@ import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { Worker } from 'worker_threads';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { buildDispatchAssignmentPayload } from '../services/agentSyncService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,11 +44,7 @@ export const iniciarAgenteDespacho = async () => {
 
         worker.on('message', async (mejor) => {
             if (!mejor || !pedidoId) return;
-            await rtdb.ref(`pedidos/${pedidoId}`).update({
-                conductorId: mejor.id,
-                estado: 'en_curso',
-                timestampActualizacion: Date.now()
-            });
+            await rtdb.ref().update(buildDispatchAssignmentPayload(pedidoId, mejor.id));
             console.log(`✅ Pedido ${pedidoId} asignado a ${mejor.id}`);
         });
 

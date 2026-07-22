@@ -1,4 +1,8 @@
 import { getAdmin } from '../../config/firebase-admin-esm.js';
+import {
+    buildSupportInterventionPayload,
+    buildSupportRescuePayload
+} from '../services/agentSyncService.js';
 
 const INTERVALO_MONITOREO = 300000; // 5 minutos
 const MENSAJE_COMPENSACION = 'Sabemos que la espera es larga. Te hemos aplicado un descuento para tu próximo viaje.';
@@ -47,11 +51,7 @@ const monitorearRetrasos = async () => {
         const pedidosRetrasados = identificarPedidosRetrasados(snapshotPedidos.val());
 
         await Promise.all(pedidosRetrasados.map(async ([pedidoId]) => {
-            await rtdb.ref(`pedidos/${pedidoId}`).update({
-                intervencionSoporte: true,
-                mensajeCliente: MENSAJE_COMPENSACION,
-                bonoCompensacion: 15.00
-            });
+            await rtdb.ref().update(buildSupportInterventionPayload(pedidoId, MENSAJE_COMPENSACION, 15.00));
             console.log(`🎁 [Retención] Compensación aplicada al pedido retrasado: ${pedidoId}`);
         }));
     } catch (error) {
@@ -66,16 +66,13 @@ const rescatarPedidoEnPercance = async (rtdb, pedidoId, pedidoFallido) => {
 
     console.log(`🚨 [Soporte] Rescatando pedido ${pedidoId} del conductor ${pedidoFallido.conductorId}`);
 
-    await rtdb.ref(`pedidos/${pedidoId}`).update({
-        estado: estadoPendienteDestino(pedidoFallido.estado),
-        conductorAnterior: pedidoFallido.conductorId,
-        conductorId: '',
-        timestampActualizacion: Date.now()
-    });
-
-    await rtdb.ref(`conductores_activos/${pedidoFallido.conductorId}`).update({
-        estado: 'PAUSADO_POR_SOPORTE'
-    });
+    await rtdb.ref().update(
+        buildSupportRescuePayload(
+            pedidoId,
+            pedidoFallido.conductorId,
+            estadoPendienteDestino(pedidoFallido.estado)
+        )
+    );
 };
 
 const registrarListenerPercance = (query, eventName, handler) => {
