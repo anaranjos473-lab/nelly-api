@@ -56,6 +56,50 @@ function normalizeAdminOrderRequest(input = {}) {
   };
 }
 
+function validateAdminOrderRequest(input = {}) {
+  const errors = [];
+  if (!input.cliente_nombre) errors.push('Faltan campos de cliente obligatorios');
+  if (!input.telefono) errors.push('Faltan campos de cliente obligatorios');
+  if (!input.direccion) errors.push('Faltan campos de cliente obligatorios');
+
+  const hasValidCoordinates = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng)
+    && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
+
+  if (!hasValidCoordinates(input.coordenadas?.clienteLat, input.coordenadas?.clienteLng)
+    || !hasValidCoordinates(input.coordenadas?.tiendaLat, input.coordenadas?.tiendaLng)) {
+    errors.push('Coordenadas operativas de cliente y tienda obligatorias');
+  }
+
+  if (!Array.isArray(input.normalizedItems) || input.normalizedItems.length === 0) {
+    errors.push('El pedido debe contener al menos un item');
+  }
+
+  if (!Number.isFinite(input.subtotal) || input.subtotal <= 0) {
+    errors.push('Subtotal invalido');
+  }
+
+  if (!Number.isFinite(input.costo_envio) || input.costo_envio < 0) {
+    errors.push('Costo de envio invalido');
+  }
+
+  if (!Number.isFinite(input.propina) || input.propina < 0) {
+    errors.push('Propina invalida');
+  }
+
+  if (!Number.isFinite(input.total) || input.total <= 0) {
+    errors.push('Total invalido o no coincide con subtotal + envio + propina');
+  }
+
+  if (!input.pago?.metodo || !input.pago?.estado) {
+    errors.push('Informacion de pago incompleta');
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors
+  };
+}
+
 function buildAdminOrderPayload({
   pedidoId,
   timestamp,
@@ -286,3 +330,4 @@ export { buildAdminOrderPayload };
 export { buildPersistedAdminOrderRecord };
 export { buildAdminOrdersMetrics };
 export { normalizeAdminOrderRequest };
+export { validateAdminOrderRequest };

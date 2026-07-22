@@ -150,6 +150,15 @@ function canAcceptOrder({ driver, order, uid }) {
   return { ok: true, estadoActual };
 }
 
+function buildDriverAcceptanceContext({ driver = {}, order = {}, uid } = {}) {
+  return {
+    uid: uid || null,
+    driver: { ...driver },
+    order: { ...order },
+    decision: canAcceptOrder({ driver, order, uid })
+  };
+}
+
 function buildAcceptedOrderPayload(order = {}, uid, acceptedAt = Date.now()) {
   return {
     ...order,
@@ -314,6 +323,7 @@ const ordersManagerApi = {
   getDriverUidFromOrder,
   isDebtBlocked,
   canAcceptOrder,
+  buildDriverAcceptanceContext,
   buildAcceptedOrderPayload,
   canCompleteOrder,
   buildCompletedOrderPayload,
@@ -343,6 +353,7 @@ export {
   getDriverUidFromOrder,
   isDebtBlocked,
   canAcceptOrder,
+  buildDriverAcceptanceContext,
   buildAcceptedOrderPayload,
   canCompleteOrder,
   buildCompletedOrderPayload,

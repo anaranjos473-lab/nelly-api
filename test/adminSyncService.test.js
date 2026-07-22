@@ -1,4 +1,10 @@
-import { buildAdminOrderPayload, buildAdminOrdersMetrics, buildPersistedAdminOrderRecord, normalizeAdminOrderRequest } from '../src/services/adminSyncService.js';
+import {
+  buildAdminOrderPayload,
+  buildAdminOrdersMetrics,
+  buildPersistedAdminOrderRecord,
+  normalizeAdminOrderRequest,
+  validateAdminOrderRequest
+} from '../src/services/adminSyncService.js';
 
 describe('adminSyncService', () => {
   test('buildAdminOrderPayload normalizes panel order fields', () => {
@@ -129,5 +135,39 @@ describe('adminSyncService', () => {
     expect(metrics.pedidosCanceladosHoy).toBe(1);
     expect(metrics.conductoresActivos).toBe(2);
     expect(metrics.avgAsignacionMinutos).toBe(12.5);
+  });
+
+  test('validateAdminOrderRequest centralizes request checks', () => {
+    const ok = validateAdminOrderRequest({
+      cliente_nombre: 'Cliente',
+      telefono: '555',
+      direccion: 'Calle 1',
+      coordenadas: { clienteLat: 19, clienteLng: -99, tiendaLat: 19.1, tiendaLng: -99.1 },
+      normalizedItems: [{ nombre: 'A', cantidad: 1, precio: 10 }],
+      subtotal: 10,
+      costo_envio: 0,
+      propina: 0,
+      total: 10,
+      pago: { metodo: 'efectivo', estado: 'pendiente' }
+    });
+
+    expect(ok.ok).toBe(true);
+    expect(ok.errors).toHaveLength(0);
+
+    const rejected = validateAdminOrderRequest({
+      cliente_nombre: '',
+      telefono: '',
+      direccion: '',
+      coordenadas: { clienteLat: 0, clienteLng: 0, tiendaLat: 0, tiendaLng: 0 },
+      normalizedItems: [],
+      subtotal: 0,
+      costo_envio: -1,
+      propina: -1,
+      total: 0,
+      pago: {}
+    });
+
+    expect(rejected.ok).toBe(false);
+    expect(rejected.errors.length).toBeGreaterThan(0);
   });
 });

@@ -3,6 +3,7 @@ import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual } from '../src/services/debtLockService.js';
 import {
     buildAdminOrdersMetrics,
+    validateAdminOrderRequest,
     buildPersistedAdminOrderRecord,
     normalizeAdminOrderRequest
 } from '../src/services/adminSyncService.js';
@@ -302,31 +303,21 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             }
         });
 
-        if (!cliente_nombre || !telefono || !direccion) {
-            return res.status(400).json({ error: 'Faltan campos de cliente obligatorios' });
-        }
+        const validation = validateAdminOrderRequest({
+            cliente_nombre,
+            telefono,
+            direccion,
+            coordenadas,
+            normalizedItems,
+            subtotal,
+            costo_envio,
+            propina,
+            total,
+            pago
+        });
 
-        const coordenadaValida = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) &&
-            lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
-        if (!coordenadaValida(coordenadas.clienteLat, coordenadas.clienteLng) ||
-            !coordenadaValida(coordenadas.tiendaLat, coordenadas.tiendaLng)) {
-            return res.status(400).json({ error: 'Coordenadas operativas de cliente y tienda obligatorias' });
-        }
-
-        if (!Array.isArray(normalizedItems) || normalizedItems.length === 0) {
-            return res.status(400).json({ error: 'El pedido debe contener al menos un item' });
-        }
-
-        if (!Number.isFinite(subtotal) || subtotal <= 0) {
-            return res.status(400).json({ error: 'Subtotal invalido' });
-        }
-
-        if (!Number.isFinite(costo_envio) || costo_envio < 0) {
-            return res.status(400).json({ error: 'Costo de envio invalido' });
-        }
-
-        if (!Number.isFinite(propina) || propina < 0) {
-            return res.status(400).json({ error: 'Propina invalida' });
+        if (!validation.ok) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
         const expectedSubtotal = Number(normalizedItems.reduce((sum, item) => sum + item.precio * item.cantidad, 0).toFixed(2));
@@ -335,12 +326,8 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
         }
 
         const expectedTotal = Number((Number(subtotal) + Number(costo_envio) + Number(propina)).toFixed(2));
-        if (!Number.isFinite(total) || Math.abs(expectedTotal - Number(total)) > 0.01) {
+        if (Math.abs(expectedTotal - Number(total)) > 0.01) {
             return res.status(400).json({ error: 'Total invalido o no coincide con subtotal + envio + propina' });
-        }
-
-        if (!pago.metodo || !pago.estado) {
-            return res.status(400).json({ error: 'Informacion de pago incompleta' });
         }
 
         const admin = await getAdmin();

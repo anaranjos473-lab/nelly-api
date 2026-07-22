@@ -1,6 +1,7 @@
 import {
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
+  buildDriverAcceptanceContext,
   buildDriverOfflinePayload,
   buildDriverOnlinePayload,
   canAcceptOrder,
@@ -41,6 +42,18 @@ describe('OrdersManager', () => {
 
     expect(blocked.ok).toBe(false);
     expect(blocked.status).toBe(403);
+  });
+
+  test('buildDriverAcceptanceContext encapsula la decision de aceptacion', () => {
+    const context = buildDriverAcceptanceContext({
+      uid: 'driver-1',
+      driver: { finanzas: { deuda_actual: 0, limite_deuda: 300 } },
+      order: { estado_pedido: 'LISTO' }
+    });
+
+    expect(context.uid).toBe('driver-1');
+    expect(context.decision.ok).toBe(true);
+    expect(context.order.estado_pedido).toBe('LISTO');
   });
 
   test('arma el payload de aceptacion y cierre sin perder campos operativos', () => {

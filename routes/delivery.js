@@ -15,7 +15,7 @@ import {
   ESTADOS_EN_CURSO,
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
-  canAcceptOrder,
+  buildDriverAcceptanceContext,
   canCompleteOrder,
   estadoOperativo,
   firstPositiveMoney,
@@ -191,7 +191,9 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     const pedidoRef = db.ref(`pedidos/${pedidoId}`);
     const pedidoSnap = await pedidoRef.once('value');
     const pedido = pedidoSnap.val();
-    const acceptCheck = canAcceptOrder({ driver: await getDriverState(db, uid), order: pedido, uid });
+    const driver = await getDriverState(db, uid);
+    const acceptanceContext = buildDriverAcceptanceContext({ driver, order: pedido, uid });
+    const acceptCheck = acceptanceContext.decision;
     if (!acceptCheck.ok) {
       const payload = { ok: false, error: acceptCheck.error };
       if (acceptCheck.estadoActual) payload.estadoActual = acceptCheck.estadoActual;
