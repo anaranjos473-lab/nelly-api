@@ -14,6 +14,7 @@ Servir como puerta de entrada tecnica para el cierre de B2 y la preparacion cont
 
 ### Cierre de B2
 - [`KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/KITCHEN_PREMIUM_B2_CIERRE_Y_B3_PREPARACION.md)
+- [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
 
 ### Validacion E2E previa a B3
 - [`ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_VALIDACION_E2E_PRE_B3_KITCHEN_PREMIUM_V1.md)

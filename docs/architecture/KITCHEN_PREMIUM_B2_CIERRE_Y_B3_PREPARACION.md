@@ -11,6 +11,7 @@ Dejar constancia formal de que B2 puede considerarse cerrada y dejar preparada l
 - [`docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/DEFINITION_OF_DONE_KITCHEN_PREMIUM_V1.md)
 - [`docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/BLUEPRINT_KITCHEN_PREMIUM_V1.md)
 - [`B3_CRITERIOS_DE_ENTRADA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/B3_CRITERIOS_DE_ENTRADA.md)
+- [`docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)
 
 ## 1. Cierre formal de B2
 
