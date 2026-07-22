@@ -1,3 +1,5 @@
+import { createLedgerEntry } from '../domain/index.js';
+
 const LIMITES_DEUDA_POR_NIVEL = Object.freeze({
   BRONCE: 300,
   PLATA: 500,
@@ -125,9 +127,37 @@ function buildDebtPaymentPayload(current, { monto, origen = 'panel', now = Date.
   };
 }
 
+function buildDebtLedgerEntry({
+  uid,
+  tipo,
+  subtipo,
+  monto,
+  pedidoId = null,
+  origen = 'debt-lock-service',
+  saldoAntes = 0,
+  now = Date.now()
+} = {}) {
+  return createLedgerEntry({
+    tipo,
+    subtipo,
+    origen,
+    referencia_id: pedidoId || uid || 'debt',
+    actor_id: uid || null,
+    monto,
+    saldo_antes: saldoAntes,
+    moneda: 'MXN',
+    ocurrio_en: now,
+    registrado_en: now,
+    metadata: {
+      source: 'debtLockService'
+    }
+  });
+}
+
 export {
   buildDebtChargePayload,
-  buildDebtPaymentPayload
+  buildDebtPaymentPayload,
+  buildDebtLedgerEntry
 };
 
 export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoId = null, origen = 'api' }) {

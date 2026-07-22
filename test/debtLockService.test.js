@@ -1,4 +1,4 @@
-import { buildDebtChargePayload, buildDebtPaymentPayload } from '../src/services/debtLockService.js';
+import { buildDebtChargePayload, buildDebtLedgerEntry, buildDebtPaymentPayload } from '../src/services/debtLockService.js';
 
 describe('debtLockService payload builders', () => {
   test('buildDebtChargePayload increases deuda and saldo coherently', () => {
@@ -30,5 +30,21 @@ describe('debtLockService payload builders', () => {
     expect(payload.finanzas.saldo_ganancias).toBe(470);
     expect(payload.estatus.bloqueado_por_deuda).toBe(false);
     expect(payload.finanzas.ultimo_pago_deuda.origen).toBe('panel');
+  });
+
+  test('buildDebtLedgerEntry creates a canonical ledger record', () => {
+    const entry = buildDebtLedgerEntry({
+      uid: 'D1',
+      tipo: 'abono',
+      subtipo: 'pago_deuda',
+      monto: 30,
+      pedidoId: 'P1',
+      saldoAntes: 100,
+      now: 3000
+    });
+
+    expect(entry.validation.ok).toBe(true);
+    expect(entry.referencia_id).toBe('P1');
+    expect(entry.saldo_despues).toBe(130);
   });
 });

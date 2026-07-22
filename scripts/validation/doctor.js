@@ -18,6 +18,7 @@ const checks = [
   ['validate-sync-canonical', 'node', ['scripts/validation/validate-sync-canonical.js']],
   ['validate-admin-sync', 'node', ['scripts/validation/validate-admin-sync.js']],
   ['validate-pharmacy-node', 'node', ['scripts/validation/validate-pharmacy-node.js']],
+  ['validate-supermarket-node', 'node', ['scripts/validation/validate-supermarket-node.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],
