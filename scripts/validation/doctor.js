@@ -9,6 +9,7 @@ const checks = [
   ['validate-domain-contracts', 'node', ['scripts/validation/validate-domain-contracts.js']],
   ['validate-domain-events', 'node', ['scripts/validation/validate-domain-events.js']],
   ['validate-ledger', 'node', ['scripts/validation/validate-ledger.js']],
+  ['validate-order-model', 'node', ['scripts/validation/validate-order-model.js']],
   ['validate-contract-compatibility', 'node', ['scripts/validation/validate-contract-compatibility.js']],
   ['validate-event-integrity', 'node', ['scripts/validation/validate-event-integrity.js']],
   ['validate-fulfillment-engine', 'node', ['scripts/validation/validate-fulfillment-engine.js']],
