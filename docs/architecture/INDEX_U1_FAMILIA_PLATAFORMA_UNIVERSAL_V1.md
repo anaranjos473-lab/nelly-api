@@ -59,6 +59,7 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 
 ### Plan U3
 - [`U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md)
+- [`U3_CIERRE_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_CIERRE_MAESTRO_PLATAFORMA_V1.md)
 
 ## Baseline de referencia
 - [`INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_U1_PLATAFORMA_UNIVERSAL_V1.md)

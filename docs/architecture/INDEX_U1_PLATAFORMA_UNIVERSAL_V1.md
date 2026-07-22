@@ -65,6 +65,7 @@ Servir como puerta de entrada tecnica para la nueva etapa U1, orientada a un mod
 
 ### Plan U3
 - [`U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_PLAN_MIGRACION_PROGRESIVA_PLATAFORMA_V1.md)
+- [`U3_CIERRE_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_CIERRE_MAESTRO_PLATAFORMA_V1.md)
 
 ## Regla
 No iniciar U1 sin confirmar que B4 quedo estable y que la baseline funcional certificada sigue en verde.
