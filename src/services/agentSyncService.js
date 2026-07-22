@@ -6,10 +6,12 @@ function buildSupportInterventionPayload(pedidoId, message, bonus = 15.0) {
   };
 }
 
+import { normalizeState } from '../domain/stateMachine.js';
+
 function buildSupportRescuePayload(pedidoId, conductorId, estadoDestino, timestamp = Date.now()) {
   return {
     [`pedidos/${pedidoId}`]: {
-      estado: estadoDestino,
+      estado: normalizeState(estadoDestino),
       conductorAnterior: conductorId,
       conductorId: '',
       timestampActualizacion: timestamp
@@ -24,7 +26,7 @@ function buildDispatchAssignmentPayload(pedidoId, conductorId, timestamp = Date.
   return {
     [`pedidos/${pedidoId}`]: {
       conductorId,
-      estado: 'en_curso',
+      estado: 'EN_CURSO',
       timestampActualizacion: timestamp
     }
   };

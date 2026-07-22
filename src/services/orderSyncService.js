@@ -1,4 +1,5 @@
-import { limpiarAsignacionParaPool, normalizeOrderState, shouldAdvancePedidoState } from './ordersManager.js';
+import { limpiarAsignacionParaPool, shouldAdvancePedidoState } from './ordersManager.js';
+import { normalizeState } from '../domain/stateMachine.js';
 
 function buildDispatchSyncWrites(pedidoId, order, dispatchedPayload) {
   return {
@@ -17,7 +18,7 @@ function buildAcceptSyncWrites(pedidoId, uid, acceptedPayload) {
 }
 
 function buildTransitionSyncWrites(pedidoId, state, order) {
-  const estadoSiguiente = normalizeOrderState(state);
+  const estadoSiguiente = normalizeState(state);
   const updatedAt = Date.now();
   const pedidoEnCamino = { ...order, estado: estadoSiguiente, estado_pedido: estadoSiguiente, timestampActualizacion: updatedAt };
   return {
@@ -41,8 +42,8 @@ function buildLocationSyncWrites({ uid, pedidoId = null, lat, lng, timestamp = D
 
   if (pedidoId) {
     updates[`pedidos/${pedidoId}/ubicacion_repartidor`] = ubicacion;
-    const estadoPersistido = normalizeOrderState(stateHint);
-    const estadoActual = normalizeOrderState(currentOrder?.estado_pedido || currentOrder?.estado);
+    const estadoPersistido = normalizeState(stateHint);
+    const estadoActual = normalizeState(currentOrder?.estado_pedido || currentOrder?.estado);
     if (estadoPersistido && shouldAdvancePedidoState(estadoActual, estadoPersistido)) {
       updates[`pedidos/${pedidoId}/estado`] = estadoPersistido;
       updates[`pedidos/${pedidoId}/estado_pedido`] = estadoPersistido;

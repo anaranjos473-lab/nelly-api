@@ -92,3 +92,4 @@ U3 se considerara estable cuando la plataforma completa haya migrado progresivam
 - [`docs/architecture/CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_U2_NUCLEO_UNIVERSAL_V1.md)
 - [`docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md)
 - [`docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_10_PRINCIPIOS_COMPATIBILIDAD_V1.md)
+- [`docs/architecture/U3_CIERRE_INTERMEDIO_MIGRACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_CIERRE_INTERMEDIO_MIGRACION_V1.md)
