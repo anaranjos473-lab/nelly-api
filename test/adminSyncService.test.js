@@ -1,4 +1,4 @@
-import { buildAdminOrderPayload, normalizeAdminOrderRequest } from '../src/services/adminSyncService.js';
+import { buildAdminOrderPayload, buildAdminOrdersMetrics, buildPersistedAdminOrderRecord, normalizeAdminOrderRequest } from '../src/services/adminSyncService.js';
 
 describe('adminSyncService', () => {
   test('buildAdminOrderPayload normalizes panel order fields', () => {
@@ -69,5 +69,65 @@ describe('adminSyncService', () => {
     expect(normalized.total).toBe(13.46);
     expect(normalized.pago.metodo).toBe('efectivo');
     expect(normalized.pago.estado).toBe('pendiente');
+  });
+
+  test('buildPersistedAdminOrderRecord keeps canonical payload and shortId together', () => {
+    const record = buildPersistedAdminOrderRecord({
+      pedidoId: 'P2',
+      timestamp: 2000,
+      shortId: '0101-99',
+      normalizedRequest: normalizeAdminOrderRequest({
+        cliente_nombre: 'Cliente',
+        telefono: '555',
+        direccion: 'Calle 1',
+        descripcion: '',
+        tipo_ubicacion: '',
+        metodo_entrega: '',
+        referencia_ubicacion: '',
+        notas_ubicacion: '',
+        coordenadas: { clienteLat: 19, clienteLng: -99, tiendaLat: 19.1, tiendaLng: -99.1 },
+        normalizedItems: [{ nombre: 'A', cantidad: 1, precio: 10 }],
+        subtotal: 10,
+        costo_envio: 0,
+        propina: 0,
+        total: 10,
+        pago: { metodo: 'efectivo', estado: 'pendiente' }
+      })
+    });
+
+    expect(record.id).toBe('P2');
+    expect(record.shortId).toBe('0101-99');
+    expect(record.estado_pedido).toBe('CREADO');
+    expect(record.lineas).toHaveLength(1);
+    expect(record.pago.metodo).toBe('efectivo');
+  });
+
+  test('buildAdminOrdersMetrics aggregates operational counts', () => {
+    const metrics = buildAdminOrdersMetrics({
+      now: new Date('2026-07-22T12:00:00-06:00').getTime(),
+      pedidos: {
+        A: {
+          createdAt: new Date('2026-07-22T08:00:00-06:00').getTime(),
+          aceptado_en: new Date('2026-07-22T08:10:00-06:00').getTime(),
+          entregado_en: new Date('2026-07-22T08:30:00-06:00').getTime(),
+          estado: 'ENTREGADO'
+        },
+        B: {
+          created_at: new Date('2026-07-22T09:00:00-06:00').getTime(),
+          tomado_en: new Date('2026-07-22T09:15:00-06:00').getTime(),
+          estado_pedido: 'CANCELADO'
+        }
+      },
+      pedidosActivos: { A: true },
+      conductores: { D1: true, D2: true }
+    });
+
+    expect(metrics.ok).toBe(true);
+    expect(metrics.activos).toBe(1);
+    expect(metrics.pedidosCreadosHoy).toBe(2);
+    expect(metrics.pedidosEntregadosHoy).toBe(1);
+    expect(metrics.pedidosCanceladosHoy).toBe(1);
+    expect(metrics.conductoresActivos).toBe(2);
+    expect(metrics.avgAsignacionMinutos).toBe(12.5);
   });
 });
