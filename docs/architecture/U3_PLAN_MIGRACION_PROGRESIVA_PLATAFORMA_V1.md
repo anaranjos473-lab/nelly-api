@@ -81,6 +81,11 @@ Demostrar:
 - ejecucion de doctor;
 - validacion funcional completa en entorno con Firebase.
 
+Base documental de U3.4:
+- [`U3_4_CERTIFICACION_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_4_CERTIFICACION_UNIVERSAL_V1.md)
+- [`U3_4_MATRIZ_VALIDACION_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_4_MATRIZ_VALIDACION_UNIVERSAL_V1.md)
+- [`U3_4_CIERRE_CERTIFICACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_4_CIERRE_CERTIFICACION_V1.md)
+
 ### U3.5 - Preparacion para marketplace
 Preparar capacidades de plataforma multi-vertical:
 - multiples vendedores;
