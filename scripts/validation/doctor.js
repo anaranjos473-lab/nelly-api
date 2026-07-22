@@ -7,6 +7,7 @@ const checks = [
   ['validate-firebase', 'node', ['scripts/validation/validate-firebase.js']],
   ['validate-orders-manager', 'node', ['scripts/validation/validate-orders-manager.js']],
   ['validate-domain-contracts', 'node', ['scripts/validation/validate-domain-contracts.js']],
+  ['validate-domain-events', 'node', ['scripts/validation/validate-domain-events.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],
   ['validate-admin-sync', 'node', ['scripts/validation/validate-admin-sync.js']],
