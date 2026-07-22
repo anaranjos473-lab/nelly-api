@@ -19,3 +19,6 @@ export { buildMerchantFulfillmentNodeEntry } from './nodes/merchantFulfillmentNo
 export * from './nodes/returnsNode.js';
 export * from './nodes/distributionCenterNode.js';
 export * from './nodes/crossdockNode.js';
+export * from './nodes/sellerPortalNode.js';
+export * from './nodes/sortationCenterNode.js';
+export * from './nodes/handoffPointNode.js';
