@@ -33,6 +33,15 @@ Servir como puerta de entrada tecnica para la nueva etapa U1, orientada a un mod
 ### U1.6 - Eventos de dominio
 - [`U1_6_EVENTOS_DOMINIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_6_EVENTOS_DOMINIO_V1.md)
 
+### U1.7 - Contratos canonicos
+- [`U1_7_CONTRATOS_CANONICOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_7_CONTRATOS_CANONICOS_V1.md)
+
+### U1.8 - Maquina de estados
+- [`U1_8_MAQUINA_ESTADOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_8_MAQUINA_ESTADOS_V1.md)
+
+### U1.9 - Arquitectura de extensiones
+- [`U1_9_ARQUITECTURA_EXTENSIONES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_9_ARQUITECTURA_EXTENSIONES_V1.md)
+
 ### ADR base
 - [`ADR_U1_DOMINIO_UNIVERSAL_LEDGER_INVENTARIO_FULFILLMENT_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ADR_U1_DOMINIO_UNIVERSAL_LEDGER_INVENTARIO_FULFILLMENT_V1.md)
 
