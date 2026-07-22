@@ -4,6 +4,50 @@ function roundMoney(value) {
   return Number(Number(value || 0).toFixed(2));
 }
 
+function normalizeAdminOrderRequest(input = {}) {
+  const cliente_nombre = String(input.cliente_nombre || '').trim();
+  const telefono = String(input.telefono || '').trim();
+  const direccion = String(input.direccion || '').trim();
+  const descripcion = String(input.descripcion || '').trim();
+  const tipo_ubicacion = String(input.tipo_ubicacion || '').trim() || 'otro';
+  const metodo_entrega = String(input.metodo_entrega || '').trim() || 'puerta';
+  const referencia_ubicacion = String(input.referencia_ubicacion || '').trim();
+  const notas_ubicacion = String(input.notas_ubicacion || '').trim();
+  const coordenadas = {
+    clienteLat: Number(input.coordenadas?.clienteLat),
+    clienteLng: Number(input.coordenadas?.clienteLng),
+    tiendaLat: Number(input.coordenadas?.tiendaLat),
+    tiendaLng: Number(input.coordenadas?.tiendaLng)
+  };
+  const normalizedItems = Array.isArray(input.normalizedItems) ? input.normalizedItems : [];
+  const subtotal = Number(input.subtotal);
+  const costo_envio = Number(input.costo_envio);
+  const propina = Number(input.propina);
+  const total = Number(input.total);
+  const pago = {
+    metodo: String(input.pago?.metodo || '').trim(),
+    estado: String(input.pago?.estado || '').trim()
+  };
+
+  return {
+    cliente_nombre,
+    telefono,
+    direccion,
+    descripcion,
+    tipo_ubicacion,
+    metodo_entrega,
+    referencia_ubicacion,
+    notas_ubicacion,
+    coordenadas,
+    normalizedItems,
+    subtotal,
+    costo_envio,
+    propina,
+    total,
+    pago
+  };
+}
+
 function buildAdminOrderPayload({
   pedidoId,
   timestamp,
@@ -84,3 +128,4 @@ function buildAdminOrderPayload({
 }
 
 export { buildAdminOrderPayload };
+export { normalizeAdminOrderRequest };

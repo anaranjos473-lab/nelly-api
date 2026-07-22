@@ -1,7 +1,7 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual } from '../src/services/debtLockService.js';
-import { buildAdminOrderPayload } from '../src/services/adminSyncService.js';
+import { buildAdminOrderPayload, normalizeAdminOrderRequest } from '../src/services/adminSyncService.js';
 
 const router = express.Router();
 
@@ -411,28 +411,27 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             metodo_entrega,
             referencia_ubicacion,
             notas_ubicacion,
-            cliente_lat,
-            cliente_lng,
-            tienda_lat,
-            tienda_lng,
-            items,
+            coordenadas,
+            normalizedItems,
             subtotal,
             costo_envio,
             propina,
             total,
             pago
-        } = req.body;
+        } = normalizeAdminOrderRequest({
+            ...req.body,
+            coordenadas: {
+                clienteLat: req.body?.cliente_lat,
+                clienteLng: req.body?.cliente_lng,
+                tiendaLat: req.body?.tienda_lat,
+                tiendaLng: req.body?.tienda_lng
+            }
+        });
 
         if (!cliente_nombre || !telefono || !direccion) {
             return res.status(400).json({ error: 'Faltan campos de cliente obligatorios' });
         }
 
-        const coordenadas = {
-            clienteLat: Number(cliente_lat),
-            clienteLng: Number(cliente_lng),
-            tiendaLat: Number(tienda_lat),
-            tiendaLng: Number(tienda_lng)
-        };
         const coordenadaValida = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) &&
             lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat !== 0 && lng !== 0;
         if (!coordenadaValida(coordenadas.clienteLat, coordenadas.clienteLng) ||
@@ -440,28 +439,9 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             return res.status(400).json({ error: 'Coordenadas operativas de cliente y tienda obligatorias' });
         }
 
-        if (!Array.isArray(items) || items.length === 0) {
+        if (!Array.isArray(normalizedItems) || normalizedItems.length === 0) {
             return res.status(400).json({ error: 'El pedido debe contener al menos un item' });
         }
-
-        const normalizedItems = items.map((item, index) => {
-            if (!item || typeof item !== 'object') {
-                throw new Error(`Item ${index + 1} invalido`);
-            }
-            const nombre = String(item.nombre || item.name || '').trim();
-            const cantidad = Number(item.cantidad || item.quantity || 0);
-            const precio = Number(item.precio || item.price || 0);
-
-            if (!nombre || !Number.isFinite(cantidad) || cantidad <= 0 || !Number.isFinite(precio) || precio <= 0) {
-                throw new Error(`Item ${index + 1} incompleto o con valores invalidos`);
-            }
-
-            return {
-                nombre,
-                cantidad,
-                precio: Number(precio.toFixed(2))
-            };
-        });
 
         if (!Number.isFinite(subtotal) || subtotal <= 0) {
             return res.status(400).json({ error: 'Subtotal invalido' });
@@ -485,7 +465,7 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             return res.status(400).json({ error: 'Total invalido o no coincide con subtotal + envio + propina' });
         }
 
-        if (!pago || typeof pago !== 'object' || !pago.metodo || !pago.estado) {
+        if (!pago.metodo || !pago.estado) {
             return res.status(400).json({ error: 'Informacion de pago incompleta' });
         }
 

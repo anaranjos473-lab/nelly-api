@@ -1,4 +1,4 @@
-import { buildAdminOrderPayload } from '../src/services/adminSyncService.js';
+import { buildAdminOrderPayload, normalizeAdminOrderRequest } from '../src/services/adminSyncService.js';
 
 describe('adminSyncService', () => {
   test('buildAdminOrderPayload normalizes panel order fields', () => {
@@ -34,5 +34,40 @@ describe('adminSyncService', () => {
     expect(payload.pago.metodo).toBe('efectivo');
     expect(payload.estado_pedido).toBe('CREADO');
     expect(payload.cliente).toMatchObject({ uid: 'Cliente', id: 'Cliente' });
+  });
+
+  test('normalizeAdminOrderRequest trims and coerces admin input', () => {
+    const normalized = normalizeAdminOrderRequest({
+      cliente_nombre: '  Cliente  ',
+      telefono: '  555  ',
+      direccion: '  Calle 1  ',
+      descripcion: '  Nota  ',
+      tipo_ubicacion: '  ',
+      metodo_entrega: '  ',
+      referencia_ubicacion: '  Ref  ',
+      notas_ubicacion: '  Obs  ',
+      coordenadas: {
+        clienteLat: '19.1',
+        clienteLng: '-99.1',
+        tiendaLat: '19.2',
+        tiendaLng: '-99.2'
+      },
+      normalizedItems: [{ nombre: 'A', cantidad: 1 }],
+      subtotal: '10.12',
+      costo_envio: '2.34',
+      propina: '1.00',
+      total: '13.46',
+      pago: { metodo: '  efectivo  ', estado: '  pendiente  ' }
+    });
+
+    expect(normalized.cliente_nombre).toBe('Cliente');
+    expect(normalized.tipo_ubicacion).toBe('otro');
+    expect(normalized.metodo_entrega).toBe('puerta');
+    expect(normalized.coordenadas.clienteLat).toBe(19.1);
+    expect(normalized.coordenadas.tiendaLng).toBe(-99.2);
+    expect(normalized.subtotal).toBe(10.12);
+    expect(normalized.total).toBe(13.46);
+    expect(normalized.pago.metodo).toBe('efectivo');
+    expect(normalized.pago.estado).toBe('pendiente');
   });
 });
