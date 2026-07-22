@@ -15,3 +15,4 @@ export * from './nodes/merchantNode.js';
 export * from './nodes/pickupNode.js';
 export * from './nodes/storefrontNode.js';
 export * from './nodes/deliveryHubNode.js';
+export { buildMerchantFulfillmentNodeEntry } from './nodes/merchantFulfillmentNode.js';
