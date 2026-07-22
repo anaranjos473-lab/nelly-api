@@ -8,6 +8,7 @@ const checks = [
   ['validate-orders-manager', 'node', ['scripts/validation/validate-orders-manager.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],
+  ['validate-admin-sync', 'node', ['scripts/validation/validate-admin-sync.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],
