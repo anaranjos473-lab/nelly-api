@@ -13,3 +13,5 @@ export * from './nodes/lockerNode.js';
 export * from './nodes/cargoNode.js';
 export * from './nodes/merchantNode.js';
 export * from './nodes/pickupNode.js';
+export * from './nodes/storefrontNode.js';
+export * from './nodes/deliveryHubNode.js';
