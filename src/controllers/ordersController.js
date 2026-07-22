@@ -1,5 +1,6 @@
 import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { buildCanonicalOrderRecord, buildPersistedOrderRecord } from '../services/orderCreationService.js';
+import { buildOrderUpdateRecord } from '../services/orderMutationService.js';
 
 export const getOrders = async (req, res) => {
   try {
@@ -92,7 +93,8 @@ export const updateOrder = async (req, res) => {
   try {
     const admin = await getAdmin();
     const db = admin.database();
-    await db.ref(`pedidos/${req.params.id}`).update(req.body);
+    const updateRecord = buildOrderUpdateRecord(req.body);
+    await db.ref(`pedidos/${req.params.id}`).update(updateRecord);
     res.json({ message: 'Pedido actualizado', id: req.params.id });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
