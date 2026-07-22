@@ -55,6 +55,9 @@ Conectar gradualmente:
 
 sin modificar el nucleo.
 
+Integracion inicial iniciada:
+- adaptador de inventario canonico en `src/integrations/inventoryAdapter.js`
+
 ### U3.4 - Certificacion universal
 Demostrar:
 - compatibilidad entre contratos;
