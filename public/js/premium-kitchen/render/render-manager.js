@@ -4,6 +4,7 @@ const renderState = {
   lastSystemHealth: null,
   lastCounters: null,
   lastOrderLists: null,
+  lastOrderCards: null,
   lastTargets: {
     dashboard: null,
     kanban: null,
@@ -185,6 +186,67 @@ export function createRenderManager() {
       };
 
       return renderState.lastOrderLists;
+    },
+    renderOrderCard(pedido = {}, id = '', esPendiente = false, helpers = {}) {
+      const normalize = typeof helpers.normalizarEstado === 'function'
+        ? helpers.normalizarEstado
+        : (value) => String(value || '').trim().toUpperCase();
+      const toPhase = typeof helpers.obtenerFasePanel === 'function'
+        ? helpers.obtenerFasePanel
+        : () => 'COCINA';
+
+      const monto = Number(pedido.monto || pedido.total || 0);
+      const displayId = pedido.shortId || pedido.id_pedido || String(id).substring(0, 8);
+      const estadoNormalizado = normalize(pedido.estado);
+      const fase = toPhase(estadoNormalizado);
+      const esListo = estadoNormalizado === 'LISTO';
+      const estadoLabel = esListo ? 'ESPERANDO REPARTIDOR' : estadoNormalizado;
+      const tipoUbicacion = String(pedido.tipo_ubicacion || pedido.tipoUbicacion || '').trim();
+      const metodoEntrega = String(pedido.metodo_entrega || pedido.metodoEntrega || '').trim();
+      const referenciaUbicacion = String(pedido.referencia_ubicacion || pedido.referenciaUbicacion || '').trim();
+      const notasUbicacion = String(pedido.notas_ubicacion || pedido.notasUbicacion || '').trim();
+      const ubicacionHumanizada = [
+        tipoUbicacion ? `Tipo: ${tipoUbicacion}` : '',
+        metodoEntrega ? `Entrega: ${metodoEntrega}` : '',
+        referenciaUbicacion ? `Referencia: ${referenciaUbicacion}` : '',
+        notasUbicacion ? `Notas: ${notasUbicacion}` : ''
+      ].filter(Boolean).join(' · ');
+      const config = esPendiente || fase === 'COCINA'
+        ? { texto: 'DESPACHAR', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
+        : (esListo
+          ? { texto: 'ESPERANDO REPARTIDOR', clase: 'btn-neutral', funcion: '', disabled: true }
+          : { texto: 'ENTREGA COMPLETADA', clase: 'btn-success', funcion: `window.finalizarPedido('${id}')`, disabled: false });
+      const botonAttrs = config.disabled
+        ? 'disabled aria-disabled="true" title="Pedido listo para que lo acepte un repartidor"'
+        : `onclick="${config.funcion}"`;
+
+      const html = `
+                <div class="card-pedido animate__animated animate__fadeIn">
+                    <div class="card-header">
+                        <strong>#${displayId}</strong>
+                        <span class="monto">$${monto.toFixed(2)}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="cliente">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
+                        <p class="estado">Estado: ${estadoLabel}</p>
+                        <p class="estado">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
+                        ${ubicacionHumanizada ? `<p class="desc">${ubicacionHumanizada}</p>` : ''}
+                        <p class="desc">${pedido.descripcion || 'Sin descripciÃ³n'}</p>
+                    </div>
+                    <button ${botonAttrs} class="btn-action ${config.clase}">
+                        ${config.texto}
+                    </button>
+                </div>
+            `;
+
+      renderState.lastOrderCards = {
+        id: String(id),
+        fase,
+        esPendiente: Boolean(esPendiente),
+        at: Date.now()
+      };
+
+      return html;
     },
     renderDashboard(target = null) {
       updateRenderState({
