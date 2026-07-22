@@ -1,5 +1,5 @@
-
 import { workerData, parentPort } from 'worker_threads';
+import { FULFILLMENT_NODE_STATES } from '../domain/index.js';
 
 const calcularDistancia = (lat1, lon1, lat2, lon2) => {
 	const R = 6371; // Radio Tierra km
@@ -12,20 +12,27 @@ const calcularDistancia = (lat1, lon1, lat2, lon2) => {
 	return R * c;
 };
 
-const encontrarMejorConductor = () => {
-	const { origen, conductores } = workerData;
+const encontrarMejorConductor = (origen, conductores) => {
 	let mejor = null;
 	let minD = Infinity;
 
 	for (const [id, datos] of Object.entries(conductores)) {
-		if (datos.estado !== 'DISPONIBLE') continue;
+		if (datos.estado !== FULFILLMENT_NODE_STATES.DISPONIBLE) continue;
 		const d = calcularDistancia(origen.lat, origen.lng, datos.lat, datos.lng);
 		if (d < minD && d <= 5.0) { // Radio de 5km en Tuxtla
 			minD = d;
 			mejor = { id, distancia: d };
 		}
 	}
-	parentPort.postMessage(mejor);
+	return mejor;
 };
 
-encontrarMejorConductor();
+if (parentPort && workerData) {
+	const { origen, conductores } = workerData;
+	parentPort.postMessage(encontrarMejorConductor(origen, conductores));
+}
+
+export {
+	calcularDistancia,
+	encontrarMejorConductor
+};

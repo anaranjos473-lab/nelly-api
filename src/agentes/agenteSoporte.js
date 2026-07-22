@@ -1,4 +1,5 @@
 import { getAdmin } from '../../config/firebase-admin-esm.js';
+import { ORDER_STATES } from '../domain/index.js';
 import { normalizeState } from '../domain/stateMachine.js';
 import {
     buildSupportInterventionPayload,
@@ -11,12 +12,12 @@ let monitoreoInterval = null;
 let pedidosPercanceRef = null;
 let percanceHandlers = [];
 
-const esEstadoPendiente = (estado) => normalizeState(estado) === 'PENDIENTE';
+const esEstadoPendiente = (estado) => normalizeState(estado) === ORDER_STATES.PENDIENTE;
 
 const esEstadoPercance = (estado) => normalizeState(estado) === 'PERCANCE';
 
 const estadoPendienteDestino = (estadoOriginal) => (
-    normalizeState(estadoOriginal) === 'PERCANCE' ? 'PENDIENTE' : 'PENDIENTE'
+    normalizeState(estadoOriginal) === 'PERCANCE' ? ORDER_STATES.PENDIENTE : ORDER_STATES.PENDIENTE
 );
 
 export const identificarPedidosRetrasados = (pedidos, ahora = Date.now()) => {
