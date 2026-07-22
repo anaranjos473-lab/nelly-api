@@ -103,3 +103,7 @@ Este programa sustituye la idea de abrir una nueva fase arquitectonica amplia. A
 La fase P5 se apoya en:
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
+
+## Indice maestro
+
+- [`INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
