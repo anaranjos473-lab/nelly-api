@@ -1,3 +1,5 @@
+import { buildCanonicalOrder } from '../domain/index.js';
+
 function roundMoney(value) {
   return Number(Number(value || 0).toFixed(2));
 }
@@ -21,13 +23,26 @@ function buildAdminOrderPayload({
   total,
   pago
 }) {
+  const canonical = buildCanonicalOrder({
+    id: pedidoId,
+    userId: String(cliente_nombre).trim(),
+    items: normalizedItems,
+    total,
+    estado: 'CREADO',
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    metadata: {
+      source: 'panel_admin'
+    }
+  });
+
   return {
     id: pedidoId,
     pedido_id: pedidoId,
     id_pedido: pedidoId,
     shortId: null,
     cliente_nombre: String(cliente_nombre).trim(),
-    cliente: String(cliente_nombre).trim(),
+    cliente: canonical.order.cliente,
     telefono: String(telefono).trim(),
     direccion: String(direccion).trim(),
     tipo_ubicacion: String(tipo_ubicacion || 'otro').trim(),
@@ -39,7 +54,8 @@ function buildAdminOrderPayload({
     latTienda: coordenadas.tiendaLat,
     lngTienda: coordenadas.tiendaLng,
     descripcion: String(descripcion || '').trim(),
-    items: normalizedItems,
+    items: canonical.order.items.length > 0 ? normalizedItems : [],
+    lineas: canonical.order.lineas,
     subtotal: roundMoney(subtotal),
     costo_envio: roundMoney(costo_envio),
     propina: roundMoney(propina),
@@ -50,15 +66,15 @@ function buildAdminOrderPayload({
       metodo: String(pago.metodo).trim(),
       estado: String(pago.estado).trim()
     },
-    estado: 'pendiente',
-    estado_pedido: 'PENDIENTE',
+    estado: canonical.order.estado,
+    estado_pedido: canonical.order.estado,
     fase_panel: 'Pendiente',
     repartidor_id: null,
     conductorId: null,
     pedido_activo: null,
-    fecha_creacion: timestamp,
-    createdAt: timestamp,
-    created_at: timestamp,
+    fecha_creacion: canonical.order.created_at,
+    createdAt: canonical.order.created_at,
+    created_at: canonical.order.created_at,
     origen: 'panel_admin',
     logistica: {
       estado: 'pendiente',

@@ -30,7 +30,9 @@ describe('adminSyncService', () => {
     expect(payload.subtotal).toBe(10.12);
     expect(payload.costo_envio).toBe(2.35);
     expect(payload.total).toBe(13.67);
+    expect(payload.lineas).toHaveLength(1);
     expect(payload.pago.metodo).toBe('efectivo');
-    expect(payload.estado_pedido).toBe('PENDIENTE');
+    expect(payload.estado_pedido).toBe('CREADO');
+    expect(payload.cliente).toMatchObject({ uid: 'Cliente', id: 'Cliente' });
   });
 });
