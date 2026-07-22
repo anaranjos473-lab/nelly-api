@@ -16,6 +16,7 @@ import {
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
   buildDriverAcceptanceContext,
+  buildDriverCompletionContext,
   canCompleteOrder,
   estadoOperativo,
   firstPositiveMoney,
@@ -357,20 +358,24 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
 
     const user = req.firebaseUser || {};
     const isPanel = isAdminOrPanelUser(user);
-    const completionCheck = canCompleteOrder({ order: pedido, uid: user.uid, isPanel });
+    const completionContext = buildDriverCompletionContext({
+      order: pedido,
+      uid: user.uid,
+      isPanel,
+      completionType,
+      comisionSolicitada: firstPositiveMoney(req.body.comision, req.body.monto_comision),
+      comisionFallback: getDeliveryPayout(pedido) || roundMoney(getOrderTotal(pedido) * 0.18),
+      tarifaEntregaFallback: firstPositiveMoney(pedido.tarifa_entrega, pedido.costo_envio, pedido.costoEnvio)
+    });
+    const completionCheck = completionContext.decision;
     if (!completionCheck.ok) {
       const payload = { ok: false, error: completionCheck.error };
       if (completionCheck.estadoActual) payload.estadoActual = completionCheck.estadoActual;
       return res.status(completionCheck.status).json(payload);
     }
-    const { alreadyCompleted } = completionCheck;
+    const { alreadyCompleted, montoPedido, comision, tarifaEntrega } = completionContext;
     const driverUid = getDriverUidFromOrder(pedido);
-
     const completedAt = Date.now();
-    const montoPedido = getOrderTotal(pedido);
-    const comisionSolicitada = firstPositiveMoney(req.body.comision, req.body.monto_comision);
-    const comisionFallback = getDeliveryPayout(pedido) || roundMoney(montoPedido * 0.18);
-    const comision = comisionSolicitada || comisionFallback;
     const finanzas = !alreadyCompleted && driverUid && comision > 0
       ? await registrarCobroEfectivoTx(db, {
         uid: driverUid,
@@ -383,9 +388,9 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     const pedidoUpdates = buildCompletedOrderPayload(
       pedido,
       completedAt,
-      completionType,
+      completionContext.completionType,
       comision,
-      firstPositiveMoney(pedido.tarifa_entrega, pedido.costo_envio, pedido.costoEnvio)
+      tarifaEntrega
     );
     if (req.body.evidenciaUrl) {
       pedidoUpdates.evidencia_url = req.body.evidenciaUrl;

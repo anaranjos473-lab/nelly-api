@@ -2,6 +2,7 @@ import {
   buildAcceptedOrderPayload,
   buildCompletedOrderPayload,
   buildDriverAcceptanceContext,
+  buildDriverCompletionContext,
   buildDriverOfflinePayload,
   buildDriverOnlinePayload,
   canAcceptOrder,
@@ -54,6 +55,23 @@ describe('OrdersManager', () => {
     expect(context.uid).toBe('driver-1');
     expect(context.decision.ok).toBe(true);
     expect(context.order.estado_pedido).toBe('LISTO');
+  });
+
+  test('buildDriverCompletionContext encapsula el cierre operativo', () => {
+    const context = buildDriverCompletionContext({
+      order: { estado_pedido: 'EN_CURSO', conductorId: 'driver-1', total: 100, tarifa_entrega: 18 },
+      uid: 'driver-1',
+      isPanel: false,
+      completionType: 'normal',
+      comisionSolicitada: 0,
+      comisionFallback: 30,
+      tarifaEntregaFallback: 18
+    });
+
+    expect(context.decision.ok).toBe(true);
+    expect(context.montoPedido).toBe(100);
+    expect(context.comision).toBe(30);
+    expect(context.tarifaEntrega).toBe(18);
   });
 
   test('arma el payload de aceptacion y cierre sin perder campos operativos', () => {

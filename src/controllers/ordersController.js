@@ -1,6 +1,5 @@
-
 import { getAdmin } from '../../config/firebase-admin-esm.js';
-import { buildCanonicalOrder } from '../domain/index.js';
+import { buildCanonicalOrderRecord, buildPersistedOrderRecord } from '../services/orderCreationService.js';
 
 export const getOrders = async (req, res) => {
   try {
@@ -44,23 +43,28 @@ export const createOrder = async (req, res) => {
 
     const pedidosRef = db.ref('pedidos');
     const newPedidoRef = pedidosRef.push();
-    const canonical = buildCanonicalOrder({
+    const canonical = buildCanonicalOrderRecord({
       userId,
       items,
       total: Number(total),
       estado: 'CREADO'
     });
 
-    if (!canonical.validation.ok) {
+    if (!canonical.canonical.validation.ok) {
       return res.status(400).json({
-        errors: canonical.validation.missing.map((field) => ({ msg: `Falta campo canónico: ${field}` }))
+        errors: canonical.canonical.validation.missing.map((field) => ({ msg: `Falta campo canónico: ${field}` }))
       });
     }
 
-    const pedido = {
-      ...canonical.order,
-      id: newPedidoRef.key
-    };
+    const pedido = buildPersistedOrderRecord({
+      id: newPedidoRef.key,
+      input: {
+        userId,
+        items,
+        total: Number(total),
+        estado: 'CREADO'
+      }
+    });
 
     await newPedidoRef.set(pedido);
     res.status(201).json({

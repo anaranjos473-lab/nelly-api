@@ -159,6 +159,31 @@ function buildDriverAcceptanceContext({ driver = {}, order = {}, uid } = {}) {
   };
 }
 
+function buildDriverCompletionContext({
+  order = {},
+  uid,
+  isPanel = false,
+  completionType = 'normal',
+  comisionSolicitada = 0,
+  comisionFallback = 0,
+  tarifaEntregaFallback = 0
+} = {}) {
+  const decision = canCompleteOrder({ order, uid, isPanel });
+  const montoPedido = getOrderTotal(order);
+  const comision = firstPositiveMoney(comisionSolicitada, comisionFallback);
+  const tarifaEntrega = firstPositiveMoney(tarifaEntregaFallback);
+  return {
+    uid: uid || null,
+    order: { ...order },
+    isPanel: Boolean(isPanel),
+    completionType,
+    decision,
+    montoPedido,
+    comision,
+    tarifaEntrega
+  };
+}
+
 function buildAcceptedOrderPayload(order = {}, uid, acceptedAt = Date.now()) {
   return {
     ...order,
@@ -324,6 +349,7 @@ const ordersManagerApi = {
   isDebtBlocked,
   canAcceptOrder,
   buildDriverAcceptanceContext,
+  buildDriverCompletionContext,
   buildAcceptedOrderPayload,
   canCompleteOrder,
   buildCompletedOrderPayload,
@@ -354,6 +380,7 @@ export {
   isDebtBlocked,
   canAcceptOrder,
   buildDriverAcceptanceContext,
+  buildDriverCompletionContext,
   buildAcceptedOrderPayload,
   canCompleteOrder,
   buildCompletedOrderPayload,
