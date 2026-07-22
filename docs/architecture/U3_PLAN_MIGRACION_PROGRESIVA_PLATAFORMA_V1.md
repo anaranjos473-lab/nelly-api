@@ -94,6 +94,24 @@ Preparar capacidades de plataforma multi-vertical:
 - liquidaciones independientes;
 - reglas de comision configurables.
 
+Base documental de U3.5:
+- [`U3_5_PREPARACION_MARKETPLACE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_5_PREPARACION_MARKETPLACE_V1.md)
+- [`U3_5_CIERRE_MARKETPLACE_PREPARACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_5_CIERRE_MARKETPLACE_PREPARACION_V1.md)
+
+### U3.6 - Policy Engine
+Definir un motor de reglas para:
+- quien puede aceptar pedidos;
+- cuando liberar inventario;
+- como calcular comisiones;
+- cuando dividir un pedido;
+- que evidencia exigir;
+- cuando permitir devoluciones;
+- reglas por pais, ciudad o comercio.
+
+Base documental de U3.6:
+- [`U3_6_POLICY_ENGINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_6_POLICY_ENGINE_V1.md)
+- [`U3_6_CIERRE_POLICY_ENGINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_6_CIERRE_POLICY_ENGINE_V1.md)
+
 ## Estrategia de migracion
 
 1. Mover primero consumidores de bajo riesgo.
