@@ -30,6 +30,9 @@ Servir como puerta de entrada tecnica para la nueva etapa U1, orientada a un mod
 ### U1.5 - Integraciones
 - [`U1_5_INTEGRACIONES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_5_INTEGRACIONES_V1.md)
 
+### U1.6 - Eventos de dominio
+- [`U1_6_EVENTOS_DOMINIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_6_EVENTOS_DOMINIO_V1.md)
+
 ### ADR base
 - [`ADR_U1_DOMINIO_UNIVERSAL_LEDGER_INVENTARIO_FULFILLMENT_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ADR_U1_DOMINIO_UNIVERSAL_LEDGER_INVENTARIO_FULFILLMENT_V1.md)
 

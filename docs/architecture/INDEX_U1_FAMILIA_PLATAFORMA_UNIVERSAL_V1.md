@@ -1,7 +1,7 @@
 # INDEX U1 - FAMILIA PLATAFORMA UNIVERSAL V1
 
 ## Proposito
-Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR y documentos U1.1 a U1.5 para el modelo de dominio universal.
+Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR y documentos U1.1 a U1.6 para el modelo de dominio universal.
 
 ## Uso recomendado
 1. Leer el plan formal de U1.
@@ -11,7 +11,8 @@ Servir como indice maestro de la familia U1 y centralizar el acceso al plan, ADR
 5. Revisar U1.3 para ledger.
 6. Revisar U1.4 para inventario.
 7. Revisar U1.5 para integraciones.
-8. Volver al paquete B2/B3 solo como baseline de referencia.
+8. Revisar U1.6 para eventos de dominio.
+9. Volver al paquete B2/B3 solo como baseline de referencia.
 
 ## Documentos de U1
 
