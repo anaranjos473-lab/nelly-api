@@ -39,6 +39,7 @@ const checks = [
   ['validate-inventory-adapter', 'node', ['scripts/validation/validate-inventory-adapter.js']],
   ['validate-payment-adapter', 'node', ['scripts/validation/validate-payment-adapter.js']],
   ['validate-billing-adapter', 'node', ['scripts/validation/validate-billing-adapter.js']],
+  ['validate-pos-adapter', 'node', ['scripts/validation/validate-pos-adapter.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],

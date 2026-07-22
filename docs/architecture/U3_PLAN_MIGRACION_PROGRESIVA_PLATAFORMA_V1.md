@@ -59,6 +59,7 @@ Integracion inicial iniciada:
 - adaptador de inventario canonico en `src/integrations/inventoryAdapter.js`
 - adaptador de pagos canonico en `src/integrations/paymentAdapter.js`
 - adaptador de facturacion canonico en `src/integrations/billingAdapter.js`
+- adaptador POS canonico en `src/integrations/posAdapter.js`
 
 ### U3.4 - Certificacion universal
 Demostrar:
