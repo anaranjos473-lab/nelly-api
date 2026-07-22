@@ -1,3 +1,5 @@
+import { normalizeOrderState } from './ordersManager.js';
+
 function normalizeOrderUpdateInput(input = {}) {
   const allowed = {};
   const maybeCopy = (key, mapper = (value) => value) => {
@@ -6,8 +8,8 @@ function normalizeOrderUpdateInput(input = {}) {
     }
   };
 
-  maybeCopy('estado', (value) => String(value || '').trim().toUpperCase());
-  maybeCopy('estado_pedido', (value) => String(value || '').trim().toUpperCase());
+  maybeCopy('estado', (value) => normalizeOrderState(value));
+  maybeCopy('estado_pedido', (value) => normalizeOrderState(value));
   maybeCopy('comision', (value) => Number(value));
   maybeCopy('tarifa_entrega', (value) => Number(value));
   maybeCopy('completion_type', (value) => String(value || '').trim().toLowerCase());
