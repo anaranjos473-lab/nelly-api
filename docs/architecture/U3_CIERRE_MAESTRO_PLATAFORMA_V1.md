@@ -77,3 +77,9 @@ La certificacion funcional completa sigue condicionada a ejecutar `validate-func
 ## Cierre
 
 U3 queda consolidada como fase de migracion progresiva, certificacion y preparacion para crecimiento multi-vertical. Esta referencia maestra debe usarse como indice de entrada para cualquier revisita tecnica del bloque U3.
+
+## Transicion al programa operativo
+
+El siguiente ciclo recomendado ya no es una nueva fase arquitectonica amplia. La referencia de continuidad pasa a ser:
+- [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
+- [`PROGRAMA_IMPLEMENTACION_CIERRE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_CIERRE_V1.md)
