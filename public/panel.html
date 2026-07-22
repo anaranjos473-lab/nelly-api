@@ -1626,63 +1626,18 @@
                 idsReparto: Array.from(kitchenState.orders.pedidosReparto.keys()),
                 idsEnCamino: Array.from(kitchenState.orders.pedidosEnCamino.keys())
             });
-            const contenedorPendientes = document.getElementById('contenedor-pendientes');
-            const contenedorListo = document.getElementById('contenedor-listo');
-            const contenedorReparto = document.getElementById('contenedor-reparto');
-            const contenedorEntregados = document.getElementById('contenedor-entregados');
-            contenedorPendientes.innerHTML = '';
-            contenedorListo.innerHTML = '';
-            contenedorReparto.innerHTML = '';
-            contenedorEntregados.innerHTML = '';
-
-            let cPendientes = 0;
-            let cListo = 0;
-            let cReparto = 0;
-            let cEntregados = 0;
-
-            kitchenState.orders.pedidosPendientes.forEach((pedido, id) => {
-                const fase = obtenerFasePanel(pedido.estado);
-                if (fase === 'COCINA') {
-                    contenedorPendientes.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, true));
-                    cPendientes++;
-                } else if (fase === 'DESPACHO') {
-                    contenedorListo.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
-                    cListo++;
-                } else if (fase === 'EN_REPARTO') {
-                    contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta(pedido, id, false));
-                    cReparto++;
-                }
-            });
-
-            kitchenState.orders.pedidosReparto.forEach((pedido, id) => {
-                if (kitchenState.orders.pedidosPendientes.has(id)) {
-                    return;
-                }
-                contenedorListo.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado: 'LISTO' }, id, false));
-                cListo++;
-            });
-
-            kitchenState.orders.pedidosEnCamino.forEach((pedido, id) => {
-                if (kitchenState.orders.pedidosPendientes.has(id) || kitchenState.orders.pedidosReparto.has(id)) {
-                    return;
-                }
-                const estado = normalizarEstado(pedido.estado);
-                if (estado === 'ENTREGADO') {
-                    contenedorEntregados.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado }, id, false));
-                    cEntregados++;
-                    return;
-                }
-                contenedorReparto.insertAdjacentHTML('beforeend', generarHTMLTarjeta({ ...pedido, estado }, id, false));
-                cReparto++;
-            });
-
+            const conteos = renderManager.renderOrderLists({
+                pedidosPendientes: kitchenState.orders.pedidosPendientes,
+                pedidosReparto: kitchenState.orders.pedidosReparto,
+                pedidosEnCamino: kitchenState.orders.pedidosEnCamino
+            }, generarHTMLTarjeta);
             renderManager.renderCounters({
                 ganancias: Number(document.getElementById('ganancias')?.innerText?.replace('$', '') || 0),
-                pendientes: cPendientes,
-                listo: cListo,
-                reparto: cReparto,
-                entregados: cEntregados,
-                total: cPendientes + cListo + cReparto
+                pendientes: conteos.pendientes,
+                listo: conteos.listo,
+                reparto: conteos.reparto,
+                entregados: conteos.entregados,
+                total: conteos.pendientes + conteos.listo + conteos.reparto
             });
         }
 

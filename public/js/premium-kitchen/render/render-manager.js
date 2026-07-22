@@ -3,6 +3,7 @@ const renderState = {
   lastRenderAt: null,
   lastSystemHealth: null,
   lastCounters: null,
+  lastOrderLists: null,
   lastTargets: {
     dashboard: null,
     kanban: null,
@@ -85,6 +86,105 @@ export function createRenderManager() {
       setText('contador', counters.total ?? 0);
 
       return renderState.lastCounters;
+    },
+    renderOrderLists({
+      pedidosPendientes = new Map(),
+      pedidosReparto = new Map(),
+      pedidosEnCamino = new Map()
+    } = {}, renderTarjeta) {
+      const contenedorPendientes = document.getElementById('contenedor-pendientes');
+      const contenedorListo = document.getElementById('contenedor-listo');
+      const contenedorReparto = document.getElementById('contenedor-reparto');
+      const contenedorEntregados = document.getElementById('contenedor-entregados');
+
+      [contenedorPendientes, contenedorListo, contenedorReparto, contenedorEntregados].forEach((node) => {
+        if (node) {
+          node.innerHTML = '';
+        }
+      });
+
+      const counts = {
+        pendientes: 0,
+        listo: 0,
+        reparto: 0,
+        entregados: 0
+      };
+
+      pedidosPendientes.forEach((pedido, id) => {
+        const fase = String(pedido?.fase || pedido?.estado || '').trim().toUpperCase();
+        const tarjeta = typeof renderTarjeta === 'function'
+          ? renderTarjeta(pedido, id, true)
+          : '';
+
+        if (!tarjeta) {
+          return;
+        }
+
+        if (fase === 'COCINA' && contenedorPendientes) {
+          contenedorPendientes.insertAdjacentHTML('beforeend', tarjeta);
+          counts.pendientes += 1;
+          return;
+        }
+
+        if (fase === 'DESPACHO' && contenedorListo) {
+          contenedorListo.insertAdjacentHTML('beforeend', tarjeta);
+          counts.listo += 1;
+          return;
+        }
+
+        if (fase === 'EN_REPARTO' && contenedorReparto) {
+          contenedorReparto.insertAdjacentHTML('beforeend', tarjeta);
+          counts.reparto += 1;
+        }
+      });
+
+      pedidosReparto.forEach((pedido, id) => {
+        if (pedidosPendientes.has(id)) {
+          return;
+        }
+        if (contenedorListo && typeof renderTarjeta === 'function') {
+          const tarjeta = renderTarjeta({ ...pedido, estado: 'LISTO' }, id, false);
+          if (!tarjeta) {
+            return;
+          }
+          contenedorListo.insertAdjacentHTML('beforeend', tarjeta);
+          counts.listo += 1;
+        }
+      });
+
+      pedidosEnCamino.forEach((pedido, id) => {
+        if (pedidosPendientes.has(id) || pedidosReparto.has(id)) {
+          return;
+        }
+        const estado = String(pedido?.estado || '').trim().toUpperCase();
+        if (estado === 'ENTREGADO') {
+          if (contenedorEntregados && typeof renderTarjeta === 'function') {
+            const tarjeta = renderTarjeta({ ...pedido, estado }, id, false);
+            if (!tarjeta) {
+              return;
+            }
+            contenedorEntregados.insertAdjacentHTML('beforeend', tarjeta);
+            counts.entregados += 1;
+          }
+          return;
+        }
+
+        if (contenedorReparto && typeof renderTarjeta === 'function') {
+          const tarjeta = renderTarjeta({ ...pedido, estado }, id, false);
+          if (!tarjeta) {
+            return;
+          }
+          contenedorReparto.insertAdjacentHTML('beforeend', tarjeta);
+          counts.reparto += 1;
+        }
+      });
+
+      renderState.lastOrderLists = {
+        ...counts,
+        at: Date.now()
+      };
+
+      return renderState.lastOrderLists;
     },
     renderDashboard(target = null) {
       updateRenderState({
