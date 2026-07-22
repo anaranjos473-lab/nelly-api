@@ -296,19 +296,3 @@ const renderManager = createRenderManager();
 export function getRenderManager() {
   return renderManager;
 }
-
-export function renderDashboard(target = null) {
-  return renderManager.renderDashboard(target);
-}
-
-export function renderKanban(target = null) {
-  return renderManager.renderKanban(target);
-}
-
-export function renderOrderDetail(target = null) {
-  return renderManager.renderOrderDetail(target);
-}
-
-export function renderAlerts(target = null) {
-  return renderManager.renderAlerts(target);
-}
