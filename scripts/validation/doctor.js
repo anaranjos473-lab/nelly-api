@@ -15,6 +15,7 @@ const checks = [
   ['validate-fulfillment-engine', 'node', ['scripts/validation/validate-fulfillment-engine.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],
+  ['validate-agent-canonical', 'node', ['scripts/validation/validate-agent-canonical.js']],
   ['validate-sync-canonical', 'node', ['scripts/validation/validate-sync-canonical.js']],
   ['validate-admin-sync', 'node', ['scripts/validation/validate-admin-sync.js']],
   ['validate-pharmacy-node', 'node', ['scripts/validation/validate-pharmacy-node.js']],

@@ -1,4 +1,5 @@
 import { getAdmin } from '../../config/firebase-admin-esm.js';
+import { normalizeState } from '../domain/stateMachine.js';
 import {
     buildSupportInterventionPayload,
     buildSupportRescuePayload
@@ -6,21 +7,16 @@ import {
 
 const INTERVALO_MONITOREO = 300000; // 5 minutos
 const MENSAJE_COMPENSACION = 'Sabemos que la espera es larga. Te hemos aplicado un descuento para tu próximo viaje.';
-const ESTADOS_PENDIENTE = new Set(['pendiente', 'PENDIENTE']);
-const ESTADOS_PERCANCE = new Set(['percance', 'PERCANCE']);
-
 let monitoreoInterval = null;
 let pedidosPercanceRef = null;
 let percanceHandlers = [];
 
-const normalizarEstado = (estado) => String(estado || '').trim();
+const esEstadoPendiente = (estado) => normalizeState(estado) === 'PENDIENTE';
 
-const esEstadoPendiente = (estado) => ESTADOS_PENDIENTE.has(normalizarEstado(estado));
-
-const esEstadoPercance = (estado) => ESTADOS_PERCANCE.has(normalizarEstado(estado));
+const esEstadoPercance = (estado) => normalizeState(estado) === 'PERCANCE';
 
 const estadoPendienteDestino = (estadoOriginal) => (
-    normalizarEstado(estadoOriginal) === 'PERCANCE' ? 'PENDIENTE' : 'pendiente'
+    normalizeState(estadoOriginal) === 'PERCANCE' ? 'PENDIENTE' : 'PENDIENTE'
 );
 
 export const identificarPedidosRetrasados = (pedidos, ahora = Date.now()) => {
@@ -90,8 +86,7 @@ const escucharPercancesEnRuta = async () => {
     pedidosPercanceRef = rtdb.ref('pedidos');
 
     const consultas = [
-        pedidosPercanceRef.orderByChild('estado').equalTo('PERCANCE'),
-        pedidosPercanceRef.orderByChild('estado').equalTo('percance')
+        pedidosPercanceRef.orderByChild('estado').equalTo('PERCANCE')
     ];
 
     consultas.forEach((query) => {
