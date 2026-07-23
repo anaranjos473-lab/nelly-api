@@ -7,6 +7,7 @@ import {
     buildPersistedAdminOrderRecord,
     normalizeAdminOrderRequest
 } from '../src/services/adminSyncService.js';
+import { buildOperationalDashboardSnapshot } from '../src/services/operationalDashboardService.js';
 
 const router = express.Router();
 
@@ -367,6 +368,52 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     } catch (error) {
         console.error('[ADMIN][CREATE_ORDER] Error:', error.message);
         return res.status(500).json({ error: 'No se pudo crear el pedido' });
+    }
+});
+
+router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const admin = await getAdmin();
+        const db = admin.database();
+        const [
+            pedidosSnap,
+            pedidosActivosSnap,
+            conductoresSnap,
+            finanzasSnap,
+            historialSnap,
+            notificacionesSnap,
+            eventosSnap
+        ] = await Promise.all([
+            db.ref('pedidos').once('value'),
+            db.ref('pedidos_activos').once('value'),
+            db.ref('conductores_activos').once('value'),
+            db.ref('finanzas').once('value'),
+            db.ref('historial_ventas').once('value'),
+            db.ref('notificaciones').once('value'),
+            db.ref('eventos_operativos').once('value')
+        ]);
+
+        const snapshot = buildOperationalDashboardSnapshot({
+            health: {
+                success: true,
+                ok: true,
+                uptime: process.uptime(),
+                timestamp: new Date().toISOString(),
+                environment: process.env.NODE_ENV || 'development'
+            },
+            pedidos: pedidosSnap.val() || {},
+            pedidosActivos: pedidosActivosSnap.val() || {},
+            conductores: conductoresSnap.val() || {},
+            finanzas: finanzasSnap.val() || {},
+            historialVentas: historialSnap.val() || {},
+            notificaciones: notificacionesSnap.val() || {},
+            eventos: Object.values(eventosSnap.val() || {})
+        });
+
+        return res.status(200).json(snapshot);
+    } catch (error) {
+        console.error('[ADMIN][DASHBOARD_OPERATIVO] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo construir el dashboard operativo' });
     }
 });
 

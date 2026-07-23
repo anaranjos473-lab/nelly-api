@@ -50,6 +50,7 @@ const checks = [
   ['validate-marketplace-adapter', 'node', ['scripts/validation/validate-marketplace-adapter.js']],
   ['validate-identity-adapter', 'node', ['scripts/validation/validate-identity-adapter.js']],
   ['validate-notification-adapter', 'node', ['scripts/validation/validate-notification-adapter.js']],
+  ['validate-operational-dashboard', 'node', ['scripts/validation/validate-operational-dashboard.js']],
   ['validate-functional-metrics', 'node', ['scripts/validation/validate-functional-metrics.js']],
   ['links-check', 'node', ['scripts/validation/links-check.js']],
   ['docs-check', 'node', ['scripts/validation/docs-check.js']],
