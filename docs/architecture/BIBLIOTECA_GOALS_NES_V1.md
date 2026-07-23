@@ -100,13 +100,23 @@ Todo goal del NES debe seguir esta estructura:
 
 #### 4.7 GOAL-S4-001
 
-**Estado:** Vigente  
+**Estado:** Certificado  
 **Objetivo:** construir el Dashboard Operativo Unificado como primer consumidor visual de la Plataforma de Eventos Operativos.  
 **Alcance:** consumo de proyecciones derivadas, visualizacion operativa, observabilidad y toma de decisiones sin tocar el core.  
 **No alcance:** acceso directo al flujo de negocio, productor de eventos, redefinicion del bus o del ledger.  
 **Riesgos:** acoplamiento a fuentes operativas, duplicacion de logica, desalineacion visual.  
 **Criterios de aceptacion:** dashboard consume proyecciones de S3, no modifica el productor y refleja una fuente de verdad derivada.  
-**Evidencias:** prototipo o implementacion, enlaces en indice maestro, commits, pruebas de consumo visual.
+**Evidencias:** `CERTIFICACION_S4_DASHBOARD_OPERATIVO_V1.md`, prototipo o implementacion, enlaces en indice maestro, commits, pruebas de consumo visual.
+
+#### 4.8 GOAL-P1-001
+
+**Estado:** Vigente  
+**Objetivo:** ejecutar un piloto controlado sobre la base certificada de RC1 y S4 para validar la operacion real de la plataforma en un entorno medible, supervisado y trazable.  
+**Alcance:** flujos E2E controlados, integracion cocina-repartidor-backend-dashboard, evidencia operativa y observacion del doctor.  
+**No alcance:** nuevas capacidades arquitectonicas o refactors del core.  
+**Riesgos:** divergencia entre dashboard y realidad operativa, dependencias externas, regresiones de campo.  
+**Criterios de aceptacion:** flujo completo con evidencia, dashboard en tiempo real, consumidor de eventos desacoplado, doctor estable salvo observacion conocida.  
+**Evidencias:** registro del piloto, capturas o logs, snapshot del dashboard, salida del doctor, commits y push, referencias en el indice maestro.
 
 ### 5. Reglas de uso
 

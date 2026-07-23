@@ -83,6 +83,10 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 
 ### Goal S4 - Dashboard Operativo Unificado
 - [`GOAL-S4-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-S4-001.md)
+- [`CERTIFICACION_S4_DASHBOARD_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_S4_DASHBOARD_OPERATIVO_V1.md)
+
+### Goal P1 - Piloto Controlado
+- [`GOAL-P1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-001.md)
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
@@ -118,6 +122,7 @@ S1 quedo ejecutada en modo operativo controlado y cerro sus fases de preparacion
 | U1 | Definida |
 | U2 | Certificada |
 | U3 | Consolidada |
+| P1 | Piloto controlado |
 | P1-P4 | En adopcion/control |
 | P5 | Congelamiento RC1 |
 | S1 | Cerrada documentalmente / operacion controlada |

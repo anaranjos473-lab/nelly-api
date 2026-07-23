@@ -1,7 +1,7 @@
 # GOAL-S4-001
 ## Dashboard Operativo Unificado - Nelly OS
 
-**Estado:** Vigente  
+**Estado:** Certificado  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
@@ -71,3 +71,4 @@ El goal se considerara cumplido cuando:
 ### 8. Historial
 
 - 2026-07-23: Version inicial del goal S4 para el Dashboard Operativo Unificado.
+- 2026-07-23: Dashboard validado funcionalmente con sesion autenticada, snapshot protegido y proyecciones reales cargadas desde el backend.
