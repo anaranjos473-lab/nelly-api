@@ -40,6 +40,7 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
 - [`RC1_REPORTE_DIARIO_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_REPORTE_DIARIO_OPERATIVO_V1.md)
+- [`CERTIFICACION_FINAL_RC1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_FINAL_RC1.md)
 
 ## Bloque Financiero
 
