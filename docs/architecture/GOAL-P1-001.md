@@ -69,3 +69,4 @@ El goal se considerara cumplido cuando:
 ### 8. Historial
 
 - 2026-07-23: Version inicial del goal P1 para piloto controlado.
+- 2026-07-23: Primera corrida controlada ejecutada con exito sobre el flujo crear -> despachar -> aceptar -> completar; el dashboard unificado reflejo el estado operativo y el doctor permanecio estable.
