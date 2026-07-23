@@ -72,6 +72,9 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 ### Goal S3 - Plataforma de Eventos Operativos
 - [`GOAL-S3-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-S3-001.md)
 
+### Gate de Certificacion S3
+- [`GATE_CERTIFICACION_S3_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GATE_CERTIFICACION_S3_V1.md)
+
 ### Catalogo de Eventos NES
 - [`CATALOGO_EVENTOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CATALOGO_EVENTOS_V1.md)
 

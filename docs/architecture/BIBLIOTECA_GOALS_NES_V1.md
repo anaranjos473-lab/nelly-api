@@ -85,8 +85,18 @@ Todo goal del NES debe seguir esta estructura:
 **Alcance:** catalogo de eventos, contratos, productores, consumidores, trazabilidad y observabilidad del flujo inicial.  
 **No alcance:** IA, brokers externos, microservicios, automatizaciones complejas ni orquestacion completa.  
 **Riesgos:** sobrecarga de alcance, duplicacion de reglas, dependencias tecnologicas prematuras.  
-**Criterios de aceptacion:** catalogo de eventos definido, contratos claros, consumidores identificados y evidencia de ejecucion.  
-**Evidencias:** `CATALOGO_EVENTOS_V1.md`, enlaces en indice maestro, commits de validacion y pruebas del flujo inicial.
+**Criterios de aceptacion:** catalogo de eventos definido, contratos claros, consumidores identificados, evidencia de ejecucion y Gate de Certificacion aprobado.  
+**Evidencias:** `CATALOGO_EVENTOS_V1.md`, `GATE_CERTIFICACION_S3_V1.md`, enlaces en indice maestro, commits de validacion y pruebas del flujo inicial.
+
+#### 4.6 GATE-CERT-S3-001
+
+**Estado:** Vigente  
+**Objetivo:** consolidar la fase de eventos de S3 antes de abrir nuevos consumidores o automatizaciones sensibles.  
+**Alcance:** contrato de evento, aislamiento de fallos, idempotencia, observabilidad y validacion automatizada.  
+**No alcance:** nuevas capacidades de notificacion o IA.  
+**Riesgos:** duplicidad de efectos, acoplamiento entre consumidores, observabilidad insuficiente.  
+**Criterios de aceptacion:** validadores en verde, productor estable, fallos aislados, dedupe logico y evidencia de pruebas.  
+**Evidencias:** `GATE_CERTIFICACION_S3_V1.md`, `scripts/validation/validate-event-bus-hardening.js`, `test/eventBusHardening.test.js`.
 
 ### 5. Reglas de uso
 

@@ -52,10 +52,12 @@ El goal se considerara cumplido cuando:
 - el sistema permita agregar consumidores sin alterar la logica de negocio principal;
 - el catalogo de eventos quede documentado y enlazado desde el indice maestro;
 - exista evidencia de ejecucion sobre el flujo inicial definido.
+- el Gate de Certificacion de S3 quede aprobado antes de incorporar nuevos consumidores.
 
 ### 6. Evidencias
 
 - `CATALOGO_EVENTOS_V1.md`
+- `GATE_CERTIFICACION_S3_V1.md`
 - commits y push del catalogo y sus enlaces;
 - pruebas o validaciones del flujo inicial;
 - referencias desde el indice maestro y la biblioteca de goals.
@@ -74,3 +76,4 @@ El goal se considerara cumplido cuando:
 ### 8. Historial
 
 - 2026-07-23: Version inicial del goal S3 para plataforma de eventos operativos.
+- 2026-07-23: Se incorpora el Gate de Certificacion de S3 como requisito previo a nuevas capacidades.

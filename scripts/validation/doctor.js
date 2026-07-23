@@ -16,6 +16,7 @@ const checks = [
   ['validate-metrics-consumer', 'node', ['scripts/validation/validate-metrics-consumer.js']],
   ['validate-finance-consumer', 'node', ['scripts/validation/validate-finance-consumer.js']],
   ['validate-event-bus-hardening', 'node', ['scripts/validation/validate-event-bus-hardening.js']],
+  ['validate-notification-consumer', 'node', ['scripts/validation/validate-notification-consumer.js']],
   ['validate-fulfillment-engine', 'node', ['scripts/validation/validate-fulfillment-engine.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],
