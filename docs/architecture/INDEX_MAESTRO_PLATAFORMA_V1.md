@@ -72,6 +72,9 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
 
+### Matriz de Decisiones NES
+- [`NES_MAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_MAD_V1.md)
+
 ### Arquitectura Harness Engineering
 - [`ARQ_HARNESS_ENGINEERING_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ARQ_HARNESS_ENGINEERING_V1.md)
 

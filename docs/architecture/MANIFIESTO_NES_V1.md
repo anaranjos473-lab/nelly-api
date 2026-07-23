@@ -59,7 +59,8 @@ El orden de gobierno del NES es:
 3. `AGENTS.md`
 4. Skills reutilizables
 5. Goals trazables
-6. Harness Engineering
+6. Matriz de decisiones de arquitectura
+7. Harness Engineering
 
 ### 6. Relacion con las politicas
 
