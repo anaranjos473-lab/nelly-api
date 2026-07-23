@@ -16,7 +16,15 @@ Work on this repository must:
 
 This file is the operational contract for any developer or AI that works on the repository.
 
-It must be treated as the first source of engineering governance, together with the relevant ADRs and certifications.
+It must be treated as the operational counterpart of [`MANIFIESTO_NES_V1.md`](docs/architecture/MANIFIESTO_NES_V1.md), together with the relevant ADRs, policies, and certifications.
+
+If there is any conflict, the hierarchy is:
+
+1. `MANIFIESTO_NES_V1.md`
+2. Policies
+3. `AGENTS.md`
+4. ADRs and certifications
+5. Runbooks and operational notes
 
 The contract covers:
 
@@ -28,6 +36,9 @@ The contract covers:
 - Documentation rules for decisions, ADRs, and phase closure.
 - The boundary of what an AI may modify and what it must not change without evidence.
 - The incremental evolution rule: do not introduce a new capability until the previous one is operational, validated, and documented.
+
+This file stays intentionally concise so it can be read quickly before work starts.
+For full NES governance, read the manifesto and the policies.
 
 ### What an AI may modify
 
