@@ -13,6 +13,7 @@ const checks = [
   ['validate-contract-compatibility', 'node', ['scripts/validation/validate-contract-compatibility.js']],
   ['validate-event-integrity', 'node', ['scripts/validation/validate-event-integrity.js']],
   ['validate-audit-consumer', 'node', ['scripts/validation/validate-audit-consumer.js']],
+  ['validate-metrics-consumer', 'node', ['scripts/validation/validate-metrics-consumer.js']],
   ['validate-fulfillment-engine', 'node', ['scripts/validation/validate-fulfillment-engine.js']],
   ['validate-order-sync', 'node', ['scripts/validation/validate-order-sync.js']],
   ['validate-agent-sync', 'node', ['scripts/validation/validate-agent-sync.js']],

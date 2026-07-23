@@ -4,6 +4,7 @@ export * from './eventBus.js';
 export * from './ledger.js';
 export * from './fulfillmentEngine.js';
 export * from './consumers/auditConsumer.js';
+export * from './consumers/metricsConsumer.js';
 export * from './orderModel.js';
 export * from './nodes/pharmacyNode.js';
 export * from './nodes/supermarketNode.js';
