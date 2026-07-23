@@ -12,6 +12,46 @@ Work on this repository must:
 - avoid regressions
 - be based on evidence, not assumptions
 
+## Nelly Engineering Contract
+
+This file is the operational contract for any developer or AI that works on the repository.
+
+It must be treated as the first source of engineering governance, together with the relevant ADRs and certifications.
+
+The contract covers:
+
+- Nelly's current vision as an operational intelligence platform for delivery.
+- The active architecture and certified baseline.
+- Design principles and technical conventions.
+- Git flow, release flow, and evidence flow.
+- Test flow, certification flow, and closure flow.
+- Documentation rules for decisions, ADRs, and phase closure.
+- The boundary of what an AI may modify and what it must not change without evidence.
+- The incremental evolution rule: do not introduce a new capability until the previous one is operational, validated, and documented.
+
+### What an AI may modify
+
+- Focused implementation within the scope of the current task.
+- Small refactors that preserve certified behavior.
+- Tests, validations, and documentation that match the change.
+
+### What an AI must not modify without evidence
+
+- Certified behavior.
+- Backend contracts already validated.
+- Android flows that are already certified.
+- Observed production-like flows without a reproducible incident.
+
+### Required working cycle
+
+Design -> Goal -> Implementation -> Tests -> Corrections -> Validation -> Documentation -> Commit -> Push -> Certification
+
+### Goal handling
+
+- Every goal should have a unique identifier.
+- Each goal should define scope, non-scope, evidence, and exit criteria.
+- If a goal is already certified, do not reopen it without evidence of regression.
+
 ## Source Of Truth
 
 The operative truth is:
@@ -97,6 +137,8 @@ Before proposing changes, look for:
 - Prefer backend-side fixes over client-side workarounds when the backend contract is the source of truth.
 - Keep instrumentation until the incident is fully certified.
 - If a change affects a contract, update the relevant documentation.
+- Work by domain rather than by code structure when planning parallel effort.
+- Treat AI as a capability enabler, not as an isolated agent authoring business behavior.
 
 ## Definition Of Done
 
