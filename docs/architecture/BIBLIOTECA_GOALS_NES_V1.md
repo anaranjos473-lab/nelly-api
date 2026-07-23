@@ -98,6 +98,16 @@ Todo goal del NES debe seguir esta estructura:
 **Criterios de aceptacion:** validadores en verde, productor estable, fallos aislados, dedupe logico y evidencia de pruebas.  
 **Evidencias:** `GATE_CERTIFICACION_S3_V1.md`, `CERTIFICACION_S3_EVENTOS_OPERATIVOS_V1.md`, `scripts/validation/validate-event-bus-hardening.js`, `test/eventBusHardening.test.js`.
 
+#### 4.7 GOAL-S4-001
+
+**Estado:** Vigente  
+**Objetivo:** construir el Dashboard Operativo Unificado como primer consumidor visual de la Plataforma de Eventos Operativos.  
+**Alcance:** consumo de proyecciones derivadas, visualizacion operativa, observabilidad y toma de decisiones sin tocar el core.  
+**No alcance:** acceso directo al flujo de negocio, productor de eventos, redefinicion del bus o del ledger.  
+**Riesgos:** acoplamiento a fuentes operativas, duplicacion de logica, desalineacion visual.  
+**Criterios de aceptacion:** dashboard consume proyecciones de S3, no modifica el productor y refleja una fuente de verdad derivada.  
+**Evidencias:** prototipo o implementacion, enlaces en indice maestro, commits, pruebas de consumo visual.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.
