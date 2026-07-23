@@ -1,11 +1,19 @@
+import { createEventConsumerGuard } from './consumerGuard.js';
+
 function createMetricsConsumer({ logger = console } = {}) {
   const metrics = {
     pedido_entregado: 0,
     ultimos_eventos: [],
     total_eventos: 0
   };
+  const guard = createEventConsumerGuard({ logger, name: 'MetricsConsumer' });
 
   function onEvent(event) {
+    const gate = guard.shouldProcess(event);
+    if (!gate.ok) {
+      return null;
+    }
+
     metrics.total_eventos += 1;
     if (event?.tipo === 'pedido.entregado') {
       metrics.pedido_entregado += 1;

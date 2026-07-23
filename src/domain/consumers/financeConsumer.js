@@ -1,3 +1,5 @@
+import { createEventConsumerGuard } from './consumerGuard.js';
+
 function createFinanceConsumer({ logger = console } = {}) {
   const ledger = [];
   const state = {
@@ -5,8 +7,14 @@ function createFinanceConsumer({ logger = console } = {}) {
     total_tarifa_entrega: 0,
     total_eventos: 0
   };
+  const guard = createEventConsumerGuard({ logger, name: 'FinanceConsumer' });
 
   function onEvent(event) {
+    const gate = guard.shouldProcess(event);
+    if (!gate.ok) {
+      return null;
+    }
+
     state.total_eventos += 1;
 
     if (event?.tipo === 'pedido.entregado') {

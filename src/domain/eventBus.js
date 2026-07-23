@@ -63,12 +63,23 @@ function createDomainEventBus() {
   function publish(event) {
     const wrapped = { ...event };
     history.push(wrapped);
+    const errors = [];
     const targets = [
       ...(listeners.get(String(wrapped.tipo || '')) || []),
       ...(listeners.get('*') || [])
     ];
     for (const handler of targets) {
-      handler(wrapped);
+      try {
+        handler(wrapped);
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    if (errors.length > 0) {
+      wrapped.errors = errors.map((error) => ({
+        message: String(error?.message || error || 'unknown'),
+        name: error?.name || 'Error'
+      }));
     }
     return wrapped;
   }

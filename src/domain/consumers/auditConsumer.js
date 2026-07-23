@@ -1,7 +1,15 @@
+import { createEventConsumerGuard } from './consumerGuard.js';
+
 function createAuditConsumer({ logger = console } = {}) {
   const records = [];
+  const guard = createEventConsumerGuard({ logger, name: 'AuditConsumer' });
 
   function onEvent(event) {
+    const gate = guard.shouldProcess(event);
+    if (!gate.ok) {
+      return null;
+    }
+
     const record = {
       tipo: event?.tipo || null,
       aggregate_id: event?.aggregate_id || null,
