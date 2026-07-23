@@ -59,6 +59,9 @@ El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financ
 - [`MINUTA_AUTORIZACION_S1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MINUTA_AUTORIZACION_S1.md)
 - [`S1_1_SEGURIDAD_CONTINUIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/S1_1_SEGURIDAD_CONTINUIDAD_V1.md)
 
+#### Resumen final de S1
+S1 quedo ejecutada en modo operativo controlado y cerro sus fases de preparacion, seguridad, continuidad, observabilidad y cierre de observaciones heredadas. La validacion funcional quedo confirmada con `validate-functional-metrics` en verde y la observacion de `evidence_url` quedo registrada como seguimiento documental, no como bloqueo operativo.
+
 ## Estado del recorrido
 
 | Fase | Estado |
@@ -69,7 +72,7 @@ El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financ
 | U3 | Consolidada |
 | P1-P4 | En adopcion/control |
 | P5 | Congelamiento RC1 |
-| S1 | Pendiente de autorizacion |
+| S1 | Cerrada documentalmente / operacion controlada |
 
 ## Criterio de uso
 
