@@ -52,6 +52,8 @@ El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financ
 ### RC1
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
+- [`CERTIFICACION_FINAL_RC1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_FINAL_RC1.md)
+- [`ACTA_APERTURA_S1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_APERTURA_S1.md)
 
 ## Estado del recorrido
 
