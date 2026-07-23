@@ -70,3 +70,4 @@ El goal se considerara cumplido cuando:
 
 - 2026-07-23: Version inicial del goal P1 para piloto controlado.
 - 2026-07-23: Primera corrida controlada ejecutada con exito sobre el flujo crear -> despachar -> aceptar -> completar; el dashboard unificado reflejo el estado operativo y el doctor permanecio estable.
+- 2026-07-23: Se ejecuto una primera tanda interna de 3 ciclos completos con resultado ok en todos los casos; la validacion global del doctor sigue condicionada por `validate-functional-metrics` debido a la dependencia externa conocida de Firebase.
