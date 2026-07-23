@@ -78,6 +78,16 @@ Todo goal del NES debe seguir esta estructura:
 **Criterios de aceptacion:** biblioteca creada, skills base definidas, uso consistente.  
 **Evidencias:** documento maestro, indice enlazado, version en git.
 
+#### 4.5 GOAL-S3-001
+
+**Estado:** Vigente  
+**Objetivo:** establecer la plataforma de eventos operativos de Nelly como capacidad de negocio gobernada por el NES.  
+**Alcance:** catalogo de eventos, contratos, productores, consumidores, trazabilidad y observabilidad del flujo inicial.  
+**No alcance:** IA, brokers externos, microservicios, automatizaciones complejas ni orquestacion completa.  
+**Riesgos:** sobrecarga de alcance, duplicacion de reglas, dependencias tecnologicas prematuras.  
+**Criterios de aceptacion:** catalogo de eventos definido, contratos claros, consumidores identificados y evidencia de ejecucion.  
+**Evidencias:** `CATALOGO_EVENTOS_V1.md`, enlaces en indice maestro, commits de validacion y pruebas del flujo inicial.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.
