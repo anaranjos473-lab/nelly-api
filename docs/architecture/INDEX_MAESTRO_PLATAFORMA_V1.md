@@ -12,7 +12,8 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 5. Leer el cierre maestro de U3 para entender la migracion progresiva.
 6. Abrir el programa operativo P1-P5.
 7. Revisar el indice maestro del programa.
-8. Consultar RC1 como referencia de congelamiento.
+8. Revisar el bloque financiero.
+9. Consultar RC1 como referencia de congelamiento.
 
 ## Bloques principales
 
@@ -38,6 +39,10 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 ### Programa operativo
 - [`INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
 - [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
+
+### Bloque financiero
+- [`U1_3_LEDGER_FINANCIERO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_3_LEDGER_FINANCIERO_V1.md)
+- [`RC1_REPORTE_DIARIO_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_REPORTE_DIARIO_OPERATIVO_V1.md)
 
 ### RC1
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
