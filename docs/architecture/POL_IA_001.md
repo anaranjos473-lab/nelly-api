@@ -1,67 +1,90 @@
 # POL-IA-001
-## Politica de IA y Automatizacion - Nelly OS
+## Politica de Inteligencia Artificial y Decisiones Automatizadas - Nelly OS
 
 **Version:** 1.0  
 **Estado:** Vigente  
 **Ambito:** Plataforma Nelly OS
 
-### 1. Objetivo
+### 1. Proposito
 
-Establecer los principios de uso de IA y automatizacion dentro del proyecto Nelly OS, garantizando trazabilidad, reversibilidad, auditabilidad y alineacion con la arquitectura certificada.
+Establecer los principios para el uso de inteligencia artificial y automatizacion de decisiones en Nelly OS, garantizando trazabilidad, auditabilidad, reversibilidad y alineacion con el gobierno tecnico del NES.
 
-### 2. Principios
-
-- La IA no modifica produccion sin reglas definidas.
-- Toda accion automatica debe ser trazable.
-- Las decisiones importantes deben quedar registradas.
-- Las automatizaciones deben ser reversibles cuando sea posible.
-- La IA no sustituye la fuente de verdad del backend.
-- La IA no inventa comportamiento de negocio fuera de contrato.
-
-### 3. Alcance
+### 2. Alcance
 
 Esta politica aplica a:
 
-- agentes automatizados;
-- validadores;
-- asistentes de prueba;
-- orquestadores de tareas;
-- scripts que tomen decisiones sobre flujos operativos;
-- herramientas que propongan o ejecuten cambios en el repositorio.
+- asistentes de ingenieria;
+- validadores automaticos;
+- orquestadores asistidos por IA;
+- scripts de decision o recomendacion;
+- automatizaciones operativas;
+- herramientas que propongan o ejecuten acciones sobre flujos del sistema.
+
+### 3. Principios
+
+- La IA asiste decisiones; no reemplaza el gobierno del sistema.
+- Toda accion automatica debe ser trazable.
+- Toda accion automatica debe ser auditable.
+- Debe existir un responsable funcional de cada automatizacion.
+- Ninguna IA modifica informacion critica sin reglas de negocio definidas.
+- Toda automatizacion debe poder deshabilitarse.
+- Las decisiones importantes deben registrar contexto suficiente para su revision.
 
 ### 4. Reglas de uso
 
-- Toda automatizacion debe operar sobre un dominio o capacidad concreta, no como agente aislado.
-- Ninguna automatizacion puede alterar flujos certificados sin evidencia nueva.
-- Toda decision automatica relevante debe poder auditarse por log, reporte o acta.
-- Los cambios automaticos que afecten contratos deben pasar por prueba y certificacion.
-- La automatizacion debe preferir configuracion declarativa y no heuristicas opacas.
+- La IA debe operar dentro de un alcance concreto y documentado.
+- La IA no debe inventar comportamiento de negocio ni ampliar contratos.
+- Ninguna accion automatica puede alterar flujos certificados sin evidencia nueva.
+- Si una automatizacion afecta una capacidad critica, debe existir validacion previa y evidencia de prueba.
+- La IA debe preferir configuracion declarativa, reglas explicitas y salidas auditables.
 
-### 5. Harness Engineering
+### 5. Gobierno de decisiones automatizadas
 
-La plataforma debe modelar capacidades de negocio, por ejemplo:
+Cada automatizacion relevante debe registrar, al menos:
+
+- que accion fue tomada;
+- por que se tomo;
+- con base en que reglas o evidencias;
+- quien es el responsable funcional;
+- como puede revertirse o detenerse.
+
+### 6. Harness Engineering
+
+La IA forma parte de capacidades del negocio, no de agentes aislados.
+
+La automatizacion puede participar en:
 
 - despacho inteligente;
-- conciliacion financiera;
-- validacion de seguridad;
 - supervision operativa;
-- certificacion funcional.
+- conciliacion financiera;
+- validacion tecnica;
+- certificacion asistida.
 
-Cada capacidad puede apoyarse en eventos, reglas, APIs, paneles e IA, pero no debe depender exclusivamente de un agente aislado.
+### 7. Excepciones
 
-### 6. Gobernanza
+- Se permite una excepcion solo si existe justificacion tecnica documentada.
+- Toda excepcion debe mantener trazabilidad y posibilidad de revision.
+- Ninguna excepcion debe comprometer contratos certificados ni la fuente de verdad del sistema.
 
-- `AGENTS.md` es el contrato operativo de ingenieria del proyecto.
-- Las ADRs definen decisiones de arquitectura.
-- Las certificaciones definen hechos validados.
-- Esta politica regula el uso de IA dentro de ese marco.
+### 8. Cumplimiento
 
-### 7. Criterio de cumplimiento
+Una automatizacion basada en IA se considera aceptable cuando:
 
-Una automatizacion se considera aceptable cuando:
-
-- opera dentro de alcance definido;
+- esta acotada por alcance;
 - deja evidencia verificable;
+- puede auditarse;
+- puede desactivarse;
 - no rompe contratos certificados;
-- puede desactivarse o revertirse si es necesario;
-- no introduce comportamiento no documentado.
+- esta alineada con el manifiesto NES y con las politicas vigentes.
+
+### 9. Referencias
+
+- `MANIFIESTO_NES_V1.md`
+- `AGENTS.md`
+- `POL_ARCH_001.md`
+- `POL_DEV_001.md`
+- `POL_DOC_001.md`
+
+### 10. Historial de cambios
+
+- 2026-07-23: Version inicial de la politica de IA y decisiones automatizadas.

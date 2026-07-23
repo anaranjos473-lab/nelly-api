@@ -57,6 +57,9 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 ### Gobernanza documental
 - [`POL_DOC_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_DOC_001.md)
 
+### Gobernanza de IA y automatizacion
+- [`POL_IA_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_IA_001.md)
+
 ### Manifiesto NES
 - [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
 
