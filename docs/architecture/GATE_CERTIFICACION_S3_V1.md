@@ -2,7 +2,7 @@
 ## Gate de Certificacion de S3 - Nelly OS
 
 **Version:** 1.0  
-**Estado:** Vigente  
+**Estado:** Cerrado  
 **Ambito:** Plataforma Nelly OS  
 **Goal asociado:** `GOAL-S3-001`
 

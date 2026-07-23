@@ -1,7 +1,7 @@
 # GOAL-S3-001
 ## Plataforma de Eventos Operativos - Nelly OS
 
-**Estado:** Vigente  
+**Estado:** Cerrado  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
@@ -58,6 +58,7 @@ El goal se considerara cumplido cuando:
 
 - `CATALOGO_EVENTOS_V1.md`
 - `GATE_CERTIFICACION_S3_V1.md`
+- `CERTIFICACION_S3_EVENTOS_OPERATIVOS_V1.md`
 - commits y push del catalogo y sus enlaces;
 - pruebas o validaciones del flujo inicial;
 - referencias desde el indice maestro y la biblioteca de goals.
@@ -77,3 +78,4 @@ El goal se considerara cumplido cuando:
 
 - 2026-07-23: Version inicial del goal S3 para plataforma de eventos operativos.
 - 2026-07-23: Se incorpora el Gate de Certificacion de S3 como requisito previo a nuevas capacidades.
+- 2026-07-23: Se emite la certificacion de S3 como capacidad operativa estable.

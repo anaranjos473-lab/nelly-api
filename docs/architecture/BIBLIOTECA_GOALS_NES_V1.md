@@ -2,7 +2,7 @@
 ## Biblioteca de Goals del Nelly Engineering System
 
 **Version:** 1.0  
-**Estado:** Vigente  
+**Estado:** Cerrado  
 **Ambito:** Plataforma Nelly OS
 
 ### 1. Proposito
@@ -86,17 +86,17 @@ Todo goal del NES debe seguir esta estructura:
 **No alcance:** IA, brokers externos, microservicios, automatizaciones complejas ni orquestacion completa.  
 **Riesgos:** sobrecarga de alcance, duplicacion de reglas, dependencias tecnologicas prematuras.  
 **Criterios de aceptacion:** catalogo de eventos definido, contratos claros, consumidores identificados, evidencia de ejecucion y Gate de Certificacion aprobado.  
-**Evidencias:** `CATALOGO_EVENTOS_V1.md`, `GATE_CERTIFICACION_S3_V1.md`, enlaces en indice maestro, commits de validacion y pruebas del flujo inicial.
+**Evidencias:** `CATALOGO_EVENTOS_V1.md`, `GATE_CERTIFICACION_S3_V1.md`, `CERTIFICACION_S3_EVENTOS_OPERATIVOS_V1.md`, enlaces en indice maestro, commits de validacion y pruebas del flujo inicial.
 
 #### 4.6 GATE-CERT-S3-001
 
-**Estado:** Vigente  
+**Estado:** Cerrado  
 **Objetivo:** consolidar la fase de eventos de S3 antes de abrir nuevos consumidores o automatizaciones sensibles.  
 **Alcance:** contrato de evento, aislamiento de fallos, idempotencia, observabilidad y validacion automatizada.  
 **No alcance:** nuevas capacidades de notificacion o IA.  
 **Riesgos:** duplicidad de efectos, acoplamiento entre consumidores, observabilidad insuficiente.  
 **Criterios de aceptacion:** validadores en verde, productor estable, fallos aislados, dedupe logico y evidencia de pruebas.  
-**Evidencias:** `GATE_CERTIFICACION_S3_V1.md`, `scripts/validation/validate-event-bus-hardening.js`, `test/eventBusHardening.test.js`.
+**Evidencias:** `GATE_CERTIFICACION_S3_V1.md`, `CERTIFICACION_S3_EVENTOS_OPERATIVOS_V1.md`, `scripts/validation/validate-event-bus-hardening.js`, `test/eventBusHardening.test.js`.
 
 ### 5. Reglas de uso
 
