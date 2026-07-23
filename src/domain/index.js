@@ -7,6 +7,7 @@ export * from './consumers/auditConsumer.js';
 export * from './consumers/metricsConsumer.js';
 export * from './consumers/financeConsumer.js';
 export * from './consumers/notificationConsumer.js';
+export * from './consumers/aiConsumer.js';
 export * from './orderModel.js';
 export * from './nodes/pharmacyNode.js';
 export * from './nodes/supermarketNode.js';
