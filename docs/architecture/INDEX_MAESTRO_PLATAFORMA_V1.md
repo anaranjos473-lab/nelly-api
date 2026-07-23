@@ -55,6 +55,10 @@ El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financ
 - [`CERTIFICACION_FINAL_RC1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_FINAL_RC1.md)
 - [`ACTA_APERTURA_S1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_APERTURA_S1.md)
 
+### S1 - Apertura y seguridad
+- [`MINUTA_AUTORIZACION_S1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MINUTA_AUTORIZACION_S1.md)
+- [`S1_1_SEGURIDAD_CONTINUIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/S1_1_SEGURIDAD_CONTINUIDAD_V1.md)
+
 ## Estado del recorrido
 
 | Fase | Estado |
@@ -65,6 +69,7 @@ El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financ
 | U3 | Consolidada |
 | P1-P4 | En adopcion/control |
 | P5 | Congelamiento RC1 |
+| S1 | Pendiente de autorizacion |
 
 ## Criterio de uso
 
