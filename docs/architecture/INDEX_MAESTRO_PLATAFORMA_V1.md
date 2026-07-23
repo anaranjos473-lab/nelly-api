@@ -57,6 +57,9 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 ### Gobernanza documental
 - [`POL_DOC_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_DOC_001.md)
 
+### Manifiesto NES
+- [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
+
 #### Cierre de gobernanza
 El `U1_3_LEDGER_FINANCIERO_V1.md` constituye la fuente oficial del bloque financiero; `RC1_REPORTE_DIARIO_OPERATIVO_V1.md` sirve como evidencia operativa de estabilidad durante la fase de Operacion Controlada.
 `CERTIFICACION_FINAL_RC1.md` constituye el cierre documental oficial de RC1.
