@@ -45,3 +45,7 @@ La capacidad certificada:
 Se declara `GOAL-C4-001` **CERTIFICADO**.
 
 La capacidad queda incorporada al baseline funcional del ecosistema Nelly como bloque consolidado de inteligencia comercial.
+
+## 7. Recomendacion final
+
+Como verificacion adicional de rutina, se recomienda una validacion visual autenticada en el entorno desplegado para confirmar la renderizacion final con sesion real, sin que ello reabra el alcance funcional ya certificado.
