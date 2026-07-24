@@ -167,15 +167,15 @@ Todo goal del NES debe seguir esta estructura:
 **Historial:**
 
 - 2026-07-24: Version inicial del goal C1 para formalizar el Dashboard Comercial como capacidad oficial.
-- 2026-07-24: Se define como siguiente objetivo operativo tras P1.5 y P2, con foco en ventas, pedidos, clientes, operacion y finanzas.
+- 2026-07-24: Se define como siguiente objetivo operativo tras P1.5 y P2, consumiendo solo SSOT certificada.
 - 2026-07-24: Se certifica con evidencia operativa real; el snapshot comercial responde en verde y expone datos consistentes con la SSOT y la operacion viva.
 
 #### 4.12 GOAL-C2-001
 
-**Estado:** Vigente  
+**Estado:** Certificado  
 **Objetivo:** construir un CRM basico sobre la SSOT certificada para registrar y consultar historial de clientes y comercios sin crear una fuente paralela de verdad.  
 **Alcance:** historial de pedidos por cliente, actividad por comercio, recurrencia, ticket promedio, consultas basicas de seguimiento y plan tecnico de cuatro etapas.  
-**No alcance:** campañas automaticas, scoring predictivo, IA comercial o automatizaciones de marketing.  
+**No alcance:** campanas automaticas, scoring predictivo, IA comercial o automatizaciones de marketing.  
 **Riesgos:** duplicar datos, mezclar seguimiento con core, convertir el CRM en una fuente distinta de verdad y sobrecargar la primera version con funciones prematuras.  
 **Criterios de aceptacion:** plan tecnico definido, lectura consistente desde la SSOT, historial util y continuidad con C1.  
 **Evidencias:** vistas o consultas de CRM, referencias en indice maestro y commits de validacion.
@@ -186,6 +186,7 @@ Todo goal del NES debe seguir esta estructura:
 - 2026-07-24: Se define como capacidad posterior a GOAL-C1-001, apoyandose solo en la evidencia ya certificada.
 - 2026-07-24: Se formaliza el plan tecnico de cuatro etapas para arrancar por inventario y normalizacion antes de construir la ficha de cliente y la ficha de comercio.
 - 2026-07-24: Se incorpora el mapa inicial de campos CRM como primer entregable de la etapa de inventario y normalizacion.
+- 2026-07-24: Se certifica funcionalmente el CRM basico con fichas de cliente y comercio apoyadas en la SSOT certificada.
 
 #### 4.13 GOAL-C3-001
 
@@ -204,7 +205,7 @@ Todo goal del NES debe seguir esta estructura:
 
 #### 4.14 GOAL-C4-001
 
-**Estado:** Vigente  
+**Estado:** Baseline abierta  
 **Objetivo:** construir una capa inicial de inteligencia comercial sobre la SSOT certificada para convertir el historial real de clientes y comercios en oportunidades, senales de atencion y acciones sugeridas.  
 **Alcance:** recurrencia, inactividad, frecuencia de compra, oportunidades de seguimiento y reglas simples de analitica accionable sobre la evidencia ya validada por C1, C2 y C3.  
 **No alcance:** campanas automaticas, scoring predictivo, IA comercial completa, automatizaciones de marketing o nuevas fuentes de datos.  
@@ -216,6 +217,7 @@ Todo goal del NES debe seguir esta estructura:
 
 - 2026-07-24: Version inicial del goal para formalizar la inteligencia comercial como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior a C3, con foco en oportunidades, riesgo de abandono y acciones sugeridas.
+- 2026-07-24: Se aclara que C4 permanece como baseline abierta y siguiente frente, no como capacidad cerrada.
 
 ### 5. Reglas de uso
 

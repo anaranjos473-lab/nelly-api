@@ -14,7 +14,7 @@ Dejar constancia de que el programa de implementacion opera como puente entre la
 - U3 consolido la migracion progresiva.
 - RC1 quedo cerrado documentalmente.
 - C1 quedo certificado.
-- C2 quedo en consolidacion funcional sobre la SSOT.
+- C2 quedo certificado funcionalmente sobre la SSOT.
 - C3 quedo evidenciado como fidelizacion basica.
 
 ## Lo que valida este cierre
@@ -31,7 +31,7 @@ Iniciar la siguiente etapa de consolidacion comercial con la misma disciplina de
 
 El foco a partir de este punto se concentra en tres capacidades de producto:
 
-1. `GOAL-C2-001` - CRM Basico.
+1. `GOAL-C2-001` - CRM Basico (certificado).
 2. `GOAL-C3-001` - Fidelizacion Basica.
 3. `GOAL-C4-001` - Inteligencia Comercial.
 
@@ -51,6 +51,12 @@ Criterios de salida:
 - lectura simple desde la evidencia operativa;
 - sin introducir modelos paralelos de negocio;
 - listo para extenderse hacia fidelizacion o analitica ligera.
+
+Estado operativo:
+
+- certificado funcionalmente;
+- base cerrada para C3 y C4;
+- normalizacion minima documentada.
 
 #### 2) GOAL-C3-001 - Fidelizacion Basica
 
@@ -96,11 +102,17 @@ Criterios de salida:
 - lectura estable desde la base certificada;
 - sin duplicar logica de fidelizacion ni crear nuevas fuentes de verdad.
 
+Estado operativo:
+
+- baseline abierta;
+- siguiente frente de desarrollo;
+- no debe considerarse capacidad cerrada hasta contar con evidencia funcional propia.
+
 ## Cierre operativo de la etapa
 
 La etapa quedara cerrada cuando:
 
-- C2 este consolidado sobre la SSOT;
+- C2 este certificado sobre la SSOT;
 - C3 muestre evidencia util de fidelizacion basica;
 - C4 pueda consumir esa evidencia para oportunidades y acciones sugeridas;
 - no se introduzcan cambios estructurales al core para lograrlo.
@@ -109,7 +121,7 @@ La etapa quedara cerrada cuando:
 
 ### Prioridad 1
 
-- consolidar el CRM basico;
+- mantener el CRM basico certificado;
 - dejar claras las reglas de lectura por cliente y comercio;
 - asegurar que las fichas comerciales reflejen la evidencia real.
 
@@ -129,9 +141,9 @@ La etapa quedara cerrada cuando:
 
 ### Semana 1
 
-- revisar y fijar el alcance final de C2;
-- normalizar los campos de CRM que aun lo requieran;
-- documentar evidencias y criterios de salida.
+- revisar y cerrar la evidencia final de C2;
+- documentar la certificacion y normalizacion minima;
+- dejar la base lista para fidelizacion y analitica.
 
 ### Semana 2
 

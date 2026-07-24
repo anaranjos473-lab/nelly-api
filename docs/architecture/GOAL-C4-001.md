@@ -1,7 +1,7 @@
 # GOAL-C4-001
 ## Inteligencia Comercial - Nelly OS
 
-**Estado:** Vigente  
+**Estado:** Baseline abierta  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
@@ -93,6 +93,10 @@ GOAL-C4-001 se considerara exitoso cuando:
 - las sugerencias coincidan con la operacion real;
 - no existan fuentes paralelas de datos;
 - el modelo quede listo para extenderse hacia analitica ligera o promociones.
+
+### 5.2 Estado de apertura
+
+GOAL-C4-001 permanece como baseline abierta y siguiente frente de desarrollo. No debe interpretarse como capacidad cerrada hasta que exista evidencia de ejecucion funcional sobre la SSOT certificada.
 
 ### 6. Evidencias
 

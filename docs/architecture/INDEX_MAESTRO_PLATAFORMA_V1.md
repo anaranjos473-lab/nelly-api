@@ -118,11 +118,13 @@ C1 queda certificado tras validar en vivo un snapshot comercial en verde con SSO
 ### Goal C2 - CRM Basico
 - [`GOAL-C2-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C2-001.md)
 #### Resumen C2
-El CRM Basico organiza historial de clientes y comercios sobre la evidencia ya certificada por C1, sin crear una nueva fuente de verdad.
+El CRM Basico organiza historial de clientes y comercios sobre la evidencia ya certificada por C1, sin crear una nueva fuente de verdad, y ya quedo certificado funcionalmente sobre la SSOT.
 #### Criterio C2
 La capacidad se considera exitosa cuando permite consultar historial, recurrencia y actividad comercial con consistencia frente a la SSOT.
 #### Mapeo C2
 - [`C2_MAPEO_CAMPOS_CRM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C2_MAPEO_CAMPOS_CRM_V1.md)
+#### Certificacion C2
+- [`CERTIFICACION_C2_CRM_BASICO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_C2_CRM_BASICO_V1.md)
 
 ### RC1.1 - Consolidacion y baseline
 - [`RC1_BASELINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_BASELINE_V1.md)
@@ -139,7 +141,7 @@ La fidelizacion basica convierte el historial ya validado en acciones simples de
 ### Goal C4 - Inteligencia Comercial
 - [`GOAL-C4-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C4-001.md)
 #### Resumen C4
-La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en oportunidades y acciones sugeridas para clientes y comercios, sin crear una nueva fuente de verdad.
+La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en oportunidades y acciones sugeridas para clientes y comercios, y permanece como baseline abierta hasta contar con evidencia funcional propia.
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
