@@ -224,3 +224,4 @@ Este goal depende de la evidencia y de las lecturas derivadas en `GOAL-C1-001 - 
 - 2026-07-24: Se define como paso posterior al Dashboard Comercial, con foco en historial, recurrencia y seguimiento de clientes y comercios.
 - 2026-07-24: Se agrega el plan tecnico de ejecucion en cuatro etapas: inventario y normalizacion, ficha de cliente, ficha de comercio y normalizacion incremental.
 - 2026-07-24: Se agrega el mapeo de campos inicial como primer entregable de la Etapa 1.
+- 2026-07-24: Se aplica una normalizacion minima adicional para observaciones, zonas y origen comercial como consolidacion RC1.1.

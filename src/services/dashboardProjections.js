@@ -24,6 +24,8 @@ function buildCustomerCRMProjection(orderEntries = []) {
       items_count: new Map(),
       orders_by_hour: new Map(),
       commerces: new Map(),
+      observations: new Map(),
+      zones: new Map(),
       latest_order_state: null
     };
 
@@ -32,6 +34,22 @@ function buildCustomerCRMProjection(orderEntries = []) {
     const state = String(pedido?.estado_pedido || pedido?.estado || '').trim().toUpperCase();
     const total = Number(pedido?.total || pedido?.monto || pedido?.monto_total || 0);
     const commerceName = String(pedido?.comercio?.nombre || pedido?.tienda?.nombre || pedido?.marketplace?.nombre || pedido?.comercio_nombre || pedido?.tienda_nombre || '').trim();
+    const zone = String(
+      pedido?.zona
+      || pedido?.zona_entrega
+      || pedido?.zona_operativa
+      || pedido?.direccion
+      || pedido?.direccion_operativa
+      || ''
+    ).trim();
+    const observation = String(
+      pedido?.observaciones
+      || pedido?.observacion
+      || pedido?.notas
+      || pedido?.notas_ubicacion
+      || pedido?.descripcion
+      || ''
+    ).trim();
 
     profile.total_orders += 1;
     profile.total_spent = roundMoney(profile.total_spent + (Number.isFinite(total) ? total : 0));
@@ -58,6 +76,12 @@ function buildCustomerCRMProjection(orderEntries = []) {
     }
     if (commerceName) {
       profile.commerces.set(commerceName, (profile.commerces.get(commerceName) || 0) + 1);
+    }
+    if (zone) {
+      profile.zones.set(zone, (profile.zones.get(zone) || 0) + 1);
+    }
+    if (observation) {
+      profile.observations.set(observation, (profile.observations.get(observation) || 0) + 1);
     }
 
     const items = Array.isArray(pedido?.normalizedItems)
@@ -92,6 +116,14 @@ function buildCustomerCRMProjection(orderEntries = []) {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([hora, pedidos]) => ({ hora, pedidos }));
+      const favoriteZones = [...profile.zones.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([nombre, pedidos]) => ({ nombre, pedidos }));
+      const latestObservations = [...profile.observations.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([texto, ocurrencias]) => ({ texto, ocurrencias }));
       const frequency = profile.delivered_orders > 0
         ? Number((profile.total_orders / Math.max(1, profile.delivered_orders)).toFixed(2))
         : Number((profile.total_orders || 0).toFixed(2));
@@ -110,6 +142,8 @@ function buildCustomerCRMProjection(orderEntries = []) {
         productos_favoritos: topItems,
         comercios_favoritos: favoriteCommerces,
         horarios_frecuentes: activeHours,
+        zonas_frecuentes: favoriteZones,
+        observaciones_recientes: latestObservations,
         ultima_condicion: profile.latest_order_state
       };
     })
@@ -119,7 +153,8 @@ function buildCustomerCRMProjection(orderEntries = []) {
     ok: true,
     summary: {
       clientes_totales: uniqueCustomers,
-      clientes_recurrentes: recurrentCustomers
+      clientes_recurrentes: recurrentCustomers,
+      observaciones_evaluadas: orderEntries.length
     },
     customers: customerList.slice(0, 20)
   };
@@ -130,6 +165,8 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
     const catalogo = market?.catalogo_por_comercio?.[commerceId] || {};
     const productos = Object.values(catalogo);
     const vendidos = orderEntries.filter((pedido) => String(pedido?.comercio_id || pedido?.tienda_id || pedido?.merchant_id || '').trim() === commerceId).length;
+    const city = commerce?.ciudad || commerce?.city || null;
+    const zonaPrincipal = city || Object.keys(market?.indices?.comercios_por_ciudad || {})[0] || null;
     const topProducts = productos
       .filter((producto) => producto && typeof producto === 'object')
       .sort((a, b) => String(b.ventas || 0).localeCompare(String(a.ventas || 0)))
@@ -140,7 +177,8 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
       comercio_id: commerceId,
       nombre: commerce?.nombre || commerce?.name || commerceId,
       categoria: commerce?.categoria || commerce?.category || null,
-      ciudad: commerce?.ciudad || commerce?.city || null,
+      ciudad: city,
+      zona_principal: zonaPrincipal,
       activo: commerce?.activo !== false,
       pedidos_aproximados: vendidos,
       productos_disponibles: productos.filter((producto) => producto?.disponible !== false).length,
@@ -153,7 +191,8 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
   return {
     ok: true,
     summary: {
-      comercios_totales: commerceList.length
+      comercios_totales: commerceList.length,
+      zonas_totales: Object.keys(market?.indices?.comercios_por_ciudad || {}).length
     },
     commerces: commerceList
   };

@@ -53,7 +53,7 @@ function dateText(value) {
 }
 
 function joinList(items, fallback = 'Sin datos') {
-  return Array.isArray(items) && items.length > 0 ? items.join(' · ') : fallback;
+  return Array.isArray(items) && items.length > 0 ? items.join(' ? ') : fallback;
 }
 
 function showLogin() {
@@ -127,6 +127,14 @@ function renderCustomerDetail(customer) {
         <p class="text-slate-400">Horarios frecuentes</p>
         <p>${joinList((customer.horarios_frecuentes || []).map((item) => `${item.hora}h (${item.pedidos})`))}</p>
       </div>
+      <div>
+        <p class="text-slate-400">Zonas frecuentes</p>
+        <p>${joinList((customer.zonas_frecuentes || []).map((item) => `${item.nombre} (${item.pedidos})`))}</p>
+      </div>
+      <div>
+        <p class="text-slate-400">Observaciones relevantes</p>
+        <p>${joinList((customer.observaciones_recientes || []).map((item) => `${item.texto} (${item.ocurrencias})`))}</p>
+      </div>
     </div>
   `;
 }
@@ -153,6 +161,10 @@ function renderCommerceDetail(commerce) {
       <div>
         <p class="text-slate-400">Productos populares</p>
         <p>${joinList(commerce.productos_populares || [])}</p>
+      </div>
+      <div>
+        <p class="text-slate-400">Zona principal</p>
+        <p>${commerce.zona_principal || commerce.ciudad || 'Sin dato'}</p>
       </div>
     </div>
   `;
@@ -217,7 +229,7 @@ function renderCommerceCard(commerce) {
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h4 class="text-lg font-semibold text-crm-info">${commerce?.nombre || 'Comercio sin nombre'}</h4>
-          <p class="text-sm text-slate-300">${[commerce?.categoria, commerce?.ciudad].filter(Boolean).join(' · ') || 'Sin clasificacion'}</p>
+          <p class="text-sm text-slate-300">${[commerce?.categoria, commerce?.ciudad].filter(Boolean).join(' ? ') || 'Sin clasificacion'}</p>
         </div>
         <div class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">
           ${commerce?.activo ? 'Activo' : 'Inactivo'}
@@ -231,6 +243,15 @@ function renderCommerceCard(commerce) {
       <div class="mt-4 text-sm">
         <p class="text-xs uppercase tracking-wide text-slate-400">Productos populares</p>
         <p class="mt-1 text-slate-200">${joinList(products)}</p>
+      </div>      <div class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Zona principal</p>
+          <p class="mt-1 text-slate-200">${commerce?.zona_principal || commerce?.ciudad || 'Sin dato'}</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Ultimo estado</p>
+          <p class="mt-1 text-slate-200">${commerce?.ultima_condicion || 'Sin dato'}</p>
+        </div>
       </div>
     </article>
   `;

@@ -124,6 +124,11 @@ La capacidad se considera exitosa cuando permite consultar historial, recurrenci
 #### Mapeo C2
 - [`C2_MAPEO_CAMPOS_CRM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C2_MAPEO_CAMPOS_CRM_V1.md)
 
+### RC1.1 - Consolidacion y baseline
+- [`RC1_BASELINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_BASELINE_V1.md)
+#### Resumen RC1.1
+La consolidacion RC1 fija una normalizacion minima del CRM y deja un baseline de rendimiento del snapshot operativo como referencia antes de abrir C3.
+
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
 
