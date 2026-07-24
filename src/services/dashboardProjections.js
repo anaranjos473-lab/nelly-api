@@ -198,6 +198,56 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
   };
 }
 
+function buildLoyaltyProjection(customerEntries = []) {
+  const now = Date.now();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+  const loyaltyCustomers = customerEntries
+    .map((customer) => {
+      const lastOrderAt = Number(customer?.ultimo_pedido_at || customer?.last_order_at || 0);
+      const totalOrders = Number(customer?.pedidos_totales || 0);
+      const recurrent = totalOrders > 1;
+      const inactiveDays = lastOrderAt > 0 ? Math.floor((now - lastOrderAt) / (24 * 60 * 60 * 1000)) : null;
+      const inactive = inactiveDays !== null ? (now - lastOrderAt) >= thirtyDaysMs : totalOrders > 0;
+      const followUp = recurrent || inactive;
+
+      return {
+        nombre: customer?.nombre || 'Sin nombre',
+        pedidos_totales: totalOrders,
+        ultimo_pedido_at: lastOrderAt || null,
+        frecuencia_compra: Number(customer?.frecuencia_compra || 0),
+        recurrente: recurrent,
+        inactivo: inactive,
+        dias_sin_compra: inactiveDays,
+        sugerencia: followUp
+          ? (inactive ? 'seguimiento_reactivacion' : 'posible_recompra')
+          : 'sin_accion',
+        prioridad: inactive ? 'alta' : (recurrent ? 'media' : 'baja')
+      };
+    })
+    .filter((customer) => customer.recurrente || customer.inactivo)
+    .sort((a, b) => {
+      if (a.prioridad !== b.prioridad) {
+        const rank = { alta: 0, media: 1, baja: 2 };
+        return rank[a.prioridad] - rank[b.prioridad];
+      }
+      return (b.pedidos_totales - a.pedidos_totales) || (b.dias_sin_compra || 0) - (a.dias_sin_compra || 0);
+    });
+
+  return {
+    ok: true,
+    summary: {
+      clientes_recurrentes: loyaltyCustomers.filter((customer) => customer.recurrente).length,
+      clientes_inactivos: loyaltyCustomers.filter((customer) => customer.inactivo).length,
+      candidatos_seguimiento: loyaltyCustomers.length,
+      ventana_inactividad_dias: 30,
+      ventana_seguimiento_dias: 7
+    },
+    customers: loyaltyCustomers.slice(0, 20)
+  };
+}
+
 function buildMarketplaceProjection(market = {}) {
   const totalComercios = Object.keys(market?.comercios || {}).length;
   const totalProductos = Object.values(market?.catalogo_por_comercio || {})
@@ -269,5 +319,6 @@ export {
   buildCommerceCRMProjection,
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
+  buildLoyaltyProjection,
   roundMoney
 };

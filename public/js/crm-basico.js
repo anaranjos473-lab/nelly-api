@@ -24,7 +24,10 @@ const ui = {
   customerList: document.getElementById('customer-list'),
   commerceSummary: document.getElementById('commerce-summary'),
   commerceDetail: document.getElementById('commerce-detail'),
-  commerceList: document.getElementById('commerce-list')
+  commerceList: document.getElementById('commerce-list'),
+  loyaltySummary: document.getElementById('loyalty-summary'),
+  loyaltyDetail: document.getElementById('loyalty-detail'),
+  loyaltyList: document.getElementById('loyalty-list')
 };
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
@@ -53,7 +56,7 @@ function dateText(value) {
 }
 
 function joinList(items, fallback = 'Sin datos') {
-  return Array.isArray(items) && items.length > 0 ? items.join(' ? ') : fallback;
+  return Array.isArray(items) && items.length > 0 ? items.join(' · ') : fallback;
 }
 
 function showLogin() {
@@ -257,6 +260,50 @@ function renderCommerceCard(commerce) {
   `;
 }
 
+function renderLoyaltyDetail(loyalty) {
+  if (!loyalty) {
+    return 'Selecciona un criterio para ver candidatos de fidelizacion.';
+  }
+
+  return `
+    <div class="grid gap-3 md:grid-cols-3">
+      <p><span class="text-slate-400">Recurrentes:</span> ${loyalty.clientes_recurrentes ?? 0}</p>
+      <p><span class="text-slate-400">Inactivos:</span> ${loyalty.clientes_inactivos ?? 0}</p>
+      <p><span class="text-slate-400">Seguimiento:</span> ${loyalty.candidatos_seguimiento ?? 0}</p>
+      <p><span class="text-slate-400">Ventana inactividad:</span> ${loyalty.ventana_inactividad_dias ?? 30} dias</p>
+      <p><span class="text-slate-400">Ventana seguimiento:</span> ${loyalty.ventana_seguimiento_dias ?? 7} dias</p>
+    </div>
+  `;
+}
+
+function renderLoyaltyCard(customer) {
+  const label = customer?.inactivo ? 'Inactivo' : 'Recurrente';
+  const toneClass = customer?.inactivo ? 'text-amber-300' : 'text-crm-accent';
+
+  return `
+    <article class="rounded-xl border border-crm-line bg-slate-950/40 p-4">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 class="text-lg font-semibold ${toneClass}">${customer?.nombre || 'Cliente sin nombre'}</h4>
+          <p class="text-sm text-slate-300">${label} · ${customer?.sugerencia || 'sin_accion'}</p>
+        </div>
+        <div class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">
+          ${customer?.prioridad || 'baja'}
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
+        <div><p class="text-xs text-slate-400">Pedidos</p><p class="font-semibold">${customer?.pedidos_totales ?? 0}</p></div>
+        <div><p class="text-xs text-slate-400">Frecuencia</p><p class="font-semibold">${Number(customer?.frecuencia_compra ?? 0).toFixed(2)}</p></div>
+        <div><p class="text-xs text-slate-400">Dias sin compra</p><p class="font-semibold">${customer?.dias_sin_compra ?? 'Sin dato'}</p></div>
+      </div>
+      <div class="mt-4 text-sm">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Ultimo pedido</p>
+        <p class="mt-1 text-slate-200">${dateText(customer?.ultimo_pedido_at)}</p>
+      </div>
+    </article>
+  `;
+}
+
 function syncSelectors() {
   const customers = state.customers;
   const commerces = state.commerces;
@@ -287,6 +334,8 @@ function renderCRM(snapshot) {
   const summary = snapshot?.summary || {};
   state.customers = Array.isArray(snapshot?.customers) ? snapshot.customers : [];
   state.commerces = Array.isArray(snapshot?.commerces) ? snapshot.commerces : [];
+  const loyalty = snapshot?.loyalty || {};
+  const loyaltyCustomers = Array.isArray(loyalty?.customers) ? loyalty.customers : [];
 
   ui.crmStatus.textContent = 'SSOT VALIDADA';
   ui.crmStatus.className = 'mt-1 text-2xl font-bold text-crm-accent';
@@ -297,6 +346,7 @@ function renderCRM(snapshot) {
 
   ui.customerSummary.textContent = `${state.customers.length} fichas`;
   ui.commerceSummary.textContent = `${state.commerces.length} comercios`;
+  ui.loyaltySummary.textContent = `${loyaltyCustomers.length} candidatos`;
 
   syncSelectors();
   updateDetails();
@@ -307,6 +357,10 @@ function renderCRM(snapshot) {
   ui.commerceList.innerHTML = state.commerces.length > 0
     ? state.commerces.map(renderCommerceCard).join('')
     : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin comercios suficientes para mostrar ficha CRM.</p>';
+  ui.loyaltyDetail.innerHTML = renderLoyaltyDetail(loyalty);
+  ui.loyaltyList.innerHTML = loyaltyCustomers.length > 0
+    ? loyaltyCustomers.map(renderLoyaltyCard).join('')
+    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin candidatos de fidelizacion suficientes para mostrar seguimiento.</p>';
 }
 
 async function refreshCRM() {

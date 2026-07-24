@@ -4,6 +4,7 @@ import {
   buildCommerceCRMProjection,
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
+  buildLoyaltyProjection,
   roundMoney
 } from './dashboardProjections.js';
 
@@ -46,6 +47,7 @@ function buildOperationalDashboardSnapshot({
   const marketplaceProjection = buildMarketplaceProjection(market);
   const customerCRMProjection = buildCustomerCRMProjection(orderEntries);
   const commerceCRMProjection = buildCommerceCRMProjection(orderEntries, market);
+  const loyaltyProjection = buildLoyaltyProjection(customerCRMProjection.customers);
 
   const auditProjection = {
     ok: true,
@@ -164,7 +166,8 @@ function buildOperationalDashboardSnapshot({
           comercios_totales: marketplaceProjection.summary.comercios
         },
         customers: customerCRMProjection.customers,
-        commerces: commerceCRMProjection.commerces
+        commerces: commerceCRMProjection.commerces,
+        loyalty: loyaltyProjection
       }
     },
     operational_metrics: ordersMetrics
