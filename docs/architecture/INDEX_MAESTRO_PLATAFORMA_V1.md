@@ -129,6 +129,11 @@ La capacidad se considera exitosa cuando permite consultar historial, recurrenci
 #### Resumen RC1.1
 La consolidacion RC1 fija una normalizacion minima del CRM y deja un baseline de rendimiento del snapshot operativo como referencia antes de abrir C3.
 
+### Goal C3 - Fidelizacion Basica
+- [`GOAL-C3-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C3-001.md)
+#### Resumen C3
+La fidelizacion basica convierte el historial ya validado en acciones simples de recompra, seguimiento y retencion sobre la SSOT certificada.
+
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
 

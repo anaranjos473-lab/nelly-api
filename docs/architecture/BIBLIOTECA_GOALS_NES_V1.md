@@ -187,6 +187,21 @@ Todo goal del NES debe seguir esta estructura:
 - 2026-07-24: Se formaliza el plan tecnico de cuatro etapas para arrancar por inventario y normalizacion antes de construir la ficha de cliente y la ficha de comercio.
 - 2026-07-24: Se incorpora el mapa inicial de campos CRM como primer entregable de la etapa de inventario y normalizacion.
 
+#### 4.13 GOAL-C3-001
+
+**Estado:** Vigente  
+**Objetivo:** construir una capa basica de fidelizacion sobre la SSOT certificada para convertir el historial real de clientes y comercios en acciones simples de recompra, seguimiento y retencion.  
+**Alcance:** recurrencia, inactividad, frecuencia de compra, oportunidades de seguimiento y reglas simples de fidelizacion sobre la evidencia ya validada por C1 y C2.  
+**No alcance:** campanas automaticas, scoring predictivo, IA comercial completa, automatizaciones de marketing o nuevas fuentes de datos.  
+**Riesgos:** duplicar datos, crear una fuente paralela de verdad, introducir automatizaciones prematuras o mezclar fidelizacion con el core.  
+**Criterios de aceptacion:** definicion clara de acciones de fidelizacion, lectura consistente desde la SSOT, continuidad con C2 y ausencia de fuentes paralelas.  
+**Evidencias:** vistas o consultas de fidelizacion basica, referencias en indice maestro y commits de validacion.
+
+**Historial:**
+
+- 2026-07-24: Version inicial del goal para formalizar la fidelizacion basica como siguiente capacidad sobre la SSOT certificada.
+- 2026-07-24: Se define como paso posterior al CRM basico, con foco en recompra, seguimiento y retencion.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.
