@@ -34,6 +34,7 @@ El foco a partir de este punto se concentra en tres capacidades de producto:
 1. `GOAL-C2-001` - CRM Basico (certificado).
 2. `GOAL-C3-001` - Fidelizacion Basica.
 3. `GOAL-C4-001` - Inteligencia Comercial.
+4. `GOAL-C5-001` - Promociones Ligeras.
 
 ### Orden de ejecucion
 
@@ -108,6 +109,35 @@ Estado operativo:
 - primera version funcional de inteligencia comercial sobre la SSOT;
 - forma parte de la base consolidada del ecosistema Nelly.
 
+#### 4) GOAL-C5-001 - Promociones Ligeras
+
+Objetivo:
+
+- sugerir promociones manuales simples a partir de la evidencia de C4;
+- reutilizar oportunidades y prioridades ya consolidadas;
+- mantener la operacion sin automatizacion compleja.
+
+Indicadores iniciales:
+
+- promociones sugeridas;
+- clientes recurrentes;
+- clientes inactivos;
+- oportunidades de reactivacion;
+- acciones sugeridas por cliente o comercio.
+
+Criterios de salida:
+
+- vista cargando informacion real;
+- sugerencias consistentes con el flujo operativo;
+- lectura estable desde la base certificada;
+- sin duplicar logica de C4 ni crear nuevas fuentes de verdad.
+
+Estado operativo:
+
+- baseline abierta;
+- siguiente frente de desarrollo;
+- reutiliza la evidencia de C4 para sugerencias ligeras.
+
 ## Cierre operativo de la etapa
 
 La etapa quedara cerrada cuando:
@@ -115,6 +145,7 @@ La etapa quedara cerrada cuando:
 - C2 este certificado sobre la SSOT;
 - C3 muestre evidencia util de fidelizacion basica;
 - C4 ya consume esa evidencia para oportunidades y acciones sugeridas;
+- C5 reutiliza C4 para promociones ligeras y sugerencias manuales;
 - no se introduzcan cambios estructurales al core para lograrlo.
 
 ## Plan de trabajo por prioridad
@@ -156,6 +187,12 @@ La etapa quedara cerrada cuando:
 - activar C4;
 - consultar oportunidades y acciones sugeridas por cliente y comercio;
 - cerrar la etapa solo cuando no exista deuda funcional pendiente.
+
+### Semana 4
+
+- abrir C5;
+- sugerir promociones ligeras a partir de C4;
+- cerrar la etapa solo cuando la sugerencia manual quede estable y trazable.
 
 ### Regla de ejecucion
 

@@ -219,6 +219,21 @@ Todo goal del NES debe seguir esta estructura:
 - 2026-07-24: Se define como paso posterior a C3, con foco en oportunidades, riesgo de abandono y acciones sugeridas.
 - 2026-07-24: Se certifica la primera version funcional de C4 con oportunidades y acciones sugeridas sobre la SSOT certificada.
 
+#### 4.15 GOAL-C5-001
+
+**Estado:** Baseline abierta  
+**Objetivo:** construir una primera capa de promociones ligeras sobre la SSOT certificada y las oportunidades detectadas por C4, para sugerir acciones manuales simples sin automatizacion compleja ni una nueva fuente de verdad.  
+**Alcance:** sugerencias de reactivacion, promociones manuales, listas de accion comercial y reutilizacion de oportunidades ya derivadas en C4.  
+**No alcance:** campanas automaticas, scoring predictivo, IA comercial completa, automatizaciones de marketing o nuevas fuentes de datos.  
+**Riesgos:** duplicar datos, crear una fuente paralela de verdad, introducir automatizaciones prematuras o mezclar promociones con el core.  
+**Criterios de aceptacion:** definicion clara de promociones ligeras, lectura consistente desde la SSOT, continuidad con C4 y ausencia de fuentes paralelas.  
+**Evidencias:** vistas o consultas de promociones ligeras, referencias en indice maestro y commits de validacion.
+
+**Historial:**
+
+- 2026-07-24: Version inicial del goal para formalizar promociones ligeras como siguiente capacidad sobre la SSOT certificada.
+- 2026-07-24: Se define como paso posterior a C4, con foco en sugerencias manuales y reactivacion ligera.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.

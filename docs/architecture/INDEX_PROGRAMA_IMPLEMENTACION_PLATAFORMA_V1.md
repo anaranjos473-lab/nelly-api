@@ -41,6 +41,7 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
   - GOAL-C2-001 - CRM Basico (certificado)
   - GOAL-C3-001 - Fidelizacion Basica
   - GOAL-C4-001 - Inteligencia Comercial (certificado)
+  - GOAL-C5-001 - Promociones Ligeras (baseline abierta)
   - C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md
   - CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md
 
