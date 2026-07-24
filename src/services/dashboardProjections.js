@@ -198,6 +198,91 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
   };
 }
 
+function buildCommerceLoyaltyProjection(orderEntries = [], commerceEntries = []) {
+  const commerceMap = new Map();
+  commerceEntries.forEach((commerce) => {
+    if (commerce?.nombre) {
+      commerceMap.set(commerce.nombre, commerce);
+    }
+  });
+
+  const commerceStats = new Map();
+  orderEntries.forEach((pedido) => {
+    const comercio = String(pedido?.comercio?.nombre || pedido?.tienda?.nombre || pedido?.marketplace?.nombre || pedido?.comercio_nombre || pedido?.tienda_nombre || '').trim();
+    if (!comercio) return;
+
+    const createdAt = Number(pedido?.createdAt || pedido?.created_at || pedido?.fecha_creacion || pedido?.timestamp || 0);
+    const deliveredAt = Number(pedido?.entregado_en || pedido?.entregadoEn || 0);
+    const state = String(pedido?.estado_pedido || pedido?.estado || '').trim().toUpperCase();
+    const total = Number(pedido?.total || pedido?.monto || pedido?.monto_total || 0);
+    const customer = String(pedido?.cliente_nombre || pedido?.cliente?.nombre || pedido?.cliente || '').trim();
+
+    const stat = commerceStats.get(comercio) || {
+      nombre: comercio,
+      pedidos_totales: 0,
+      pedidos_entregados: 0,
+      pedidos_cancelados: 0,
+      clientes: new Map(),
+      total_gastado: 0,
+      last_order_at: null,
+      first_order_at: null
+    };
+
+    stat.pedidos_totales += 1;
+    stat.total_gastado = roundMoney(stat.total_gastado + (Number.isFinite(total) ? total : 0));
+    if (state === 'ENTREGADO') stat.pedidos_entregados += 1;
+    if (state === 'CANCELADO') stat.pedidos_cancelados += 1;
+    if (customer) stat.clientes.set(customer, (stat.clientes.get(customer) || 0) + 1);
+    if (!stat.first_order_at || (createdAt && createdAt < stat.first_order_at)) {
+      stat.first_order_at = createdAt || stat.first_order_at;
+    }
+    if (deliveredAt && (!stat.last_order_at || deliveredAt > stat.last_order_at)) {
+      stat.last_order_at = deliveredAt;
+    } else if (createdAt && (!stat.last_order_at || createdAt > stat.last_order_at)) {
+      stat.last_order_at = createdAt;
+    }
+
+    commerceStats.set(comercio, stat);
+  });
+
+  const commerceList = [...commerceStats.values()]
+    .map((stat) => {
+      const uniqueClients = stat.clientes.size;
+      const recurrentClients = [...stat.clientes.values()].filter((count) => count > 1).length;
+      const averageTicket = stat.pedidos_totales > 0 ? roundMoney(stat.total_gastado / stat.pedidos_totales) : 0;
+      const inactiveDays = stat.last_order_at ? Math.floor((Date.now() - stat.last_order_at) / (24 * 60 * 60 * 1000)) : null;
+      const focus = stat.pedidos_totales > 10 || recurrentClients > 0 ? 'seguimiento_comercial' : 'observacion';
+      const commerceRef = commerceMap.get(stat.nombre) || {};
+
+      return {
+        nombre: stat.nombre,
+        ciudad: commerceRef.ciudad || commerceRef.city || null,
+        pedidos_totales: stat.pedidos_totales,
+        pedidos_entregados: stat.pedidos_entregados,
+        pedidos_cancelados: stat.pedidos_cancelados,
+        clientes_totales: uniqueClients,
+        clientes_recurrentes: recurrentClients,
+        ticket_promedio: averageTicket,
+        total_gastado: roundMoney(stat.total_gastado),
+        dias_sin_movimiento: inactiveDays,
+        sugerencia: focus,
+        prioridad: inactiveDays !== null && inactiveDays >= 30 ? 'alta' : (stat.pedidos_totales > 10 ? 'media' : 'baja')
+      };
+    })
+    .filter((commerce) => commerce.pedidos_totales > 0)
+    .sort((a, b) => (a.prioridad === b.prioridad ? 0 : (a.prioridad === 'alta' ? -1 : 1)) || (b.pedidos_totales - a.pedidos_totales));
+
+  return {
+    ok: true,
+    summary: {
+      comercios_con_historial: commerceList.length,
+      comercios_recurrentes: commerceList.filter((commerce) => commerce.clientes_recurrentes > 0).length,
+      comercios_inactivos: commerceList.filter((commerce) => (commerce.dias_sin_movimiento || 0) >= 30).length
+    },
+    commerces: commerceList.slice(0, 20)
+  };
+}
+
 function buildLoyaltyProjection(customerEntries = []) {
   const now = Date.now();
   const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
@@ -317,6 +402,7 @@ function buildCommercialProjection({
 export {
   buildCommercialProjection,
   buildCommerceCRMProjection,
+  buildCommerceLoyaltyProjection,
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
   buildLoyaltyProjection,

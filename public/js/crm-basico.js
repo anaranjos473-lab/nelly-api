@@ -27,7 +27,10 @@ const ui = {
   commerceList: document.getElementById('commerce-list'),
   loyaltySummary: document.getElementById('loyalty-summary'),
   loyaltyDetail: document.getElementById('loyalty-detail'),
-  loyaltyList: document.getElementById('loyalty-list')
+  loyaltyList: document.getElementById('loyalty-list'),
+  commerceLoyaltySummary: document.getElementById('commerce-loyalty-summary'),
+  commerceLoyaltyDetail: document.getElementById('commerce-loyalty-detail'),
+  commerceLoyaltyList: document.getElementById('commerce-loyalty-list')
 };
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
@@ -56,7 +59,7 @@ function dateText(value) {
 }
 
 function joinList(items, fallback = 'Sin datos') {
-  return Array.isArray(items) && items.length > 0 ? items.join(' ? ') : fallback;
+  return Array.isArray(items) && items.length > 0 ? items.join(' · ') : fallback;
 }
 
 function showLogin() {
@@ -246,7 +249,8 @@ function renderCommerceCard(commerce) {
       <div class="mt-4 text-sm">
         <p class="text-xs uppercase tracking-wide text-slate-400">Productos populares</p>
         <p class="mt-1 text-slate-200">${joinList(products)}</p>
-      </div>      <div class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+      </div>
+      <div class="mt-4 grid gap-3 text-sm md:grid-cols-2">
         <div>
           <p class="text-xs uppercase tracking-wide text-slate-400">Zona principal</p>
           <p class="mt-1 text-slate-200">${commerce?.zona_principal || commerce?.ciudad || 'Sin dato'}</p>
@@ -255,6 +259,46 @@ function renderCommerceCard(commerce) {
           <p class="text-xs uppercase tracking-wide text-slate-400">Ultimo estado</p>
           <p class="mt-1 text-slate-200">${commerce?.ultima_condicion || 'Sin dato'}</p>
         </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderCommerceLoyaltyDetail(loyalty) {
+  if (!loyalty) {
+    return 'Selecciona una lectura comercial para ver la fidelizacion por comercio.';
+  }
+
+  return `
+    <div class="grid gap-3 md:grid-cols-3">
+      <p><span class="text-slate-400">Con historial:</span> ${loyalty.comercios_con_historial ?? 0}</p>
+      <p><span class="text-slate-400">Recurrentes:</span> ${loyalty.comercios_recurrentes ?? 0}</p>
+      <p><span class="text-slate-400">Inactivos:</span> ${loyalty.comercios_inactivos ?? 0}</p>
+    </div>
+  `;
+}
+
+function renderCommerceLoyaltyCard(commerce) {
+  const isInactive = (commerce?.dias_sin_movimiento || 0) >= 30;
+  const toneClass = isInactive ? 'text-amber-300' : 'text-crm-info';
+  return `
+    <article class="rounded-xl border border-crm-line bg-slate-950/40 p-4">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 class="text-lg font-semibold ${toneClass}">${commerce?.nombre || 'Comercio sin nombre'}</h4>
+          <p class="text-sm text-slate-300">${commerce?.sugerencia || 'observacion'} · ${commerce?.ciudad || 'Sin ciudad'}</p>
+        </div>
+        <div class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">
+          ${commerce?.prioridad || 'baja'}
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
+        <div><p class="text-xs text-slate-400">Pedidos</p><p class="font-semibold">${commerce?.pedidos_totales ?? 0}</p></div>
+        <div><p class="text-xs text-slate-400">Clientes</p><p class="font-semibold">${commerce?.clientes_totales ?? 0}</p></div>
+        <div><p class="text-xs text-slate-400">Recurrentes</p><p class="font-semibold">${commerce?.clientes_recurrentes ?? 0}</p></div>
+        <div><p class="text-xs text-slate-400">Ticket promedio</p><p class="font-semibold">${money(commerce?.ticket_promedio ?? 0)}</p></div>
+        <div><p class="text-xs text-slate-400">Total gastado</p><p class="font-semibold">${money(commerce?.total_gastado ?? 0)}</p></div>
+        <div><p class="text-xs text-slate-400">Dias sin movimiento</p><p class="font-semibold">${commerce?.dias_sin_movimiento ?? 'Sin dato'}</p></div>
       </div>
     </article>
   `;
@@ -336,6 +380,8 @@ function renderCRM(snapshot) {
   state.commerces = Array.isArray(snapshot?.commerces) ? snapshot.commerces : [];
   const loyalty = snapshot?.loyalty || {};
   const loyaltyCustomers = Array.isArray(loyalty?.customers) ? loyalty.customers : [];
+  const commerceLoyalty = snapshot?.commerce_loyalty || {};
+  const commerceLoyaltyList = Array.isArray(commerceLoyalty?.commerces) ? commerceLoyalty.commerces : [];
 
   ui.crmStatus.textContent = 'SSOT VALIDADA';
   ui.crmStatus.className = 'mt-1 text-2xl font-bold text-crm-accent';
@@ -347,6 +393,7 @@ function renderCRM(snapshot) {
   ui.customerSummary.textContent = `${state.customers.length} fichas`;
   ui.commerceSummary.textContent = `${state.commerces.length} comercios`;
   ui.loyaltySummary.textContent = `${loyaltyCustomers.length} candidatos`;
+  ui.commerceLoyaltySummary.textContent = `${commerceLoyaltyList.length} comercios`;
 
   syncSelectors();
   updateDetails();
@@ -361,6 +408,10 @@ function renderCRM(snapshot) {
   ui.loyaltyList.innerHTML = loyaltyCustomers.length > 0
     ? loyaltyCustomers.map(renderLoyaltyCard).join('')
     : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin candidatos de fidelizacion suficientes para mostrar seguimiento.</p>';
+  ui.commerceLoyaltyDetail.innerHTML = renderCommerceLoyaltyDetail(commerceLoyalty);
+  ui.commerceLoyaltyList.innerHTML = commerceLoyaltyList.length > 0
+    ? commerceLoyaltyList.map(renderCommerceLoyaltyCard).join('')
+    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin comercios suficientes para mostrar fidelizacion por comercio.</p>';
 }
 
 async function refreshCRM() {

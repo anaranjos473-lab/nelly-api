@@ -2,6 +2,7 @@ import { buildAdminOrdersMetrics } from './adminSyncService.js';
 import {
   buildCommercialProjection,
   buildCommerceCRMProjection,
+  buildCommerceLoyaltyProjection,
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
   buildLoyaltyProjection,
@@ -48,6 +49,7 @@ function buildOperationalDashboardSnapshot({
   const customerCRMProjection = buildCustomerCRMProjection(orderEntries);
   const commerceCRMProjection = buildCommerceCRMProjection(orderEntries, market);
   const loyaltyProjection = buildLoyaltyProjection(customerCRMProjection.customers);
+  const commerceLoyaltyProjection = buildCommerceLoyaltyProjection(orderEntries, commerceCRMProjection.commerces);
 
   const auditProjection = {
     ok: true,
@@ -167,7 +169,8 @@ function buildOperationalDashboardSnapshot({
         },
         customers: customerCRMProjection.customers,
         commerces: commerceCRMProjection.commerces,
-        loyalty: loyaltyProjection
+        loyalty: loyaltyProjection,
+        commerce_loyalty: commerceLoyaltyProjection
       }
     },
     operational_metrics: ordersMetrics
