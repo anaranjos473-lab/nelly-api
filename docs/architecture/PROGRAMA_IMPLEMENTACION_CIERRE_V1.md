@@ -104,9 +104,9 @@ Criterios de salida:
 
 Estado operativo:
 
-- baseline abierta;
-- siguiente frente de desarrollo;
-- no debe considerarse capacidad cerrada hasta contar con evidencia funcional propia.
+- certificada;
+- primera version funcional de inteligencia comercial sobre la SSOT;
+- forma parte de la base consolidada del ecosistema Nelly.
 
 ## Cierre operativo de la etapa
 
@@ -114,7 +114,7 @@ La etapa quedara cerrada cuando:
 
 - C2 este certificado sobre la SSOT;
 - C3 muestre evidencia util de fidelizacion basica;
-- C4 pueda consumir esa evidencia para oportunidades y acciones sugeridas;
+- C4 ya consume esa evidencia para oportunidades y acciones sugeridas;
 - no se introduzcan cambios estructurales al core para lograrlo.
 
 ## Plan de trabajo por prioridad

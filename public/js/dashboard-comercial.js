@@ -31,7 +31,13 @@ const ui = {
   kpiVentasMes: document.getElementById('kpi-ventas-mes'),
   kpiPedidosEntregados: document.getElementById('kpi-pedidos-entregados'),
   kpiFrecuenciaCompra: document.getElementById('kpi-frecuencia-compra'),
-  kpiEntregasPuntuales: document.getElementById('kpi-entregas-puntuales')
+  kpiEntregasPuntuales: document.getElementById('kpi-entregas-puntuales'),
+  c4OportunitiesTotal: document.getElementById('c4-oportunities-total'),
+  c4CustomersRisk: document.getElementById('c4-customers-risk'),
+  c4CommercesRisk: document.getElementById('c4-commerces-risk'),
+  c4ActionsTotal: document.getElementById('c4-actions-total'),
+  c4OpportunitiesList: document.getElementById('c4-opportunities-list'),
+  c4ActionsList: document.getElementById('c4-actions-list')
 };
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
@@ -41,6 +47,12 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
 
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function badgeClass(priority) {
+  if (priority === 'alta') return 'text-amber-300';
+  if (priority === 'media') return 'text-comm-warn';
+  return 'text-comm-accent';
 }
 
 function showLogin() {
@@ -80,11 +92,45 @@ async function fetchCommercialDashboard() {
   return payload;
 }
 
+function renderOpportunityCard(item) {
+  return `
+    <article class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-400">${item.tipo}</p>
+          <h4 class="text-lg font-semibold ${badgeClass(item.prioridad)}">${item.titulo}</h4>
+        </div>
+        <div class="rounded-full border border-comm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">${item.prioridad || 'baja'}</div>
+      </div>
+      <p class="mt-3 text-sm text-slate-200">${item.descripcion}</p>
+      <p class="mt-2 text-xs text-slate-400">${item.evidencia}</p>
+    </article>
+  `;
+}
+
+function renderActionCard(item) {
+  return `
+    <article class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Accion sugerida</p>
+          <h4 class="text-lg font-semibold text-comm-info">${item.titulo}</h4>
+        </div>
+        <div class="rounded-full border border-comm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">${item.accion}</div>
+      </div>
+      <p class="mt-3 text-sm text-slate-200">${item.evidencia}</p>
+    </article>
+  `;
+}
+
 function renderCommercial(snapshot) {
   const commercial = snapshot?.projections?.commercial || {};
   const summary = commercial?.summary || {};
   const alerts = commercial?.alerts || [];
   const market = snapshot?.projections?.marketplace || {};
+  const c4 = snapshot?.projections?.commercial_insights || {};
+  const c4Opportunities = Array.isArray(c4?.opportunities) ? c4.opportunities : [];
+  const c4Actions = Array.isArray(c4?.actions) ? c4.actions : [];
 
   ui.dashboardStatus.textContent = commercial?.signal === 'operacion_comercial_estable'
     ? 'ESTABLE'
@@ -119,6 +165,19 @@ function renderCommercial(snapshot) {
   ui.kpiPedidosEntregados.textContent = String(summary.pedidos_entregados ?? 0);
   ui.kpiFrecuenciaCompra.textContent = Number(summary.frecuencia_compra ?? 0).toFixed(2);
   ui.kpiEntregasPuntuales.textContent = `${Number(summary.entregas_puntuales_pct ?? 0).toFixed(0)}%`;
+
+  ui.c4OportunitiesTotal.textContent = String(c4?.summary?.oportunidades_totales ?? c4Opportunities.length ?? 0);
+  ui.c4CustomersRisk.textContent = String(c4?.summary?.clientes_en_riesgo ?? 0);
+  ui.c4CommercesRisk.textContent = String(c4?.summary?.comercios_en_riesgo ?? 0);
+  ui.c4ActionsTotal.textContent = String(c4Actions.length);
+
+  ui.c4OpportunitiesList.innerHTML = c4Opportunities.length > 0
+    ? c4Opportunities.map(renderOpportunityCard).join('')
+    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin oportunidades suficientes para mostrar en esta lectura.</p>';
+
+  ui.c4ActionsList.innerHTML = c4Actions.length > 0
+    ? c4Actions.map(renderActionCard).join('')
+    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin acciones sugeridas disponibles en este momento.</p>';
 }
 
 async function refreshDashboard() {

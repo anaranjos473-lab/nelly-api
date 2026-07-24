@@ -205,19 +205,19 @@ Todo goal del NES debe seguir esta estructura:
 
 #### 4.14 GOAL-C4-001
 
-**Estado:** Baseline abierta  
+**Estado:** Certificado  
 **Objetivo:** construir una capa inicial de inteligencia comercial sobre la SSOT certificada para convertir el historial real de clientes y comercios en oportunidades, senales de atencion y acciones sugeridas.  
 **Alcance:** recurrencia, inactividad, frecuencia de compra, oportunidades de seguimiento y reglas simples de analitica accionable sobre la evidencia ya validada por C1, C2 y C3.  
 **No alcance:** campanas automaticas, scoring predictivo, IA comercial completa, automatizaciones de marketing o nuevas fuentes de datos.  
 **Riesgos:** duplicar datos, crear una fuente paralela de verdad, introducir automatizaciones prematuras o mezclar inteligencia comercial con el core.  
 **Criterios de aceptacion:** definicion clara de oportunidades y acciones sugeridas, lectura consistente desde la SSOT, continuidad con C3 y ausencia de fuentes paralelas.  
-**Evidencias:** vistas o consultas de inteligencia comercial, referencias en indice maestro y commits de validacion.
+**Evidencias:** vistas o consultas de inteligencia comercial, referencias en indice maestro, commits de validacion y validacion funcional en navegador del Dashboard Comercial.
 
 **Historial:**
 
 - 2026-07-24: Version inicial del goal para formalizar la inteligencia comercial como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior a C3, con foco en oportunidades, riesgo de abandono y acciones sugeridas.
-- 2026-07-24: Se aclara que C4 permanece como baseline abierta y siguiente frente, no como capacidad cerrada.
+- 2026-07-24: Se certifica la primera version funcional de C4 con oportunidades y acciones sugeridas sobre la SSOT certificada.
 
 ### 5. Reglas de uso
 

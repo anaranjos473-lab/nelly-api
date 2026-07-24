@@ -399,8 +399,119 @@ function buildCommercialProjection({
   };
 }
 
+function buildCommercialInsightsProjection({
+  customerCRMProjection = {},
+  commerceCRMProjection = {},
+  commercialProjection = {}
+} = {}) {
+  const customerList = Array.isArray(customerCRMProjection?.customers) ? customerCRMProjection.customers : [];
+  const commerceList = Array.isArray(commerceCRMProjection?.commerces) ? commerceCRMProjection.commerces : [];
+  const commercialSummary = commercialProjection?.summary || {};
+
+  const customerOpportunities = customerList
+    .map((customer) => {
+      const inactiveDays = Number(customer?.dias_sin_compra ?? 0);
+      const recurrent = Number(customer?.pedidos_totales ?? 0) > 1;
+      const priority = customer?.inactivo
+        ? 'alta'
+        : recurrent
+          ? 'media'
+          : 'baja';
+
+      return {
+        nombre: customer?.nombre || 'Sin nombre',
+        tipo: customer?.inactivo ? 'cliente_inactivo' : (recurrent ? 'cliente_recurrente' : 'cliente_nuevo'),
+        oportunidad: customer?.inactivo ? 'reactivar_cliente' : 'promover_recompra',
+        accion_sugerida: customer?.inactivo
+          ? 'contacto_manual_con_promocion'
+          : 'seguimiento_manual_y_recordatorio',
+        prioridad: priority,
+        dias_sin_compra: inactiveDays,
+        pedidos_totales: Number(customer?.pedidos_totales ?? 0),
+        ticket_promedio: Number(customer?.ticket_promedio ?? 0)
+      };
+    })
+    .filter((item) => item.pedidos_totales > 0)
+    .sort((a, b) => {
+      const rank = { alta: 0, media: 1, baja: 2 };
+      if (rank[a.prioridad] !== rank[b.prioridad]) return rank[a.prioridad] - rank[b.prioridad];
+      return (b.dias_sin_compra || 0) - (a.dias_sin_compra || 0);
+    });
+
+  const commerceOpportunities = commerceList
+    .map((commerce) => {
+      const diasSinMovimiento = Number(commerce?.dias_sin_movimiento ?? 0);
+      const recurrentes = Number(commerce?.clientes_recurrentes ?? 0);
+      const prioridad = diasSinMovimiento >= 30
+        ? 'alta'
+        : recurrentes > 0
+          ? 'media'
+          : 'baja';
+
+      return {
+        nombre: commerce?.nombre || 'Sin nombre',
+        ciudad: commerce?.ciudad || 'Sin ciudad',
+        oportunidad: diasSinMovimiento >= 30 ? 'revisar_inactividad' : 'impulsar_ventas',
+        accion_sugerida: diasSinMovimiento >= 30
+          ? 'seguimiento_con_comercio_y_revision_operativa'
+          : 'promocion_del_dia_o_recordatorio_comercial',
+        prioridad,
+        dias_sin_movimiento: diasSinMovimiento,
+        clientes_recurrentes: recurrentes,
+        pedidos_totales: Number(commerce?.pedidos_totales ?? 0)
+      };
+    })
+    .filter((item) => item.pedidos_totales > 0)
+    .sort((a, b) => {
+      const rank = { alta: 0, media: 1, baja: 2 };
+      if (rank[a.prioridad] !== rank[b.prioridad]) return rank[a.prioridad] - rank[b.prioridad];
+      return (b.dias_sin_movimiento || 0) - (a.dias_sin_movimiento || 0);
+    });
+
+  const topOpportunities = [
+    ...customerOpportunities.slice(0, 5).map((item) => ({
+      tipo: 'cliente',
+      titulo: item.nombre,
+      prioridad: item.prioridad,
+      descripcion: `${item.oportunidad} - ${item.accion_sugerida}`,
+      evidencia: `${item.pedidos_totales} pedidos · ${item.dias_sin_compra || 0} dias sin compra`
+    })),
+    ...commerceOpportunities.slice(0, 5).map((item) => ({
+      tipo: 'comercio',
+      titulo: item.nombre,
+      prioridad: item.prioridad,
+      descripcion: `${item.oportunidad} - ${item.accion_sugerida}`,
+      evidencia: `${item.pedidos_totales} pedidos · ${item.dias_sin_movimiento || 0} dias sin movimiento`
+    }))
+  ].sort((a, b) => {
+    const rank = { alta: 0, media: 1, baja: 2 };
+    return rank[a.prioridad] - rank[b.prioridad];
+  });
+
+  return {
+    ok: true,
+    summary: {
+      oportunidades_totales: topOpportunities.length,
+      clientes_en_riesgo: customerOpportunities.filter((item) => item.prioridad === 'alta').length,
+      comercios_en_riesgo: commerceOpportunities.filter((item) => item.prioridad === 'alta').length,
+      metricas_fuente: commercialSummary.ventas_dia ?? 0
+    },
+    opportunities: topOpportunities,
+    actions: topOpportunities.map((item) => ({
+      titulo: item.titulo,
+      accion: item.prioridad === 'alta'
+        ? 'priorizar_contacto'
+        : item.prioridad === 'media'
+          ? 'seguimiento_programado'
+          : 'monitoreo_base',
+      evidencia: item.evidencia
+    }))
+  };
+}
+
 export {
   buildCommercialProjection,
+  buildCommercialInsightsProjection,
   buildCommerceCRMProjection,
   buildCommerceLoyaltyProjection,
   buildMarketplaceProjection,

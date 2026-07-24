@@ -141,7 +141,10 @@ La fidelizacion basica convierte el historial ya validado en acciones simples de
 ### Goal C4 - Inteligencia Comercial
 - [`GOAL-C4-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C4-001.md)
 #### Resumen C4
-La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en oportunidades y acciones sugeridas para clientes y comercios, y permanece como baseline abierta hasta contar con evidencia funcional propia.
+La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en oportunidades y acciones sugeridas para clientes y comercios, y queda certificada como la primera version funcional de C4 sobre la SSOT certificada.
+#### Evidencia C4
+- [`C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md)
+- [`CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md)
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)

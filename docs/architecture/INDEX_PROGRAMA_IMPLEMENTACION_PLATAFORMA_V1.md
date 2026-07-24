@@ -40,7 +40,9 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 - [`PROGRAMA_IMPLEMENTACION_CIERRE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_CIERRE_V1.md)
   - GOAL-C2-001 - CRM Basico (certificado)
   - GOAL-C3-001 - Fidelizacion Basica
-  - GOAL-C4-001 - Inteligencia Comercial (baseline abierta)
+  - GOAL-C4-001 - Inteligencia Comercial (certificado)
+  - C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md
+  - CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md
 
 ## Referencias de estabilizacion
 

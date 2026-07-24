@@ -1,7 +1,7 @@
 # GOAL-C4-001
 ## Inteligencia Comercial - Nelly OS
 
-**Estado:** Baseline abierta  
+**Estado:** Certificado  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
@@ -94,15 +94,16 @@ GOAL-C4-001 se considerara exitoso cuando:
 - no existan fuentes paralelas de datos;
 - el modelo quede listo para extenderse hacia analitica ligera o promociones.
 
-### 5.2 Estado de apertura
+### 5.2 Estado de cierre
 
-GOAL-C4-001 permanece como baseline abierta y siguiente frente de desarrollo. No debe interpretarse como capacidad cerrada hasta que exista evidencia de ejecucion funcional sobre la SSOT certificada.
+GOAL-C4-001 queda certificado como la primera version funcional de inteligencia comercial sobre la SSOT certificada. La capacidad deja de estar abierta y pasa a formar parte de la base consolidada del ecosistema Nelly.
 
 ### 6. Evidencias
 
 - vistas o consultas de oportunidades comerciales;
 - lectura de recurrencia, inactividad y sugerencias;
 - referencias en indice maestro y biblioteca de goals;
+- validacion funcional en navegador del Dashboard Comercial con oportunidades y acciones sugeridas;
 - commits y validaciones de la capa comercial;
 - evidencia de consumo desde la SSOT.
 
@@ -126,3 +127,4 @@ Este goal depende de la evidencia y de las lecturas derivadas en `GOAL-C3-001 - 
 
 - 2026-07-24: Version inicial del goal para formalizar la inteligencia comercial como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior a C3, con foco en oportunidades, riesgo de abandono y acciones sugeridas.
+- 2026-07-24: Se certifica la primera version funcional de C4 con oportunidades y acciones sugeridas sobre la SSOT certificada.
