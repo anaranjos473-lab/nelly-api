@@ -133,6 +133,8 @@ La consolidacion RC1 fija una normalizacion minima del CRM y deja un baseline de
 - [`GOAL-C3-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C3-001.md)
 #### Resumen C3
 La fidelizacion basica convierte el historial ya validado en acciones simples de recompra, seguimiento y retencion sobre la SSOT certificada.
+#### Evidencia C3
+- [`C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md)
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)

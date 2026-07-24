@@ -118,3 +118,4 @@ Este goal depende de la evidencia y de las lecturas derivadas en `GOAL-C2-001 - 
 
 - 2026-07-24: Version inicial del goal para formalizar la fidelizacion basica como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior al CRM basico, con foco en recompra, seguimiento y retencion.
+- 2026-07-24: Se registra la primera evidencia de ejecucion con lectura por cliente y por comercio sobre la SSOT certificada.
