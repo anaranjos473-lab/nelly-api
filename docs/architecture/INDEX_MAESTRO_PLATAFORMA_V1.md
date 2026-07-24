@@ -87,6 +87,42 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 
 ### Goal P1 - Piloto Controlado
 - [`GOAL-P1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-001.md)
+#### Resumen de avance P1.1
+P1.1 ya cuenta con evidencia de series internas consecutivas sobre la base certificada: primero 3 ciclos completos en verde, luego una tanda extendida de 20 ciclos con bloqueo por deuda en el ciclo 6 para el driver original, y finalmente 10 ciclos completos sobre un repartidor de prueba limpio antes de volver a topar el umbral de deuda en el ciclo 11. El hallazgo confirma una restriccion de negocio trazable y no una falla del core.
+- [`GOAL-P1-005.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-005.md)
+#### Resumen P1.5
+P1.5 formaliza la gestion operativa de deuda como capacidad oficial del producto para eliminar saneamientos manuales y convertir el umbral de bloqueo, el desbloqueo, la liquidacion y las alertas de administracion en un flujo trazable y medible.
+#### Checklist P1.5
+La capacidad queda lista para cierre cuando el bloqueo por deuda sea completamente trazable, el dashboard muestre el estado de forma consistente, la liquidacion y el desbloqueo sean auditables y el piloto pueda continuar sin saneamientos manuales recurrentes.
+#### Validacion corta P1.5
+La evidencia del piloto ya confirma bloqueo reproducible, saneamiento directo en repartidores de prueba y rotacion controlada con deuda en cero; con ello P1.5 queda cerrado como capacidad oficial de deuda y la plataforma puede continuar con P2 sobre una base operativa estable.
+- [`GOAL-P2-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P2-001.md)
+#### Resumen P2
+P2 queda cerrado como evidencia operativa inicial tras recorrer la semilla `market_v1` con cinco comercios distintos y cinco cierres consecutivos en verde, manteniendo la salud del backend, la sincronizacion y la lectura marketplace del dashboard operativo.
+#### Arranque P2
+La siguiente accion queda ahora enfocada en consolidar la base operativa ya validada y usarla como soporte para GOAL-C1-001 y el CRM basico.
+#### Evidencia P2 inicial
+Ya quedaron sembrados 5 comercios en `market_v1` y se validaron dos iteraciones reales sobre comercios distintos (`Pizzeria La Ruta` y `Farmacia San Rafael`), ambas con flujo completo `CREADO -> LISTO -> ACEPTADO -> ENTREGADO`, dashboard `GREEN` y backend saludable.
+#### Cierre P2
+P2 quedo cerrado como evidencia operativa inicial tras recorrer completamente la semilla `market_v1` con cinco comercios distintos y cinco cierres consecutivos en verde, manteniendo la salud del backend, la sincronizacion y la lectura marketplace del dashboard operativo.
+
+### Goal C1 - Dashboard Comercial
+- [`GOAL-C1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C1-001.md)
+#### Resumen C1
+El Dashboard Comercial consume unicamente la SSOT certificada para exponer ventas, pedidos, clientes, operacion, finanzas y alertas utiles para el comercio, sin tocar el core.
+#### Criterio C1
+La capacidad se considera exitosa cuando la lectura comercial sea consistente con la operacion real, no requiera nuevas fuentes de datos y quede lista para alimentar el CRM basico.
+#### Cierre C1
+C1 queda certificado tras validar en vivo un snapshot comercial en verde con SSOT, ventas, pedidos, clientes, liquidez, marketplace y alertas coherentes con la operacion real.
+
+### Goal C2 - CRM Basico
+- [`GOAL-C2-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C2-001.md)
+#### Resumen C2
+El CRM Basico organiza historial de clientes y comercios sobre la evidencia ya certificada por C1, sin crear una nueva fuente de verdad.
+#### Criterio C2
+La capacidad se considera exitosa cuando permite consultar historial, recurrencia y actividad comercial con consistencia frente a la SSOT.
+#### Mapeo C2
+- [`C2_MAPEO_CAMPOS_CRM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C2_MAPEO_CAMPOS_CRM_V1.md)
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)

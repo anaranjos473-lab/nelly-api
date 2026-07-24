@@ -382,7 +382,8 @@ router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) 
             finanzasSnap,
             historialSnap,
             notificacionesSnap,
-            eventosSnap
+            eventosSnap,
+            marketSnap
         ] = await Promise.all([
             db.ref('pedidos').once('value'),
             db.ref('pedidos_activos').once('value'),
@@ -390,7 +391,8 @@ router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) 
             db.ref('finanzas').once('value'),
             db.ref('historial_ventas').once('value'),
             db.ref('notificaciones').once('value'),
-            db.ref('eventos_operativos').once('value')
+            db.ref('eventos_operativos').once('value'),
+            db.ref('market_v1').once('value')
         ]);
 
         const snapshot = buildOperationalDashboardSnapshot({
@@ -407,7 +409,8 @@ router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) 
             finanzas: finanzasSnap.val() || {},
             historialVentas: historialSnap.val() || {},
             notificaciones: notificacionesSnap.val() || {},
-            eventos: Object.values(eventosSnap.val() || {})
+            eventos: Object.values(eventosSnap.val() || {}),
+            market: marketSnap.val() || {}
         });
 
         return res.status(200).json(snapshot);

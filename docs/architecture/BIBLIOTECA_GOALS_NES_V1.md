@@ -118,6 +118,75 @@ Todo goal del NES debe seguir esta estructura:
 **Criterios de aceptacion:** flujo completo con evidencia, dashboard en tiempo real, consumidor de eventos desacoplado, doctor estable salvo observacion conocida.  
 **Evidencias:** registro del piloto, capturas o logs, snapshot del dashboard, salida del doctor, commits y push, referencias en el indice maestro.
 
+**Historial:**
+
+- 2026-07-23: Version inicial del goal P1 para piloto controlado.
+- 2026-07-23: Primera corrida controlada ejecutada con exito sobre el flujo crear -> despachar -> aceptar -> completar; el dashboard unificado reflejo el estado operativo y el doctor permanecio estable.
+- 2026-07-23: Se ejecuto una primera tanda interna de 3 ciclos completos con resultado ok en todos los casos; la validacion global del doctor sigue condicionada por `validate-functional-metrics` debido a la dependencia externa conocida de Firebase.
+- 2026-07-23: Se ejecuto una tanda interna extendida de 20 ciclos; los primeros 5 completaron el flujo de forma correcta y el ciclo 6 quedo bloqueado por `403 Limite de deuda alcanzado` en el repartidor del piloto, confirmando una restriccion real de negocio y no una falla de la plataforma.
+- 2026-07-23: Se registro un nuevo repartidor de prueba limpio (`tuxtla@nelly.com`) y se ejecuto una serie interna de 20 ciclos sobre la base real; los primeros 10 cerraron correctamente con dashboard `GREEN` y finanzas reconciliadas, y el ciclo 11 quedo bloqueado por `403 Limite de deuda alcanzado`, confirmando que la serie avanza hasta agotar el umbral de deuda operativo.
+
+#### 4.9 GOAL-P1-005
+
+**Estado:** Cerrado  
+**Objetivo:** convertir la gestion operativa de deuda en una capacidad oficial y medible del producto para que el piloto no dependa de saneamientos manuales.  
+**Alcance:** reglas de generacion de deuda, umbral de bloqueo, proceso de liquidacion, desbloqueo del repartidor, alertas para administracion, estado visible en el dashboard y evidencias de deuda.  
+**No alcance:** nuevos consumidores de eventos, refactors del core, cambios de arquitectura o ampliacion comercial del piloto.  
+**Riesgos:** persistencia de bloqueos operativos, ambiguedad de reglas, dependencia de saneos manuales mientras la capacidad se implementa.  
+**Criterios de aceptacion:** reglas de deuda definidas, umbral explicitado, flujo de liquidacion y desbloqueo trazable, estado visible en dashboard, evidencias y metricas registradas.  
+**Evidencias:** documento de alcance de deuda, validaciones operativas, referencias en indice maestro, commits y pruebas relacionadas.  
+
+**Historial:**
+
+- 2026-07-24: Se cierra GOAL-P1-005 tras validar que el bloqueo por deuda es trazable, el saneamiento directo funciona sobre repartidores de prueba, la rotacion controlada opera con deuda en cero y el dashboard refleja el estado sin ambiguedad.
+
+#### 4.10 GOAL-P2-001
+
+**Estado:** Cerrado  
+**Objetivo:** preparar y ejecutar un piloto con comercios reales para validar el valor operativo de Nelly en escenarios cotidianos de negocio.  
+**Alcance:** seleccion de 5 comercios piloto, criterios de participacion, capacitacion breve, calendario operativo, metricas de negocio y formato unico de incidencias.  
+**No alcance:** nuevas capacidades arquitectonicas, refactors del core o ampliacion masiva de comercios.  
+**Riesgos:** procesos de comercio demasiado heterogeneos, baja adherencia operativa, ruido en metricas y confundir aprendizaje de negocio con deuda tecnica.  
+**Criterios de aceptacion:** 5 comercios definidos, criterios claros, capacitacion preparada, calendario cerrado, formato de incidencias unificado y metricas definidas.  
+**Evidencias:** lista de comercios, criterios de participacion, material de capacitacion, calendario operativo, formato unico de incidencias, referencias en indice maestro.
+
+**Historial:**
+
+- 2026-07-24: Se cierra GOAL-P2-001 tras recorrer completamente la semilla `market_v1` con cinco comercios distintos y cinco cierres consecutivos en verde, manteniendo la salud del backend, la sincronizacion y la lectura marketplace del dashboard operativo.
+
+#### 4.11 GOAL-C1-001
+
+**Estado:** Certificado  
+**Objetivo:** transformar los datos operativos ya certificados en un Dashboard Comercial util para tomar decisiones de ventas, operacion, clientes y finanzas.  
+**Alcance:** consumo exclusivo de la SSOT certificada, indicadores esenciales, visualizacion operativa y alertas accionables.  
+**No alcance:** nuevas fuentes de datos, cambios al core, CRM completo ni automatizaciones comerciales complejas.  
+**Riesgos:** acoplar la vista comercial al flujo de negocio, duplicar logica o introducir metricas inconsistentes.  
+**Criterios de aceptacion:** indicadores definidos, lectura consistente desde la SSOT, vista util y sin dependencia de fuentes paralelas.  
+**Evidencias:** Dashboard Comercial, pruebas de lectura desde SSOT, alertas basicas, referencias en indice maestro y commits de validacion.
+
+**Historial:**
+
+- 2026-07-24: Version inicial del goal C1 para formalizar el Dashboard Comercial como capacidad oficial.
+- 2026-07-24: Se define como siguiente objetivo operativo tras P1.5 y P2, con foco en ventas, pedidos, clientes, operacion y finanzas.
+- 2026-07-24: Se certifica con evidencia operativa real; el snapshot comercial responde en verde y expone datos consistentes con la SSOT y la operacion viva.
+
+#### 4.12 GOAL-C2-001
+
+**Estado:** Vigente  
+**Objetivo:** construir un CRM basico sobre la SSOT certificada para registrar y consultar historial de clientes y comercios sin crear una fuente paralela de verdad.  
+**Alcance:** historial de pedidos por cliente, actividad por comercio, recurrencia, ticket promedio, consultas basicas de seguimiento y plan tecnico de cuatro etapas.  
+**No alcance:** campañas automaticas, scoring predictivo, IA comercial o automatizaciones de marketing.  
+**Riesgos:** duplicar datos, mezclar seguimiento con core, convertir el CRM en una fuente distinta de verdad y sobrecargar la primera version con funciones prematuras.  
+**Criterios de aceptacion:** plan tecnico definido, lectura consistente desde la SSOT, historial util y continuidad con C1.  
+**Evidencias:** vistas o consultas de CRM, referencias en indice maestro y commits de validacion.
+
+**Historial:**
+
+- 2026-07-24: Version inicial del goal C2 para formalizar el CRM basico como siguiente capacidad.
+- 2026-07-24: Se define como capacidad posterior a GOAL-C1-001, apoyandose solo en la evidencia ya certificada.
+- 2026-07-24: Se formaliza el plan tecnico de cuatro etapas para arrancar por inventario y normalizacion antes de construir la ficha de cliente y la ficha de comercio.
+- 2026-07-24: Se incorpora el mapa inicial de campos CRM como primer entregable de la etapa de inventario y normalizacion.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.

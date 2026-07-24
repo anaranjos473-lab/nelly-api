@@ -30,6 +30,8 @@ const ui = {
   aiSummary: document.getElementById('ai-summary'),
   healthSignal: document.getElementById('health-signal'),
   healthSummary: document.getElementById('health-summary'),
+  marketplaceSignal: document.getElementById('marketplace-signal'),
+  marketplaceSummary: document.getElementById('marketplace-summary'),
   projectionAudit: document.getElementById('projection-audit'),
   projectionMetrics: document.getElementById('projection-metrics'),
   projectionFinance: document.getElementById('projection-finance'),
@@ -115,6 +117,9 @@ function renderSnapshot(snapshot) {
     `Ledger: ${snapshot?.health?.ledger ? 'OK' : 'NO'}`,
     `Finanzas: ${snapshot?.health?.finanzas ? 'OK' : 'NO'}`
   ].join(' · ');
+
+  ui.marketplaceSignal.textContent = snapshot?.projections?.marketplace?.signal || 'Sin datos';
+  ui.marketplaceSummary.textContent = `Comercios: ${snapshot?.projections?.marketplace?.summary?.comercios ?? 0} · Productos: ${snapshot?.projections?.marketplace?.summary?.productos ?? 0} · Disponibles: ${snapshot?.projections?.marketplace?.summary?.productos_disponibles ?? 0}`;
 
   ui.projectionAudit.textContent = snapshot?.projections?.audit?.signal || '-';
   ui.projectionMetrics.textContent = snapshot?.projections?.metrics?.signal || '-';
