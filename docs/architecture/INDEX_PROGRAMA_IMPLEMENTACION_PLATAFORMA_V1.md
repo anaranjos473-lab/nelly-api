@@ -11,7 +11,7 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 4. Revisar P4 para el piloto controlado.
 5. Revisar P5 para el congelamiento de la Release Candidate.
 6. Consultar RC1 como referencia de baseline y repositorios.
-7. Abrir la etapa operativa siguiente para P1.5, Dashboard Comercial y CRM basico.
+7. Abrir la etapa operativa siguiente para la consolidacion comercial: CRM basico, fidelizacion basica e inteligencia comercial.
 
 ## Bloques del programa
 
@@ -38,10 +38,9 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 
 ### Etapa operativa siguiente
 - [`PROGRAMA_IMPLEMENTACION_CIERRE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_CIERRE_V1.md)
-  - P1.5 - Gestion Operativa de Deuda
-  - GOAL-C1-001 - Dashboard Comercial
-  - Dashboard Comercial
-  - CRM basico sobre evidencia real
+  - GOAL-C2-001 - CRM Basico
+  - GOAL-C3-001 - Fidelizacion Basica
+  - GOAL-C4-001 - Inteligencia Comercial
 
 ## Referencias de estabilizacion
 

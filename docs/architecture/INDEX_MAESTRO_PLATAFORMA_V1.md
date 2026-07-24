@@ -127,7 +127,7 @@ La capacidad se considera exitosa cuando permite consultar historial, recurrenci
 ### RC1.1 - Consolidacion y baseline
 - [`RC1_BASELINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_BASELINE_V1.md)
 #### Resumen RC1.1
-La consolidacion RC1 fija una normalizacion minima del CRM y deja un baseline de rendimiento del snapshot operativo como referencia antes de abrir C3.
+La consolidacion RC1 fijo una normalizacion minima del CRM y dejo un baseline de rendimiento del snapshot operativo como referencia para la etapa de crecimiento comercial.
 
 ### Goal C3 - Fidelizacion Basica
 - [`GOAL-C3-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C3-001.md)
@@ -135,6 +135,11 @@ La consolidacion RC1 fija una normalizacion minima del CRM y deja un baseline de
 La fidelizacion basica convierte el historial ya validado en acciones simples de recompra, seguimiento y retencion sobre la SSOT certificada.
 #### Evidencia C3
 - [`C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md)
+
+### Goal C4 - Inteligencia Comercial
+- [`GOAL-C4-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C4-001.md)
+#### Resumen C4
+La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en oportunidades y acciones sugeridas para clientes y comercios, sin crear una nueva fuente de verdad.
 
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
