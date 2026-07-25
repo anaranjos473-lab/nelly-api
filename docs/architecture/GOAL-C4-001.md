@@ -1,7 +1,7 @@
 # GOAL-C4-001
 ## Inteligencia Comercial - Nelly OS
 
-**Estado:** Certificado  
+**Estado:** Certificado con salvedad  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
@@ -97,6 +97,10 @@ GOAL-C4-001 se considerara exitoso cuando:
 ### 5.2 Estado de cierre
 
 GOAL-C4-001 queda certificado como la primera version funcional de inteligencia comercial sobre la SSOT certificada. La capacidad deja de estar abierta y pasa a formar parte de la base consolidada del ecosistema Nelly.
+
+### 5.3 Salvedad operativa
+
+La certificacion funcional queda respaldada por la estructura implementada, la integracion en `main` y la documentacion consolidada. La validacion visual autenticada final se mantiene como comprobacion de rutina recomendada, sin reabrir el alcance funcional del goal.
 
 ### 6. Evidencias
 

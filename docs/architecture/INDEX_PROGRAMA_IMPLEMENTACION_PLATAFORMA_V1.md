@@ -42,8 +42,11 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
   - GOAL-C3-001 - Fidelizacion Basica
   - GOAL-C4-001 - Inteligencia Comercial (certificado)
   - GOAL-C5-001 - Promociones Ligeras (baseline abierta)
+  - GOAL-G1-001 - Gate Ecosistema Comercial (baseline abierta)
   - C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md
   - CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md
+  - G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md
+  - CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md
 
 ## Referencias de estabilizacion
 

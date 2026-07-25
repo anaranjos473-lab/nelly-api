@@ -234,6 +234,20 @@ Todo goal del NES debe seguir esta estructura:
 - 2026-07-24: Version inicial del goal para formalizar promociones ligeras como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior a C4, con foco en sugerencias manuales y reactivacion ligera.
 
+#### 4.16 GOAL-G1-001
+
+**Estado:** Baseline abierta  
+**Objetivo:** verificar que C2, C3, C4 y C5 funcionan como un unico ecosistema comercial sobre la misma SSOT certificada, sin reglas duplicadas ni indicadores contradictorios.  
+**Alcance:** revision transversal de CRM, fidelizacion, inteligencia comercial y promociones ligeras; consistencia de metricas; ausencia de duplicacion de reglas.  
+**No alcance:** nuevas capacidades, automatizacion adicional, scoring predictivo o cambios al core operativo.  
+**Riesgos:** fragmentacion del ecosistema, inconsistencias entre vistas o interpretaciones contradictorias de la SSOT.  
+**Criterios de aceptacion:** misma SSOT en C2-C5, metricas coincidentes, reglas no duplicadas y coherencia transversal.  
+**Evidencias:** revision cruzada de C2-C5, checklist de consistencia y referencias en indice maestro.
+
+**Historial:**
+
+- 2026-07-25: Se abre el Gate G1 para validar el ecosistema comercial como un unico sistema sobre la SSOT certificada.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.
