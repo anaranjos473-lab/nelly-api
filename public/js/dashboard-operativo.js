@@ -43,6 +43,15 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   'operaciones@nellydelivery.com'
 ]);
 
+function renderEmptyState(title, body) {
+  return `
+    <div class="nelly-empty-state">
+      <p class="nelly-empty-state__title">${title}</p>
+      <p class="nelly-empty-state__body">${body}</p>
+    </div>
+  `;
+}
+
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
@@ -85,7 +94,7 @@ async function fetchOperationalDashboard() {
 }
 
 function renderSnapshot(snapshot) {
-  ui.dashboardStatus.textContent = snapshot?.ok ? 'GREEN' : 'UNHEALTHY';
+  ui.dashboardStatus.textContent = snapshot?.ok ? 'SALUDABLE' : 'CON ALERTAS';
   ui.dashboardStatus.className = snapshot?.ok
     ? 'mt-1 text-2xl font-bold text-ops-accent'
     : 'mt-1 text-2xl font-bold text-red-300';
@@ -96,19 +105,29 @@ function renderSnapshot(snapshot) {
   ui.overviewComisiones.textContent = money(snapshot?.overview?.comisiones_nelly ?? 0);
 
   ui.auditSignal.textContent = snapshot?.projections?.audit?.signal || 'Sin señal';
-  ui.auditSummary.textContent = `Eventos: ${snapshot?.projections?.audit?.summary?.total_eventos ?? 0} · Entregas: ${snapshot?.projections?.audit?.summary?.entregas_registradas ?? 0}`;
+  ui.auditSummary.textContent = snapshot?.projections?.audit?.signal
+    ? `Eventos: ${snapshot?.projections?.audit?.summary?.total_eventos ?? 0} · Entregas: ${snapshot?.projections?.audit?.summary?.entregas_registradas ?? 0}`
+    : 'Esperando suficientes eventos para generar una señal auditiva confiable.';
 
   ui.metricsSignal.textContent = snapshot?.projections?.metrics?.signal || 'Sin señal';
-  ui.metricsSummary.textContent = `Entregas hoy: ${snapshot?.projections?.metrics?.summary?.pedido_entregado ?? 0} · Eventos: ${snapshot?.projections?.metrics?.summary?.total_eventos ?? 0}`;
+  ui.metricsSummary.textContent = snapshot?.projections?.metrics?.signal
+    ? `Entregas hoy: ${snapshot?.projections?.metrics?.summary?.pedido_entregado ?? 0} · Eventos: ${snapshot?.projections?.metrics?.summary?.total_eventos ?? 0}`
+    : 'Aun no hay volumen suficiente para consolidar métricas operativas.';
 
   ui.financeSignal.textContent = snapshot?.projections?.finance?.ledger?.reconciled ? 'Ledger conciliado' : 'Ledger pendiente';
-  ui.financeSummary.textContent = `Ventas: ${money(snapshot?.projections?.finance?.summary?.ventas_brutas ?? 0)} · Comisión: ${money(snapshot?.projections?.finance?.summary?.comisiones_nelly ?? 0)}`;
+  ui.financeSummary.textContent = snapshot?.projections?.finance?.ledger?.reconciled
+    ? `Ventas: ${money(snapshot?.projections?.finance?.summary?.ventas_brutas ?? 0)} · Comisión: ${money(snapshot?.projections?.finance?.summary?.comisiones_nelly ?? 0)}`
+    : 'El ledger aún no se ha reconciliado por completo en esta lectura.';
 
   ui.notificationSignal.textContent = `${snapshot?.projections?.notification?.summary?.active ?? 0} notificaciones proyectadas`;
-  ui.notificationSummary.textContent = `Canal push: ${snapshot?.projections?.notification?.summary?.byChannel?.push ?? 0}`;
+  ui.notificationSummary.textContent = snapshot?.projections?.notification?.summary?.active > 0
+    ? `Canal push: ${snapshot?.projections?.notification?.summary?.byChannel?.push ?? 0}`
+    : 'Sin notificaciones proyectadas para esta lectura.';
 
   ui.aiSignal.textContent = snapshot?.projections?.ai?.insights?.[0]?.recommendation || 'Sin recomendacion';
-  ui.aiSummary.textContent = `Score: ${snapshot?.projections?.ai?.insights?.[0]?.score ?? 0}`;
+  ui.aiSummary.textContent = snapshot?.projections?.ai?.insights?.length
+    ? `Score: ${snapshot?.projections?.ai?.insights?.[0]?.score ?? 0}`
+    : 'Todavía no hay recomendaciones de IA para esta sesión.';
 
   ui.healthSignal.textContent = snapshot?.health?.backend ? 'Backend saludable' : 'Backend no validado';
   ui.healthSummary.textContent = [
@@ -119,7 +138,9 @@ function renderSnapshot(snapshot) {
   ].join(' · ');
 
   ui.marketplaceSignal.textContent = snapshot?.projections?.marketplace?.signal || 'Sin datos';
-  ui.marketplaceSummary.textContent = `Comercios: ${snapshot?.projections?.marketplace?.summary?.comercios ?? 0} · Productos: ${snapshot?.projections?.marketplace?.summary?.productos ?? 0} · Disponibles: ${snapshot?.projections?.marketplace?.summary?.productos_disponibles ?? 0}`;
+  ui.marketplaceSummary.textContent = snapshot?.projections?.marketplace?.signal
+    ? `Comercios: ${snapshot?.projections?.marketplace?.summary?.comercios ?? 0} · Productos: ${snapshot?.projections?.marketplace?.summary?.productos ?? 0} · Disponibles: ${snapshot?.projections?.marketplace?.summary?.productos_disponibles ?? 0}`
+    : 'Sin actividad de marketplace suficiente para mostrar una lectura comercial.';
 
   ui.projectionAudit.textContent = snapshot?.projections?.audit?.signal || '-';
   ui.projectionMetrics.textContent = snapshot?.projections?.metrics?.signal || '-';
@@ -132,9 +153,12 @@ async function refreshDashboard() {
     const snapshot = await fetchOperationalDashboard();
     renderSnapshot(snapshot);
   } catch (error) {
-    ui.dashboardStatus.textContent = 'ERROR';
+    ui.dashboardStatus.textContent = 'SIN DATOS';
     ui.dashboardStatus.className = 'mt-1 text-2xl font-bold text-red-300';
-    ui.projectionSummary.textContent = error.message;
+    ui.projectionSummary.innerHTML = renderEmptyState(
+      'No fue posible cargar el snapshot',
+      error.message
+    );
   }
 }
 

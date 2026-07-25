@@ -17,12 +17,12 @@ async function refreshRentabilidadMetrics() {
           .sort((a, b) => b[1] - a[1])
           .map(([zona, total]) => `<li class="flex justify-between border-b border-panel-line/40 pb-1"><span>${escapeHtml(zona)}</span><span class="font-bold">$${Number(total).toFixed(2)}</span></li>`)
           .join("")
-      : '<li class="text-slate-400 col-span-2">Sin entregas hoy</li>';
+      : '<li class="nelly-empty-state nelly-empty-state__body col-span-2">Sin entregas hoy</li>';
   } catch (error) {
     document.getElementById("metric-ventas-brutas").textContent = "$0.00";
     document.getElementById("metric-comisiones-nelly").textContent = "$0.00";
     document.getElementById("metric-conteo-entregas").textContent = "0";
-    document.getElementById("metric-mapa-calor").innerHTML = '<li class="text-slate-400 col-span-2">No disponible</li>';
+    document.getElementById("metric-mapa-calor").innerHTML = '<li class="nelly-empty-state nelly-empty-state__body col-span-2">Mapa no disponible</li>';
   }
 }
 import { auth, rtdb } from "./admin-firebase-config.js";
