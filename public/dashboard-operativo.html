@@ -36,17 +36,17 @@
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div class="max-w-2xl space-y-3">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-3xl space-y-4">
             <div class="flex flex-wrap items-center gap-2">
               <span class="nelly-chip nelly-chip--success">Tiempo real</span>
               <span class="nelly-chip nelly-chip--info">S4</span>
-              <span class="nelly-chip nelly-chip--accent">Operación</span>
+              <span class="nelly-chip nelly-chip--accent">Operacion</span>
             </div>
             <div>
               <p class="nelly-section-label text-ops-accent">S4 · Dashboard Operativo Unificado</p>
-              <h1 class="nelly-hero-title mt-2">Panel de Operaciones</h1>
-              <p class="mt-3 max-w-2xl text-sm text-slate-300">Lectura unificada del estado operativo, financiero y de observabilidad para decidir rápido qué está sano, qué requiere atención y qué sigue en cola.</p>
+              <h1 class="nelly-hero-title mt-2">Centro de Control Operativo</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Lectura unificada del estado operativo, financiero y de observabilidad para decidir rapido que esta sano, que requiere atencion y que sigue en cola.</p>
             </div>
             <div class="nelly-divider"></div>
             <div class="flex flex-wrap gap-2">
@@ -54,6 +54,7 @@
               <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar datos</button>
             </div>
           </div>
+
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-[34rem]">
             <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos activos</p>
@@ -78,7 +79,7 @@
       <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
         <p class="nelly-section-label">Acceso S4</p>
         <h2 class="nelly-hero-title mt-2 text-2xl">Consultar snapshot unificado</h2>
-        <p class="mt-2 text-sm text-slate-300">Usa una cuenta autorizada del panel administrativo para abrir el estado operativo en tiempo real.</p>
+        <p class="mt-2 text-sm leading-6 text-slate-300">Usa una cuenta autorizada del panel administrativo para abrir el estado operativo en tiempo real.</p>
         <form id="login-form" class="mt-5 space-y-4">
           <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
           <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
@@ -90,10 +91,10 @@
       <section id="dashboard-section" class="hidden space-y-6">
         <article class="nelly-panel p-5 sm:p-6">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado general</p>
               <h2 id="dashboard-status" class="mt-1 text-3xl font-bold text-ops-accent">Cargando...</h2>
-              <p class="mt-2 max-w-2xl text-sm text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
+              <p class="mt-2 text-sm leading-6 text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <span class="nelly-chip nelly-chip--success">Backend vivo</span>
@@ -103,43 +104,43 @@
           </div>
         </article>
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <section class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Audit Consumer</p>
             <h3 id="audit-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
-            <p id="audit-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="audit-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura del consumidor de auditoria.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Metrics Consumer</p>
             <h3 id="metrics-signal" class="mt-2 text-xl font-semibold text-ops-info">Sin datos</h3>
-            <p id="metrics-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="metrics-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura del consumidor de metricas.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Finance Consumer</p>
             <h3 id="finance-signal" class="mt-2 text-xl font-semibold text-ops-warn">Sin datos</h3>
-            <p id="finance-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="finance-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura financiera consolidada.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Notification Consumer</p>
             <h3 id="notification-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
-            <p id="notification-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="notification-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando actividad del canal de notificaciones.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">AI Consumer</p>
             <h3 id="ai-signal" class="mt-2 text-xl font-semibold text-ops-info">Sin datos</h3>
-            <p id="ai-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="ai-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando recomendaciones del consumidor IA.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Observabilidad</p>
             <h3 id="health-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
-            <p id="health-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="health-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura de salud general del sistema.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Marketplace</p>
             <h3 id="marketplace-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
-            <p id="marketplace-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="marketplace-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando proyeccion del ecosistema comercial.</p>
           </article>
-        </div>
+        </section>
 
         <article class="nelly-panel p-5 sm:p-6">
           <div class="flex items-center justify-between gap-3">
@@ -169,6 +170,6 @@
     </main>
   </div>
 
-  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-2"></script>
+  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-3"></script>
 </body>
 </html>
