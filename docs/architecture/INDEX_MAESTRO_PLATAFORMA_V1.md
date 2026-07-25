@@ -185,10 +185,10 @@ El mapa final distingue capacidades cerradas, dominios abiertos y controles tran
 #### Resumen Matriz Final
 La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 y RC2, y deja a C5 como baseline abierta con evidencia estructural consolidada.
 
-### Validacion Operativa C4 C5 Q1
+### OV1 - Validacion Operativa del Ecosistema
 - [`VALIDACION_OPERATIVA_C4_C5_Q1_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_OPERATIVA_C4_C5_Q1_V1.md)
-#### Resumen Validacion Operativa
-Esta etapa mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades.
+#### Resumen OV1
+OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades.
 
 ### Goal Q1 - Calidad Operativa
 - [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)

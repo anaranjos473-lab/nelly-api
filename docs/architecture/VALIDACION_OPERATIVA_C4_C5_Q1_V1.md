@@ -1,25 +1,94 @@
-# VALIDACION OPERATIVA C4 C5 Q1 V1
+# OV1 VALIDACION OPERATIVA DEL ECOSISTEMA V1
 
-**Estado:** Etapa de validacion abierta  
+**Estado:** Programa formal abierto  
 **Ambito:** Ecosistema comercial Nelly OS  
 **Referencia principal:** `MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md`
 
 ## 1. Proposito
 
-Abrir una etapa orientada a la validacion operativa del ecosistema comercial para responder con datos reales si las recomendaciones de C4, las promociones de C5 y las acciones derivadas de Q1 generan impacto medible sobre la operacion.
+Demostrar con datos reales que el ecosistema comercial aporta valor operativo y comercial sobre la SSOT certificada, sin abrir nuevas capacidades ni reescribir la arquitectura estable.
 
-## 2. Preguntas de validacion
+## 2. Objetivo general
 
-Esta etapa debe responder, con evidencia real:
+Responder con evidencia medible si:
 
-- si las recomendaciones de C4 ayudan a tomar mejores decisiones;
-- si las promociones de C5 generan resultados medibles;
-- si las acciones propuestas desde Q1 reducen incidencias y mermas;
-- si la informacion capturada es suficiente para identificar tendencias y oportunidades.
+- las recomendaciones de C4 mejoran decisiones;
+- las promociones de C5 generan resultados medibles;
+- las acciones propuestas desde Q1 reducen incidencias y mermas;
+- la informacion capturada permite identificar tendencias y oportunidades.
 
-## 3. Alcance
+## 3. Objetivos por dominio
 
-La validacion cubre:
+### 3.1 Objetivo C4
+
+**Pregunta:** ¿Las recomendaciones ayudan a tomar mejores decisiones?
+
+**Evidencias esperadas:**
+
+- numero de recomendaciones generadas;
+- recomendaciones revisadas;
+- recomendaciones aplicadas;
+- resultado observado despues de aplicarlas;
+- tiempo hasta observar un efecto.
+
+**Criterio de salida:**
+
+- al menos una recomendacion aplicada con impacto verificable.
+
+### 3.2 Objetivo C5
+
+**Pregunta:** ¿Las promociones generan un resultado medible?
+
+**Evidencias esperadas:**
+
+- promociones propuestas;
+- promociones activadas;
+- clientes alcanzados;
+- clientes que regresaron;
+- incremento de ventas asociado;
+- comercios participantes.
+
+**Criterio de salida:**
+
+- al menos una promocion con un resultado cuantificable, independientemente de si fue positivo o negativo.
+
+### 3.3 Objetivo Q1
+
+**Pregunta:** ¿Registrar calidad permite mejorar la operacion?
+
+**Evidencias esperadas:**
+
+- incidencias registradas;
+- causas raiz identificadas;
+- acciones correctivas implementadas;
+- reincidencias;
+- reduccion o no de problemas tras la accion.
+
+**Criterio de salida:**
+
+- al menos una mejora documentada con seguimiento.
+
+### 3.4 Objetivo Datos
+
+**Pregunta:** ¿La informacion es suficiente para encontrar patrones?
+
+**Validar:**
+
+- productos problematicos;
+- horarios conflictivos;
+- comercios con mas incidencias;
+- repartidores con mejor desempeno;
+- tipos de merma;
+- motivos de cancelacion;
+- clientes recurrentes.
+
+**Criterio de salida:**
+
+- identificar tendencias reales respaldadas por los datos capturados.
+
+## 4. Alcance
+
+El programa cubre:
 
 - `GOAL-C4-001 - Inteligencia Comercial`;
 - `GOAL-C5-001 - Promociones Ligeras`;
@@ -27,23 +96,38 @@ La validacion cubre:
 - las relaciones con C2 y C3 que alimentan la lectura comercial;
 - la SSOT certificada como unica fuente de verdad.
 
-## 4. Criterios de observacion
+## 5. Indicadores del ecosistema
 
-La etapa debe observar, como minimo:
+### 5.1 Operacion
 
+- pedidos completados;
 - tiempo promedio de entrega;
-- entregas exitosas;
-- incidencias por tipo;
-- mermas por comercio;
-- causas raiz mas frecuentes;
-- recomendaciones emitidas por C4;
-- acciones comerciales ejecutadas desde C5;
-- evolucion de la recompra y la retencion;
-- impacto de las mejoras derivadas de Q1.
+- entregas puntuales;
+- cancelaciones.
 
-## 5. Regla de funcionamiento
+### 5.2 Calidad
 
-Durante esta etapa:
+- incidencias;
+- mermas;
+- danos;
+- reincidencias.
+
+### 5.3 Comercial
+
+- clientes recurrentes;
+- comercios activos;
+- promociones;
+- conversion.
+
+### 5.4 Inteligencia
+
+- recomendaciones emitidas;
+- recomendaciones implementadas;
+- acciones exitosas.
+
+## 6. Regla de funcionamiento
+
+Durante este programa:
 
 - no se deben abrir nuevas capacidades por inercia;
 - no se deben duplicar fuentes de verdad;
@@ -51,20 +135,20 @@ Durante esta etapa:
 - toda mejora debe justificarse con datos observables;
 - cualquier ajuste debe conservar la coherencia entre C4, C5 y Q1.
 
-## 6. Criterio de salida
+## 7. Criterio de cierre
 
-La etapa podra cerrarse cuando exista evidencia suficiente de que:
+OV1 podra cerrarse cuando exista evidencia suficiente de que:
 
 - las recomendaciones de C4 mejoran decisiones;
 - las promociones de C5 generan resultados medibles;
 - Q1 reduce incidencias o mermas con acciones concretas;
 - la informacion capturada permite identificar tendencias y oportunidades;
-- el ecosistema puede medirse por impacto, no solo por implementacion.
+- el ecosistema puede medirse por impacto y no solo por implementacion.
 
-## 7. Relacion con RC2
+## 8. Relacion con RC2
 
-`RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md` sigue siendo la referencia de arquitectura estable. Esta etapa no modifica RC2; lo usa como linea base para medir resultados sobre el ecosistema ya consolidado.
+`RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md` sigue siendo la referencia de arquitectura estable. OV1 no modifica RC2; lo usa como linea base para medir resultados sobre el ecosistema ya consolidado.
 
-## 8. Historial
+## 9. Historial
 
-- 2026-07-25: Se abre formalmente la etapa de validacion operativa sobre C4, C5 y Q1.
+- 2026-07-25: Se formaliza OV1 como programa de validacion operativa del ecosistema comercial.
