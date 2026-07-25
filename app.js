@@ -65,7 +65,9 @@ const panelAliases = {
     '/crm': '/crm-basico.html',
     '/driver': '/repartidor.html',
     '/analytics': '/panel.html',
-    '/developer': '/panel.html'
+    '/developer': '/panel.html',
+    '/tracking': '/seguimiento.html',
+    '/cliente': '/seguimiento.html'
 };
 
 for (const [alias, target] of Object.entries(panelAliases)) {

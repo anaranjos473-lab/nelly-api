@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nelly OS - Seguimiento Cliente</title>
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/themes.css" />
+  <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/components/button.css" />
+  <link rel="stylesheet" href="/styles/components/card.css" />
+  <link rel="stylesheet" href="/styles/components/badge.css" />
+  <link rel="stylesheet" href="/styles/components/forms.css" />
+  <style>
+    body { margin: 0; min-height: 100vh; font-family: var(--nelly-font); color: #e5eefb; background: radial-gradient(circle at top left, rgba(255,199,60,.16), transparent 30%), radial-gradient(circle at bottom right, rgba(62,113,255,.16), transparent 28%), linear-gradient(180deg,#07111f 0%,#081525 50%,#050b14 100%); }
+    .wrap { width: min(980px, calc(100vw - 32px)); margin: 0 auto; padding: 32px 0 48px; }
+    .panel { border: 1px solid rgba(255,255,255,.08); background: rgba(8,15,28,.78); backdrop-filter: blur(16px); border-radius: 28px; box-shadow: 0 24px 80px rgba(0,0,0,.35); padding: 24px; }
+    .timeline { display: grid; gap: 12px; margin-top: 18px; }
+    .step { display:flex; justify-content:space-between; gap:16px; border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px 16px; background: rgba(255,255,255,.03); }
+    .step strong { display:block; }
+    .step p { margin:4px 0 0; color:#b6c6da; font-size:.92rem; }
+    .ok { color:#00d9a6; font-weight:800; }
+    .no { color:#8ea2bb; font-weight:700; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <p class="nelly-section-label">Nelly OS · Cliente</p>
+      <h1 class="nelly-hero-title mt-2">Seguimiento de pedido por estados</h1>
+      <p class="mt-3 text-sm leading-6 text-slate-300">Sin mapa para el piloto. Solo lectura clara de estado para saber si el pedido fue recibido, preparado, asignado, va en camino o ya fue entregado.</p>
+      <div class="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+        <input id="pedido-id" class="nelly-input px-3 py-3 text-sm" placeholder="Escribe tu pedido o pega el ID" />
+        <button id="btn-consultar" class="nelly-btn nelly-btn--accent">Consultar estado</button>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <a href="/os" class="nelly-btn nelly-btn--ghost">Volver a Nelly OS</a>
+        <span class="nelly-chip nelly-chip--info">Tracking simple</span>
+      </div>
+      <section class="mt-6">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-slate-400">Estado actual</p>
+            <h2 id="estado-actual" class="text-2xl font-bold text-panel-accent">Pendiente de consulta</h2>
+          </div>
+          <span id="pedido-meta" class="nelly-chip">Sin pedido</span>
+        </div>
+        <div id="feedback" class="mt-4 hidden rounded-xl border border-slate-700 bg-slate-900/45 px-3 py-2 text-sm text-slate-200"></div>
+        <div id="timeline" class="timeline"></div>
+      </section>
+    </section>
+  </main>
+  <script type="module">
+    const input = document.getElementById('pedido-id');
+    const btn = document.getElementById('btn-consultar');
+    const estadoActual = document.getElementById('estado-actual');
+    const pedidoMeta = document.getElementById('pedido-meta');
+    const timeline = document.getElementById('timeline');
+    const feedback = document.getElementById('feedback');
+    const statusLabels = { CREADO: 'Pedido recibido', LISTO: 'En preparación', EN_CURSO: 'Repartidor asignado', ENTREGADO: 'Entregado' };
+    function renderTimeline(items = []) {
+      timeline.innerHTML = items.map((item) => `<div class="step"><div><strong>${item.label}</strong><p>${item.key}</p></div><div class="${item.done ? 'ok' : 'no'}">${item.done ? 'Hecho' : 'Pendiente'}</div></div>`).join('');
+    }
+    async function consultar() {
+      const pedidoId = String(input.value || '').trim();
+      if (!pedidoId) {
+        feedback.textContent = 'Escribe un ID de pedido para consultar.';
+        feedback.classList.remove('hidden');
+        estadoActual.textContent = 'Sin pedido';
+        pedidoMeta.textContent = 'Falta ID';
+        renderTimeline([]);
+        return;
+      }
+      feedback.classList.add('hidden');
+      estadoActual.textContent = 'Consultando...';
+      pedidoMeta.textContent = 'Cargando';
+      try {
+        const response = await fetch(`/api/pedidos/${encodeURIComponent(pedidoId)}/seguimiento`);
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        const estado = String(data.estado || '').trim().toUpperCase();
+        estadoActual.textContent = statusLabels[estado] || estado || 'Sin estado';
+        pedidoMeta.textContent = data.pedidoId;
+        renderTimeline(Array.isArray(data.timeline) ? data.timeline : []);
+      } catch (error) {
+        estadoActual.textContent = 'No encontrado';
+        pedidoMeta.textContent = 'Error';
+        feedback.textContent = `No se pudo consultar el pedido: ${error.message}`;
+        feedback.classList.remove('hidden');
+        renderTimeline([]);
+      }
+    }
+    btn.addEventListener('click', consultar);
+    input.addEventListener('keydown', (event) => { if (event.key === 'Enter') consultar(); });
+    const params = new URLSearchParams(window.location.search);
+    const pedido = params.get('pedido');
+    if (pedido) { input.value = pedido; consultar(); }
+  </script>
+</body>
+</html>
