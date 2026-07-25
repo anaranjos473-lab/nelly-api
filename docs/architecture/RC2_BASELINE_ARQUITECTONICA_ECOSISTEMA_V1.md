@@ -73,6 +73,10 @@ Esta baseline debe consultarse antes de abrir nuevas capacidades comerciales u o
 
 `GOAL-G1-001` y sus matrices asociadas sirven como checkpoint transversal. `RC2` formaliza la arquitectura estable que resulta de ese checkpoint.
 
+## 7.1 Relacion con el mapa final de estado
+
+`ESTADO_FINAL_ECOSISTEMA_V1.md` resume que C2 queda cerrado funcionalmente, C4 queda cerrado con salvedad operativa, C5 permanece como baseline abierta, Q1 permanece como dominio transversal en apertura y G1 sigue como gate activo.
+
 ## 8. Historial
 
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.
