@@ -47,6 +47,7 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
   - CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md
   - G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md
   - CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md
+- [`ROADMAP_COMERCIAL_NELLY_COMMERCE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ROADMAP_COMERCIAL_NELLY_COMMERCE_V1.md)
 
 ## Referencias de estabilizacion
 
