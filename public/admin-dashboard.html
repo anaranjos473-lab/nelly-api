@@ -4,34 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nelly Delivery - Admin Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            panel: {
-              bg: "#0b1020",
-              card: "#121a2e",
-              line: "#253252",
-              accent: "#00d9a6",
-              warn: "#ff7a59",
-              info: "#6ea8fe"
-            }
-          },
-          boxShadow: {
-            glow: "0 0 0 1px rgba(0,217,166,0.2), 0 12px 30px rgba(0,0,0,0.35)"
-          }
-        }
-      }
-    };
-  </script>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
   <style>
     .map-shell {
       position: relative;
@@ -44,7 +16,7 @@
 
     #order-map {
       width: 100%;
-      height: 320px;
+      min-height: 320px;
     }
 
     .map-pin {
@@ -76,11 +48,6 @@
       z-index: 400;
     }
   </style>
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />

@@ -73,6 +73,17 @@ Con base en el piloto validado:
 - las finanzas responden correctamente en el flujo validado;
 - no se detectaron regresiones del nucleo durante el piloto.
 
+## Cierre de validacion visual pre-piloto
+
+Fecha de cierre: `2026-07-25`
+
+- `npm run validate:panels-pre-pilot` finalizo en `ok: true`.
+- Panel Comercial: `PASS` en desktop y mobile.
+- Panel Operativo: `PASS` en desktop y mobile.
+- Panel Administrativo: `PASS` en desktop y mobile.
+- Se elimino la dependencia de CDNs externos en el render de los paneles pre-piloto.
+- La validacion quedo registrada con evidencia en `.codex-tmp/panel-validation/validation-report.json`.
+
 ## Pendientes no bloqueantes
 - Validacion del flujo de pago electronico cuando exista una ruta especifica para probarlo.
 - Ejecucion de `validate-functional-metrics` en un entorno con Firebase operativo.

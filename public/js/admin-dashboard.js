@@ -310,10 +310,10 @@ function syncLocationFromMapCenter(labelConfirmado) {
 
 function updateMapMarker(lat, lng, zoom = 17) {
   if (!orderMapInstance || !coordenadaValida(lat, lng)) return;
-  orderMapInstance.setView([lat, lng], zoom, { animate: true });
-  if (!orderMapMarker) {
-    orderMapMarker = L.marker([lat, lng], { draggable: false }).addTo(orderMapInstance);
-  } else {
+  if (typeof orderMapInstance.setView === 'function') {
+    orderMapInstance.setView([lat, lng], zoom, { animate: true });
+  }
+  if (orderMapMarker && typeof orderMapMarker.setLatLng === 'function') {
     orderMapMarker.setLatLng([lat, lng]);
   }
 }
@@ -379,24 +379,33 @@ async function refreshLocationFromCenter(trigger = "moved") {
 }
 
 function initOrderMap() {
-  if (orderMapReady || !ui.orderMap || typeof window.L === "undefined") return;
+  if (orderMapReady || !ui.orderMap) return;
 
-  orderMapInstance = L.map(ui.orderMap, {
-    zoomControl: true,
-    scrollWheelZoom: true
-  }).setView([getActiveLocation().lat, getActiveLocation().lng], 17);
+  ui.orderMap.innerHTML = `
+    <div class="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-panel-line bg-slate-950/35 p-6 text-center">
+      <div class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-100">
+        Mapa local
+      </div>
+      <h4 class="text-base font-semibold text-slate-100">Mapa sin dependencias externas</h4>
+      <p class="max-w-md text-sm leading-6 text-slate-300">
+        La captura de ubicaci&oacute;n opera con coordenadas y b&uacute;squeda manual, sin depender de Leaflet ni de tiles remotos.
+      </p>
+      <p class="text-xs text-slate-400">Coordenadas activas: ${getActiveLocation().lat.toFixed(6)}, ${getActiveLocation().lng.toFixed(6)}</p>
+    </div>
+  `;
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(orderMapInstance);
-
-  orderMapInstance.on("moveend", () => {
-    refreshLocationFromCenter("moveend");
-  });
-
+  orderMapInstance = {
+    getCenter() {
+      return {
+        lat: getActiveLocation().lat,
+        lng: getActiveLocation().lng
+      };
+    },
+    setView() {
+      return this;
+    }
+  };
   orderMapReady = true;
-  updateMapMarker(getActiveLocation().lat, getActiveLocation().lng, 17);
 }
 
 function escapeHtml(value) {

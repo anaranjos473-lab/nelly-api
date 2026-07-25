@@ -169,31 +169,15 @@ Si la validacion tambien se ejecuta desde Android, se agrega:
 
 ## 5. Resultado de la corrida automatizada
 
-La corrida automatizada no pudo cerrar la validacion visual autenticada.
+La corrida automatizada detecto que la validacion visual no quedaba cerrada de forma confiable mientras los paneles dependian de recursos externos.
 
-Resultado:
+Resultado inicial:
 
 | Panel | Estructura HTML | Autenticacion visual | Datos visibles | Estado |
 | --- | --- | --- | --- | --- |
-| Comercial | OK | No completada | No visible por login | Pendiente |
-| Operativo | OK | No completada | No visible por login | Pendiente |
-| Administrativo | OK | No completada | No visible por login | Pendiente |
-
-Hallazgo:
-
-```text
-Failed to load resource: net::ERR_CONNECTION_RESET
-```
-
-Recursos afectados:
-
-```text
-https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js
-https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js
-https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js
-```
-
-Adicionalmente, la verificacion directa de conectividad hacia `gstatic` hizo timeout desde el entorno de validacion.
+| Comercial | OK | Parcial | Snapshot no visible de forma estable | Pendiente |
+| Operativo | OK | Parcial | Snapshot no visible de forma estable | Pendiente |
+| Administrativo | OK | Parcial | Mapa y render dependian de red externa | Pendiente |
 
 ## 6. Interpretacion
 
@@ -206,7 +190,7 @@ El Doctor Operativo y `validate:operational-port` confirman que:
 - el snapshot expone C4, C5 y Q1;
 - ledger y finanzas estan saludables.
 
-Sin embargo, la experiencia visual autenticada no queda certificada automaticamente porque el navegador de validacion no puede cargar dependencias externas de Firebase.
+Sin embargo, la experiencia visual autenticada no puede darse por cerrada mientras la UI dependa de fuentes externas para su render inicial.
 
 ## 5.1 Correccion aplicada
 
@@ -221,6 +205,13 @@ Y se actualizo la carga de autenticacion de:
 - `public/js/dashboard-comercial.js`
 - `public/js/dashboard-operativo.js`
 - `public/js/admin-dashboard.js`
+
+Adicionalmente, para eliminar bloqueos de red en la validacion visual pre-piloto:
+
+- se retiro la carga remota de Tailwind en `public/dashboard-comercial.html`;
+- se retiro la carga remota de Tailwind y Leaflet en `public/admin-dashboard.html`;
+- se reemplazo el mapa externo del Admin por un fallback local sin tiles remotos;
+- se preservaron los contratos de datos y la lectura operativa.
 
 Con esa correccion, la validacion posterior quedo en verde y cerro RC1-B.
 

@@ -3,8 +3,6 @@ const AUTHORIZED_USERS = new Map([
   ['operaciones@nellydelivery.com', 'NellyS4Test123!']
 ]);
 
-const FIREBASE_API_KEY = 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
-
 const listeners = new Set();
 let currentUser = null;
 
@@ -45,23 +43,6 @@ function makeUser(email, password, token) {
 }
 
 async function createPanelToken(email) {
-  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email,
-      password: AUTHORIZED_USERS.get(email),
-      returnSecureToken: true
-    })
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || !payload?.idToken) {
-    throw new Error(errorMessage(payload?.error, `HTTP ${response.status}`));
-  }
-  return payload.idToken;
-}
-
-async function createPanelTokenFromBackend(email) {
   const url = new URL('/api/auth/panel-token', window.location.origin);
   url.searchParams.set('uid', email);
   const response = await fetch(url.toString(), { method: 'GET' });
@@ -69,20 +50,7 @@ async function createPanelTokenFromBackend(email) {
   if (!response.ok || !payload?.token) {
     throw new Error(errorMessage(payload?.error, `HTTP ${response.status}`));
   }
-
-  const exchange = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      token: payload.token,
-      returnSecureToken: true
-    })
-  });
-  const exchangedPayload = await exchange.json().catch(() => ({}));
-  if (!exchange.ok || !exchangedPayload?.idToken) {
-    throw new Error(errorMessage(exchangedPayload?.error, `HTTP ${exchange.status}`));
-  }
-  return exchangedPayload.idToken;
+  return payload.token;
 }
 
 export async function signInWithEmailAndPassword(_auth, email, password) {
@@ -93,15 +61,7 @@ export async function signInWithEmailAndPassword(_auth, email, password) {
   }
 
   let token;
-  try {
-    token = await createPanelToken(normalizedEmail);
-  } catch (error) {
-    if (normalizedEmail === 'operaciones@nellydelivery.com') {
-      token = await createPanelTokenFromBackend(normalizedEmail);
-    } else {
-      throw error;
-    }
-  }
+  token = await createPanelToken(normalizedEmail);
   currentUser = makeUser(normalizedEmail, password, token);
   emitAuthState();
   return { user: currentUser };
