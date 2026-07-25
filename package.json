@@ -14,6 +14,7 @@
     "validate:contracts": "node scripts/validation/validate-contracts.js",
     "validate:domain-contracts": "node scripts/validation/validate-domain-contracts.js",
     "validate:firebase": "node scripts/validation/validate-firebase.js",
+    "validate:operational-port": "node scripts/validation/validate-operational-port.js",
     "validate:all": "npm run validate:routes && npm run validate:data-model && npm run validate:contracts && npm run validate:domain-contracts && npm run validate:firebase",
     "doctor": "node scripts/validation/doctor.js"
   },

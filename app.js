@@ -29,6 +29,7 @@ validateCriticalSecrets();
 
 const app = express();
 app.set('trust proxy', 1);
+const runtimeStartedAt = new Date().toISOString();
 
 app.use(cors({
     origin: [
@@ -92,7 +93,10 @@ app.get('/api/health', (req, res) => {
         status: 'OK_TEST_20260620',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        pid: process.pid,
+        runtime_started_at: runtimeStartedAt,
+        port: process.env.PORT || 3001
     });
 });
 
