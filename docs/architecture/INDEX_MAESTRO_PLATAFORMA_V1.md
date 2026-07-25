@@ -158,6 +158,7 @@ Las promociones ligeras reutilizan la evidencia de C4 para sugerir acciones manu
 #### Resumen G1
 El Gate G1 verifica que C2, C3, C4 y C5 consumen la misma SSOT, mantienen metricas coherentes y no repiten reglas antes de abrir nuevas capacidades.
 #### Evidencia G1
+- [`CHECKPOINT_G1_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CHECKPOINT_G1_ECOSISTEMA_COMERCIAL_V1.md)
 - [`G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md)
 - [`G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md)
 - [`G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md)
