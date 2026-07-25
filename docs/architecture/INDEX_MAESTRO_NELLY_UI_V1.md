@@ -14,6 +14,9 @@ Ser la puerta de entrada unica al sistema visual oficial de Nelly, desde la cons
 
 ## Bloques principales
 
+### Congelamiento documental
+- [`NELLY_UI_V1_0_CONGELAMIENTO_DOCUMENTAL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_UI_V1_0_CONGELAMIENTO_DOCUMENTAL.md)
+
 ### UI 1.3 - Sistema de Diseno
 - [`NELLY_UI_V1_3_ESPECIFICACION_OFICIAL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_UI_V1_3_ESPECIFICACION_OFICIAL.md)
 
@@ -27,11 +30,15 @@ Ser la puerta de entrada unica al sistema visual oficial de Nelly, desde la cons
 - [`NELLY_UI_V2_0_CHECKLIST_ADOPCION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_UI_V2_0_CHECKLIST_ADOPCION.md)
 - [`NELLY_UI_V2_0_PLAN_EJECUCION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_UI_V2_0_PLAN_EJECUCION.md)
 
+### UX-01 - Dashboard Operativo
+- [`UX-01_DASHBOARD_OPERATIVO_PANTALLA_INSIGNIA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/UX-01_DASHBOARD_OPERATIVO_PANTALLA_INSIGNIA.md)
+
 ## Regla de uso
 
 - UI 1.3 fija la base visual.
 - UI 1.5 fija la iconografia.
 - UI 2.0 fija la experiencia del Dashboard Operativo.
+- UX-01 fija la pantalla insignia de ejecucion.
 - Cualquier cambio nuevo debe consultar primero este indice antes de modificar pantallas o patrones.
 
 ## Criterio de uso
