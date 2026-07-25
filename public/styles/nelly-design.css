@@ -125,6 +125,30 @@ textarea {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
 }
 
+.nelly-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(3, 10, 20, 0.42);
+  color: var(--nelly-text);
+  font-size: 0.9rem;
+  line-height: 1;
+  flex: none;
+}
+
+.nelly-icon--sales::before { content: "\2197"; color: var(--nelly-accent); }
+.nelly-icon--commercial::before { content: "\25CE"; color: var(--nelly-info); }
+.nelly-icon--alerts::before { content: "!"; color: var(--nelly-warn); }
+.nelly-icon--map::before { content: "\2316"; color: var(--nelly-success); }
+.nelly-icon--money::before { content: "$"; color: var(--nelly-accent); }
+.nelly-icon--drivers::before { content: "\21C4"; color: var(--nelly-info); }
+.nelly-icon--orders::before { content: "\25C9"; color: var(--nelly-success); }
+.nelly-icon--shield::before { content: "\26E8"; color: var(--nelly-warn); }
+
 .nelly-state {
   display: inline-flex;
   align-items: center;

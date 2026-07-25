@@ -69,11 +69,12 @@
             <span class="nelly-chip nelly-chip--info">Panel</span>
             <span class="nelly-chip nelly-chip--accent">Control total</span>
             <span class="nelly-chip">SSOT operativa</span>
+            <span class="nelly-icon nelly-icon--shield" aria-hidden="true"></span>
           </div>
           <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div class="max-w-3xl space-y-4">
               <div>
-                <p class="nelly-section-label text-panel-accent">Admin ∑ Centro de Control</p>
+                <p class="nelly-section-label text-panel-accent">Admin ¬∑ Centro de Control</p>
                 <h1 class="nelly-hero-title mt-2">Panel de Administracion</h1>
                 <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Gestion en tiempo real de repartidores, deuda, pedidos activos y ubicacion operativa con una lectura consistente y directa.</p>
               </div>
@@ -86,22 +87,22 @@
               </div>
             </div>
             <div class="nelly-panel-soft p-4 sm:p-5">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Lectura rapida</p>
+              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Lectura rapida</p>
               <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400">Repartidores</p>
+                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--drivers" aria-hidden="true"></span>Repartidores</p>
                   <p id="metric-drivers" class="mt-1 text-xl font-bold text-panel-accent">0</p>
                 </div>
                 <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400">Pedidos activos</p>
+                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--orders" aria-hidden="true"></span>Pedidos activos</p>
                   <p id="metric-orders" class="mt-1 text-xl font-bold text-panel-info">0</p>
                 </div>
                 <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400">No elegibles</p>
+                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--alerts" aria-hidden="true"></span>No elegibles</p>
                   <p id="metric-blocked-total" class="mt-1 text-xl font-bold text-panel-warn">0</p>
                 </div>
                 <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400">Rentabilidad</p>
+                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--money" aria-hidden="true"></span>Rentabilidad</p>
                   <p id="metric-ventas-brutas" class="mt-1 text-xl font-bold text-panel-accent">$0.00</p>
                 </div>
               </div>
@@ -124,7 +125,7 @@
             <input id="login-email" type="email" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="admin@nellydelivery.com" />
           </div>
           <div>
-            <label for="login-password" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">ContraseÒa</label>
+            <label for="login-password" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Contrase√±a</label>
             <input id="login-password" type="password" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="********" />
           </div>
           <button type="submit" class="nelly-btn nelly-btn--accent w-full">Iniciar sesion</button>
@@ -136,7 +137,7 @@
         <article class="nelly-panel p-5 sm:p-6">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Rentabilidad del dÌa</p>
+              <p class="text-xs uppercase tracking-wide text-slate-400">Rentabilidad del d√≠a</p>
               <h2 class="text-2xl font-bold">Lectura operativa y financiera</h2>
               <p class="text-sm leading-6 text-slate-300">Se consolida ventas, comisiones, entregas y mapa de calor en un solo bloque de control.</p>
             </div>
@@ -217,7 +218,7 @@
         <article class="nelly-pattern-section">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-semibold">Gestor de Repartidores (Tiempo real)</h2>
-            <p class="text-xs text-slate-400">SincronizaciÛn protegida via backend cada 5 segundos.</p>
+            <p class="text-xs text-slate-400">Sincronizaci√≥n protegida via backend cada 5 segundos.</p>
           </div>
           <div class="overflow-x-auto">
             <table class="nelly-table text-sm">
@@ -250,9 +251,9 @@
             <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">
               <div class="mb-3 flex items-center justify-between gap-3">
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Contexto de entrega</p>
-                <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] font-semibold text-emerald-200">Visible para operaciÛn</span>
+                <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] font-semibold text-emerald-200">Visible para operaci√≥n</span>
               </div>
-              <p class="mb-4 text-xs text-slate-400">Este bloque captura la ubicaciÛn como la piensa el operador: tipo de lugar, mÈtodo de entrega, referencia y notas. Las coordenadas quedan en segundo plano.</p>
+              <p class="mb-4 text-xs text-slate-400">Este bloque captura la ubicaci√≥n como la piensa el operador: tipo de lugar, m√©todo de entrega, referencia y notas. Las coordenadas quedan en segundo plano.</p>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <select id="order-place-type" required class="nelly-select px-3 py-2 text-sm">
                   <option value="casa">Casa</option>
@@ -264,38 +265,38 @@
                 <select id="order-delivery-method" required class="nelly-select px-3 py-2 text-sm">
                   <option value="puerta">Encontrarse en la puerta</option>
                   <option value="exterior">Encontrarse afuera</option>
-                  <option value="recepcion">Encontrarse en la recepciÛn</option>
+                  <option value="recepcion">Encontrarse en la recepci√≥n</option>
                 </select>
-                <input id="order-reference" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Referencia de ubicaciÛn (color, portÛn, piso, acceso, etc.)" />
-                <textarea id="order-location-notes" rows="2" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas para la entrega (instrucciones, acceso, recepciÛn)"></textarea>
+                <input id="order-reference" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Referencia de ubicaci√≥n (color, port√≥n, piso, acceso, etc.)" />
+                <textarea id="order-location-notes" rows="2" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas para la entrega (instrucciones, acceso, recepci√≥n)"></textarea>
               </div>
             </section>
 
             <section class="md:col-span-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4">
               <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-cyan-200">UbicaciÛn de entrega</p>
-                  <h3 class="mt-1 text-sm text-slate-300">Busca una direcciÛn, ajusta el mapa y confirma sin exponer coordenadas.</h3>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-cyan-200">Ubicaci√≥n de entrega</p>
+                  <h3 class="mt-1 text-sm text-slate-300">Busca una direcci√≥n, ajusta el mapa y confirma sin exponer coordenadas.</h3>
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="inline-flex overflow-hidden rounded-lg border border-panel-line">
                     <button id="target-client" type="button" class="bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950">Cliente</button>
                     <button id="target-store" type="button" class="bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-200">Tienda</button>
                   </div>
-                  <button id="use-current-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20">Usar mi ubicaciÛn</button>
-                  <button id="confirm-location" type="button" class="rounded-lg bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950 hover:brightness-110">Confirmar ubicaciÛn</button>
+                  <button id="use-current-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20">Usar mi ubicaci√≥n</button>
+                  <button id="confirm-location" type="button" class="rounded-lg bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950 hover:brightness-110">Confirmar ubicaci√≥n</button>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_0.8fr]">
                 <div class="space-y-3">
                   <div class="rounded-xl border border-panel-line bg-slate-900/40 p-3">
-                    <label for="location-search" class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Buscar direcciÛn</label>
+                    <label for="location-search" class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Buscar direcci√≥n</label>
                     <div class="flex flex-col gap-2 sm:flex-row">
-                      <input id="location-search" class="nelly-input w-full px-3 py-2 text-sm outline-none" placeholder="Ave La Coyote, Tuxtla GutiÈrrez, Chiapas" />
+                      <input id="location-search" class="nelly-input w-full px-3 py-2 text-sm outline-none" placeholder="Ave La Coyote, Tuxtla Guti√©rrez, Chiapas" />
                       <button id="location-search-btn" type="button" class="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-100 hover:bg-sky-400/20">Buscar</button>
                     </div>
-                    <p class="mt-2 text-xs text-slate-400">El mapa centrar· el resultado y mantendr· un pin fijo en el centro.</p>
+                    <p class="mt-2 text-xs text-slate-400">El mapa centrar√° el resultado y mantendr√° un pin fijo en el centro.</p>
                   </div>
 
                   <div class="map-shell">
@@ -307,14 +308,14 @@
 
                 <div class="space-y-3">
                   <div class="rounded-xl border border-slate-700/70 bg-slate-950/35 p-3">
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400">DirecciÛn encontrada</p>
-                    <p id="location-found-address" class="mt-1 text-sm font-semibold text-slate-100">Sin ubicaciÛn aun</p>
-                    <p id="location-found-status" class="mt-2 text-xs text-emerald-200">El operador solo ve direcciÛn legible.</p>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-400">Direcci√≥n encontrada</p>
+                    <p id="location-found-address" class="mt-1 text-sm font-semibold text-slate-100">Sin ubicaci√≥n a√∫n</p>
+                    <p id="location-found-status" class="mt-2 text-xs text-emerald-200">El operador solo ve direcci√≥n legible.</p>
                   </div>
 
                   <div class="rounded-xl border border-slate-700/70 bg-slate-950/35 p-3">
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400">UbicaciÛn tÈcnica</p>
-                    <p class="mt-1 text-sm text-slate-100">Las coordenadas se llenan autom·ticamente y quedan ocultas.</p>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-400">Ubicaci√≥n t√©cnica</p>
+                    <p class="mt-1 text-sm text-slate-100">Las coordenadas se llenan autom√°ticamente y quedan ocultas.</p>
                     <input id="order-client-lat" type="hidden" />
                     <input id="order-client-lng" type="hidden" />
                     <input id="order-store-lat" type="hidden" />
@@ -323,14 +324,14 @@
                       <p id="location-coords-preview" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2">Lat/Lng pendientes</p>
                       <div class="flex flex-wrap gap-2">
                         <a id="preview-open-maps" href="#" target="_self" class="rounded-lg border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-400/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50">Abrir en Maps</a>
-                        <button id="preview-copy-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-50">Copiar ubicaciÛn</button>
+                        <button id="preview-copy-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-50">Copiar ubicaci√≥n</button>
                       </div>
                     </div>
                   </div>
 
                   <div class="rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
                     <p class="text-[11px] uppercase tracking-wide text-cyan-200">Estado de captura</p>
-                    <p id="location-capture-state" class="mt-1 text-sm font-semibold text-slate-100">Busca una direcciÛn o usa tu ubicaciÛn actual.</p>
+                    <p id="location-capture-state" class="mt-1 text-sm font-semibold text-slate-100">Busca una direcci√≥n o usa tu ubicaci√≥n actual.</p>
                   </div>
                 </div>
               </div>
@@ -343,7 +344,7 @@
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <textarea id="order-items" required rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
                 <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Subtotal MXN" />
-                <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Costo de envÌo MXN" />
+                <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Costo de env√≠o MXN" />
                 <input id="order-tip" required type="number" min="0" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Propina MXN" />
                 <select id="order-payment-method" required class="nelly-select px-3 py-2 text-sm">
                   <option value="efectivo">Efectivo</option>
@@ -366,5 +367,6 @@
   <script type="module" src="./js/admin-dashboard.js?v=20260725-panel-2"></script>
 </body>
 </html>
+
 
 
