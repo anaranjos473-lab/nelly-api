@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Nelly Delivery - Panel de Cocina Central</title>
         <script type="module">
-            // InicializaciÃ³n segura de Firebase: config se obtiene vÃ­a endpoint seguro
+            // Inicializacion segura de Firebase: config se obtiene via endpoint seguro
             import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
             import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-            // --- DocumentaciÃ³n: Flujo de sincronÃ­a ---
+            // --- Documentacion: Flujo de sincronia ---
             // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
-            // 2. Todos los listeners se limpian automÃ¡ticamente al recargar o cerrar el panel.
-            // 3. El flujo de estados es: pendiente â†’ en_reparto â†’ entregado (o eliminado).
+            // 2. Todos los listeners se limpian automaticamente al recargar o cerrar el panel.
+            // 3. El flujo de estados es: pendiente -> en_reparto -> entregado (o eliminado).
             // 4. El rescate manual usa la misma consulta granular.
 
             let pedidosListenerRef = null;
@@ -23,7 +23,7 @@
 
             async function fetchFirebaseConfig() {
                 const resp = await fetch(`${API_BASE_URL}/api/public/firebase-config`);
-                if (!resp.ok) throw new Error('No se pudo obtener configuraciÃ³n segura');
+                if (!resp.ok) throw new Error('No se pudo obtener configuracion segura');
                 return await resp.json();
             }
             fetchFirebaseConfig().then(cfg => {
@@ -57,14 +57,14 @@
                 };
                 onValue(pedidosListenerRef, pedidosListenerCallback);
 
-                // Limpieza automÃ¡tica de listeners al cerrar o recargar
+            // Limpieza automatica de listeners al cerrar o recargar
                 window.addEventListener('beforeunload', () => {
                     if (pedidosListenerRef && pedidosListenerCallback) {
                         off(pedidosListenerRef, 'value', pedidosListenerCallback);
                     }
                 });
             }).catch(e => {
-                alert('Error de inicializaciÃ³n Firebase: ' + e.message);
+                alert('Error de inicializacion Firebase: ' + e.message);
             });
         </script>
         <style>
@@ -94,7 +94,7 @@
                                     50% { transform: scale(1.05); opacity: 0.8; }
                                     100% { transform: scale(1); opacity: 1; }
                                 }
-                                /* Tarjetas de mÃ©tricas estilo Glassmorphism */
+                                /* Tarjetas de metricas estilo Glassmorphism */
                                 .metric-card, .stat-card {
                                     background: rgba(255, 255, 255, 0.05) !important;
                                     backdrop-filter: blur(10px);
@@ -102,7 +102,7 @@
                                     border-radius: 15px;
                                     padding: 20px;
                                 }
-                        /* Modo noche y visualizaciÃ³n del mapa */
+                        /* Modo noche y visualizacion del mapa */
                         #map {
                             height: 600px;
                             width: 100%;
@@ -431,7 +431,7 @@
                     label.innerText = "SISTEMA ONLINE";
                     label.style.background = "#2ecc71";
                 } else {
-                    label.innerText = "SIN CONEXIÃ“N";
+                    label.innerText = "SIN CONEXION";
                     label.style.background = "#e74c3c";
                 }
             });
@@ -439,7 +439,7 @@
             window.entregarPedido = function(id) {
                 const db = window.nellyDb;
                 if (!db) return;
-                if (confirm("Â¿Confirmas que el pedido estÃ¡ listo?")) {
+                if (confirm("Confirmas que el pedido esta listo?")) {
                     if (typeof window.moverAReparto === 'function') {
                         window.moverAReparto(id);
                     }
@@ -455,17 +455,17 @@
     <div class="header">
         <h1>Nelly Delivery - Cocina</h1>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-            <a href="./repartidor.html" class="btn-header-action primary">ðŸ“± Repartidores</a>
-            <button id="btn-notificaciones" class="btn-header-action">ðŸ”” Alertas</button>
+            <a href="./repartidor.html" class="btn-header-action primary">Repartidores</a>
+            <button id="btn-notificaciones" class="btn-header-action">Alertas</button>
             <div id="badge-estado" class="status-badge status-online">CONECTANDO...</div>
             <div class="dropdown" style="display:inline-block;position:relative;">
-                <button id="btn-operativo" class="btn-header-action" title="Controles avanzados">âš™ï¸ Operativo</button>
+                <button id="btn-operativo" class="btn-header-action" title="Controles avanzados">Operativo</button>
                 <div id="menu-operativo" class="dropdown-menu" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ddd;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:1002;min-width:220px;">
-                    <button onclick="exportarMetricasJSON()" class="dropdown-item">â¬‡ï¸ Exportar mÃ©tricas JSON</button>
-                    <button onclick="exportarMetricasCSV()" class="dropdown-item">â¬‡ï¸ Exportar mÃ©tricas CSV</button>
-                    <button onclick="enviarSnapshotDiscord()" class="dropdown-item">ðŸ“¤ Enviar snapshot Discord</button>
-                    <button onclick="ejecutarProtocoloRescate()" class="dropdown-item">ðŸ›Ÿ Rescate pedidos fantasma</button>
-                    <button onclick="dispararAlertaManual()" class="dropdown-item" style="color:#b91c1c;">ðŸš¨ Disparar alerta manual</button>
+                    <button onclick="exportarMetricasJSON()" class="dropdown-item">Exportar metricas JSON</button>
+                    <button onclick="exportarMetricasCSV()" class="dropdown-item">Exportar metricas CSV</button>
+                    <button onclick="enviarSnapshotDiscord()" class="dropdown-item">Enviar snapshot Discord</button>
+                    <button onclick="ejecutarProtocoloRescate()" class="dropdown-item">Rescate pedidos fantasma</button>
+                    <button onclick="dispararAlertaManual()" class="dropdown-item" style="color:#b91c1c;">Disparar alerta manual</button>
                 </div>
             </div>
         </div>
@@ -514,9 +514,9 @@
     </div>
 
     <div class="floating-menu">
-        <button id="btn-historial" class="btn-filtro btn-menu">ðŸ“Š Corte de Caja</button>
-        <button id="btn-heatmap" class="btn-filtro btn-menu">ðŸ—ºï¸ Mapa de Calor</button>
-        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">ðŸ›µ Ver Mapa Repartidores</button>
+        <button id="btn-historial" class="btn-filtro btn-menu">Corte de Caja</button>
+        <button id="btn-heatmap" class="btn-filtro btn-menu">Mapa de Calor</button>
+        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">Ver Mapa Repartidores</button>
         <button id="btn-debug" class="debug-btn btn-menu">DEBUG</button>
     </div>
 
@@ -530,7 +530,7 @@
         </div>
     </div>
 
-    <!-- SecciÃ³n oculta de Heatmap -->
+    <!-- Seccion oculta de Heatmap -->
     <div id="seccion-heatmap" style="display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;background:#f4f7f6;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
         <div style="width:100%;height:100%;position:relative;">
             <div id="mapa-heatmap" style="width:100%;height:100%;min-height:400px;"></div>
@@ -538,16 +538,16 @@
         </div>
     </div>
 
-        <!-- SecciÃ³n oculta de historial de ventas/corte de caja -->
+        <!-- Seccion oculta de historial de ventas/corte de caja -->
         <div id="seccion-historial" class="dashboard-container" style="display:none;flex-direction:column;gap:0;min-height:unset;background:#f4f7f6;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
             <div class="column-full" style="width:100%;">
                 <div class="column-header" style="background-color: #34495e;">
-                    <h3>ðŸ“Š CORTE DE CAJA Y VENTAS</h3>
+                    <h3>CORTE DE CAJA Y VENTAS</h3>
                     <div class="filtros">
                         <button onclick="filtrarVentas('hoy')" class="btn-filtro">Hoy</button>
-                        <button onclick="filtrarVentas('semana')" class="btn-filtro">7 DÃ­as</button>
+                        <button onclick="filtrarVentas('semana')" class="btn-filtro">7 Dias</button>
                         <button onclick="filtrarVentas('mes')" class="btn-filtro">Mes</button>
-                        <button onclick="descargarCSV()" class="btn-download">ðŸ“¥ Exportar CSV</button>
+                        <button onclick="descargarCSV()" class="btn-download">Exportar CSV</button>
                     </div>
 
                     <div id="toast-wrap" class="toast-wrap"></div>
@@ -597,7 +597,7 @@
                         <div id="semana-anterior" class="card-value">$0.00</div>
                     </div>
                     <div class="stat-card metric-card">
-                        <div class="card-title">VariaciÃ³n Semanal</div>
+                        <div class="card-title">Variacion Semanal</div>
                         <div id="variacion-semanal" class="card-value">0.0%</div>
                     </div>
                 </div>
@@ -622,10 +622,10 @@
 
     <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
 
-    <!-- Bloque compat de Firebase eliminado. Usar solo inicializaciÃ³n modular con type=module. -->
+    <!-- Bloque compat de Firebase eliminado. Usar solo inicializacion modular con type=module. -->
     <script type="module" src="js/logistica-maps.js"></script>
 
-    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicializaciÃ³n -->
+    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicializacion -->
                 markersRepartidores.push(marker);
             });
         });
@@ -672,7 +672,7 @@
                 }
             });
 
-                // --- Cargar Leaflet y Heatmap.js dinÃ¡micamente ---
+                // --- Cargar Leaflet y Heatmap.js dinamicamente ---
                 function cargarLeafletYHeatmap(cb) {
                     if (window.L && window.L.heatLayer) return cb();
                     const leafletCss = document.createElement('link');
@@ -705,7 +705,7 @@
                     };
                 });
 
-            // Mostrar/ocultar secciÃ³n historial
+            // Mostrar/ocultar seccion historial
             window.addEventListener('DOMContentLoaded', () => {
                 const btn = document.getElementById('btn-historial');
                 const seccion = document.getElementById('seccion-historial');
@@ -774,7 +774,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast('MÃ©tricas exportadas (JSON)', 'ok');
+                showToast('Metricas exportadas (JSON)', 'ok');
             };
 
             window.exportarMetricasCSV = () => {
@@ -790,14 +790,14 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast('MÃ©tricas exportadas (CSV)', 'ok');
+                showToast('Metricas exportadas (CSV)', 'ok');
             };
 
             window.enviarSnapshotDiscord = async () => {
                 try {
                     const data = window.verMetricasSync ? window.verMetricasSync() : {};
                     const payload = {
-                        content: `ðŸ“Š Snapshot mÃ©tricas panel (${location.pathname}):\n\n${'```json\n' + JSON.stringify(data, null, 2) + '\n```'}`
+                        content: `Snapshot metricas panel (${location.pathname}):\n\n${'```json\n' + JSON.stringify(data, null, 2) + '\n```'}`
                     };
                     const resp = await fetch(`${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/monitoreo/discord`, {
                         method: 'POST',
@@ -806,7 +806,7 @@
                     });
                     showToast(resp.ok ? 'Snapshot enviado a Discord' : 'Error al enviar snapshot', resp.ok ? 'ok' : 'err');
                 } catch (_e) {
-                    showToast('Fallo conexiÃ³n Discord', 'err');
+                    showToast('Fallo conexion Discord', 'err');
                 }
             };
 
@@ -821,7 +821,7 @@
                     });
                     showToast(resp.ok ? 'Alerta enviada' : 'Error al enviar alerta', resp.ok ? 'ok' : 'err');
                 } catch (_e) {
-                    showToast('Fallo conexiÃ³n alerta', 'err');
+                    showToast('Fallo conexion alerta', 'err');
                 }
             };
 
@@ -892,7 +892,7 @@
                 elVariacion.style.color = variacion >= 0 ? '#166534' : '#b91c1c';
             };
 
-            // LÃ³gica para el Historial de Ventas
+            // Logica para el Historial de Ventas
             window.filtrarVentas = (rango) => {
                 const pedidosRef = ref(rtdb, 'pedidos');
                 const hoy = new Date();
@@ -1302,7 +1302,7 @@
 
             audio.currentTime = 0;
             audio.play().catch(() => {
-                // Puede fallar si no hubo interacciÃ³n de usuario; no rompe el flujo.
+                // Puede fallar si no hubo interaccion de usuario; no rompe el flujo.
             });
         }
 
@@ -1347,7 +1347,7 @@
             return eliminado;
         }
 
-        // Utilidades de consola para depuraciÃ³n operativa.
+        // Utilidades de consola para depuracion operativa.
         window.listarPedidosPendientes = () => {
             return Array.from(kitchenState.orders.pedidosPendientes.entries()).map(([key, pedido]) => ({
                 key,
@@ -1436,7 +1436,7 @@
             return identificador;
         }
 
-        // Desbloqueo de audio tras la primera interacciÃ³n del operador.
+        // Desbloqueo de audio tras la primera interaccion del operador.
         document.addEventListener('click', () => {
             const audio = document.getElementById('audio-notificacion');
             if (audio) {
@@ -1448,7 +1448,7 @@
             }
         }, { once: true });
 
-        // OptimizaciÃ³n: listeners solo tras autenticaciÃ³n exitosa y limpieza previa
+        // Optimizacion: listeners solo tras autenticacion exitosa y limpieza previa
         let listenersActivos = [];
         function limpiarListeners() {
             listenersActivos.forEach(unsub => { try { unsub(); } catch {} });
@@ -1546,7 +1546,7 @@
         }
 
         function iniciarSincronizacion() {
-            // Devuelve funciÃ³n de limpieza para listeners
+            // Devuelve funcion de limpieza para listeners
             const listeners = [];
             const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
@@ -1607,12 +1607,12 @@
                 reportarErrorListener('onValue(liquidaciones_auditoria)', error);
             }));
 
-            // Devuelve funciÃ³n para limpiar todos los listeners
+            // Devuelve funcion para limpiar todos los listeners
             return () => listeners.forEach(unsub => { try { if (typeof unsub === 'function') unsub(); } catch {} });
         }
 
         window.addEventListener('online', () => {
-            logDebug('ConexiÃ³n restaurada. Ejecutando rescate automÃ¡tico.');
+            logDebug('Conexion restaurada. Ejecutando rescate automatico.');
             window.ejecutarProtocoloRescate();
         });
 
@@ -1725,14 +1725,14 @@
 
             if (estadoNormalizado !== 'EN_CURSO') {
                 const mensaje = estadoNormalizado === 'LISTO'
-                    ? 'El pedido aÃºn no ha sido aceptado por un repartidor. Estado actual: ESPERANDO REPARTIDOR.'
-                    : `El pedido no estÃ¡ en curso de entrega. Estado actual: ${estadoNormalizado}.`;
+                    ? 'El pedido aun no ha sido aceptado por un repartidor. Estado actual: ESPERANDO REPARTIDOR.'
+                    : `El pedido no esta en curso de entrega. Estado actual: ${estadoNormalizado}.`;
                 showToast(mensaje, 'err');
                 alert(mensaje);
                 return;
             }
 
-            if (!confirm('Â¿Confirmar entrega final al cliente?')) {
+            if (!confirm('Confirmar entrega final al cliente?')) {
                 return;
             }
 
