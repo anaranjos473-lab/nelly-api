@@ -155,6 +155,7 @@ El piloto comercial controlado podra iniciar cuando:
 - `OV1_PRE_PILOTO_SERIE_003_V1.md`: tercera serie pre piloto sobre `3001`, con 18 ciclos en verde, 503 externo transitorio y 2 ciclos de recuperacion en verde.
 - `OV1_PRE_PILOTO_SERIE_004_V1.md`: cuarta serie pre piloto sobre `3001`, con runner de token cache y 20 ciclos completos en verde.
 - `OV1_PRE_PILOTO_SERIE_005_V1.md`: quinta serie pre piloto con Doctor operativo previo/posterior y 20 ciclos completos en verde.
+- `OV1_PRE_PILOTO_SERIE_006_V1.md`: sexta serie pre piloto con estabilidad consecutiva y Doctor operativo previo/posterior en `OPERABLE`.
 
 ## 10. Historial
 
@@ -165,3 +166,4 @@ El piloto comercial controlado podra iniciar cuando:
 - 2026-07-25: Se define `npm run ov1:rotation` como script operativo con reutilizacion de tokens.
 - 2026-07-25: Se enlaza la Serie 004 como evidencia aprobada del runner OV1 con token cache.
 - 2026-07-25: Se enlaza la Serie 005 como evidencia de disciplina completa Doctor -> OV1 -> Doctor.
+- 2026-07-25: Se enlaza la Serie 006 como evidencia de estabilidad consecutiva pre piloto.
