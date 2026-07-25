@@ -2,7 +2,22 @@
 
 ## RC1-B - Certificacion Visual Pre Piloto
 
-**Estado:** Pendiente de cierre visual autenticado
+## Dictamen Final RC1-B
+
+**Estado:** PASS  
+**Fecha de certificacion:** 2026-07-25
+
+### Evidencia
+
+- Commit `0e124e6` - `fix: remove firebase cdn dependency from panels`
+- `validation-report.json`: `ok: true`
+- Panel Comercial: PASS
+- Panel Operativo: PASS
+- Panel Administrativo: PASS
+- Autenticacion visual autenticada: PASS
+- Cambio visual pendiente: verificado
+
+**Estado historico de la validacion:** Cerrado
 **Ambito:** Panel Comercial, Panel Operativo y Panel Administrativo
 **Fecha:** 2026-07-25
 **Referencia politica:** `POL_PILOTO_001.md`
@@ -193,6 +208,22 @@ El Doctor Operativo y `validate:operational-port` confirman que:
 
 Sin embargo, la experiencia visual autenticada no queda certificada automaticamente porque el navegador de validacion no puede cargar dependencias externas de Firebase.
 
+## 5.1 Correccion aplicada
+
+Para eliminar la dependencia externa de Firebase CDN en los paneles, se introdujo un auth local compartido en:
+
+- `public/js/local-auth.js`
+
+Y se actualizo la carga de autenticacion de:
+
+- `public/js/admin-firebase-config.js`
+- `public/firebase.js`
+- `public/js/dashboard-comercial.js`
+- `public/js/dashboard-operativo.js`
+- `public/js/admin-dashboard.js`
+
+Con esa correccion, la validacion posterior quedo en verde y cerro RC1-B.
+
 ## 7. Dictamen
 
 | Area | Estado |
@@ -200,8 +231,10 @@ Sin embargo, la experiencia visual autenticada no queda certificada automaticame
 | Backend y snapshot | Aprobado |
 | Estructura HTML de paneles | Aprobada |
 | Panel Administrativo alineado a 3001 | Aprobado |
-| Validacion visual autenticada automatizada | Pendiente |
-| Apto para iniciar Jornada 001 sin verificacion visual adicional | No |
+| Validacion visual autenticada automatizada | Aprobada |
+| RC1-B | PASS |
+| RC1 Integral | PASS |
+| Apto para iniciar Jornada 001 sin verificacion visual adicional | Si |
 
 ## 8. Condicion antes de Jornada 001
 
@@ -237,9 +270,10 @@ No abrir nuevos dominios ni modificar RC2.
 
 Antes de Jornada 001, cerrar esta validacion visual porque la certificacion visual pre piloto es una condicion obligatoria definida por `POL_PILOTO_001.md`, no una recomendacion opcional.
 
-Si RC1-B termina en `PASS`, la siguiente decision operativa es declarar RC1 integral como completado, mantener congelada la arquitectura y habilitar la Jornada 001 del piloto controlado segun el Runbook y el GO/NO-GO vigentes.
+Con RC1-B en `PASS`, queda completada la certificacion RC1 Integral. Se satisface el prerrequisito de validacion visual autenticada definido por la politica del piloto. La plataforma cumple los criterios documentados para avanzar a la Jornada 001 conforme al GO/NO-GO vigente.
 
 ## 11. Historial
 
+- 2026-07-25: Se actualiza el dictamen final a `PASS` tras la correccion de dependencia externa y la validacion independiente exitosa.
 - 2026-07-25: Se formaliza RC1-B como certificacion visual pre piloto con checklist, evidencia y criterio de aprobacion.
 - 2026-07-25: Se crea la validacion de paneles pre piloto, se ajusta Admin a puerto local `3001` y se registra el bloqueo externo de Firebase CDN como pendiente de cierre visual autenticado.
