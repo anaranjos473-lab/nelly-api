@@ -8,6 +8,8 @@
 
 Declarar oficialmente la arquitectura estabilizada del ecosistema Nelly antes de abrir nuevas capacidades, dejando separadas las responsabilidades entre operacion, CRM, fidelizacion, inteligencia comercial, promociones ligeras y calidad operativa.
 
+RC2 materializa tecnicamente la vision descrita en `PLAN_ESTRATEGICO_NELLY_V1.md`. El plan explica por que Nelly se construye como plataforma operativa autocontrolada; RC2 define que arquitectura esta activa hoy.
+
 ## 2. Alcance
 
 Esta baseline cubre:
@@ -108,3 +110,4 @@ O1 solo debera abrirse si el piloto demuestra que Nelly necesita convertir el di
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.
 - 2026-07-25: Se agrega la matriz oficial de dominios y los principios de RC2 como contrato de evolucion del ecosistema.
 - 2026-07-25: Se registra O1 como dominio candidato post-piloto, manteniendo RC2 sin nuevos dominios activos.
+- 2026-07-25: Se enlaza RC2 con el Plan Estrategico Nelly V1 como traduccion tecnica de la vision.

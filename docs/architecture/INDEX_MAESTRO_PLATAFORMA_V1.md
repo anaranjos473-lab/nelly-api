@@ -17,6 +17,11 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 
 ## Bloques principales
 
+### Plan Estrategico
+- [`PLAN_ESTRATEGICO_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PLAN_ESTRATEGICO_NELLY_V1.md)
+#### Resumen Plan Estrategico
+El Plan Estrategico explica la vision y los principios que guian a Nelly como plataforma operativa autocontrolada. RC2 materializa esa vision en arquitectura vigente, OV1 la valida con evidencia y O1 permanece como candidato post-piloto.
+
 ### Baseline B
 - [`GUIA_DE_LECTURA_PLATAFORMA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GUIA_DE_LECTURA_PLATAFORMA.md)
 - [`NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NOTA_CIERRE_PAQUETE_B2_B3_KITCHEN_PREMIUM_V1.md)

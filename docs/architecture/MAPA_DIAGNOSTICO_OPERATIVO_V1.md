@@ -3,6 +3,7 @@
 **Estado:** Vigente  
 **Ambito:** Observabilidad, validacion y diagnostico por capas  
 **Fecha:** 2026-07-25
+**Referencia estrategica:** `PLAN_ESTRATEGICO_NELLY_V1.md`
 
 ## 1. Proposito
 
@@ -187,3 +188,4 @@ Mientras O1 no sea autorizado formalmente:
 - 2026-07-25: Se crea el mapa de diagnostico operativo por capas y se alinea con `validate:operational-port`.
 - 2026-07-25: Se agrega `npm run doctor:operational` como centro de diagnostico operativo consolidado.
 - 2026-07-25: Se alinea O1 como dominio candidato post-piloto, no como dominio activo.
+- 2026-07-25: Se referencia el Plan Estrategico como vision superior del diagnostico operativo.
