@@ -149,6 +149,10 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 
 `OV1_CHECKLIST_OPERATIVA_V1.md` es la lista operativa para registrar corridas, indicadores, evidencias y dictamen de cada validacion.
 
+## 8.1 Evidencias registradas
+
+- `OV1_CORRIDA_001_V1.md`: primera corrida con snapshot autenticado, C4 generando oportunidades, C5 generando promociones ligeras y Q1 pendiente de captura operativa explicita.
+
 ## 9. Relacion con RC2
 
 `RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md` sigue siendo la referencia de arquitectura estable. OV1 no modifica RC2; lo usa como linea base para medir resultados sobre el ecosistema ya consolidado.
@@ -157,3 +161,4 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 
 - 2026-07-25: Se formaliza OV1 como programa de validacion operativa del ecosistema comercial.
 - 2026-07-25: Se enlaza la checklist operativa de OV1 como herramienta de ejecucion.
+- 2026-07-25: Se registra OV1 Corrida 001 con datos vivos del snapshot operativo autenticado.
