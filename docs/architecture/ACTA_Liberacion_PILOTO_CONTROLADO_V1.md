@@ -1,7 +1,7 @@
 # ACTA DE LIBERACION PILOTO CONTROLADO V1
 
 ## Estado
-Plantilla de dictamen consolidado para cerrar RC2-A, RC2-B y RC2-C.
+Dictamen consolidado para cerrar RC2-A, RC2-B y RC2-C.
 
 ## Proposito
 
@@ -18,19 +18,19 @@ Dejar un unico registro de decision al final de las tres corridas, con evidencia
 | Commit | d1f15f7 |
 | Runsheet | UX_RELEASE_RUNSHEET_V1.md |
 | Gate UX-Release | GATE_UX_RELEASE_V1.md |
-| RC2-A | Pendiente |
-| RC2-B | Pendiente |
-| RC2-C | Pendiente |
+| RC2-A | Ejecutada |
+| RC2-B | Ejecutada |
+| RC2-C | Ejecutada |
 
 ## Dictamen consolidado
 
 | Campo | Valor |
 | --- | --- |
-| Resultado | Pendiente |
-| Observaciones | Consolidar cuando terminen las tres corridas y quede resuelta la observacion de `LLEGUE_A_TIENDA`. |
-| Riesgos abiertos | Definir si `LLEGUE_A_TIENDA` debe soportarse, eliminarse o documentarse como transicion no valida. |
-| Acciones siguientes | Ejecutar RC2-A, RC2-B y RC2-C con evidencia por corrida, luego emitir dictamen final. |
-| Evidencia minima | Runsheet completado por corrida, snapshots operativos y registro de incidencias. |
+| Resultado | APROBADO CON OBSERVACIONES |
+| Observaciones | `LLEGUE_A_TIENDA` no forma parte del contrato actual de estados y debe tratarse como decision de producto/arquitectura, no como bug confirmado. El error `500 {"error":"set"}` observado al inicio de RC2 no se reprodujo en las corridas posteriores. |
+| Riesgos abiertos | Decidir si la maquina de estados de ultima milla se mantiene simple o se enriquece con hitos intermedios. |
+| Acciones siguientes | Cerrar la observacion de diseño con ADR-008 y mantener seguimiento del incidente no reproducible durante el piloto. |
+| Evidencia minima | Runsheet completo por corrida, snapshots operativos y registro de incidencias. |
 
 ## Evidencia minima requerida
 
@@ -52,7 +52,7 @@ La corrida solo puede cerrarse cuando:
 - RC2-A, RC2-B y RC2-C estan completadas;
 - el runsheet consolida las tres corridas;
 - el dictamen fue emitido;
-- la observacion de transicion quedo clasificada.
+- la observacion de transicion quedo clasificada como decision de diseno.
 
 ## Reglas
 
@@ -65,4 +65,3 @@ La corrida solo puede cerrarse cuando:
 - `RC2_PILOTO_CONTROLADO_V1.md`
 - `UX_RELEASE_RUNSHEET_V1.md`
 - `GATE_UX_RELEASE_V1.md`
-
