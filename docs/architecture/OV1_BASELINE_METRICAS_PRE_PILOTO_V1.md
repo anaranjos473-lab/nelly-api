@@ -20,9 +20,11 @@ Esta linea base no reemplaza la SSOT. Resume evidencia ya observada durante OV1.
 | Tiempo promedio de entrega | 1.7 min | OV1 Corrida 002 |
 | Tiempo promedio de entrega mas reciente | 1.4 min | OV1 Pre Piloto Serie 001 con backend fresco |
 | Tiempo promedio de entrega validado en 3001 | 1.2 min | OV1 Pre Piloto Serie 002 |
+| Tiempo promedio de entrega post recuperacion | 1.0 min | OV1 Pre Piloto Serie 003 |
 | Entregas puntuales | 98.3% | OV1 Corrida 002 |
 | Entregas puntuales mas reciente | 98.6% | OV1 Pre Piloto Serie 001 con backend fresco |
 | Entregas puntuales validadas en 3001 | 98.8% | OV1 Pre Piloto Serie 002 |
+| Entregas puntuales post recuperacion | 99% | OV1 Pre Piloto Serie 003 |
 | Q1 en snapshot | Si, `operational_quality` | OV1 Corrida 002 |
 
 ## 3. Linea base comercial
@@ -36,6 +38,7 @@ Esta linea base no reemplaza la SSOT. Resume evidencia ya observada durante OV1.
 | Resultado C5 cuantificable | Pedido completado por $120 | OV1 Corrida 003 |
 | Promociones C5 visibles mas recientes | 5 | OV1 Pre Piloto Serie 001 con backend fresco |
 | Promociones C5 validadas en 3001 | 5 | OV1 Pre Piloto Serie 002 |
+| Promociones C5 post recuperacion | 5 | OV1 Pre Piloto Serie 003 |
 
 ## 4. Linea base de calidad operativa
 
@@ -48,6 +51,7 @@ Esta linea base no reemplaza la SSOT. Resume evidencia ya observada durante OV1.
 | Ciclo Q1 visible | Si | OV1 Corrida 004 |
 | Q1 visible mas reciente | Si, `calidad_operativa_con_incidencias` | OV1 Pre Piloto Serie 001 con backend fresco |
 | Q1 validado en 3001 | Si, `calidad_operativa_con_incidencias` | OV1 Pre Piloto Serie 002 |
+| Q1 post recuperacion | Si, `calidad_operativa_con_incidencias` | OV1 Pre Piloto Serie 003 |
 
 ## 5. Indicadores a medir por corrida
 
@@ -79,3 +83,4 @@ La linea base se considera estable cuando, en varias corridas consecutivas:
 - 2026-07-25: Se crea la linea base pre piloto para comparar las siguientes corridas OV1.
 - 2026-07-25: Se agrega lectura mas reciente de la Serie 001 pre piloto con backend fresco.
 - 2026-07-25: Se agrega lectura validada sobre puerto operativo 3001 en Serie 002.
+- 2026-07-25: Se agrega lectura post recuperacion de Serie 003.

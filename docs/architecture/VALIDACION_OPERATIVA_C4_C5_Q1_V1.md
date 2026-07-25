@@ -176,6 +176,7 @@ Como vigilancia adicional, deben permanecer estables durante varias corridas:
 - `OV1_CORRIDA_004_Q1_CALIDAD_V1.md`: incidencia Q1 controlada registrada con causa raiz, merma y accion correctiva.
 - `OV1_PRE_PILOTO_SERIE_001_V1.md`: serie de 20 ciclos solicitados, con 18 ciclos en verde, bloqueo por deuda en el ciclo 19 y snapshot fresco confirmando C4, C5 y Q1 estables.
 - `OV1_PRE_PILOTO_SERIE_002_V1.md`: serie de 20 ciclos completados en verde sobre el puerto operativo `3001`, con validacion final de tiempo promedio, C4, C5 y Q1.
+- `OV1_PRE_PILOTO_SERIE_003_V1.md`: serie con 18 ciclos en verde, 503 externo transitorio en Firebase Auth y 2 ciclos de recuperacion en verde sin reiniciar `3001`.
 
 ## 9. Relacion con RC2
 
@@ -191,3 +192,4 @@ Como vigilancia adicional, deben permanecer estables durante varias corridas:
 - 2026-07-25: Se agrega gate pre piloto, linea base de metricas y preparacion operativa minima.
 - 2026-07-25: Se registra Serie 001 pre piloto con hallazgo de deuda y verificacion de backend fresco.
 - 2026-07-25: Se registra Serie 002 pre piloto aprobada sobre puerto operativo 3001.
+- 2026-07-25: Se registra Serie 003 pre piloto con recuperacion operativa ante 503 externo.

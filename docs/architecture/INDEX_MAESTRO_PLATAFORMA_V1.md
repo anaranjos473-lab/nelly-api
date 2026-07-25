@@ -195,6 +195,7 @@ La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 
 - [`OV1_PRE_PILOTO_GATE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_PRE_PILOTO_GATE_V1.md)
 - [`OV1_PRE_PILOTO_SERIE_001_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_PRE_PILOTO_SERIE_001_V1.md)
 - [`OV1_PRE_PILOTO_SERIE_002_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_PRE_PILOTO_SERIE_002_V1.md)
+- [`OV1_PRE_PILOTO_SERIE_003_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_PRE_PILOTO_SERIE_003_V1.md)
 - [`OV1_BASELINE_METRICAS_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_BASELINE_METRICAS_PRE_PILOTO_V1.md)
 - [`PILOTO_MANUAL_COMERCIOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_MANUAL_COMERCIOS_V1.md)
 - [`PILOTO_MANUAL_REPARTIDORES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_MANUAL_REPARTIDORES_V1.md)

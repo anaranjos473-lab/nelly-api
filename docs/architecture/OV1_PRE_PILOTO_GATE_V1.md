@@ -144,9 +144,11 @@ El piloto comercial controlado podra iniciar cuando:
 
 - `OV1_PRE_PILOTO_SERIE_001_V1.md`: primera serie pre piloto con 18 ciclos en verde, interrupcion por limite de deuda en el ciclo 19 y verificacion posterior con backend fresco.
 - `OV1_PRE_PILOTO_SERIE_002_V1.md`: segunda serie pre piloto sobre el puerto operativo `3001`, con proceso actualizado, deuda controlada y 20 ciclos completos en verde.
+- `OV1_PRE_PILOTO_SERIE_003_V1.md`: tercera serie pre piloto sobre `3001`, con 18 ciclos en verde, 503 externo transitorio y 2 ciclos de recuperacion en verde.
 
 ## 10. Historial
 
 - 2026-07-25: Se crea el gate pre piloto OV1 para ordenar validacion tecnica, corridas, metricas, preparacion operativa y criterios de salida.
 - 2026-07-25: Se enlaza la Serie 001 pre piloto como evidencia inicial del gate.
 - 2026-07-25: Se enlaza la Serie 002 pre piloto como evidencia aprobada sobre el puerto operativo oficial.
+- 2026-07-25: Se enlaza la Serie 003 pre piloto como evidencia de recuperacion operativa ante 503 externo.
