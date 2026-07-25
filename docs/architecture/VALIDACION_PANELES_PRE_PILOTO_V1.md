@@ -41,6 +41,59 @@ La tabla siguiente resume el estado actual de los paneles como base de arranque.
 - `Preliminarmente lista` significa que el siguiente paso correcto es ejecutar el piloto controlado y registrar evidencia real de operacion.
 - Si aparece un nuevo error de consola, red o autenticacion, este estatus debe actualizarse antes de iniciar la corrida.
 
+## 0.1 Checklist de inicio del piloto
+
+Usar esta lista como verificacion rapida antes de abrir la primera jornada.
+
+### Base comun
+
+- [ ] `RC1-B` permanece en `PASS`.
+- [ ] `npm run doctor:operational` devuelve `OPERABLE`.
+- [ ] `npm run validate:operational-port` confirma el puerto `3001`.
+- [ ] El backend esta iniciado y responde.
+- [ ] La politica `POL_PILOTO_001.md` sigue vigente.
+- [ ] `RUNBOOK_OPERATIVO_PILOTO_V1.md` esta disponible para la jornada.
+- [ ] `PILOTO_PLAN_JORNADA_001_V1.md` esta disponible para la jornada.
+- [ ] DevTools estan abiertos en `Console` y `Network`.
+
+### Panel Comercial
+
+- [ ] Abre sin recarga manual adicional.
+- [ ] Inicia sesion correctamente.
+- [ ] Muestra `C4` visible.
+- [ ] Muestra `C5` visible.
+- [ ] Los KPI cargan con datos reales.
+- [ ] No hay errores criticos en consola.
+- [ ] No hay solicitudes HTTP fallidas que bloqueen la vista.
+
+### Panel Operativo
+
+- [ ] Abre sin recarga manual adicional.
+- [ ] Inicia sesion correctamente.
+- [ ] Muestra el snapshot operativo.
+- [ ] Muestra salud general y finanzas.
+- [ ] Muestra `C4`, `C5` y `Q1`.
+- [ ] No hay errores criticos en consola.
+- [ ] No hay solicitudes HTTP fallidas que bloqueen la vista.
+
+### Panel Administrativo
+
+- [ ] Abre sin recarga manual adicional.
+- [ ] Inicia sesion correctamente.
+- [ ] Muestra repartidores.
+- [ ] Muestra pedidos.
+- [ ] Los formularios operativos responden.
+- [ ] No hay errores criticos en consola.
+- [ ] No hay solicitudes HTTP fallidas que bloqueen la vista.
+
+### Decision de inicio
+
+- [ ] Todos los paneles estan marcados como listos.
+- [ ] No hay bloqueos de autentacion.
+- [ ] No hay bloqueos de red.
+- [ ] No hay errores de consola bloqueantes.
+- [ ] Se autoriza iniciar la primera corrida del piloto.
+
 ## 1. Proposito
 
 Validar que los paneles disponibles para el piloto comercial controlado reflejan correctamente el estado del ecosistema Nelly antes de iniciar la Jornada 001.
