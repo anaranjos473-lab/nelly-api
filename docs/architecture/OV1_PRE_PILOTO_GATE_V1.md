@@ -148,6 +148,8 @@ El piloto comercial controlado podra iniciar cuando:
 - C4, C5 y Q1 demuestren valor inicial o aprendizaje medible;
 - no existan errores criticos abiertos.
 
+La decision ejecutiva se consolida en `GO_NO_GO_PRE_PILOTO_V1.md`.
+
 ## 9.1 Evidencias de serie
 
 - `OV1_PRE_PILOTO_SERIE_001_V1.md`: primera serie pre piloto con 18 ciclos en verde, interrupcion por limite de deuda en el ciclo 19 y verificacion posterior con backend fresco.
@@ -167,3 +169,4 @@ El piloto comercial controlado podra iniciar cuando:
 - 2026-07-25: Se enlaza la Serie 004 como evidencia aprobada del runner OV1 con token cache.
 - 2026-07-25: Se enlaza la Serie 005 como evidencia de disciplina completa Doctor -> OV1 -> Doctor.
 - 2026-07-25: Se enlaza la Serie 006 como evidencia de estabilidad consecutiva pre piloto.
+- 2026-07-25: Se referencia el GO/NO-GO pre piloto como documento ejecutivo de decision.
