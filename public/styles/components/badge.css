@@ -1,0 +1,16 @@
+.nelly-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: 9999px;
+  background: rgba(3, 10, 20, 0.38);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--nelly-text);
+}
+
+.nelly-chip--accent { color: var(--nelly-accent); }
+.nelly-chip--info { color: var(--nelly-info); }
+.nelly-chip--success { color: var(--nelly-success); }

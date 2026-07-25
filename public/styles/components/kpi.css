@@ -1,0 +1,6 @@
+.nelly-kpi {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: 16px;
+  background: rgba(3, 10, 20, 0.45);
+  box-shadow: var(--nelly-shadow-soft);
+}

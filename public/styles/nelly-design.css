@@ -1,0 +1,80 @@
+:root {
+  --nelly-bg: #06111f;
+  --nelly-bg-deep: #030814;
+  --nelly-surface: rgba(15, 27, 47, 0.94);
+  --nelly-surface-soft: rgba(15, 27, 47, 0.72);
+  --nelly-line: rgba(37, 57, 90, 0.96);
+  --nelly-line-soft: rgba(255, 255, 255, 0.08);
+  --nelly-text: #f8fafc;
+  --nelly-muted: #94a3b8;
+  --nelly-accent: #f8b91b;
+  --nelly-info: #6ea8fe;
+  --nelly-success: #35f2c1;
+  --nelly-warn: #ff9f66;
+  --nelly-danger: #fb7185;
+  --nelly-radius: 20px;
+  --nelly-radius-sm: 14px;
+  --nelly-shadow: 0 24px 60px rgba(2, 6, 23, 0.35);
+  --nelly-shadow-soft: 0 12px 30px rgba(2, 6, 23, 0.22);
+  --nelly-font: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--nelly-font);
+  color: var(--nelly-text);
+  background:
+    radial-gradient(circle at top left, rgba(248, 185, 27, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(110, 168, 254, 0.11), transparent 26%),
+    linear-gradient(180deg, #07111f 0%, #091524 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nelly-shell {
+  min-height: 100%;
+}
+
+.nelly-grid {
+  min-height: 100%;
+}
+
+.nelly-panel {
+  border: 1px solid var(--nelly-line);
+  border-radius: var(--nelly-radius);
+  background: var(--nelly-surface);
+  box-shadow: var(--nelly-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.nelly-panel-soft {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.35);
+}
+
+.nelly-section-label {
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--nelly-muted);
+}
+
+.nelly-hero-title {
+  font-size: clamp(1.5rem, 2vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--nelly-text);
+}
+
+.nelly-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+}

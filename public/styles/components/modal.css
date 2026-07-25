@@ -1,0 +1,6 @@
+.nelly-modal {
+  border: 1px solid var(--nelly-line);
+  border-radius: var(--nelly-radius);
+  background: var(--nelly-surface);
+  box-shadow: var(--nelly-shadow);
+}

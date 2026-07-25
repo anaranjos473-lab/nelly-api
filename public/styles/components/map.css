@@ -1,0 +1,6 @@
+.nelly-map {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.35);
+  min-height: 320px;
+}

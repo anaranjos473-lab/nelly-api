@@ -1,0 +1,4 @@
+.nelly-sidebar {
+  border-right: 1px solid var(--nelly-line-soft);
+  background: rgba(3, 10, 20, 0.5);
+}

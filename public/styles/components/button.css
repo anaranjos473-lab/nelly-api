@@ -1,0 +1,26 @@
+.nelly-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--nelly-line-soft);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  transition: transform 0.16s ease, filter 0.16s ease, background-color 0.16s ease;
+}
+
+.nelly-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.nelly-btn--accent {
+  background: linear-gradient(180deg, #ffd34d, #f8b91b);
+  color: #0b1220;
+}
+
+.nelly-btn--ghost {
+  background: rgba(3, 10, 20, 0.36);
+  color: var(--nelly-text);
+}
