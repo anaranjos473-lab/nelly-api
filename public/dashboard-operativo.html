@@ -29,114 +29,131 @@
 <body class="h-full bg-ops-bg text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="mb-6 flex flex-col gap-4 rounded-2xl border border-ops-line bg-ops-card/95 p-5 shadow-lg sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p class="text-xs uppercase tracking-[0.3em] text-ops-accent">S4 · Dashboard Operativo Unificado</p>
-          <h1 class="mt-2 text-2xl font-bold tracking-tight">Nelly Delivery - Dashboard Operativo</h1>
-          <p class="mt-1 text-sm text-slate-300">Una sola lectura del estado operativo, financiero y de observabilidad.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <a href="/admin-dashboard.html" class="rounded-lg border border-ops-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Volver al Admin</a>
-          <button id="btn-refresh" class="rounded-lg bg-ops-accent px-3 py-2 text-sm font-bold text-slate-950 hover:brightness-110">Refrescar</button>
+      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div class="max-w-2xl space-y-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="nelly-chip nelly-chip--success">Tiempo real</span>
+              <span class="nelly-chip nelly-chip--info">S4</span>
+              <span class="nelly-chip nelly-chip--accent">Operación</span>
+            </div>
+            <div>
+              <p class="nelly-section-label text-ops-accent">S4 · Dashboard Operativo Unificado</p>
+              <h1 class="nelly-hero-title mt-2">Panel de Operaciones</h1>
+              <p class="mt-3 max-w-2xl text-sm text-slate-300">Lectura unificada del estado operativo, financiero y de observabilidad para decidir rápido qué está sano, qué requiere atención y qué sigue en cola.</p>
+            </div>
+            <div class="nelly-divider"></div>
+            <div class="flex flex-wrap gap-2">
+              <a href="/admin-dashboard.html" class="nelly-btn nelly-btn--ghost">Volver al Admin</a>
+              <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar datos</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-[34rem]">
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos activos</p>
+              <p id="overview-pedidos-activos" class="mt-2 text-2xl font-bold text-ops-accent">0</p>
+            </div>
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Repartidores</p>
+              <p id="overview-repartidores" class="mt-2 text-2xl font-bold text-slate-100">0</p>
+            </div>
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Ventas brutas</p>
+              <p id="overview-ventas-brutas" class="mt-2 text-2xl font-bold text-ops-info">$0.00</p>
+            </div>
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Comisiones</p>
+              <p id="overview-comisiones" class="mt-2 text-2xl font-bold text-ops-warn">$0.00</p>
+            </div>
+          </div>
         </div>
       </header>
 
-      <section id="login-section" class="mx-auto max-w-md rounded-2xl border border-ops-line bg-ops-card/95 p-6 shadow-lg">
-        <h2 class="text-lg font-semibold">Acceso S4</h2>
-        <p class="mt-1 text-sm text-slate-300">Usa una cuenta autorizada del panel administrativo para consultar el snapshot unificado.</p>
+      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
+        <p class="nelly-section-label">Acceso S4</p>
+        <h2 class="nelly-hero-title mt-2 text-2xl">Consultar snapshot unificado</h2>
+        <p class="mt-2 text-sm text-slate-300">Usa una cuenta autorizada del panel administrativo para abrir el estado operativo en tiempo real.</p>
         <form id="login-form" class="mt-5 space-y-4">
-          <input id="login-email" type="email" required class="w-full rounded-lg border border-ops-line bg-slate-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ops-accent" placeholder="admin@nellydelivery.com" />
-          <input id="login-password" type="password" required class="w-full rounded-lg border border-ops-line bg-slate-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ops-accent" placeholder="********" />
-          <button type="submit" class="w-full rounded-lg bg-ops-accent px-4 py-2 text-sm font-bold text-slate-950 hover:brightness-110">Abrir Dashboard</button>
+          <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
+          <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
+          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Abrir panel</button>
           <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
         </form>
       </section>
 
       <section id="dashboard-section" class="hidden space-y-6">
-        <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+        <article class="nelly-panel p-5 sm:p-6">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado general</p>
-              <h2 id="dashboard-status" class="mt-1 text-2xl font-bold text-ops-accent">Cargando...</h2>
+              <h2 id="dashboard-status" class="mt-1 text-3xl font-bold text-ops-accent">Cargando...</h2>
+              <p class="mt-2 max-w-2xl text-sm text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
             </div>
-            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div class="rounded-xl border border-ops-line bg-slate-900/50 px-3 py-2">
-                <p class="text-xs text-slate-400">Pedidos activos</p>
-                <p id="overview-pedidos-activos" class="text-lg font-bold">0</p>
-              </div>
-              <div class="rounded-xl border border-ops-line bg-slate-900/50 px-3 py-2">
-                <p class="text-xs text-slate-400">Repartidores</p>
-                <p id="overview-repartidores" class="text-lg font-bold">0</p>
-              </div>
-              <div class="rounded-xl border border-ops-line bg-slate-900/50 px-3 py-2">
-                <p class="text-xs text-slate-400">Ventas brutas</p>
-                <p id="overview-ventas-brutas" class="text-lg font-bold text-ops-accent">$0.00</p>
-              </div>
-              <div class="rounded-xl border border-ops-line bg-slate-900/50 px-3 py-2">
-                <p class="text-xs text-slate-400">Comisiones</p>
-                <p id="overview-comisiones" class="text-lg font-bold text-ops-warn">$0.00</p>
-              </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="nelly-chip nelly-chip--success">Backend vivo</span>
+              <span class="nelly-chip nelly-chip--info">Snapshot cargado</span>
+              <span class="nelly-chip nelly-chip--accent">Observabilidad</span>
             </div>
           </div>
         </article>
 
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Audit Consumer</p>
             <h3 id="audit-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
             <p id="audit-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Metrics Consumer</p>
             <h3 id="metrics-signal" class="mt-2 text-xl font-semibold text-ops-info">Sin datos</h3>
             <p id="metrics-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Finance Consumer</p>
             <h3 id="finance-signal" class="mt-2 text-xl font-semibold text-ops-warn">Sin datos</h3>
             <p id="finance-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Notification Consumer</p>
             <h3 id="notification-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
             <p id="notification-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">AI Consumer</p>
             <h3 id="ai-signal" class="mt-2 text-xl font-semibold text-ops-info">Sin datos</h3>
             <p id="ai-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Observabilidad</p>
             <h3 id="health-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
             <p id="health-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
-          <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Marketplace</p>
             <h3 id="marketplace-signal" class="mt-2 text-xl font-semibold text-ops-accent">Sin datos</h3>
             <p id="marketplace-summary" class="mt-2 text-sm text-slate-300"></p>
           </article>
         </div>
 
-        <article class="rounded-2xl border border-ops-line bg-ops-card p-5 shadow-lg">
+        <article class="nelly-panel p-5 sm:p-6">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-lg font-semibold">Proyecciones S3</h2>
-            <span class="rounded-full border border-ops-line bg-slate-900/50 px-3 py-1 text-xs text-slate-300">Estado consolidado</span>
+            <span class="nelly-chip">Estado consolidado</span>
           </div>
           <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-ops-line bg-slate-950/40 p-4">
+            <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Audit</p>
               <p id="projection-audit" class="mt-2 text-sm text-slate-200">-</p>
             </div>
-            <div class="rounded-xl border border-ops-line bg-slate-950/40 p-4">
+            <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Metrics</p>
               <p id="projection-metrics" class="mt-2 text-sm text-slate-200">-</p>
             </div>
-            <div class="rounded-xl border border-ops-line bg-slate-950/40 p-4">
+            <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Finance</p>
               <p id="projection-finance" class="mt-2 text-sm text-slate-200">-</p>
             </div>
-            <div class="rounded-xl border border-ops-line bg-slate-950/40 p-4">
+            <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Resumen</p>
               <p id="projection-summary" class="mt-2 text-sm text-slate-200">-</p>
             </div>
@@ -146,6 +163,6 @@
     </main>
   </div>
 
-  <script type="module" src="./js/dashboard-operativo.js?v=20260723-s4-1"></script>
+  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-2"></script>
 </body>
 </html>

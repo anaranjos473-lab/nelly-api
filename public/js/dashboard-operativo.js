@@ -113,7 +113,7 @@ function renderSnapshot(snapshot) {
   ui.healthSignal.textContent = snapshot?.health?.backend ? 'Backend saludable' : 'Backend no validado';
   ui.healthSummary.textContent = [
     `RTDB: ${snapshot?.health?.rtdb ? 'OK' : 'NO'}`,
-    `Sincronizacion: ${snapshot?.health?.sincronizacion ? 'OK' : 'NO'}`,
+    `Sincronización: ${snapshot?.health?.sincronizacion ? 'OK' : 'NO'}`,
     `Ledger: ${snapshot?.health?.ledger ? 'OK' : 'NO'}`,
     `Finanzas: ${snapshot?.health?.finanzas ? 'OK' : 'NO'}`
   ].join(' · ');
