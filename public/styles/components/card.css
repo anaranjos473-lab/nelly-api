@@ -4,3 +4,37 @@
   background: var(--nelly-surface);
   box-shadow: var(--nelly-shadow-soft);
 }
+
+.repartidor-mini__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.repartidor-mini__folio {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: var(--nelly-text);
+}
+
+.repartidor-mini__title {
+  margin: 0.55rem 0 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--nelly-text);
+}
+
+.repartidor-mini__desc {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.repartidor-mini__amount {
+  margin: 0.65rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--nelly-info);
+}

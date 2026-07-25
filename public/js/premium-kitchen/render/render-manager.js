@@ -222,17 +222,15 @@ export function createRenderManager() {
 
       const html = `
                 <div class="card-pedido animate__animated animate__fadeIn">
-                    <div class="card-header">
-                        <strong>#${displayId}</strong>
-                        <span class="monto">$${monto.toFixed(2)}</span>
+                    <div class="repartidor-mini__meta">
+                        <strong class="repartidor-mini__folio">#${displayId}</strong>
+                        <span class="nelly-chip">${estadoLabel}</span>
                     </div>
-                    <div class="card-body">
-                        <p class="cliente">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
-                        <p class="estado">Estado: ${estadoLabel}</p>
-                        <p class="estado">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
-                        ${ubicacionHumanizada ? `<p class="desc">${ubicacionHumanizada}</p>` : ''}
-                        <p class="desc">${pedido.descripcion || 'Sin descripcion'}</p>
-                    </div>
+                    <p class="repartidor-mini__title">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
+                    <p class="repartidor-mini__desc">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
+                    ${ubicacionHumanizada ? `<p class="repartidor-mini__desc">${ubicacionHumanizada}</p>` : ''}
+                    <p class="repartidor-mini__desc">${pedido.descripcion || 'Sin descripcion'}</p>
+                    <p class="repartidor-mini__amount">$${monto.toFixed(2)}</p>
                     <button ${botonAttrs} class="btn-action ${config.clase}">
                         ${config.texto}
                     </button>
