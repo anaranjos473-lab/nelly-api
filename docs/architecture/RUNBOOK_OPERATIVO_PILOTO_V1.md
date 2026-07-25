@@ -1,11 +1,12 @@
 # RUNBOOK OPERATIVO PILOTO V1
 
-**Estado:** Procedimiento operativo activo  
-**Ambito:** Jornada diaria del piloto comercial controlado  
-**Fecha:** 2026-07-25  
-**Referencia ejecutiva:** `GO_NO_GO_PRE_PILOTO_V1.md`  
-**Referencia operativa:** `OV1_CHECKLIST_OPERATIVA_V1.md`  
-**Referencia diagnostica:** `MAPA_DIAGNOSTICO_OPERATIVO_V1.md`
+- **Estado:** Procedimiento operativo activo
+- **Ambito:** Jornada diaria del piloto comercial controlado
+- **Fecha:** 2026-07-25
+- **Referencia ejecutiva:** `GO_NO_GO_PRE_PILOTO_V1.md`
+- **Referencia operativa:** `OV1_CHECKLIST_OPERATIVA_V1.md`
+- **Referencia diagnostica:** `MAPA_DIAGNOSTICO_OPERATIVO_V1.md`
+- **Plan de primera jornada:** `PILOTO_PLAN_JORNADA_001_V1.md`
 
 ## 1. Proposito
 
@@ -235,3 +236,4 @@ Cada jornada debe dejar:
 ## 11. Historial
 
 - 2026-07-25: Se crea el runbook operativo del piloto como procedimiento diario bajo GO condicionado.
+- 2026-07-25: Se enlaza el plan operativo de Jornada 001 como primera ejecucion del piloto comercial controlado.
