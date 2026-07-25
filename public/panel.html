@@ -46,7 +46,12 @@
                     if (!div) return;
                     div.innerHTML = "";
                     if (!snapshot.exists()) {
-                        div.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No hay pedidos pendientes en Firebase.</p>";
+                        div.innerHTML = `
+                            <div class="nelly-empty-state" style="grid-column: 1 / -1;">
+                                <p class="nelly-empty-state__title">Sin pedidos pendientes</p>
+                                <p class="nelly-empty-state__body">Cuando la SSOT publique pedidos nuevos, apareceran aqui en tiempo real.</p>
+                            </div>
+                        `;
                         return;
                     }
                     snapshot.forEach((child) => {

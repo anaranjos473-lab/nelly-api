@@ -104,6 +104,13 @@ export function createRenderManager() {
         }
       });
 
+      const emptyStateHTML = (titulo, cuerpo) => `
+        <div class="nelly-empty-state">
+          <p class="nelly-empty-state__title">${titulo}</p>
+          <p class="nelly-empty-state__body">${cuerpo}</p>
+        </div>
+      `;
+
       const counts = {
         pendientes: 0,
         listo: 0,
@@ -184,6 +191,34 @@ export function createRenderManager() {
         ...counts,
         at: Date.now()
       };
+
+      if (contenedorPendientes && counts.pendientes === 0) {
+        contenedorPendientes.innerHTML = emptyStateHTML(
+          'Sin pedidos en cocina',
+          'Los pedidos nuevos apareceran aqui en cuanto lleguen desde la SSOT.'
+        );
+      }
+
+      if (contenedorListo && counts.listo === 0) {
+        contenedorListo.innerHTML = emptyStateHTML(
+          'Nada listo por ahora',
+          'Cuando cocina despache un pedido, esta columna mostrara la espera del repartidor.'
+        );
+      }
+
+      if (contenedorReparto && counts.reparto === 0) {
+        contenedorReparto.innerHTML = emptyStateHTML(
+          'Sin pedidos en reparto',
+          'Apareceran aqui los pedidos que ya fueron tomados por repartidores.'
+        );
+      }
+
+      if (contenedorEntregados && counts.entregados === 0) {
+        contenedorEntregados.innerHTML = emptyStateHTML(
+          'Todavia sin entregados',
+          'Los pedidos finalizados se moveran aqui para el corte operativo.'
+        );
+      }
 
       return renderState.lastOrderLists;
     },
