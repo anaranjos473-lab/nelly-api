@@ -50,6 +50,9 @@ El Plan Estrategico explica la vision y los principios que guian a Nelly como pl
 - [`RC1_REPORTE_DIARIO_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_REPORTE_DIARIO_OPERATIVO_V1.md)
 - [`CERTIFICACION_FINAL_RC1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_FINAL_RC1.md)
 
+### UI Nelly
+- [`INDEX_MAESTRO_NELLY_UI_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INDEX_MAESTRO_NELLY_UI_V1.md)
+
 ### Gobernanza de IA y automatizacion
 - [`POL_IA_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_IA_001.md)
 
