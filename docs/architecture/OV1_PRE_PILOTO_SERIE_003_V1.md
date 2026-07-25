@@ -159,6 +159,17 @@ Recomendacion concreta:
 
 Esto no cambia la arquitectura de Nelly. Solo hace la herramienta de validacion mas resistente ante fallas transitorias de servicios externos.
 
+## 9.1 Seguimiento aplicado
+
+La recomendacion queda implementada en:
+
+```bash
+npm run ov1:rotation
+```
+
+El script operativo usa cache de token por sesion y solo refresca si el token expira o si un endpoint devuelve `401`.
+
 ## 10. Historial
 
 - 2026-07-25: Se ejecuta Serie 003 con 18 ciclos en verde, 503 externo transitorio y 2 ciclos de recuperacion en verde.
+- 2026-07-25: Se registra que la recomendacion de reutilizacion de tokens quedo implementada como script operativo.

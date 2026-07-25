@@ -51,6 +51,14 @@ Antes del piloto se debe verificar en operacion real:
 
 OV1 debe ejecutarse en varias corridas antes de invitar comercios reales.
 
+El script operativo recomendado es:
+
+```bash
+npm run ov1:rotation
+```
+
+Este script reutiliza tokens durante la serie para reducir dependencia de autenticaciones repetidas contra Firebase Auth.
+
 ### 4.1 Volumen objetivo
 
 | Tipo | Objetivo |
@@ -145,6 +153,7 @@ El piloto comercial controlado podra iniciar cuando:
 - `OV1_PRE_PILOTO_SERIE_001_V1.md`: primera serie pre piloto con 18 ciclos en verde, interrupcion por limite de deuda en el ciclo 19 y verificacion posterior con backend fresco.
 - `OV1_PRE_PILOTO_SERIE_002_V1.md`: segunda serie pre piloto sobre el puerto operativo `3001`, con proceso actualizado, deuda controlada y 20 ciclos completos en verde.
 - `OV1_PRE_PILOTO_SERIE_003_V1.md`: tercera serie pre piloto sobre `3001`, con 18 ciclos en verde, 503 externo transitorio y 2 ciclos de recuperacion en verde.
+- `OV1_PRE_PILOTO_SERIE_004_V1.md`: cuarta serie pre piloto sobre `3001`, con runner de token cache y 20 ciclos completos en verde.
 
 ## 10. Historial
 
@@ -152,3 +161,5 @@ El piloto comercial controlado podra iniciar cuando:
 - 2026-07-25: Se enlaza la Serie 001 pre piloto como evidencia inicial del gate.
 - 2026-07-25: Se enlaza la Serie 002 pre piloto como evidencia aprobada sobre el puerto operativo oficial.
 - 2026-07-25: Se enlaza la Serie 003 pre piloto como evidencia de recuperacion operativa ante 503 externo.
+- 2026-07-25: Se define `npm run ov1:rotation` como script operativo con reutilizacion de tokens.
+- 2026-07-25: Se enlaza la Serie 004 como evidencia aprobada del runner OV1 con token cache.

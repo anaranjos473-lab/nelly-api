@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "ov1:rotation": "node scripts/ov1-rotation-3-drivers.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit --cacheDirectory=.jest-cache",
     "deploy": "firebase deploy",
     "validate:flow": "node .codex-tmp/validate-fresh-delivery-flow.mjs",
