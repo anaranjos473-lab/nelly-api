@@ -48,6 +48,22 @@ app.use(express.urlencoded({ extended: true }));
 // Publica el contenido de `public/` por HTTP para que /panel.html y recursos asociados funcionen.
 app.use(express.static('public'));
 
+const panelAliases = {
+    '/nellydelivery': '/panel.html',
+    '/nellydelivery/comercial': '/dashboard-comercial.html',
+    '/nellydelivery/operativo': '/dashboard-operativo.html',
+    '/nellydelivery/admin': '/admin-dashboard.html',
+    '/nellydelivery/crm': '/crm-basico.html',
+    '/nellydelivery/repartidor': '/repartidor.html',
+    '/nellydelivery/panel': '/panel.html'
+};
+
+for (const [alias, target] of Object.entries(panelAliases)) {
+    app.get(alias, (req, res) => {
+        res.redirect(302, target);
+    });
+}
+
 function isProduction() {
     return process.env.NODE_ENV === 'production';
 }
