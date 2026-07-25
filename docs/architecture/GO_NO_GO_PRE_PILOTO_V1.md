@@ -238,7 +238,10 @@ Preparar la primera jornada de piloto comercial controlado con:
 7. Doctor Operativo posterior.
 8. Dictamen diario.
 
+El procedimiento diario queda definido en `RUNBOOK_OPERATIVO_PILOTO_V1.md`.
+
 ## 15. Historial
 
 - 2026-07-25: Se crea el GO/NO-GO pre piloto con base en RC2, OV1, Doctor Operativo y Series 004, 005 y 006.
 - 2026-07-25: Se agregan condiciones de permanencia del GO y criterios de exito del piloto.
+- 2026-07-25: Se enlaza el runbook operativo del piloto como procedimiento diario bajo GO condicionado.
