@@ -88,10 +88,22 @@ Establecer una lista corta y repetible para ejecutar OV1 con evidencia real, mid
 | Q1 redujo incidencias o mermas | Pendiente | |
 | Los datos permitieron detectar patrones | Pendiente | |
 
-## 9. Cierre
+## 9. Vigilancia de estabilidad
+
+| Senal | Resultado | Observacion |
+| --- | --- | --- |
+| Tiempo promedio de entrega estable | | |
+| Q1 visible en snapshot | | |
+| Q1 clasifica incidencias si existen | | |
+| C5 mantiene promociones sugeridas | | |
+| C5 tiene promociones medibles acumuladas | | |
+| Errores bloqueantes abiertos | | |
+
+## 10. Cierre
 
 La corrida se considera util cuando deja evidencia verificable, incluso si el resultado comercial u operativo es negativo. OV1 mide aprendizaje real, no solo resultados favorables.
 
-## 10. Historial
+## 11. Historial
 
 - 2026-07-25: Se crea la checklist operativa para ejecutar OV1.
+- 2026-07-25: Se agrega vigilancia de estabilidad para tiempo promedio de entrega, Q1 y C5 antes del piloto.

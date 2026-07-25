@@ -149,6 +149,25 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 
 `OV1_CHECKLIST_OPERATIVA_V1.md` es la lista operativa para registrar corridas, indicadores, evidencias y dictamen de cada validacion.
 
+## 8.0 Gate pre piloto
+
+Antes de iniciar un piloto comercial controlado, OV1 debe pasar por `OV1_PRE_PILOTO_GATE_V1.md`.
+
+Ese gate exige:
+
+- validacion tecnica completa del flujo y dashboards;
+- corridas repetidas de OV1 sobre distintos comercios, repartidores y horarios;
+- linea base de indicadores;
+- manuales operativos minimos para comercios y repartidores;
+- procedimientos de soporte e incidencias;
+- criterio de salida basado en objetivos medibles y no en una fecha.
+
+Como vigilancia adicional, deben permanecer estables durante varias corridas:
+
+- tiempo promedio de entrega;
+- proyeccion Q1;
+- promociones sugeridas y medibles de C5.
+
 ## 8.1 Evidencias registradas
 
 - `OV1_CORRIDA_001_V1.md`: primera corrida con snapshot autenticado, C4 generando oportunidades, C5 generando promociones ligeras y Q1 pendiente de captura operativa explicita.
@@ -167,3 +186,4 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 - 2026-07-25: Se registra OV1 Corrida 001 con datos vivos del snapshot operativo autenticado.
 - 2026-07-25: Se registra OV1 Corrida 002 con P0/P1 corregidos.
 - 2026-07-25: Se ejecutan las corridas 003 y 004 con evidencia controlada de impacto C5 y ciclo inicial Q1.
+- 2026-07-25: Se agrega gate pre piloto, linea base de metricas y preparacion operativa minima.

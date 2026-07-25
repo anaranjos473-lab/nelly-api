@@ -192,8 +192,14 @@ La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 
 - [`OV1_CORRIDA_002_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_002_V1.md)
 - [`OV1_CORRIDA_003_C5_PROMOCION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_003_C5_PROMOCION_V1.md)
 - [`OV1_CORRIDA_004_Q1_CALIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_004_Q1_CALIDAD_V1.md)
+- [`OV1_PRE_PILOTO_GATE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_PRE_PILOTO_GATE_V1.md)
+- [`OV1_BASELINE_METRICAS_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_BASELINE_METRICAS_PRE_PILOTO_V1.md)
+- [`PILOTO_MANUAL_COMERCIOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_MANUAL_COMERCIOS_V1.md)
+- [`PILOTO_MANUAL_REPARTIDORES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_MANUAL_REPARTIDORES_V1.md)
+- [`PILOTO_PROCEDIMIENTO_SOPORTE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_PROCEDIMIENTO_SOPORTE_V1.md)
+- [`PILOTO_PROCEDIMIENTO_INCIDENCIAS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_PROCEDIMIENTO_INCIDENCIAS_V1.md)
 #### Resumen OV1
-OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades.
+OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades. El gate pre piloto exige validacion tecnica completa, corridas repetidas, linea base de metricas, preparacion operativa y criterios de salida medibles antes de invitar comercios.
 
 ### Goal Q1 - Calidad Operativa
 - [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)
