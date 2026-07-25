@@ -1,13 +1,117 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nelly Delivery - Panel</title>
-  <meta http-equiv="refresh" content="0; url=/panel.html">
+  <title>Nelly Delivery</title>
+  <meta http-equiv="refresh" content="2; url=/panel.html">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/themes.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at top, rgba(255, 199, 60, 0.14), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(62, 113, 255, 0.18), transparent 28%),
+        var(--panel-bg);
+      color: #e5edf8;
+      font-family: Inter, system-ui, sans-serif;
+    }
+    .splash {
+      width: min(92vw, 680px);
+      padding: 2rem;
+    }
+    .frame {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(4, 10, 20, 0.72);
+      border-radius: 24px;
+      box-shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
+      backdrop-filter: blur(18px);
+      padding: 2rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    .logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #0a1730, #11244a);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #facc15;
+      font-size: 1.7rem;
+      font-weight: 800;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+    p {
+      margin: 0;
+      color: #c6d3e2;
+      line-height: 1.6;
+    }
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.75rem 1rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: #eff6ff;
+      font-weight: 700;
+    }
+    .btn--accent {
+      background: linear-gradient(135deg, #ffc107, #ffdf7a);
+      color: #0b1020;
+      border-color: transparent;
+    }
+    .note {
+      margin-top: 1rem;
+      font-size: 0.92rem;
+      color: #8ea2bb;
+    }
+  </style>
 </head>
 <body>
-  <p>Redirigiendo al panel...</p>
-  <p>Si no redirige automaticamente, abre <a href="/panel.html">/panel.html</a>.</p>
+  <main class="splash">
+    <section class="frame">
+      <div class="brand">
+        <div class="logo">N</div>
+        <div>
+          <p class="nelly-section-label">Nelly Delivery</p>
+          <h1>Entrando al ecosistema</h1>
+        </div>
+      </div>
+      <p>Redirigiendo al panel operativo principal con la línea visual unificada de Nelly.</p>
+      <div class="actions">
+        <a class="btn btn--accent" href="/panel.html">Ir al panel ahora</a>
+        <a class="btn" href="/crm-basico.html">Abrir CRM</a>
+      </div>
+      <p class="note">Si no redirige automáticamente, abre el panel desde el botón principal.</p>
+    </section>
+  </main>
 </body>
 </html>
