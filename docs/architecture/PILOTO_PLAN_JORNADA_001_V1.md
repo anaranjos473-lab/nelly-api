@@ -6,6 +6,7 @@
 **Referencia ejecutiva:** `GO_NO_GO_PRE_PILOTO_V1.md`  
 **Referencia operativa:** `RUNBOOK_OPERATIVO_PILOTO_V1.md`  
 **Referencia de evidencia:** `OV1_CHECKLIST_OPERATIVA_V1.md`
+**Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
 
 ## 1. Proposito
 
@@ -169,6 +170,9 @@ Durante la Jornada 001:
 - no se activa IA predictiva;
 - no se crean fuentes de verdad paralelas.
 
+La regla completa de estabilidad se rige por `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`.
+
 ## 13. Historial
 
 - 2026-07-25: Se crea el plan operativo de Jornada 001 como puente entre GO/NO-GO, runbook y ejecucion del piloto comercial controlado.
+- 2026-07-25: Se enlaza la decision de congelacion arquitectonica durante piloto.

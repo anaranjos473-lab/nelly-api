@@ -6,6 +6,7 @@
 **Referencia estrategica:** `PLAN_ESTRATEGICO_NELLY_V1.md`  
 **Referencia arquitectonica:** `RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md`  
 **Referencia operativa:** `OV1_PRE_PILOTO_GATE_V1.md`
+**Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
 
 ## 1. Proposito
 
@@ -225,6 +226,8 @@ Este GO no autoriza:
 - nuevas fuentes de verdad;
 - cambios estructurales al core.
 
+Durante el piloto aplica la congelacion arquitectonica definida en `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`.
+
 ## 14. Siguiente paso
 
 Preparar la primera jornada de piloto comercial controlado con:
@@ -245,3 +248,4 @@ El procedimiento diario queda definido en `RUNBOOK_OPERATIVO_PILOTO_V1.md`.
 - 2026-07-25: Se crea el GO/NO-GO pre piloto con base en RC2, OV1, Doctor Operativo y Series 004, 005 y 006.
 - 2026-07-25: Se agregan condiciones de permanencia del GO y criterios de exito del piloto.
 - 2026-07-25: Se enlaza el runbook operativo del piloto como procedimiento diario bajo GO condicionado.
+- 2026-07-25: Se enlaza la decision de congelacion arquitectonica durante el piloto.

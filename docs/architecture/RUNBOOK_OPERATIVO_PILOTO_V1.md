@@ -6,6 +6,7 @@
 - **Referencia ejecutiva:** `GO_NO_GO_PRE_PILOTO_V1.md`
 - **Referencia operativa:** `OV1_CHECKLIST_OPERATIVA_V1.md`
 - **Referencia diagnostica:** `MAPA_DIAGNOSTICO_OPERATIVO_V1.md`
+- **Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
 - **Plan de primera jornada:** `PILOTO_PLAN_JORNADA_001_V1.md`
 
 ## 1. Proposito
@@ -211,6 +212,8 @@ Durante el piloto no se debe:
 - modificar el core sin incidencia reproducible;
 - cambiar de puerto para evitar un fallo sin diagnostico.
 
+Estas restricciones quedan formalizadas en `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`.
+
 ## 9. Comandos oficiales
 
 | Momento | Comando |
@@ -237,3 +240,4 @@ Cada jornada debe dejar:
 
 - 2026-07-25: Se crea el runbook operativo del piloto como procedimiento diario bajo GO condicionado.
 - 2026-07-25: Se enlaza el plan operativo de Jornada 001 como primera ejecucion del piloto comercial controlado.
+- 2026-07-25: Se enlaza la decision de congelacion arquitectonica de piloto.
