@@ -24,6 +24,29 @@ const snapshot = buildOperationalDashboardSnapshot({
   eventos: [
     { tipo: 'pedido.entregado', aggregate_id: 'PED_S4_1' }
   ],
+  market: {
+    comercios: {
+      commerce_s4_1: {
+        nombre: 'Comercio S4',
+        categoria: 'piloto',
+        ciudad: 'Tuxtla',
+        activo: true
+      }
+    },
+    catalogo_por_comercio: {
+      commerce_s4_1: {
+        product_s4_1: {
+          nombre: 'Producto S4',
+          disponible: true
+        }
+      }
+    },
+    indices: {
+      comercios_por_ciudad: {
+        Tuxtla: ['commerce_s4_1']
+      }
+    }
+  },
   now: 1000
 });
 

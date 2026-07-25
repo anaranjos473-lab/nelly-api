@@ -51,6 +51,41 @@ El objetivo no es que el sistema resuelva automaticamente todos los problemas, s
 
 ## 4. Flujo de uso
 
+### 4.0 Doctor operativo consolidado
+
+Para una lectura consolidada de jornada se debe ejecutar:
+
+```bash
+npm run doctor:operational
+```
+
+El Doctor operativo agrupa las validaciones principales de:
+
+- infraestructura;
+- operacion;
+- eventos;
+- finanzas;
+- dashboard;
+- observabilidad;
+- metricas;
+- notificaciones;
+- IA inicial.
+
+El reporte muestra:
+
+- salud general;
+- severidad maxima;
+- bloque afectado;
+- codigo de fallo;
+- accion recomendada.
+
+Tambien puede emitirse como JSON:
+
+```bash
+$env:DOCTOR_FORMAT='json'
+npm run doctor:operational
+```
+
 ### 4.1 Inicio de jornada
 
 Ejecutar:
@@ -127,3 +162,4 @@ La evidencia de OV1 debe citar el codigo de diagnostico cuando una corrida falle
 ## 7. Historial
 
 - 2026-07-25: Se crea el mapa de diagnostico operativo por capas y se alinea con `validate:operational-port`.
+- 2026-07-25: Se agrega `npm run doctor:operational` como centro de diagnostico operativo consolidado.

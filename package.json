@@ -17,7 +17,8 @@
     "validate:firebase": "node scripts/validation/validate-firebase.js",
     "validate:operational-port": "node scripts/validation/validate-operational-port.js",
     "validate:all": "npm run validate:routes && npm run validate:data-model && npm run validate:contracts && npm run validate:domain-contracts && npm run validate:firebase",
-    "doctor": "node scripts/validation/doctor.js"
+    "doctor": "node scripts/validation/doctor.js",
+    "doctor:operational": "node scripts/validation/operational-doctor.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
