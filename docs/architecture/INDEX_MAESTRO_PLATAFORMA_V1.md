@@ -206,6 +206,9 @@ La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 
 #### Resumen OV1
 OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades. El gate pre piloto exige validacion tecnica completa, corridas repetidas, linea base de metricas, preparacion operativa y criterios de salida medibles antes de invitar comercios.
 
+#### Observabilidad Operativa futura
+El Doctor operativo y el mapa de diagnostico quedan como base tecnica para un posible dominio `O1 - Observabilidad Operativa`, pero O1 no queda activo en RC2. Su apertura dependera de evidencia del piloto y de patrones reales de soporte, fallos, severidad e impacto.
+
 ### Goal Q1 - Calidad Operativa
 - [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)
 #### Resumen Q1

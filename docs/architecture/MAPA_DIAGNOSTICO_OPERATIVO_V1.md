@@ -159,7 +159,31 @@ OV1 usa este mapa para distinguir entre:
 
 La evidencia de OV1 debe citar el codigo de diagnostico cuando una corrida falle.
 
-## 7. Historial
+## 7. Relacion con O1 - Observabilidad Operativa
+
+El Doctor operativo actual y este mapa de diagnostico constituyen la base tecnica inicial para un futuro dominio `O1 - Observabilidad Operativa`.
+
+O1 no queda declarado como dominio activo en esta version.
+
+La decision de abrir O1 debera tomarse despues del piloto, cuando exista evidencia real sobre:
+
+- fallos mas frecuentes;
+- dependencias externas con mayor impacto;
+- alertas que realmente ahorran tiempo;
+- diagnosticos que reducen investigacion manual;
+- metricas que permiten decidir si continuar o detener la operacion;
+- patrones de Q1, C4 y C5 que se repiten durante la operacion real.
+
+Mientras O1 no sea autorizado formalmente:
+
+- `npm run doctor:operational` opera como centro de diagnostico de jornada;
+- `MAPA_DIAGNOSTICO_OPERATIVO_V1.md` opera como guia accionable;
+- OV1 sigue siendo el mecanismo para reunir evidencia;
+- no se crean nuevas fuentes de verdad;
+- no se abre un nuevo dominio antes de validar valor operativo.
+
+## 8. Historial
 
 - 2026-07-25: Se crea el mapa de diagnostico operativo por capas y se alinea con `validate:operational-port`.
 - 2026-07-25: Se agrega `npm run doctor:operational` como centro de diagnostico operativo consolidado.
+- 2026-07-25: Se alinea O1 como dominio candidato post-piloto, no como dominio activo.

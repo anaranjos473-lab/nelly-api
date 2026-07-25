@@ -85,7 +85,26 @@ Esta baseline debe consultarse antes de abrir nuevas capacidades comerciales u o
 
 `MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md` fija la lectura consolidada de Operacion, C2, C3, C4, C5, Q1, G1 y RC2 para evitar ambiguedades antes de cualquier ampliacion futura.
 
+## 7.4 Relacion con O1 - Observabilidad Operativa
+
+`O1 - Observabilidad Operativa` queda identificado como dominio candidato posterior al piloto, no como dominio activo de RC2.
+
+La arquitectura actual ya cuenta con piezas fundacionales para ese futuro dominio:
+
+- health checks;
+- `npm run validate:operational-port`;
+- `npm run doctor:operational`;
+- snapshot operativo;
+- Q1;
+- OV1;
+- codigos accionables de diagnostico.
+
+Sin embargo, RC2 mantiene la restriccion de no abrir nuevos dominios antes de demostrar valor operativo con datos reales.
+
+O1 solo debera abrirse si el piloto demuestra que Nelly necesita convertir el diagnostico actual en una capacidad formal de autodiagnostico, severidad, impacto, aprendizaje operativo y mejora continua.
+
 ## 8. Historial
 
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.
 - 2026-07-25: Se agrega la matriz oficial de dominios y los principios de RC2 como contrato de evolucion del ecosistema.
+- 2026-07-25: Se registra O1 como dominio candidato post-piloto, manteniendo RC2 sin nuevos dominios activos.
