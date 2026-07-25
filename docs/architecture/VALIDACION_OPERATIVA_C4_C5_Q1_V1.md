@@ -153,8 +153,8 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 
 - `OV1_CORRIDA_001_V1.md`: primera corrida con snapshot autenticado, C4 generando oportunidades, C5 generando promociones ligeras y Q1 pendiente de captura operativa explicita.
 - `OV1_CORRIDA_002_V1.md`: segunda corrida con correccion del promedio de entrega y Q1 disponible como proyeccion `operational_quality`.
-- `OV1_CORRIDA_003_C5_PROMOCION_V1.md`: plantilla para ejecutar una promocion C5 y medir resultado cuantificable.
-- `OV1_CORRIDA_004_Q1_CALIDAD_V1.md`: plantilla para registrar incidencia Q1, causa raiz, accion correctiva y nueva medicion.
+- `OV1_CORRIDA_003_C5_PROMOCION_V1.md`: promocion C5 ejecutada de forma controlada con pedido completado y resultado cuantificable.
+- `OV1_CORRIDA_004_Q1_CALIDAD_V1.md`: incidencia Q1 controlada registrada con causa raiz, merma y accion correctiva.
 
 ## 9. Relacion con RC2
 
@@ -166,4 +166,4 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 - 2026-07-25: Se enlaza la checklist operativa de OV1 como herramienta de ejecucion.
 - 2026-07-25: Se registra OV1 Corrida 001 con datos vivos del snapshot operativo autenticado.
 - 2026-07-25: Se registra OV1 Corrida 002 con P0/P1 corregidos.
-- 2026-07-25: Se preparan las corridas 003 y 004 para validar impacto de C5 y ciclo completo de Q1.
+- 2026-07-25: Se ejecutan las corridas 003 y 004 con evidencia controlada de impacto C5 y ciclo inicial Q1.
