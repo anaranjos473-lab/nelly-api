@@ -37,7 +37,11 @@ const ui = {
   c4CommercesRisk: document.getElementById('c4-commerces-risk'),
   c4ActionsTotal: document.getElementById('c4-actions-total'),
   c4OpportunitiesList: document.getElementById('c4-opportunities-list'),
-  c4ActionsList: document.getElementById('c4-actions-list')
+  c4ActionsList: document.getElementById('c4-actions-list'),
+  c5PromotionsTotal: document.getElementById('c5-promotions-total'),
+  c5ReactivationTotal: document.getElementById('c5-reactivation-total'),
+  c5FollowupTotal: document.getElementById('c5-followup-total'),
+  c5PromotionsList: document.getElementById('c5-promotions-list')
 };
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
@@ -123,6 +127,21 @@ function renderActionCard(item) {
   `;
 }
 
+function renderPromotionCard(item) {
+  return `
+    <article class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Promocion ligera</p>
+          <h4 class="text-lg font-semibold text-comm-accent">${item.titulo}</h4>
+        </div>
+        <div class="rounded-full border border-comm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">${item.promocion}</div>
+      </div>
+      <p class="mt-3 text-sm text-slate-200">${item.evidencia}</p>
+    </article>
+  `;
+}
+
 function renderCommercial(snapshot) {
   const commercial = snapshot?.projections?.commercial || {};
   const summary = commercial?.summary || {};
@@ -131,6 +150,7 @@ function renderCommercial(snapshot) {
   const c4 = snapshot?.projections?.commercial_insights || {};
   const c4Opportunities = Array.isArray(c4?.opportunities) ? c4.opportunities : [];
   const c4Actions = Array.isArray(c4?.actions) ? c4.actions : [];
+  const c5Promotions = Array.isArray(c4?.promotions) ? c4.promotions : [];
 
   ui.dashboardStatus.textContent = commercial?.signal === 'operacion_comercial_estable'
     ? 'ESTABLE'
@@ -178,6 +198,13 @@ function renderCommercial(snapshot) {
   ui.c4ActionsList.innerHTML = c4Actions.length > 0
     ? c4Actions.map(renderActionCard).join('')
     : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin acciones sugeridas disponibles en este momento.</p>';
+
+  ui.c5PromotionsTotal.textContent = String(c5Promotions.length);
+  ui.c5ReactivationTotal.textContent = String(c5Promotions.filter((item) => item.promocion === 'reactivacion_manual_prioritaria').length);
+  ui.c5FollowupTotal.textContent = String(c5Promotions.filter((item) => item.promocion !== 'reactivacion_manual_prioritaria').length);
+  ui.c5PromotionsList.innerHTML = c5Promotions.length > 0
+    ? c5Promotions.map(renderPromotionCard).join('')
+    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin promociones ligeras disponibles en este momento.</p>';
 }
 
 async function refreshDashboard() {

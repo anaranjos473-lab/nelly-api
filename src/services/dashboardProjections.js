@@ -488,13 +488,25 @@ function buildCommercialInsightsProjection({
     return rank[a.prioridad] - rank[b.prioridad];
   });
 
+  const promotions = topOpportunities.slice(0, 5).map((item) => ({
+    titulo: item.titulo,
+    promocion: item.prioridad === 'alta'
+      ? 'reactivacion_manual_prioritaria'
+      : item.prioridad === 'media'
+        ? 'recordatorio_con_incentivo_ligero'
+        : 'seguimiento_comercial_simple',
+    prioridad: item.prioridad,
+    evidencia: item.evidencia
+  }));
+
   return {
     ok: true,
     summary: {
       oportunidades_totales: topOpportunities.length,
       clientes_en_riesgo: customerOpportunities.filter((item) => item.prioridad === 'alta').length,
       comercios_en_riesgo: commerceOpportunities.filter((item) => item.prioridad === 'alta').length,
-      metricas_fuente: commercialSummary.ventas_dia ?? 0
+      metricas_fuente: commercialSummary.ventas_dia ?? 0,
+      promociones_sugeridas: promotions.length
     },
     opportunities: topOpportunities,
     actions: topOpportunities.map((item) => ({
@@ -505,7 +517,8 @@ function buildCommercialInsightsProjection({
           ? 'seguimiento_programado'
           : 'monitoreo_base',
       evidencia: item.evidencia
-    }))
+    })),
+    promotions
   };
 }
 

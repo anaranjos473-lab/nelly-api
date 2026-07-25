@@ -125,3 +125,4 @@ Este goal depende de la evidencia y de las lecturas derivadas en `GOAL-C4-001 - 
 
 - 2026-07-24: Version inicial del goal para formalizar promociones ligeras como siguiente capacidad sobre la SSOT certificada.
 - 2026-07-24: Se define como paso posterior a C4, con foco en sugerencias manuales y reactivacion ligera.
+- 2026-07-25: Se integra la primera version visual de promociones ligeras en el Dashboard Comercial como evidencia estructural inicial.
