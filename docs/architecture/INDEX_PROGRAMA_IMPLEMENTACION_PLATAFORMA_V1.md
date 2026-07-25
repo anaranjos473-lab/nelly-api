@@ -68,6 +68,8 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 - [`U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U2_PLAN_IMPLEMENTACION_NUCLEO_UNIVERSAL_V1.md)
 
 #### Certificacion y Evolucion
+- [`CERTIFICACION_SUITE_PANELES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_SUITE_PANELES_V1.md)
+- [`CHECKLIST_CERTIFICACION_PANELES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CHECKLIST_CERTIFICACION_PANELES_V1.md)
 - [`U3_4_CERTIFICACION_UNIVERSAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_4_CERTIFICACION_UNIVERSAL_V1.md)
 - [`U3_5_PREPARACION_MARKETPLACE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_5_PREPARACION_MARKETPLACE_V1.md)
 - [`U3_6_POLICY_ENGINE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_6_POLICY_ENGINE_V1.md)
@@ -92,7 +94,9 @@ Servir como puerta de entrada maestra del programa operativo de implementacion d
 4. `U3_4_CERTIFICACION_UNIVERSAL_V1.md`
 5. `U3_5_PREPARACION_MARKETPLACE_V1.md`
 6. `U3_6_POLICY_ENGINE_V1.md`
-7. `RC1_REPORTE_DIARIO_OPERATIVO_V1.md`
+7. `CERTIFICACION_SUITE_PANELES_V1.md`
+8. `CHECKLIST_CERTIFICACION_PANELES_V1.md`
+9. `RC1_REPORTE_DIARIO_OPERATIVO_V1.md`
 
 ### Regla de Gobernanza
 - El Documento Maestro Financiero constituye la unica fuente oficial del flujo financiero.

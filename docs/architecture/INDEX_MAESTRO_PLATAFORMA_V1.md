@@ -220,6 +220,8 @@ OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles
 
 ### RC1-B - Certificacion Visual Pre Piloto
 - [`VALIDACION_PANELES_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_PANELES_PRE_PILOTO_V1.md)
+- [`CERTIFICACION_SUITE_PANELES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_SUITE_PANELES_V1.md)
+- [`CHECKLIST_CERTIFICACION_PANELES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CHECKLIST_CERTIFICACION_PANELES_V1.md)
 - [`POL_PILOTO_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_PILOTO_001.md)
 #### Resumen RC1-B
 RC1-B certifica en navegador real que Panel Administrativo, Panel Operativo y Panel Comercial funcionan con autenticacion, datos visibles, red valida y evidencia repetible antes de autorizar Jornada 001.
