@@ -1,7 +1,7 @@
 # RC2 - PILOTO CONTROLADO V1
 
 ## Estado
-Propuesto como siguiente hito operativo despues del Gate UX-Release.
+Ejecutado como corrida operativa controlada el 2026-07-25.
 
 ## Objetivo
 Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-Release como hoja de corrida y un acta simple de liberacion para dejar evidencia de decision.
@@ -93,3 +93,4 @@ RC2 no abre nuevas capacidades. Solo ordena la ejecucion controlada del piloto y
 ## Historial
 
 - 2026-07-25: Se propone RC2 como siguiente hito operativo para el piloto controlado.
+- 2026-07-25: RC2 se ejecuto en local, con cierre funcional y una observacion no bloqueante en la transicion `LLEGUE_A_TIENDA`.

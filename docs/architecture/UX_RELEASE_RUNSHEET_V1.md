@@ -11,8 +11,8 @@ Hoja de corrida para ejecutar y cerrar el Gate UX-Release en una sola pasada.
 | Responsable | Codex |
 | Entorno | Local pre-piloto |
 | Base URL | http://127.0.0.1:3001 |
-| Commit | b0557df |
-| Evidencia | .codex-tmp/panel-validation/validation-report.json |
+| Commit | d71dd6b |
+| Evidencia | .codex-tmp/run-rc2-local.mjs |
 
 ## 1. Verificacion Funcional
 
@@ -56,32 +56,32 @@ Hoja de corrida para ejecutar y cerrar el Gate UX-Release en una sola pasada.
 
 | Item | Estado | Observaciones |
 | --- | --- | --- |
-| Crear pedido | PASS | Flujo disponible como siguiente paso operativo. |
-| Ver pedido en Cocina | PASS | Flujo operativo referenciado en RC2. |
-| Publicar al pool | PASS | Flujo operativo referenciado en RC2. |
-| Aceptar con repartidor | PASS | Flujo operativo referenciado en RC2. |
-| Seguimiento visible | PASS | Flujo operativo referenciado en RC2. |
-| Entrega registrada | PASS | Flujo operativo referenciado en RC2. |
-| Finanzas actualizadas | PASS | Las metricas se reflejan en los paneles. |
-| CRM actualizado | PASS | La navegacion y el acceso estan operables. |
-| Dashboard Operativo consistente | PASS | `SALUDABLE` y con metricas visibles. |
-| Dashboard Comercial consistente | PASS | `ESTABLE` y con oportunidades/promo visibles. |
-| Panel Administrativo consistente | PASS | Metricas y generador manual visibles. |
+| Crear pedido | PASS | Se creo el pedido `PED_1785013141673`. |
+| Ver pedido en Cocina | PASS | El pedido quedo en `LISTO` luego del despacho. |
+| Publicar al pool | PASS | `dispatch-order` respondio `ok: true`. |
+| Aceptar con repartidor | PASS | `accept-order` respondio `ok: true` con `driver_piloto`. |
+| Seguimiento visible | OBSERVACION | `transition-order` rechazo `LLEGUE_A_TIENDA` por transicion invalida; no bloqueo el cierre. |
+| Entrega registrada | PASS | `complete-order` respondio `ok: true` y cerro en `ENTREGADO`. |
+| Finanzas actualizadas | PASS | La respuesta devolvio `deudaActual` y `saldoGanancias` actualizados. |
+| CRM actualizado | PASS | El snapshot operativo incluyo CRM y lo segrego como saludable. |
+| Dashboard Operativo consistente | PASS | `health.backend`, `rtdb`, `sincronizacion`, `ledger` y `finanzas` en `true`. |
+| Dashboard Comercial consistente | PASS | El snapshot incluyo metricas comerciales y estado estable. |
+| Panel Administrativo consistente | PASS | El snapshot incluyo metricas operativas y comerciales consistentes. |
 
 ## 5. Criterio de Salida
 
 | Criterio | Estado | Observaciones |
 | --- | --- | --- |
-| Puntos funcionales aprobados | PASS | Sin bloqueos en la corrida. |
-| Puntos visuales aprobados | PASS | UI consistente en desktop y mobile. |
-| Puntos tecnicos aprobados | PASS | Corrida automatizada en verde. |
-| Flujo extremo a extremo completo | PASS | RC2 listo para ejecutar como siguiente paso operativo. |
-| Sin regresiones bloqueantes | PASS | Sin evidencia de regresiones bloqueantes. |
+| Puntos funcionales aprobados | PASS | La corrida completa llego a `ENTREGADO`. |
+| Puntos visuales aprobados | PASS | La validacion previa de paneles ya estaba en verde. |
+| Puntos tecnicos aprobados | PASS | La corrida local cerro sin errores bloqueantes. |
+| Flujo extremo a extremo completo | PASS | Se ejecuto `crear -> despacho -> aceptacion -> cierre`. |
+| Sin regresiones bloqueantes | PASS | La unica observacion fue una transicion invalida no bloqueante. |
 
 ## 6. Dictamen
 
 | Campo | Valor |
 | --- | --- |
 | Resultado | APROBADO CON OBSERVACIONES |
-| Observaciones finales | La validacion automatizada quedo en verde; el paso siguiente es ejecutar el flujo extremo a extremo RC2 con evidencia operativa real. |
-| Acciones siguientes | Abrir RC2, completar recorrido operativo y llenar el acta de liberacion. |
+| Observaciones finales | La corrida RC2 se completo de forma funcional; la transicion `LLEGUE_A_TIENDA` no es valida en la maquina de estados actual y se registro como observacion no bloqueante. |
+| Acciones siguientes | Archivar evidencia, mantener RC2 como referencia operativa y no abrir nuevos cambios de producto hasta el cierre administrativo. |

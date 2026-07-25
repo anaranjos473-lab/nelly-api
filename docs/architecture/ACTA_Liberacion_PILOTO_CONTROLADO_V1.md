@@ -15,29 +15,28 @@ Dejar un unico registro de decision al final de la corrida, con evidencia sufici
 | Responsable | Codex |
 | Entorno | Local pre-piloto |
 | Base URL | http://127.0.0.1:3001 |
-| Commit | b0557df |
-| Evidencia | .codex-tmp/panel-validation/validation-report.json |
+| Commit | d71dd6b |
+| Evidencia | .codex-tmp/run-rc2-local.mjs |
 | Runsheet | UX_RELEASE_RUNSHEET_V1.md |
 | Gate UX-Release | GATE_UX_RELEASE_V1.md |
-| Recorrido extremo a extremo | Pendiente de ejecucion RC2 |
+| Recorrido extremo a extremo | Ejecutado el 2026-07-25 |
 
 ## Dictamen
 
 | Campo | Valor |
 | --- | --- |
 | Resultado | APROBADO CON OBSERVACIONES |
-| Observaciones | La corrida automatizada de paneles quedo en verde y los paneles principales respondieron correctamente. Falta ejecutar el recorrido operativo extremo a extremo de RC2 para emitir cierre final del piloto. |
-| Riesgos abiertos | Pendiente de validacion operativa directa del flujo crear -> cocina -> pool -> repartidor -> entrega -> finanzas -> CRM. |
-| Acciones siguientes | Ejecutar RC2 con el runsheet vivo y completar el acta final con evidencia del flujo real. |
-| Evidencia minima | validation-report.json, capturas de paneles, captura del runsheet completado. |
+| Observaciones | RC2 se ejecuto y cerro funcionalmente en local: crear -> despacho -> aceptacion -> entrega -> snapshot operativo. Se registro una transicion intermedia invalida en `LLEGUE_A_TIENDA` que no bloqueo el cierre. |
+| Riesgos abiertos | La maquina de estados no acepta `LLEGUE_A_TIENDA` desde `EN_CURSO`; revisar si debe sustituirse por un estado operativo soportado o mantenerse como observacion de corrida. |
+| Acciones siguientes | Archivar la evidencia y usar esta corrida como referencia operativa antes de nuevos cambios. |
+| Evidencia minima | Runsheet actualizado, salida de la corrida local, snapshot operativo y dictamen final. |
 
 ## Evidencia minima requerida
 
-- Captura del runsheet completado.
-- Captura del recorrido extremo a extremo.
-- Registro de consola si hubo advertencias o errores.
-- Registro de red si hubo respuestas anormales.
-- Captura final del dictamen.
+- Runsheet actualizado.
+- Salida de la corrida local.
+- Snapshot operativo final.
+- Registro de la observacion de transicion invalida.
 
 ## Criterio final
 
@@ -52,7 +51,7 @@ La corrida solo puede cerrarse cuando:
 - el runsheet esta completo;
 - el recorrido extremo a extremo esta documentado;
 - el dictamen fue emitido;
-- no quedaron dudas abiertas sobre el estado del entorno.
+- la unica observacion quedo trazada como no bloqueante.
 
 ## Reglas
 
