@@ -1,13 +1,13 @@
 # GOAL-Q1-001
 ## Calidad Operativa - Nelly OS
 
-**Estado:** Baseline abierta  
+**Estado:** Dominio transversal en apertura  
 **Ambito:** Plataforma Nelly OS  
 **Marco:** NES v1.0
 
 ### 1. Objetivo
 
-Construir una primera capa de Calidad Operativa sobre la SSOT certificada para registrar incidencias, mermas, causas y recomendaciones de mejora sin mezclar esa informacion con el CRM basico ni con la fidelizacion.
+Definir y estructurar Calidad Operativa como dominio transversal del ecosistema Nelly para registrar incidencias, mermas, causas y recomendaciones de mejora sin mezclar esa informacion con el CRM basico ni con la fidelizacion.
 
 ### 2. Alcance
 
@@ -98,7 +98,7 @@ GOAL-Q1-001 se considerara exitoso cuando:
 
 ### 5.2 Estado de apertura
 
-GOAL-Q1-001 permanece como baseline abierta y siguiente frente de desarrollo. No debe interpretarse como capacidad cerrada hasta que exista evidencia de ejecucion funcional sobre la SSOT certificada.
+GOAL-Q1-001 permanece como dominio transversal en apertura. No debe interpretarse como capacidad comercial cerrada ni como extension del CRM; su funcion es alimentar la observabilidad operativa y la mejora continua sobre la SSOT certificada.
 
 ### 6. Evidencias
 
@@ -122,7 +122,7 @@ Se deberan medir, como minimo:
 
 ### 8. Relacion con C4 y C5
 
-Este goal depende de la evidencia y de las lecturas derivadas en `GOAL-C4-001 - Inteligencia Comercial` y `GOAL-C5-001 - Promociones Ligeras`. La capa de calidad operativa no debe construir una nueva verdad; debe organizar y actuar sobre la evidencia ya disponible.
+Este dominio alimenta a `GOAL-C4-001 - Inteligencia Comercial` y `GOAL-C5-001 - Promociones Ligeras` con incidencias, mermas, causa raiz y recomendaciones. Calidad Operativa no construye una nueva verdad; organiza y enriquece la evidencia ya disponible.
 
 ### 9. Historial
 

@@ -250,13 +250,13 @@ Todo goal del NES debe seguir esta estructura:
 
 #### 4.17 GOAL-Q1-001
 
-**Estado:** Baseline abierta  
-**Objetivo:** construir una primera capa de Calidad Operativa sobre la SSOT certificada para registrar incidencias, mermas, causa raiz y recomendaciones de mejora como dominio separado del CRM.  
-**Alcance:** calidad de entrega, calidad de producto, calidad de empaque, calidad de servicio, mermas y recomendaciones operativas.  
+**Estado:** Dominio transversal en apertura  
+**Objetivo:** definir y estructurar Calidad Operativa sobre la SSOT certificada para registrar incidencias, mermas, causa raiz y recomendaciones de mejora como dominio transversal separado del CRM.  
+**Alcance:** calidad de entrega, calidad de producto, calidad de empaque, calidad de servicio, mermas y recomendaciones operativas; alimenta C4 y C5 sin sustituirlos.  
 **No alcance:** scoring predictivo, IA comercial completa, automatizaciones de marketing o cambios al CRM y a la fidelizacion.  
 **Riesgos:** duplicar datos, mezclar calidad operativa con el CRM, introducir reglas opacas o crear una nueva fuente de verdad.  
 **Criterios de aceptacion:** definicion clara de incidencias, mermas y recomendaciones, lectura consistente desde la SSOT y ausencia de fuentes paralelas.  
-**Evidencias:** vistas o consultas de calidad operativa, referencias en indice maestro y commits de validacion.
+**Evidencias:** vistas o consultas de calidad operativa, referencias en indice maestro, commits de validacion y matriz de consistencia transversal.
 
 **Historial:**
 
