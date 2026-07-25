@@ -67,6 +67,22 @@ export async function signInWithEmailAndPassword(_auth, email, password) {
   return { user: currentUser };
 }
 
+export async function signInWithCustomToken(_auth, token) {
+  if (!token) {
+    throw new Error('Token invalido');
+  }
+
+  currentUser = {
+    token,
+    async getIdToken() {
+      return token;
+    }
+  };
+
+  emitAuthState();
+  return { user: currentUser };
+}
+
 export async function signOut(_auth) {
   currentUser = null;
   emitAuthState();

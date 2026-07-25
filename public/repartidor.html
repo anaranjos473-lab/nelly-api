@@ -140,8 +140,7 @@
 
   <script type="module">
     import { auth, rtdb } from './firebase.js';
-    import { onAuthStateChanged, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { ref, onValue } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
+    import { onAuthStateChanged, signInWithCustomToken, ref, onValue } from './js/local-auth.js';
 
     const statusEl = document.getElementById('status');
     const nombreInput = document.getElementById('nombre-repartidor');
@@ -152,10 +151,12 @@
     const countMios = document.getElementById('count-mios');
 
     const DRIVER_TOKEN_ENDPOINTS = [
+      'http://127.0.0.1:3001/api/auth/driver-token',
       'https://nelly-api-8lh1.onrender.com/api/auth/driver-token'
     ];
 
     const DELIVERY_ACCEPT_ENDPOINTS = [
+      'http://127.0.0.1:3001/api/delivery/accept-order',
       'https://nelly-api-8lh1.onrender.com/api/delivery/accept-order'
     ];
 
