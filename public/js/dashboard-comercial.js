@@ -142,6 +142,15 @@ function renderPromotionCard(item) {
   `;
 }
 
+function renderEmptyState(title, body) {
+  return `
+    <div class="nelly-empty-state">
+      <p class="nelly-empty-state__title">${title}</p>
+      <p class="nelly-empty-state__body">${body}</p>
+    </div>
+  `;
+}
+
 function renderCommercial(snapshot) {
   const commercial = snapshot?.projections?.commercial || {};
   const summary = commercial?.summary || {};
@@ -165,18 +174,22 @@ function renderCommercial(snapshot) {
   ui.overviewClientesRecurrentes.textContent = String(summary.clientes_recurrentes ?? 0);
 
   ui.operationSignal.textContent = commercial?.signal || 'Sin datos';
-  ui.operationSummary.textContent = `Ventas hoy: ${money(summary.ventas_dia ?? 0)} · Pedidos recibidos: ${summary.pedidos_recibidos ?? 0} · Entregados: ${summary.pedidos_entregados ?? 0}`;
+  ui.operationSummary.textContent = commercial?.signal
+    ? `Ventas hoy: ${money(summary.ventas_dia ?? 0)} · Pedidos recibidos: ${summary.pedidos_recibidos ?? 0} · Entregados: ${summary.pedidos_entregados ?? 0}`
+    : 'Esperando actividad comercial suficiente para generar señales.';
 
   ui.alertsSignal.textContent = alerts.length > 0 ? `${alerts.length} alertas` : 'Sin alertas';
   ui.alertsSummary.textContent = alerts.length > 0
     ? alerts.join(' · ')
-    : 'Sin señales de atención comercial.';
+    : 'Sin señales de atención comercial por ahora.';
 
   ui.financeSignal.textContent = `${summary.estado_liquidaciones || 'pendientes'}`;
   ui.financeSummary.textContent = `Ingresos: ${money(summary.ingresos_comercio ?? 0)} · Comisiones: ${money(summary.comisiones ?? 0)} · Ganancia estimada: ${money(summary.ganancia_estimada ?? 0)}`;
 
   ui.opsSignal.textContent = summary.tiempo_promedio_entrega > 0 ? 'Operación visible' : 'Sin operación suficiente';
-  ui.opsSummary.textContent = `Aceptación promedio: ${summary.tiempo_promedio_aceptacion ?? 0} min · Entrega promedio: ${summary.tiempo_promedio_entrega ?? 0} min · Entregas puntuales: ${summary.entregas_puntuales_pct ?? 0}%`;
+  ui.opsSummary.textContent = summary.tiempo_promedio_entrega > 0
+    ? `Aceptación promedio: ${summary.tiempo_promedio_aceptacion ?? 0} min · Entrega promedio: ${summary.tiempo_promedio_entrega ?? 0} min · Entregas puntuales: ${summary.entregas_puntuales_pct ?? 0}%`
+    : 'Todavía no hay volumen suficiente para calcular tendencias operativas confiables.';
 
   ui.marketSignal.textContent = market?.signal || 'Sin datos';
   ui.marketSummary.textContent = `Comercios: ${market?.summary?.comercios ?? 0} · Productos: ${market?.summary?.productos ?? 0} · Disponibles: ${market?.summary?.productos_disponibles ?? 0}`;
@@ -193,18 +206,27 @@ function renderCommercial(snapshot) {
 
   ui.c4OpportunitiesList.innerHTML = c4Opportunities.length > 0
     ? c4Opportunities.map(renderOpportunityCard).join('')
-    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin oportunidades suficientes para mostrar en esta lectura.</p>';
+    : renderEmptyState(
+      'Sin oportunidades aún',
+      'Cuando el sistema detecte clientes o comercios con valor de seguimiento, las oportunidades aparecerán aquí.'
+    );
 
   ui.c4ActionsList.innerHTML = c4Actions.length > 0
     ? c4Actions.map(renderActionCard).join('')
-    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin acciones sugeridas disponibles en este momento.</p>';
+    : renderEmptyState(
+      'Sin acciones sugeridas',
+      'El motor comercial aún no requiere acciones concretas sobre esta lectura.'
+    );
 
   ui.c5PromotionsTotal.textContent = String(c5Promotions.length);
   ui.c5ReactivationTotal.textContent = String(c5Promotions.filter((item) => item.promocion === 'reactivacion_manual_prioritaria').length);
   ui.c5FollowupTotal.textContent = String(c5Promotions.filter((item) => item.promocion !== 'reactivacion_manual_prioritaria').length);
   ui.c5PromotionsList.innerHTML = c5Promotions.length > 0
     ? c5Promotions.map(renderPromotionCard).join('')
-    : '<p class="rounded-xl border border-comm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin promociones ligeras disponibles en este momento.</p>';
+    : renderEmptyState(
+      'Sin promociones ligeras',
+      'No hay promociones sugeridas para esta lectura. Cuando existan, se mostrarán aquí.'
+    );
 }
 
 async function refreshDashboard() {
@@ -214,7 +236,7 @@ async function refreshDashboard() {
   } catch (error) {
     ui.dashboardStatus.textContent = 'ERROR';
     ui.dashboardStatus.className = 'mt-1 text-2xl font-bold text-red-300';
-    ui.alertsSummary.textContent = error.message;
+    ui.alertsSummary.textContent = `No se pudo cargar el snapshot comercial: ${error.message}`;
   }
 }
 
