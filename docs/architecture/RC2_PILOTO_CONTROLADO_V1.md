@@ -6,6 +6,13 @@ Propuesto como siguiente hito operativo despues del Gate UX-Release.
 ## Objetivo
 Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-Release como hoja de corrida y un acta simple de liberacion para dejar evidencia de decision.
 
+## Estructura de jornada
+
+1. Preparacion.
+2. Ejecucion.
+3. Cierre.
+4. Dictamen.
+
 ## Alcance
 
 - Ejecucion del Gate UX-Release.
@@ -19,6 +26,30 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 2. Recorrido extremo a extremo completado.
 3. Registro de incidencias.
 4. Acta de liberacion para piloto controlado.
+
+## 1. Preparacion
+
+- Confirmar backend estable.
+- Confirmar autenticacion operativa.
+- Abrir el Runsheet UX-Release.
+- Verificar entorno, base URL y commit.
+- Confirmar que no exista una corrida previa sin cerrar.
+
+## 2. Ejecucion
+
+- Ejecutar el Gate UX-Release.
+- Completar login en Comercial, Operativo y Admin.
+- Verificar responsive y contraste.
+- Correr el flujo extremo a extremo completo.
+- Registrar cualquier incidente con evidencia.
+
+## 3. Cierre
+
+- Completar la seccion de dictamen del Runsheet.
+- Revisar si hubo errores bloqueantes.
+- Revisar si aparecieron `429` o fallos de entorno.
+- Confirmar si el flujo completo quedo consistente.
+- Llenar el acta de liberacion.
 
 ## Flujo esperado
 
@@ -40,6 +71,14 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 - APROBADO para piloto controlado.
 - APROBADO CON OBSERVACIONES.
 - NO APROBADO.
+
+## Criterios de cierre rapido
+
+- Runsheet completo.
+- Evidencia adjunta.
+- Recorrido completo sin regresiones.
+- Acta completada.
+- Dictamen emitido.
 
 ## Regla de uso
 
