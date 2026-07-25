@@ -565,7 +565,7 @@ function renderDriversTable(drivers) {
   ui.metricBlockedManual.textContent = String(blockedManualCount);
   ui.metricBlockedDebt.textContent = String(blockedDebtCount);
   ui.metricBlockedTotal.textContent = String(noElegibles.size);
-  ui.tableBody.innerHTML = html || "<tr><td class=\"px-3 py-3 text-sm text-slate-400\" colspan=\"5\">Sin repartidores registrados.</td></tr>";
+  ui.tableBody.innerHTML = html || "<tr><td class=\"px-3 py-3 text-sm text-slate-400\" colspan=\"5\"><div class=\"nelly-empty-state\"><p class=\"nelly-empty-state__title\">Sin repartidores registrados</p><p class=\"nelly-empty-state__body\">Cuando existan conductores activos, apareceran aqui para gestion y control.</p></div></td></tr>";
 }
 
 function bindToggleEvents() {
@@ -880,7 +880,7 @@ async function syncDashboardData() {
     document.getElementById("metric-ventas-brutas").textContent = "$0.00";
     document.getElementById("metric-comisiones-nelly").textContent = "$0.00";
     document.getElementById("metric-conteo-entregas").textContent = "0";
-    document.getElementById("metric-mapa-calor").innerHTML = '<li class="text-slate-400 col-span-2">No disponible</li>';
+    document.getElementById("metric-mapa-calor").innerHTML = '<li class="nelly-empty-state nelly-empty-state__body col-span-2">No disponible</li>';
   } finally {
     dashboardSyncInFlight = false;
   }

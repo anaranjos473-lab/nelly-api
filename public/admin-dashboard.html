@@ -84,6 +84,8 @@
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/patterns.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
   <link rel="stylesheet" href="/styles/components/card.css" />
   <link rel="stylesheet" href="/styles/components/badge.css" />
@@ -97,7 +99,7 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="max-w-3xl space-y-4">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="nelly-chip nelly-chip--success">Administracion</span>
+              <span class="nelly-state nelly-state--success-soft">Administracion</span>
               <span class="nelly-chip nelly-chip--info">Panel</span>
               <span class="nelly-chip nelly-chip--accent">Control total</span>
             </div>
@@ -146,7 +148,7 @@
               <h2 class="text-2xl font-bold">Lectura operativa y financiera</h2>
               <p class="text-sm leading-6 text-slate-300">Se consolida ventas, comisiones, entregas y mapa de calor en un solo bloque de control.</p>
             </div>
-            <span class="nelly-chip">Realtime</span>
+            <span class="nelly-state nelly-state--live">Realtime</span>
           </div>
           <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div class="nelly-panel-soft p-4">
@@ -162,8 +164,11 @@
               <p id="metric-conteo-entregas" class="mt-2 text-2xl font-bold text-panel-info">0</p>
             </div>
           </div>
-          <div class="mt-4">
-            <p class="mb-2 text-xs text-slate-400">Mapa de calor por zona</p>
+          <div class="nelly-pattern-section mt-4">
+            <div class="nelly-pattern-section__header">
+              <p class="nelly-pattern-section__title">Mapa de calor por zona</p>
+              <span class="nelly-state nelly-state--empty">Lectura territorial</span>
+            </div>
             <ul id="metric-mapa-calor" class="grid grid-cols-2 gap-2 text-sm text-slate-200 md:grid-cols-4"></ul>
           </div>
         </article>
@@ -217,7 +222,7 @@
           </article>
         </div>
 
-        <article class="nelly-panel p-4">
+        <article class="nelly-pattern-section">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-semibold">Gestor de Repartidores (Realtime)</h2>
             <p class="text-xs text-slate-400">Sincronización protegida via backend cada 5 segundos.</p>
@@ -238,7 +243,7 @@
           </div>
         </article>
 
-        <article class="nelly-panel p-4">
+        <article class="nelly-pattern-section">
           <h2 class="mb-4 text-lg font-semibold">Generador de Pedidos Manuales</h2>
           <form id="manual-order-form" class="grid grid-cols-1 gap-3 md:grid-cols-2">
             <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">

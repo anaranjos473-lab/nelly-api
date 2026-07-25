@@ -96,8 +96,8 @@ async function fetchOperationalDashboard() {
 function renderSnapshot(snapshot) {
   ui.dashboardStatus.textContent = snapshot?.ok ? 'SALUDABLE' : 'CON ALERTAS';
   ui.dashboardStatus.className = snapshot?.ok
-    ? 'nelly-state nelly-state--success mt-1 text-2xl font-bold text-ops-accent'
-    : 'nelly-state nelly-state--warn mt-1 text-2xl font-bold text-red-300';
+    ? 'nelly-state nelly-state--success-soft mt-1 text-2xl font-bold text-ops-accent'
+    : 'nelly-state nelly-state--warn-soft mt-1 text-2xl font-bold text-red-300';
 
   ui.overviewPedidosActivos.textContent = String(snapshot?.overview?.pedidos_activos ?? 0);
   ui.overviewRepartidores.textContent = String(snapshot?.overview?.repartidores ?? 0);
