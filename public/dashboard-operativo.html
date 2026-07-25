@@ -4,25 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nelly Delivery - Dashboard Operativo</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ops: {
-              bg: "#07111f",
-              card: "#101b2f",
-              line: "#25395a",
-              accent: "#35f2c1",
-              warn: "#ff9f66",
-              info: "#7db0ff"
-            }
-          }
-        }
-      }
-    };
-  </script>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
@@ -34,7 +15,7 @@
   <link rel="stylesheet" href="/styles/components/kpi.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
 </head>
-<body class="h-full bg-ops-bg text-slate-100 nelly-shell">
+<body class="h-full text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
@@ -92,13 +73,13 @@
 
       <section id="dashboard-section" class="hidden space-y-6">
         <article class="nelly-panel p-5 sm:p-6">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Estado general</p>
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl space-y-3">
+              <p class="nelly-section-label">Estado general</p>
               <h2 id="dashboard-status" class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-ops-accent">Cargando snapshot...</h2>
               <p class="mt-2 text-sm leading-6 text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="grid gap-2 sm:grid-cols-3">
               <span class="nelly-state nelly-state--success-soft">Backend vivo</span>
               <span class="nelly-state nelly-state--empty">Snapshot cargado</span>
               <span class="nelly-state nelly-state--live">Observabilidad</span>
@@ -106,47 +87,94 @@
           </div>
         </article>
 
+        <section class="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_0.95fr]">
+          <article class="nelly-pattern-section">
+            <div class="nelly-pattern-section__header">
+              <div>
+                <p class="nelly-section-label">Centro de alertas</p>
+                <h3 class="nelly-pattern-section__title">Lectura operativa inmediata</h3>
+              </div>
+              <span class="nelly-state nelly-state--live">Live</span>
+            </div>
+            <div class="nelly-pattern-grid-3">
+              <div class="nelly-pattern-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Salud</p>
+                <h4 id="health-signal" class="nelly-pattern-card__title mt-1">Salud pendiente</h4>
+                <p id="health-summary" class="nelly-pattern-card__body">Esperando lectura de salud general del sistema.</p>
+              </div>
+              <div class="nelly-pattern-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Finanzas</p>
+                <h4 id="finance-signal" class="nelly-pattern-card__title mt-1">Finanzas pendientes</h4>
+                <p id="finance-summary" class="nelly-pattern-card__body">Esperando lectura financiera consolidada.</p>
+              </div>
+              <div class="nelly-pattern-card">
+                <p class="text-xs uppercase tracking-wide text-slate-400">IA</p>
+                <h4 id="ai-signal" class="nelly-pattern-card__title mt-1">IA pendiente</h4>
+                <p id="ai-summary" class="nelly-pattern-card__body">Esperando recomendaciones del consumidor IA.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="nelly-pattern-section">
+            <div class="nelly-pattern-section__header">
+              <div>
+                <p class="nelly-section-label">Actividad viva</p>
+                <h3 class="nelly-pattern-section__title">Proyecciones y lectura de sistema</h3>
+              </div>
+            </div>
+            <div class="nelly-pattern-timeline">
+              <div class="nelly-pattern-card">
+                <div class="nelly-pattern-card__meta">
+                  <h4 class="nelly-pattern-card__title">Audit Consumer</h4>
+                  <span class="nelly-chip nelly-chip--info">S3</span>
+                </div>
+                <p id="audit-signal" class="nelly-pattern-card__amount">Lectura pendiente</p>
+                <p id="audit-summary" class="nelly-pattern-card__body">Esperando lectura del consumidor de auditoria.</p>
+              </div>
+              <div class="nelly-pattern-card">
+                <div class="nelly-pattern-card__meta">
+                  <h4 class="nelly-pattern-card__title">Metrics Consumer</h4>
+                  <span class="nelly-chip nelly-chip--accent">S4</span>
+                </div>
+                <p id="metrics-signal" class="nelly-pattern-card__amount">Metricas pendientes</p>
+                <p id="metrics-summary" class="nelly-pattern-card__body">Esperando lectura del consumidor de metricas.</p>
+              </div>
+              <div class="nelly-pattern-card">
+                <div class="nelly-pattern-card__meta">
+                  <h4 class="nelly-pattern-card__title">Marketplace</h4>
+                  <span class="nelly-chip nelly-chip--success">SSOT</span>
+                </div>
+                <p id="marketplace-signal" class="nelly-pattern-card__amount">Marketplace pendiente</p>
+                <p id="marketplace-summary" class="nelly-pattern-card__body">Esperando proyeccion del ecosistema comercial.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
         <section class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
           <article class="nelly-pattern-section">
             <p class="text-xs uppercase tracking-wide text-slate-400">Audit Consumer</p>
-            <h3 id="audit-signal" class="mt-2 text-xl font-semibold text-ops-accent">Lectura pendiente</h3>
-            <p id="audit-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura del consumidor de auditoria.</p>
+            <h3 class="mt-2 text-xl font-semibold text-ops-accent">Lectura del consumidor de auditoria</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-300">La lectura detallada del consumidor de auditoria se muestra arriba para mantener una sola señal viva.</p>
           </article>
           <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Metrics Consumer</p>
-            <h3 id="metrics-signal" class="mt-2 text-xl font-semibold text-ops-info">Metricas pendientes</h3>
-            <p id="metrics-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura del consumidor de metricas.</p>
-          </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Finance Consumer</p>
-            <h3 id="finance-signal" class="mt-2 text-xl font-semibold text-ops-warn">Finanzas pendientes</h3>
-            <p id="finance-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura financiera consolidada.</p>
-          </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Notification Consumer</p>
+            <p class="text-xs uppercase tracking-wide text-slate-400">Notificaciones</p>
             <h3 id="notification-signal" class="mt-2 text-xl font-semibold text-ops-accent">Notificaciones pendientes</h3>
             <p id="notification-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando actividad del canal de notificaciones.</p>
           </article>
           <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">AI Consumer</p>
-            <h3 id="ai-signal" class="mt-2 text-xl font-semibold text-ops-info">IA pendiente</h3>
-            <p id="ai-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando recomendaciones del consumidor IA.</p>
-          </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Observabilidad</p>
-            <h3 id="health-signal" class="mt-2 text-xl font-semibold text-ops-accent">Salud pendiente</h3>
-            <p id="health-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura de salud general del sistema.</p>
-          </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Marketplace</p>
-            <h3 id="marketplace-signal" class="mt-2 text-xl font-semibold text-ops-accent">Marketplace pendiente</h3>
-            <p id="marketplace-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando proyeccion del ecosistema comercial.</p>
+            <p class="text-xs uppercase tracking-wide text-slate-400">Ledger</p>
+            <h3 class="mt-2 text-xl font-semibold text-ops-warn">Lectura financiera consolidada</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-300">El estado financiero se resume arriba para mantener una sola lectura viva por señal.</p>
           </article>
         </section>
 
         <article class="nelly-pattern-section">
           <div class="nelly-pattern-section__header">
-            <h2 class="text-lg font-semibold">Proyecciones S3</h2>
+            <div>
+              <p class="nelly-section-label">Proyecciones S3</p>
+              <h2 class="text-lg font-semibold text-slate-100">Estado consolidado</h2>
+            </div>
             <span class="nelly-state nelly-state--empty">Estado consolidado</span>
           </div>
           <div class="nelly-pattern-grid-3 xl:grid-cols-4">
@@ -172,6 +200,7 @@
     </main>
   </div>
 
-  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-3"></script>
+  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-4"></script>
 </body>
 </html>
+

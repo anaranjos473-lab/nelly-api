@@ -72,6 +72,7 @@ function setLoginError(message) {
     ui.loginError.textContent = '';
     return;
   }
+
   ui.loginError.textContent = message;
   ui.loginError.classList.remove('hidden');
 }
@@ -87,9 +88,11 @@ async function fetchOperationalDashboard() {
     headers: { Authorization: `Bearer ${token}` }
   });
   const payload = await response.json();
+
   if (!response.ok || !payload?.ok) {
     throw new Error(payload?.error || `HTTP ${response.status}`);
   }
+
   return payload;
 }
 
@@ -112,12 +115,12 @@ function renderSnapshot(snapshot) {
   ui.metricsSignal.textContent = snapshot?.projections?.metrics?.signal || 'Sin señal';
   ui.metricsSummary.textContent = snapshot?.projections?.metrics?.signal
     ? `Entregas hoy: ${snapshot?.projections?.metrics?.summary?.pedido_entregado ?? 0} · Eventos: ${snapshot?.projections?.metrics?.summary?.total_eventos ?? 0}`
-    : 'Aun no hay volumen suficiente para consolidar métricas operativas.';
+    : 'Aun no hay volumen suficiente para consolidar metricas operativas.';
 
   ui.financeSignal.textContent = snapshot?.projections?.finance?.ledger?.reconciled ? 'Ledger conciliado' : 'Ledger pendiente';
   ui.financeSummary.textContent = snapshot?.projections?.finance?.ledger?.reconciled
-    ? `Ventas: ${money(snapshot?.projections?.finance?.summary?.ventas_brutas ?? 0)} · Comisión: ${money(snapshot?.projections?.finance?.summary?.comisiones_nelly ?? 0)}`
-    : 'El ledger aún no se ha reconciliado por completo en esta lectura.';
+    ? `Ventas: ${money(snapshot?.projections?.finance?.summary?.ventas_brutas ?? 0)} · Comision: ${money(snapshot?.projections?.finance?.summary?.comisiones_nelly ?? 0)}`
+    : 'El ledger aun no se ha reconciliado por completo en esta lectura.';
 
   ui.notificationSignal.textContent = `${snapshot?.projections?.notification?.summary?.active ?? 0} notificaciones proyectadas`;
   ui.notificationSummary.textContent = snapshot?.projections?.notification?.summary?.active > 0
@@ -127,12 +130,12 @@ function renderSnapshot(snapshot) {
   ui.aiSignal.textContent = snapshot?.projections?.ai?.insights?.[0]?.recommendation || 'Sin recomendacion';
   ui.aiSummary.textContent = snapshot?.projections?.ai?.insights?.length
     ? `Score: ${snapshot?.projections?.ai?.insights?.[0]?.score ?? 0}`
-    : 'Todavía no hay recomendaciones de IA para esta sesión.';
+    : 'Todavia no hay recomendaciones de IA para esta sesion.';
 
   ui.healthSignal.textContent = snapshot?.health?.backend ? 'Backend saludable' : 'Backend no validado';
   ui.healthSummary.textContent = [
     `RTDB: ${snapshot?.health?.rtdb ? 'OK' : 'NO'}`,
-    `Sincronización: ${snapshot?.health?.sincronizacion ? 'OK' : 'NO'}`,
+    `Sincronizacion: ${snapshot?.health?.sincronizacion ? 'OK' : 'NO'}`,
     `Ledger: ${snapshot?.health?.ledger ? 'OK' : 'NO'}`,
     `Finanzas: ${snapshot?.health?.finanzas ? 'OK' : 'NO'}`
   ].join(' · ');
@@ -149,6 +152,8 @@ function renderSnapshot(snapshot) {
 }
 
 async function refreshDashboard() {
+  ui.btnRefresh.disabled = true;
+
   try {
     const snapshot = await fetchOperationalDashboard();
     renderSnapshot(snapshot);
@@ -159,6 +164,8 @@ async function refreshDashboard() {
       'No fue posible cargar el snapshot',
       error.message
     );
+  } finally {
+    ui.btnRefresh.disabled = false;
   }
 }
 
