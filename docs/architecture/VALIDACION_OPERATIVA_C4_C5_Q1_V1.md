@@ -145,10 +145,15 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 - la informacion capturada permite identificar tendencias y oportunidades;
 - el ecosistema puede medirse por impacto y no solo por implementacion.
 
-## 8. Relacion con RC2
+## 8. Herramienta de ejecucion
+
+`OV1_CHECKLIST_OPERATIVA_V1.md` es la lista operativa para registrar corridas, indicadores, evidencias y dictamen de cada validacion.
+
+## 9. Relacion con RC2
 
 `RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md` sigue siendo la referencia de arquitectura estable. OV1 no modifica RC2; lo usa como linea base para medir resultados sobre el ecosistema ya consolidado.
 
-## 9. Historial
+## 10. Historial
 
 - 2026-07-25: Se formaliza OV1 como programa de validacion operativa del ecosistema comercial.
+- 2026-07-25: Se enlaza la checklist operativa de OV1 como herramienta de ejecucion.
