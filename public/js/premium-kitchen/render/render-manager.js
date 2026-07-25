@@ -231,7 +231,7 @@ export function createRenderManager() {
                         <p class="estado">Estado: ${estadoLabel}</p>
                         <p class="estado">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
                         ${ubicacionHumanizada ? `<p class="desc">${ubicacionHumanizada}</p>` : ''}
-                        <p class="desc">${pedido.descripcion || 'Sin descripciÃ³n'}</p>
+                        <p class="desc">${pedido.descripcion || 'Sin descripcion'}</p>
                     </div>
                     <button ${botonAttrs} class="btn-action ${config.clase}">
                         ${config.texto}
@@ -296,3 +296,4 @@ const renderManager = createRenderManager();
 export function getRenderManager() {
   return renderManager;
 }
+

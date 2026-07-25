@@ -1,4 +1,4 @@
-﻿// --- MÃ‰TRICAS DE RENTABILIDAD DIARIA ---
+// --- METRICAS DE RENTABILIDAD DIARIA ---
 async function refreshRentabilidadMetrics() {
   try {
     const payload = await fetchAdminApi("/api/admin/metricas/rentabilidad");
@@ -44,13 +44,13 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   "operaciones@nellydelivery.com"
 ]);
 
-// Permite cambiar el endpoint desde la consola para pruebas de nÃ³mina
+// Permite cambiar el endpoint desde la consola para pruebas de nomina
 window.setAdminApiEndpoint = function(url) {
   if (typeof url === 'string' && url.startsWith('http')) {
     ADMIN_API_ENDPOINTS[0] = url.replace(/\/+$/, '');
-    console.log('[NÃ³mina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
+    console.log('[Nomina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
   } else {
-    console.warn('URL invÃ¡lida para ADMIN_API_ENDPOINTS');
+    console.warn('URL invalida para ADMIN_API_ENDPOINTS');
   }
 };
 
@@ -62,7 +62,7 @@ const ADMIN_API_ENDPOINTS = [
 const ADMIN_API_TIMEOUT_MS = 15000;
 console.log("ADMIN DASHBOARD VERSION 522db1b");
 
-// Script de validaciÃ³n automÃ¡tica de nÃ³mina
+// Script de validacion automatica de nomina
 window.validarNomina = async function(uid, montoPago) {
   try {
     if (!uid || !montoPago) throw new Error('Falta uid o montoPago');
@@ -73,7 +73,7 @@ window.validarNomina = async function(uid, montoPago) {
     const liquidaciones = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
-    console.log('[NÃ³mina][Test] Liquidaciones:', liquidaciones);
+    console.log('[Nomina][Test] Liquidaciones:', liquidaciones);
     // 2. Ejecutar pago
     const pago = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/panel/finanzas/registrar-pago-deuda`, {
       method: 'POST',
@@ -83,15 +83,15 @@ window.validarNomina = async function(uid, montoPago) {
       },
       body: JSON.stringify({ uid, monto_pago: montoPago })
     }).then(r => r.json());
-    console.log('[NÃ³mina][Test] Resultado pago:', pago);
+    console.log('[Nomina][Test] Resultado pago:', pago);
     // 3. Consultar liquidaciones nuevamente
     const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
-    console.log('[NÃ³mina][Test] Liquidaciones tras pago:', liquidaciones2);
-    alert('ValidaciÃ³n de nÃ³mina completada. Revisa la consola para detalles.');
+    console.log('[Nomina][Test] Liquidaciones tras pago:', liquidaciones2);
+    alert('Validacion de nomina completada. Revisa la consola para detalles.');
   } catch (e) {
-    alert('Error en validaciÃ³n de nÃ³mina: ' + e.message);
+    alert('Error en validacion de nomina: ' + e.message);
   }
 };
 
@@ -195,11 +195,11 @@ function setActiveLocationTarget(target) {
   const active = getActiveLocation();
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = activeLocationTarget === "client"
-      ? "Capturando ubicación del cliente."
-      : "Capturando ubicación de la tienda.";
+      ? "Capturando ubicaci�n del cliente."
+      : "Capturando ubicaci�n de la tienda.";
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = active.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = active.address || "Sin ubicaci�n aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(active.lat, active.lng)
@@ -233,12 +233,12 @@ function setSelectedLocation(next = {}) {
   if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
 
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaci�n aun";
   }
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
-      ? "Capturando ubicación del cliente."
-      : "Capturando ubicaciÃ³n de la tienda.");
+      ? "Capturando ubicaci�n del cliente."
+      : "Capturando ubicacion de la tienda.");
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(updated.lat, updated.lng)
@@ -284,7 +284,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     lat,
     lng,
     address: active.address || String(ui.locationSearch?.value || "").trim(),
-    label: labelConfirmado || "Ubicación actualizada"
+    label: labelConfirmado || "Ubicaci�n actualizada"
   };
   locationState[activeLocationTarget] = updated;
   if (activeLocationTarget === "client") {
@@ -295,7 +295,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     if (ui.orderStoreLng) ui.orderStoreLng.value = String(lng);
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaci�n aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
@@ -365,13 +365,13 @@ async function refreshLocationFromCenter(trigger = "moved") {
       lat,
       lng,
       address: address || getActiveLocation().address,
-      label: trigger === "search" ? "Dirección encontrada" : "Ubicación actualizada"
+      label: trigger === "search" ? "Direcci�n encontrada" : "Ubicaci�n actualizada"
     });
   } catch (_error) {
     setSelectedLocation({
       lat,
       lng,
-      label: "Ubicación técnica actualizada"
+      label: "Ubicaci�n t�cnica actualizada"
     });
   } finally {
     reverseLookupInFlight = false;
@@ -706,11 +706,11 @@ function renderOrderPreview() {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' · ');
+  ].filter(Boolean).join(' � ');
 
   const lines = [
     ['Cliente', client || 'Pendiente'],
-    ['Dirección', address || 'Pendiente'],
+    ['Direcci�n', address || 'Pendiente'],
     ['Tipo', placeType || 'Pendiente'],
     ['Entrega', deliveryMethod || 'Pendiente'],
     ['Referencia', reference || 'Sin referencia'],
@@ -732,7 +732,7 @@ function renderOrderPreview() {
     .join('');
 
   if (ui.previewLocation) {
-    ui.previewLocation.textContent = locationSummary || 'Sin ubicación aun';
+    ui.previewLocation.textContent = locationSummary || 'Sin ubicaci�n aun';
   }
 
   if (ui.previewOpenMaps) {
@@ -749,9 +749,9 @@ function renderOrderPreview() {
       const text = `${locationSummary}${mapsUrl ? ` | ${mapsUrl}` : ''}`;
       try {
         await navigator.clipboard.writeText(text);
-        setOrderFeedback('Ubicación copiada al portapapeles.', 'ok');
+        setOrderFeedback('Ubicaci�n copiada al portapapeles.', 'ok');
       } catch (_error) {
-        setOrderFeedback('No se pudo copiar la ubicación.', 'error');
+        setOrderFeedback('No se pudo copiar la ubicaci�n.', 'error');
       }
     };
   }
@@ -929,18 +929,18 @@ function parseOrderItems(text) {
 
     const tokens = description.split(/\s+/);
     if (tokens.length < 2) {
-      throw new Error(`Item invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
+      throw new Error(`Item invalido en la línea ${index + 1}: ${line}`);
     }
 
     const rawPrice = tokens[tokens.length - 1].replace(/\$/g, '').replace(',', '.');
     const price = Number(rawPrice);
     if (!Number.isFinite(price) || price <= 0) {
-      throw new Error(`Precio invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
+      throw new Error(`Precio invalido en la línea ${index + 1}: ${line}`);
     }
 
     const name = tokens.slice(0, -1).join(' ').trim();
     if (!name) {
-      throw new Error(`Nombre de item invÃ¡lido en la lÃ­nea ${index + 1}: ${line}`);
+      throw new Error(`Nombre de item invalido en la línea ${index + 1}: ${line}`);
     }
 
     return {
@@ -973,7 +973,7 @@ async function createManualOrder(event) {
   const notes = String(ui.orderNotes.value || '').trim();
 
   if (!client || !phone || !address || !itemsText) {
-    setOrderFeedback('Completa cliente, telÃ©fono, direcciÃ³n y lista de items.', 'error');
+    setOrderFeedback('Completa cliente, telefono, direccion y lista de items.', 'error');
     return;
   }
 
@@ -983,17 +983,17 @@ async function createManualOrder(event) {
   }
 
   if (!Number.isFinite(subtotal) || subtotal <= 0) {
-    setOrderFeedback('Subtotal debe ser un nÃºmero mayor a cero.', 'error');
+    setOrderFeedback('Subtotal debe ser un numero mayor a cero.', 'error');
     return;
   }
 
   if (!Number.isFinite(shipping) || shipping < 0) {
-    setOrderFeedback('Costo de envÃ­o invÃ¡lido.', 'error');
+    setOrderFeedback('Costo de envio invalido.', 'error');
     return;
   }
 
   if (!Number.isFinite(tip) || tip < 0) {
-    setOrderFeedback('Propina invÃ¡lida.', 'error');
+    setOrderFeedback('Propina invalida.', 'error');
     return;
   }
 
@@ -1006,7 +1006,7 @@ async function createManualOrder(event) {
   }
 
   if (!Array.isArray(items) || items.length === 0) {
-    setOrderFeedback('Agrega al menos un item vÃ¡lido al pedido.', 'error');
+    setOrderFeedback('Agrega al menos un item valido al pedido.', 'error');
     return;
   }
 
@@ -1023,7 +1023,7 @@ async function createManualOrder(event) {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' · ');
+  ].filter(Boolean).join(' � ');
 
   try {
     const user = auth.currentUser;
@@ -1152,27 +1152,27 @@ if (ui.locationSearchBtn) {
   ui.locationSearchBtn.addEventListener("click", async () => {
     const query = String(ui.locationSearch?.value || "").trim();
     if (!query) {
-      setOrderFeedback("Escribe una direcciÃ³n para buscar.", "error");
+      setOrderFeedback("Escribe una direccion para buscar.", "error");
       return;
     }
 
     try {
       const result = await geocodeAddress(query);
       if (!result) {
-        setOrderFeedback("No se encontrÃ³ esa direcciÃ³n.", "error");
+        setOrderFeedback("No se encontro esa direccion.", "error");
         return;
       }
       setSelectedLocation({
         lat: result.lat,
         lng: result.lng,
         address: result.address,
-        label: "DirecciÃ³n encontrada"
+        label: "Dirección encontrada"
       });
       updateMapMarker(result.lat, result.lng, 17);
       renderOrderPreview();
-      setOrderFeedback("DirecciÃ³n localizada y centrada en el mapa.", "ok");
+      setOrderFeedback("Dirección localizada y centrada en el mapa.", "ok");
     } catch (error) {
-      setOrderFeedback(`No fue posible buscar la direcciÃ³n: ${error.message}`, "error");
+      setOrderFeedback(`No fue posible buscar la direccion: ${error.message}`, "error");
     }
   });
 }
@@ -1200,7 +1200,7 @@ if (ui.targetStore) {
 if (ui.useCurrentLocation) {
   ui.useCurrentLocation.addEventListener("click", () => {
     if (!navigator.geolocation) {
-      setOrderFeedback("El navegador no soporta geolocalizaciÃ³n.", "error");
+      setOrderFeedback("El navegador no soporta geolocalizacion.", "error");
       return;
     }
 
@@ -1214,14 +1214,14 @@ if (ui.useCurrentLocation) {
           lat,
           lng,
           address: address || "",
-          label: "UbicaciÃ³n actual"
+          label: "Ubicacion actual"
         });
       } catch (_error) {
-        setSelectedLocation({ lat, lng, label: "UbicaciÃ³n actual" });
+        setSelectedLocation({ lat, lng, label: "Ubicacion actual" });
       }
-      setOrderFeedback("UbicaciÃ³n actual aplicada al mapa.", "ok");
+      setOrderFeedback("Ubicacion actual aplicada al mapa.", "ok");
     }, () => {
-      setOrderFeedback("No se pudo obtener la ubicaciÃ³n actual.", "error");
+      setOrderFeedback("No se pudo obtener la ubicacion actual.", "error");
     }, {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -1233,14 +1233,14 @@ if (ui.useCurrentLocation) {
 if (ui.confirmLocation) {
   ui.confirmLocation.addEventListener("click", async () => {
     const labelConfirmado = activeLocationTarget === "client"
-      ? "Ubicación del cliente confirmada"
-      : "Ubicación de la tienda confirmada";
+      ? "Ubicaci�n del cliente confirmada"
+      : "Ubicaci�n de la tienda confirmada";
     const updated = syncLocationFromMapCenter(labelConfirmado);
     if (!updated && orderMapInstance) {
       await refreshLocationFromCenter("confirm");
       syncLocationFromMapCenter(labelConfirmado);
     }
-    setOrderFeedback("Ubicación confirmada para el pedido.", "ok");
+    setOrderFeedback("Ubicaci�n confirmada para el pedido.", "ok");
   });
 }
 
@@ -1249,7 +1249,7 @@ if (ui.previewOpenMaps) {
     const href = ui.previewOpenMaps?.href || "";
     if (!href || href === "#") {
       event.preventDefault();
-      setOrderFeedback("Selecciona una ubicaciÃ³n antes de abrir Maps.", "error");
+      setOrderFeedback("Selecciona una ubicacion antes de abrir Maps.", "error");
       return;
     }
     event.preventDefault();
@@ -1286,7 +1286,7 @@ onAuthStateChanged(auth, async (user) => {
     lat: locationState.client.lat,
     lng: locationState.client.lng,
     address: locationState.client.address || ui.orderAddress.value || "",
-    label: "Listo para capturar ubicación"
+    label: "Listo para capturar ubicaci�n"
   });
   sincronizarMontosAutomaticos();
   if (!dashboardListenersAttached) {
@@ -1296,4 +1296,5 @@ onAuthStateChanged(auth, async (user) => {
   renderOrderPreview();
   updateOrderValidationState();
 });
+
 
