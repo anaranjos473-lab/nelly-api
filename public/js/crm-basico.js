@@ -62,6 +62,15 @@ function joinList(items, fallback = 'Sin datos') {
   return Array.isArray(items) && items.length > 0 ? items.join(' · ') : fallback;
 }
 
+function emptyStateHTML(title, body) {
+  return `
+    <div class="nelly-empty-state">
+      <p class="nelly-empty-state__title">${title}</p>
+      <p class="nelly-empty-state__body">${body}</p>
+    </div>
+  `;
+}
+
 function showLogin() {
   ui.crmSection.classList.add('hidden');
   ui.loginSection.classList.remove('hidden');
@@ -121,7 +130,10 @@ async function fetchCRM() {
 
 function renderCustomerDetail(customer) {
   if (!customer) {
-    return 'Selecciona un cliente para ver su ficha completa.';
+    return emptyStateHTML(
+      'Selecciona un cliente',
+      'El panel mostrara aqui su historial, ticket, frecuencia y señales de fidelizacion.'
+    );
   }
 
   return `
@@ -167,7 +179,10 @@ function renderCustomerDetail(customer) {
 
 function renderCommerceDetail(commerce) {
   if (!commerce) {
-    return 'Selecciona un comercio para ver su ficha completa.';
+    return emptyStateHTML(
+      'Selecciona un comercio',
+      'Aqui veras su actividad, productos relevantes y su lectura operativa dentro del marketplace.'
+    );
   }
 
   return `
@@ -286,7 +301,10 @@ function renderCommerceCard(commerce) {
 
 function renderCommerceLoyaltyDetail(loyalty) {
   if (!loyalty) {
-    return 'Selecciona una lectura comercial para ver la fidelizacion por comercio.';
+    return emptyStateHTML(
+      'Selecciona una lectura comercial',
+      'La vista mostrara comercios recurrentes, inactivos y con oportunidad de seguimiento.'
+    );
   }
 
   return `
@@ -326,7 +344,10 @@ function renderCommerceLoyaltyCard(commerce) {
 
 function renderLoyaltyDetail(loyalty) {
   if (!loyalty) {
-    return 'Selecciona un criterio para ver candidatos de fidelizacion.';
+    return emptyStateHTML(
+      'Selecciona un criterio',
+      'La vista mostrara los candidatos de fidelizacion y la ventana de seguimiento sugerida.'
+    );
   }
 
   return `
@@ -377,14 +398,14 @@ function syncSelectors() {
         '<option value="">Selecciona un cliente</option>',
         ...customers.map((customer) => `<option value="${customer.nombre}">${customer.nombre}</option>`)
       ].join('')
-    : '<option value="">Sin clientes</option>';
+    : '<option value="">Sin clientes disponibles</option>';
 
   ui.commerceSelect.innerHTML = commerces.length > 0
     ? [
         '<option value="">Selecciona un comercio</option>',
         ...commerces.map((commerce) => `<option value="${commerce.nombre}">${commerce.nombre}</option>`)
       ].join('')
-    : '<option value="">Sin comercios</option>';
+    : '<option value="">Sin comercios disponibles</option>';
 }
 
 function updateDetails() {
@@ -420,18 +441,30 @@ function renderCRM(snapshot) {
 
   ui.customerList.innerHTML = state.customers.length > 0
     ? state.customers.map(renderCustomerCard).join('')
-    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin clientes suficientes para mostrar ficha CRM.</p>';
+    : emptyStateHTML(
+        'Sin clientes suficientes',
+        'Cuando la SSOT publique clientes, aqui apareceran sus fichas y señales de recurrencia.'
+      );
   ui.commerceList.innerHTML = state.commerces.length > 0
     ? state.commerces.map(renderCommerceCard).join('')
-    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin comercios suficientes para mostrar ficha CRM.</p>';
+    : emptyStateHTML(
+        'Sin comercios suficientes',
+        'Cuando el marketplace tenga comercios activos, aqui se mostraran sus fichas y actividad.'
+      );
   ui.loyaltyDetail.innerHTML = renderLoyaltyDetail(loyalty);
   ui.loyaltyList.innerHTML = loyaltyCustomers.length > 0
     ? loyaltyCustomers.map(renderLoyaltyCard).join('')
-    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin candidatos de fidelizacion suficientes para mostrar seguimiento.</p>';
+    : emptyStateHTML(
+        'Sin candidatos de fidelizacion',
+        'La vista se activara cuando existan patrones claros de recurrencia o inactividad.'
+      );
   ui.commerceLoyaltyDetail.innerHTML = renderCommerceLoyaltyDetail(commerceLoyalty);
   ui.commerceLoyaltyList.innerHTML = commerceLoyaltyList.length > 0
     ? commerceLoyaltyList.map(renderCommerceLoyaltyCard).join('')
-    : '<p class="rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-300">Sin comercios suficientes para mostrar fidelizacion por comercio.</p>';
+    : emptyStateHTML(
+        'Sin comercio suficiente',
+        'Cuando haya actividad suficiente, esta lectura mostrara inactividad, prioridad y seguimiento.'
+      );
 }
 
 async function refreshCRM() {
@@ -446,8 +479,14 @@ async function refreshCRM() {
   } catch (error) {
     ui.crmStatus.textContent = 'ERROR';
     ui.crmStatus.className = 'mt-1 text-2xl font-bold text-red-300';
-    ui.customerSummary.textContent = error.message;
-    ui.commerceSummary.textContent = error.message;
+    ui.customerSummary.textContent = 'No disponible';
+    ui.commerceSummary.textContent = 'No disponible';
+    ui.loyaltySummary.textContent = 'No disponible';
+    ui.commerceLoyaltySummary.textContent = 'No disponible';
+    ui.customerDetail.innerHTML = emptyStateHTML('No fue posible cargar clientes', error.message);
+    ui.commerceDetail.innerHTML = emptyStateHTML('No fue posible cargar comercios', error.message);
+    ui.loyaltyDetail.innerHTML = emptyStateHTML('No fue posible cargar fidelizacion', error.message);
+    ui.commerceLoyaltyDetail.innerHTML = emptyStateHTML('No fue posible cargar lectura comercial', error.message);
   } finally {
     if (ui.crmStatus.textContent === 'Actualizando...') {
       ui.crmStatus.textContent = 'ERROR';
