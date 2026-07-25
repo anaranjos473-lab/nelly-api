@@ -1,31 +1,31 @@
 # RC2 - PILOTO CONTROLADO V1
 
 ## Estado
-Ejecutado como corrida operativa controlada el 2026-07-25.
+Preparado para ejecutar tres corridas operativas controladas.
 
 ## Objetivo
 Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-Release como hoja de corrida y un acta simple de liberacion para dejar evidencia de decision.
 
 ## Estructura de jornada
 
-1. Preparacion.
-2. Ejecucion.
-3. Cierre.
-4. Dictamen.
+1. RC2-A: flujo base.
+2. RC2-B: variaciones normales.
+3. RC2-C: robustez y recuperacion.
+4. Cierre y dictamen consolidado.
 
 ## Alcance
 
-- Ejecucion del Gate UX-Release.
+- Ejecucion del Gate UX-Release en tres corridas.
 - Recorrido extremo a extremo del flujo operativo.
 - Registro de incidencias si aparecen.
-- Dictamen final para autorizar o no el piloto controlado.
+- Dictamen consolidado para autorizar o no el piloto controlado.
 
 ## Entregables
 
-1. Runsheet UX-Release completado.
-2. Recorrido extremo a extremo completado.
-3. Registro de incidencias.
-4. Acta de liberacion para piloto controlado.
+1. Runsheet UX-Release con RC2-A, RC2-B y RC2-C.
+2. Recorrido extremo a extremo por corrida.
+3. Registro de incidencias por corrida.
+4. Acta de liberacion consolidada para piloto controlado.
 
 ## 1. Preparacion
 
@@ -37,19 +37,21 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 
 ## 2. Ejecucion
 
-- Ejecutar el Gate UX-Release.
+- Ejecutar RC2-A como flujo base.
+- Ejecutar RC2-B como variacion operativa.
+- Ejecutar RC2-C como validacion de robustez.
 - Completar login en Comercial, Operativo y Admin.
 - Verificar responsive y contraste.
-- Correr el flujo extremo a extremo completo.
-- Registrar cualquier incidente con evidencia.
+- Registrar cualquier incidente con evidencia por corrida.
 
 ## 3. Cierre
 
-- Completar la seccion de dictamen del Runsheet.
+- Completar la seccion de dictamen del Runsheet por corrida.
+- Consolidar incidencias y observaciones.
 - Revisar si hubo errores bloqueantes.
 - Revisar si aparecieron `429` o fallos de entorno.
-- Confirmar si el flujo completo quedo consistente.
-- Llenar el acta de liberacion.
+- Confirmar consistencia entre corridas.
+- Llenar el acta de liberacion consolidada.
 
 ## Flujo esperado
 
@@ -74,10 +76,10 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 
 ## Criterios de cierre rapido
 
-- Runsheet completo.
-- Evidencia adjunta.
-- Recorrido completo sin regresiones.
-- Acta completada.
+- Runsheet con tres corridas completado.
+- Evidencia adjunta por corrida.
+- Recorridos completos sin regresiones.
+- Acta consolidada completada.
 - Dictamen emitido.
 
 ## Regla de uso
@@ -93,4 +95,3 @@ RC2 no abre nuevas capacidades. Solo ordena la ejecucion controlada del piloto y
 ## Historial
 
 - 2026-07-25: Se propone RC2 como siguiente hito operativo para el piloto controlado.
-- 2026-07-25: RC2 se ejecuto en local, con cierre funcional y una observacion no bloqueante en la transicion `LLEGUE_A_TIENDA`.
