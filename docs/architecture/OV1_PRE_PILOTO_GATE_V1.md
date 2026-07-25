@@ -140,6 +140,11 @@ El piloto comercial controlado podra iniciar cuando:
 - C4, C5 y Q1 demuestren valor inicial o aprendizaje medible;
 - no existan errores criticos abiertos.
 
+## 9.1 Evidencias de serie
+
+- `OV1_PRE_PILOTO_SERIE_001_V1.md`: primera serie pre piloto con 18 ciclos en verde, interrupcion por limite de deuda en el ciclo 19 y verificacion posterior con backend fresco.
+
 ## 10. Historial
 
 - 2026-07-25: Se crea el gate pre piloto OV1 para ordenar validacion tecnica, corridas, metricas, preparacion operativa y criterios de salida.
+- 2026-07-25: Se enlaza la Serie 001 pre piloto como evidencia inicial del gate.
