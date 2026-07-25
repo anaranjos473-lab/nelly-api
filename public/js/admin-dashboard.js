@@ -54,7 +54,9 @@ window.setAdminApiEndpoint = function(url) {
   }
 };
 
+const LOCAL_ADMIN_API_ENDPOINT = window.location?.origin || "http://127.0.0.1:3001";
 const ADMIN_API_ENDPOINTS = [
+  LOCAL_ADMIN_API_ENDPOINT,
   "https://nelly-api-8lh1.onrender.com"
 ];
 const ADMIN_API_TIMEOUT_MS = 15000;

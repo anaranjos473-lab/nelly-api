@@ -7,6 +7,7 @@
 - **Referencia operativa:** `OV1_CHECKLIST_OPERATIVA_V1.md`
 - **Referencia diagnostica:** `MAPA_DIAGNOSTICO_OPERATIVO_V1.md`
 - **Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
+- **Referencia visual:** `VALIDACION_PANELES_PRE_PILOTO_V1.md`
 - **Plan de primera jornada:** `PILOTO_PLAN_JORNADA_001_V1.md`
 
 ## 1. Proposito
@@ -221,6 +222,7 @@ Estas restricciones quedan formalizadas en `DECISION_CONGELACION_ARQUITECTONICA_
 | Inicio de jornada | `npm run doctor:operational` |
 | Corrida controlada | `npm run ov1:rotation` |
 | Snapshot puntual | `npm run validate:operational-port` |
+| Validacion visual pre piloto | `npm run validate:panels-pre-pilot` |
 | Cierre de jornada | `npm run doctor:operational` |
 
 ## 10. Evidencia minima por jornada
