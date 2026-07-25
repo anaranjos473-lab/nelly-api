@@ -187,6 +187,7 @@ La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 
 
 ### OV1 - Validacion Operativa del Ecosistema
 - [`VALIDACION_OPERATIVA_C4_C5_Q1_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_OPERATIVA_C4_C5_Q1_V1.md)
+- [`MAPA_DIAGNOSTICO_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MAPA_DIAGNOSTICO_OPERATIVO_V1.md)
 - [`OV1_CHECKLIST_OPERATIVA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CHECKLIST_OPERATIVA_V1.md)
 - [`OV1_CORRIDA_001_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_001_V1.md)
 - [`OV1_CORRIDA_002_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_002_V1.md)
