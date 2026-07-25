@@ -137,6 +137,8 @@ La consolidacion RC1 fijo una normalizacion minima del CRM y dejo un baseline de
 La fidelizacion basica convierte el historial ya validado en acciones simples de recompra, seguimiento y retencion sobre la SSOT certificada.
 #### Evidencia C3
 - [`C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C3_EVIDENCIA_VISTA_FIDELIZACION_V1.md)
+#### Cierre C3
+- [`CIERRE_C3_C4_ECOSISTEMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CIERRE_C3_C4_ECOSISTEMA_V1.md)
 
 ### Goal C4 - Inteligencia Comercial
 - [`GOAL-C4-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C4-001.md)
@@ -145,6 +147,8 @@ La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en
 #### Evidencia C4
 - [`C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C4_EVIDENCIA_INTELIGENCIA_COMERCIAL_V1.md)
 - [`CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_C4_INTELIGENCIA_COMERCIAL_V1.md)
+#### Cierre C4
+- [`CIERRE_C3_C4_ECOSISTEMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CIERRE_C3_C4_ECOSISTEMA_V1.md)
 
 ### Goal C5 - Promociones Ligeras
 - [`GOAL-C5-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-C5-001.md)

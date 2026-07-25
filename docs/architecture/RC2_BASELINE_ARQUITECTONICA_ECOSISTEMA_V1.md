@@ -77,6 +77,10 @@ Esta baseline debe consultarse antes de abrir nuevas capacidades comerciales u o
 
 `ESTADO_FINAL_ECOSISTEMA_V1.md` resume que C2 queda cerrado funcionalmente, C4 queda cerrado con salvedad operativa, C5 permanece como baseline abierta, Q1 permanece como dominio transversal en apertura y G1 sigue como gate activo.
 
+## 7.2 Relacion con el cierre C3 C4
+
+`CIERRE_C3_C4_ECOSISTEMA_V1.md` deja constancia del cierre funcional de `GOAL-C3-001` y del cierre con salvedad operativa de `GOAL-C4-001`. Esta referencia consolida la linea base comercial antes de abrir cualquier nueva capacidad.
+
 ## 8. Historial
 
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.
