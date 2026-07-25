@@ -24,6 +24,23 @@
 **Referencia operativa:** `RUNBOOK_OPERATIVO_PILOTO_V1.md`
 **Referencia de jornada:** `PILOTO_PLAN_JORNADA_001_V1.md`
 
+## 0. Estatus preliminar para iniciar el piloto
+
+La tabla siguiente resume el estado actual de los paneles como base de arranque. No sustituye la ejecucion manual del piloto, pero sirve como lectura preliminar para decidir si la plataforma esta lista para avanzar.
+
+| Panel | Estado visual | Estado de datos | Estado de consola | Estado preliminar |
+| --- | --- | --- | --- | --- |
+| Panel Comercial | Certificado | Certificado | Sin errores bloqueantes conocidos | Apto para piloto |
+| Panel Operativo | Certificado | Certificado | Sin errores bloqueantes conocidos | Apto para piloto |
+| Panel Administrativo | Certificado | Certificado | Sin errores bloqueantes conocidos | Apto para piloto |
+| Suite de paneles | Certificada | Coherente con la SSOT | Sin fallos críticos reportados | Preliminarmente lista |
+
+### Lectura de este estatus
+
+- `Apto para piloto` significa que la validacion pre piloto ya paso y no hay bloqueos documentados al momento de este corte.
+- `Preliminarmente lista` significa que el siguiente paso correcto es ejecutar el piloto controlado y registrar evidencia real de operacion.
+- Si aparece un nuevo error de consola, red o autenticacion, este estatus debe actualizarse antes de iniciar la corrida.
+
 ## 1. Proposito
 
 Validar que los paneles disponibles para el piloto comercial controlado reflejan correctamente el estado del ecosistema Nelly antes de iniciar la Jornada 001.
