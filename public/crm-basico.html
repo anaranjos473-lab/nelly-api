@@ -26,6 +26,8 @@
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/patterns.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
   <link rel="stylesheet" href="/styles/components/card.css" />
   <link rel="stylesheet" href="/styles/components/badge.css" />
@@ -39,7 +41,7 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="max-w-3xl space-y-4">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="nelly-chip nelly-chip--success">Clientes</span>
+              <span class="nelly-state nelly-state--success-soft">Clientes</span>
               <span class="nelly-chip nelly-chip--info">C2</span>
               <span class="nelly-chip nelly-chip--accent">Fidelizacion</span>
             </div>
@@ -76,7 +78,7 @@
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado CRM</p>
-              <h2 id="crm-status" class="mt-1 text-3xl font-bold text-crm-accent">Cargando...</h2>
+              <h2 id="crm-status" class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-crm-accent">Cargando...</h2>
               <p class="mt-2 text-sm leading-6 text-slate-300">La vista consolida clientes, comercios y señales de fidelizacion en una sola lectura operativa.</p>
             </div>
             <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
@@ -96,13 +98,13 @@
           </div>
         </article>
 
-        <article class="nelly-panel p-5">
+        <article class="nelly-pattern-section">
           <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">Exploracion rapida</p>
               <h3 class="mt-1 text-xl font-semibold text-crm-accent">Buscar fichas por cliente o comercio</h3>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2 lg:w-[48rem]">
+            <div class="nelly-pattern-grid-2 lg:w-[48rem]">
               <label class="block">
                 <span class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Cliente destacado</span>
                 <select id="customer-select" class="nelly-select w-full px-3 py-2 text-sm">
@@ -120,52 +122,64 @@
         </article>
 
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <article class="nelly-panel p-5">
+          <article class="nelly-pattern-section">
             <div class="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de cliente</p>
                 <h3 class="mt-1 text-xl font-semibold text-crm-accent">Clientes relevantes</h3>
               </div>
-              <span id="customer-summary" class="nelly-chip">Sin datos</span>
+              <span id="customer-summary" class="nelly-state nelly-state--empty">Sin datos</span>
             </div>
-            <div id="customer-detail" class="nelly-panel-soft mb-4 p-4 text-sm text-slate-200">Selecciona un cliente para ver su ficha completa.</div>
+            <div id="customer-detail" class="nelly-pattern-panel mb-4">
+              <p class="nelly-pattern-panel__title">Selecciona un cliente</p>
+              <p class="nelly-pattern-panel__body">El panel mostrara aqui su historial, ticket, frecuencia y señales de fidelizacion.</p>
+            </div>
             <div id="customer-list" class="space-y-3"></div>
           </article>
 
-          <article class="nelly-panel p-5">
+          <article class="nelly-pattern-section">
             <div class="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de comercio</p>
                 <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios del marketplace</h3>
               </div>
-              <span id="commerce-summary" class="nelly-chip">Sin datos</span>
+              <span id="commerce-summary" class="nelly-state nelly-state--empty">Sin datos</span>
             </div>
-            <div id="commerce-detail" class="nelly-panel-soft mb-4 p-4 text-sm text-slate-200">Selecciona un comercio para ver su ficha completa.</div>
+            <div id="commerce-detail" class="nelly-pattern-panel mb-4">
+              <p class="nelly-pattern-panel__title">Selecciona un comercio</p>
+              <p class="nelly-pattern-panel__body">La ficha mostrara aqui actividad, productos relevantes y lectura operativa.</p>
+            </div>
             <div id="commerce-list" class="space-y-3"></div>
           </article>
         </div>
 
-        <article class="nelly-panel p-5">
+        <article class="nelly-pattern-section">
           <div class="mb-4 flex items-center justify-between gap-3">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion Basica</p>
               <h3 class="mt-1 text-xl font-semibold text-crm-warn">Clientes recurrentes e inactivos</h3>
             </div>
-            <span id="loyalty-summary" class="nelly-chip">Sin datos</span>
+            <span id="loyalty-summary" class="nelly-state nelly-state--empty">Sin datos</span>
           </div>
-          <div id="loyalty-detail" class="nelly-panel-soft mb-4 p-4 text-sm text-slate-200">La vista de fidelizacion se alimenta solo de la SSOT certificada.</div>
+          <div id="loyalty-detail" class="nelly-pattern-panel mb-4">
+            <p class="nelly-pattern-panel__title">Selecciona un criterio</p>
+            <p class="nelly-pattern-panel__body">La vista mostrara los candidatos de fidelizacion y la ventana de seguimiento sugerida.</p>
+          </div>
           <div id="loyalty-list" class="space-y-3"></div>
         </article>
 
-        <article class="nelly-panel p-5">
+        <article class="nelly-pattern-section">
           <div class="mb-4 flex items-center justify-between gap-3">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion por Comercio</p>
               <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios con recurrencia e inactividad</h3>
             </div>
-            <span id="commerce-loyalty-summary" class="nelly-chip">Sin datos</span>
+            <span id="commerce-loyalty-summary" class="nelly-state nelly-state--empty">Sin datos</span>
           </div>
-          <div id="commerce-loyalty-detail" class="nelly-panel-soft mb-4 p-4 text-sm text-slate-200">La lectura por comercio reutiliza la SSOT del marketplace y el historial de pedidos.</div>
+          <div id="commerce-loyalty-detail" class="nelly-pattern-panel mb-4">
+            <p class="nelly-pattern-panel__title">Selecciona una lectura comercial</p>
+            <p class="nelly-pattern-panel__body">La vista mostrara comercios recurrentes, inactivos y con oportunidad de seguimiento.</p>
+          </div>
           <div id="commerce-loyalty-list" class="space-y-3"></div>
         </article>
       </section>

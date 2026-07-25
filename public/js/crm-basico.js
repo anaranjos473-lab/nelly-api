@@ -425,7 +425,7 @@ function renderCRM(snapshot) {
   const commerceLoyaltyList = Array.isArray(commerceLoyalty?.commerces) ? commerceLoyalty.commerces : [];
 
   ui.crmStatus.textContent = 'SSOT VALIDADA';
-  ui.crmStatus.className = 'mt-1 text-2xl font-bold text-crm-accent';
+  ui.crmStatus.className = 'nelly-state nelly-state--success mt-1 text-2xl font-bold text-crm-accent';
 
   ui.overviewClientesTotales.textContent = String(summary.clientes_totales ?? 0);
   ui.overviewClientesRecurrentes.textContent = String(summary.clientes_recurrentes ?? 0);
@@ -478,7 +478,7 @@ async function refreshCRM() {
     renderCRM(snapshot);
   } catch (error) {
     ui.crmStatus.textContent = 'ERROR';
-    ui.crmStatus.className = 'mt-1 text-2xl font-bold text-red-300';
+    ui.crmStatus.className = 'nelly-state nelly-state--danger mt-1 text-2xl font-bold text-red-300';
     ui.customerSummary.textContent = 'No disponible';
     ui.commerceSummary.textContent = 'No disponible';
     ui.loyaltySummary.textContent = 'No disponible';
@@ -490,7 +490,7 @@ async function refreshCRM() {
   } finally {
     if (ui.crmStatus.textContent === 'Actualizando...') {
       ui.crmStatus.textContent = 'ERROR';
-      ui.crmStatus.className = 'mt-1 text-2xl font-bold text-red-300';
+      ui.crmStatus.className = 'nelly-state nelly-state--danger mt-1 text-2xl font-bold text-red-300';
     }
   }
 }

@@ -165,8 +165,8 @@ function renderCommercial(snapshot) {
     ? 'ESTABLE'
     : 'CON ALERTAS';
   ui.dashboardStatus.className = commercial?.signal === 'operacion_comercial_estable'
-    ? 'mt-1 text-2xl font-bold text-comm-accent'
-    : 'mt-1 text-2xl font-bold text-comm-warn';
+    ? 'nelly-state nelly-state--success mt-1 text-2xl font-bold text-comm-accent'
+    : 'nelly-state nelly-state--warn mt-1 text-2xl font-bold text-comm-warn';
 
   ui.overviewVentasDia.textContent = money(summary.ventas_dia ?? 0);
   ui.overviewPedidosActivos.textContent = String(summary.pedidos_en_proceso ?? snapshot?.overview?.pedidos_activos ?? 0);
@@ -235,7 +235,7 @@ async function refreshDashboard() {
     renderCommercial(snapshot);
   } catch (error) {
     ui.dashboardStatus.textContent = 'ERROR';
-    ui.dashboardStatus.className = 'mt-1 text-2xl font-bold text-red-300';
+    ui.dashboardStatus.className = 'nelly-state nelly-state--danger mt-1 text-2xl font-bold text-red-300';
     ui.alertsSummary.textContent = `No se pudo cargar el snapshot comercial: ${error.message}`;
   }
 }
