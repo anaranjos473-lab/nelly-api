@@ -23,6 +23,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 | MATRIZ-MAQUINA-ESTADOS | Matriz operativa de migracion | Propuesto | [`docs/architecture/MATRIZ_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MATRIZ_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
 | ROADMAP-MAQUINA-ESTADOS | Roadmap ejecutivo de migracion | Propuesto | [`docs/architecture/ROADMAP_EJECUTIVO_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ROADMAP_EJECUTIVO_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
 | RESUMEN-DIRECCION-MAQUINA-ESTADOS | Resumen para direccion | Propuesto | [`docs/architecture/RESUMEN_DIRECCION_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RESUMEN_DIRECCION_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
+| PLAN-EVIDENCIA-PILOTO-MAQUINA-ESTADOS | Evidencia del piloto para futura decision | Propuesto | [`docs/architecture/PLAN_EVIDENCIA_PILOTO_MAQUINA_ESTADOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PLAN_EVIDENCIA_PILOTO_MAQUINA_ESTADOS_V1.md) |
 
 ## Criterio de Uso
 
@@ -38,6 +39,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 - Si el cambio toca la matriz operativa de migracion, leer MATRIZ-MAQUINA-ESTADOS.
 - Si el cambio toca el resumen ejecutivo de migracion, leer ROADMAP-MAQUINA-ESTADOS.
 - Si el cambio toca el resumen para direccion, leer RESUMEN-DIRECCION-MAQUINA-ESTADOS.
+- Si el cambio toca la evidencia del piloto para futura decision, leer PLAN-EVIDENCIA-PILOTO-MAQUINA-ESTADOS.
 
 ## Regla
 
