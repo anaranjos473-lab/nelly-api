@@ -66,6 +66,20 @@ Usar esta lista como verificacion rapida antes de abrir la primera jornada.
 - [ ] No hay errores criticos en consola.
 - [ ] No hay solicitudes HTTP fallidas que bloqueen la vista.
 
+## 1. Inicio de la siguiente seccion
+
+Desde este punto queda abierta la siguiente seccion funcional del piloto:
+
+- Seguimiento de pedido por estados para cliente.
+- Acceso publico sin mapa.
+- Lectura directa de `CREADO`, `LISTO`, `EN_CURSO` y `ENTREGADO`.
+- Uso como complemento del piloto, no como reemplazo del panel operativo.
+
+La implementacion de esta seccion queda referenciada en:
+
+- [`public/seguimiento.html`](/C:/Users/hp14/OneDrive/Desktop/nelly/public/seguimiento.html)
+- [`routes/pedidos.js`](/C:/Users/hp14/OneDrive/Desktop/nelly/routes/pedidos.js)
+
 ### Panel Operativo
 
 - [ ] Abre sin recarga manual adicional.
