@@ -24,11 +24,12 @@ Al cerrar esta fase, la plataforma web debe compartir:
 
 La secuencia de trabajo sera:
 
-1. definir la base del design system;
-2. organizar la arquitectura de carpetas y componentes;
-3. aplicar la base visual a los paneles web;
-4. consolidar el lenguaje visual en los modulos operativos;
-5. dejar Android para una fase posterior de replica.
+1. consolidar el design system base;
+2. unificar estados de aplicacion;
+3. cerrar iconografia y patrones reutilizables;
+4. organizar la arquitectura de carpetas y componentes;
+5. aplicar la base visual a los paneles web;
+6. dejar Android para una fase posterior de replica.
 
 ## 4. Alcance de la fase web
 
@@ -93,21 +94,37 @@ La primera version del sistema visual incluye:
 - `map`
 - `forms`
 
-## 7. Criterios de exito
+## 7. Estados y patrones
+
+La siguiente capa del sistema visual incluye:
+
+- estados unificados de cargando, vacio, error, sin conexion, sin resultados y exito;
+- patrones de tarjeta de pedido, repartidor, comercio y cliente;
+- panel lateral;
+- KPI superior;
+- lista con filtros;
+- timeline de seguimiento;
+- notificaciones y drawer;
+- command palette cuando aplique al flujo operativo.
+
+## 8. Criterios de exito
 
 La fase se considera exitosa cuando:
 
 - el sistema visual es consistente entre paneles;
 - los componentes base se reutilizan sin duplicar estilos;
+- los estados de aplicacion se ven iguales en todos los modulos;
+- los patrones reutilizables sustituyen variantes ad hoc;
 - el dashboard operativo refleja la identidad visual del producto;
 - CRM y Comercial comparten el mismo lenguaje;
 - el panel admin deja de parecer un conjunto de modulos aislados.
 
-## 8. Regla de gobierno
+## 9. Regla de gobierno
 
 No se avanza a Android hasta que la base web este consolidada.
 Android debera replicar componentes ya definidos, no inventarlos de nuevo.
 
-## 9. Historial
+## 10. Historial
 
 - 2026-07-25: se formaliza Nelly UI V1.0 como fase previa a Android.
+- 2026-07-25: se ajusta la estrategia para consolidar primero el sistema base, estados e iconografia.

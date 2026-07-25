@@ -12,11 +12,10 @@ Definir una arquitectura simple y reutilizable para que la UI de Nelly crezca po
 
 ```text
 public/
-  css/
-    tokens.css
-    themes.css
   styles/
     nelly-design.css
+    tokens.css
+    themes.css
     components/
       button.css
       card.css
@@ -65,12 +64,14 @@ Cada archivo contiene el lenguaje minimo de un componente reusable.
 
 ## 5. Orden de adopcion
 
-1. base visual;
+1. base visual y tokens;
 2. card, button, badge y kpi;
-3. forms y tables;
-4. navbar, sidebar y modal;
-5. timeline, chart y map;
-6. migracion progresiva de paneles.
+3. estados unificados;
+4. forms y tables;
+5. navbar, sidebar y modal;
+6. timeline, chart y map;
+7. patrones de dominio;
+8. migracion progresiva de paneles.
 
 ## 6. Criterio de calidad
 
@@ -80,3 +81,8 @@ La arquitectura es correcta si:
 - permite mantener identidad visual comun;
 - evita decisiones ad hoc dentro de cada pagina;
 - facilita replicar la UI en Android despues.
+
+## 7. Nota de estrategia
+
+La fase actual prioriza consolidar la base reutilizable antes de seguir moviendo pantallas una por una.
+La madurez del sistema se mide por la consistencia de los estados, no solo por la apariencia de cada panel.
