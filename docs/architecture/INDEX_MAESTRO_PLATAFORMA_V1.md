@@ -190,6 +190,8 @@ La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 
 - [`OV1_CHECKLIST_OPERATIVA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CHECKLIST_OPERATIVA_V1.md)
 - [`OV1_CORRIDA_001_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_001_V1.md)
 - [`OV1_CORRIDA_002_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_002_V1.md)
+- [`OV1_CORRIDA_003_C5_PROMOCION_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_003_C5_PROMOCION_V1.md)
+- [`OV1_CORRIDA_004_Q1_CALIDAD_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/OV1_CORRIDA_004_Q1_CALIDAD_V1.md)
 #### Resumen OV1
 OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades.
 
