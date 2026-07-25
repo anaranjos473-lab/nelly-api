@@ -30,14 +30,41 @@
       border-radius: 14px;
       padding: 0.9rem;
     }
+    .repartidor-mini__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .repartidor-mini__title {
+      margin: 0.55rem 0 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .repartidor-mini__desc {
+      margin: 0.35rem 0 0;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    .repartidor-mini__amount {
+      margin: 0.65rem 0 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #8bb4ff;
+    }
+    .repartidor-mini__action {
+      margin-top: 0.75rem;
+    }
   </style>
 </head>
 <body class="h-full bg-panel-bg text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div class="max-w-2xl space-y-3">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-3xl space-y-4">
             <div class="flex flex-wrap items-center gap-2">
               <span class="nelly-chip nelly-chip--success">Tiempo real</span>
               <span class="nelly-chip nelly-chip--info">Repartidores</span>
@@ -46,7 +73,7 @@
             <div>
               <p class="nelly-section-label text-panel-accent">Nelly Drive Web · Repartidor</p>
               <h1 class="nelly-hero-title mt-2">Panel de Repartidor</h1>
-              <p class="mt-3 max-w-2xl text-sm text-slate-300">Acceso operativo para ver pedidos disponibles y los pedidos asignados a tu UID, con una lectura más limpia y coherente con el resto de Nelly.</p>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Acceso operativo para ver pedidos disponibles y los pedidos asignados a tu UID, con una lectura más limpia y coherente con el resto de Nelly.</p>
             </div>
             <div class="nelly-divider"></div>
             <div class="flex flex-wrap gap-2">
@@ -185,17 +212,17 @@
       const descripcion = pedido.descripcion || 'Sin descripcion';
       const extra = tomar
         ? `<button class="nelly-btn nelly-btn--accent w-full" onclick="window.tomarPedido('${id}')">Tomar pedido</button>`
-        : `<p class="text-sm text-slate-300">Asignado a ti</p>`;
+        : `<span class="nelly-chip nelly-chip--success">Asignado a ti</span>`;
       return `
         <div class="repartidor-mini">
-          <div class="flex items-center justify-between gap-3">
+          <div class="repartidor-mini__meta">
             <p class="text-sm font-semibold text-panel-accent">#${shortId}</p>
             <span class="nelly-chip">Pedido</span>
           </div>
-          <p class="mt-2 text-sm text-slate-100">${cliente}</p>
-          <p class="mt-1 text-sm text-slate-300">${descripcion}</p>
-          <p class="mt-2 text-lg font-bold text-panel-info">$${monto}</p>
-          <div class="mt-3">${extra}</div>
+          <p class="repartidor-mini__title">${cliente}</p>
+          <p class="repartidor-mini__desc">${descripcion}</p>
+          <p class="repartidor-mini__amount">$${monto}</p>
+          <div class="repartidor-mini__action">${extra}</div>
         </div>
       `;
     }
