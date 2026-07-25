@@ -7,6 +7,7 @@
 **Referencia arquitectonica:** `RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md`  
 **Referencia operativa:** `OV1_PRE_PILOTO_GATE_V1.md`
 **Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
+**Referencia politica:** `POL_PILOTO_001.md`
 
 ## 1. Proposito
 
@@ -119,6 +120,7 @@ Este documento no crea nuevas capacidades ni modifica RC2. Sirve como puente ent
 | C4 visible y estable | Cumplido |
 | C5 visible y estable | Cumplido |
 | Q1 visible y estable | Cumplido |
+| Certificacion visual pre piloto aprobada | Requerida por politica |
 | Errores criticos abiertos | Cero en series recientes |
 | Manuales y procedimientos piloto | Disponibles segun Gate OV1 |
 
@@ -202,7 +204,7 @@ El piloto no debera cerrarse por fecha, sino por evidencia suficiente para decid
 
 ## 12. Recomendacion formal
 
-Se recomienda avanzar a **piloto comercial controlado**.
+Se recomienda avanzar a **piloto comercial controlado** solo cuando la certificacion visual pre piloto haya sido aprobada segun `POL_PILOTO_001.md`.
 
 La recomendacion se basa en:
 

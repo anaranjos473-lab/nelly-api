@@ -8,6 +8,7 @@
 **Referencia de evidencia:** `OV1_CHECKLIST_OPERATIVA_V1.md`
 **Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
 **Referencia visual:** `VALIDACION_PANELES_PRE_PILOTO_V1.md`
+**Referencia politica:** `POL_PILOTO_001.md`
 
 ## 1. Proposito
 
@@ -66,7 +67,7 @@ La jornada solo puede iniciar si todos los puntos criticos estan conformes.
 | C4 | Snapshot | Oportunidades y acciones visibles |
 | C5 | Snapshot | Promociones visibles |
 | Q1 | Snapshot | Calidad operativa visible |
-| Paneles pre piloto | `VALIDACION_PANELES_PRE_PILOTO_V1.md` | Cerrada o validada manualmente |
+| Paneles pre piloto | `VALIDACION_PANELES_PRE_PILOTO_V1.md` | `RC1-B PASS` |
 | Participantes | Lista de jornada | Confirmados |
 | Canal de soporte | Prueba de comunicacion | Confirmado |
 
@@ -174,10 +175,11 @@ Durante la Jornada 001:
 
 La regla completa de estabilidad se rige por `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`.
 
-La Jornada 001 no debe iniciar sin cerrar o validar manualmente `VALIDACION_PANELES_PRE_PILOTO_V1.md`.
+La Jornada 001 no debe iniciar sin `RC1-B PASS` registrado en `VALIDACION_PANELES_PRE_PILOTO_V1.md` y sin la politica `POL_PILOTO_001.md` cumplida.
 
 ## 13. Historial
 
 - 2026-07-25: Se crea el plan operativo de Jornada 001 como puente entre GO/NO-GO, runbook y ejecucion del piloto comercial controlado.
 - 2026-07-25: Se enlaza la decision de congelacion arquitectonica durante piloto.
 - 2026-07-25: Se agrega validacion de paneles pre piloto como condicion visual previa a Jornada 001.
+- 2026-07-25: Se vincula la Jornada 001 al criterio `RC1-B PASS` y a la politica oficial de inicio de piloto.

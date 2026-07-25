@@ -61,6 +61,15 @@ Objetivo:
 Base documental de P4:
 - [`P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_PILOTO_CONTROLADO_PLATAFORMA_V1.md)
 - [`P4_CIERRE_PILOTO_CONTROLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/P4_CIERRE_PILOTO_CONTROLADO_V1.md)
+- [`VALIDACION_PANELES_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_PANELES_PRE_PILOTO_V1.md)
+- [`POL_PILOTO_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_PILOTO_001.md)
+
+Secuencia operativa de P4:
+- RC1-A: validacion tecnica y backend operativo;
+- RC1-B: certificacion visual pre piloto en navegador real;
+- RC1 Integral: cierre de ambas validaciones;
+- GO / NO-GO: autorizacion condicionada;
+- Jornada 001: ejecucion del piloto controlado.
 
 ### P5 - Release Candidate y congelamiento
 
@@ -87,12 +96,12 @@ Base documental de P5:
 | P1 | Pendiente | Admin alineado con U2/U3 |
 | P2 | Pendiente | Driver alineado con U2/U3 |
 | P3 | Pendiente | Backend sin duplicacion de dominio |
-| P4 | Pendiente | Piloto controlado con incidencias documentadas |
+| P4 | Pendiente | RC1-A, RC1-B y piloto controlado con incidencias documentadas |
 | P5 | Pendiente | RC1 y congelamiento del baseline operativo |
 
 ## Relacion con U3
 
-U3 representa la consolidacion tecnica y la preparacion multi-vertical. Este programa representa la adopcion operativa de esa base en los módulos y flujos donde la plataforma vive en produccion.
+U3 representa la consolidacion tecnica y la preparacion multi-vertical. Este programa representa la adopcion operativa de esa base en los modulos y flujos donde la plataforma vive en produccion.
 
 ## Cierre
 
@@ -107,6 +116,7 @@ Este programa sustituye la idea de abrir una nueva fase arquitectonica amplia. A
 La fase P5 se apoya en:
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
+- [`VALIDACION_PANELES_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_PANELES_PRE_PILOTO_V1.md)
 
 ## Indice maestro
 

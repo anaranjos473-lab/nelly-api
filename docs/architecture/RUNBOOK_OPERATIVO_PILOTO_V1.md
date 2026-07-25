@@ -8,6 +8,7 @@
 - **Referencia diagnostica:** `MAPA_DIAGNOSTICO_OPERATIVO_V1.md`
 - **Referencia de congelacion:** `DECISION_CONGELACION_ARQUITECTONICA_PILOTO_V1.md`
 - **Referencia visual:** `VALIDACION_PANELES_PRE_PILOTO_V1.md`
+- **Referencia politica:** `POL_PILOTO_001.md`
 - **Plan de primera jornada:** `PILOTO_PLAN_JORNADA_001_V1.md`
 
 ## 1. Proposito
@@ -68,6 +69,7 @@ La jornada puede iniciar cuando:
 - responsable operativo confirma participantes;
 - no existen errores criticos abiertos;
 - no hay necesidad de cambiar el puerto `3001`;
+- la certificacion visual pre piloto esta aprobada segun `POL_PILOTO_001.md`;
 - el GO condicionado sigue vigente.
 
 ## 4. Durante la operacion
@@ -192,6 +194,8 @@ Suspender temporalmente el GO si:
 - C4, C5 o Q1 dejan de aparecer;
 - se pierde trazabilidad de OV1;
 - se requiere cambiar arquitectura para operar.
+
+La Jornada 001 no debe iniciarse si la certificacion visual pre piloto no esta aprobada, aun cuando el Doctor Operativo marque `OPERABLE`.
 
 La suspension se levanta solo con:
 

@@ -15,11 +15,14 @@ El piloto parte de una base ya estabilizada:
 - U3 consolidada y cerrada;
 - baseline funcional certificada;
 - RC1 existente como referencia de regresion;
+- RC1-B disponible como certificacion visual pre piloto;
 - doctor y validadores automaticos.
 
 Referencias:
 - [`PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PROGRAMA_IMPLEMENTACION_PLATAFORMA_V1.md)
 - [`U3_CIERRE_MAESTRO_PLATAFORMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U3_CIERRE_MAESTRO_PLATAFORMA_V1.md)
+- [`VALIDACION_PANELES_PRE_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/VALIDACION_PANELES_PRE_PILOTO_V1.md)
+- [`POL_PILOTO_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POL_PILOTO_001.md)
 - [`RELEASE_CANDIDATE_NELLY_DELIVERY.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RELEASE_CANDIDATE_NELLY_DELIVERY.md)
 - [`RC1_BASELINE_REPOSITORIES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/RC1_BASELINE_REPOSITORIES.md)
 
@@ -54,6 +57,7 @@ Ejecutar la plataforma con comercios y repartidores reales o semireales para com
 3. P3 debe permanecer estable.
 4. `doctor` debe seguir verde salvo la limitacion externa conocida.
 5. La validacion funcional completa debe poder repetirse.
+6. RC1-B debe estar aprobado antes de iniciar Jornada 001.
 
 ## Plan del piloto
 
@@ -63,6 +67,7 @@ Ejecutar la plataforma con comercios y repartidores reales o semireales para com
 - Verificar que no existan cambios pendientes.
 
 ### P4.2 - Ejecucion controlada
+- Cerrar RC1-B si aun no esta aprobado.
 - Ejecutar varios pedidos consecutivos.
 - Revisar estados, limpieza y finanzas.
 - Registrar cualquier incidencia funcional.
@@ -81,6 +86,7 @@ Ejecutar la plataforma con comercios y repartidores reales o semireales para com
 
 | Area | Evidencia esperada | Estado |
 | --- | --- | --- |
+| RC1-B | Certificacion visual pre piloto aprobada | Pendiente |
 | Flujo pedido | Secuencia completa sin ruptura | Pendiente |
 | Admin | Creacion y metricas estables | Pendiente |
 | Driver | Accept/complete estables | Pendiente |
@@ -95,4 +101,4 @@ La certificacion funcional completa sigue dependiendo de ejecutar `validate-func
 
 ## Cierre esperado
 
-P4 queda cerrada cuando el piloto demuestre estabilidad repetible, sin regresiones, y deje evidencia suficiente para congelar una Release Candidate.
+P4 queda cerrada cuando el piloto demuestre estabilidad repetible, sin regresiones, RC1-B este aprobado y deje evidencia suficiente para congelar una Release Candidate.
