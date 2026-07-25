@@ -162,6 +162,13 @@ El Gate G1 verifica que C2, C3, C4 y C5 consumen la misma SSOT, mantienen metric
 - [`G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md)
 - [`CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md)
 
+### Goal Q1 - Calidad Operativa
+- [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)
+#### Resumen Q1
+La calidad operativa registra incidencias, mermas, causa raiz y recomendaciones de mejora como dominio separado del CRM, sobre la misma SSOT certificada.
+#### Evidencia Q1
+- [`Q1_EVIDENCIA_CALIDAD_OPERATIVA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/Q1_EVIDENCIA_CALIDAD_OPERATIVA_V1.md)
+
 ### Glosario NES
 - [`NES_GLOSARIO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NES_GLOSARIO_V1.md)
 

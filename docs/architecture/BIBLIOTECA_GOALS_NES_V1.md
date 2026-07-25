@@ -248,6 +248,21 @@ Todo goal del NES debe seguir esta estructura:
 
 - 2026-07-25: Se abre el Gate G1 para validar el ecosistema comercial como un unico sistema sobre la SSOT certificada.
 
+#### 4.17 GOAL-Q1-001
+
+**Estado:** Baseline abierta  
+**Objetivo:** construir una primera capa de Calidad Operativa sobre la SSOT certificada para registrar incidencias, mermas, causa raiz y recomendaciones de mejora como dominio separado del CRM.  
+**Alcance:** calidad de entrega, calidad de producto, calidad de empaque, calidad de servicio, mermas y recomendaciones operativas.  
+**No alcance:** scoring predictivo, IA comercial completa, automatizaciones de marketing o cambios al CRM y a la fidelizacion.  
+**Riesgos:** duplicar datos, mezclar calidad operativa con el CRM, introducir reglas opacas o crear una nueva fuente de verdad.  
+**Criterios de aceptacion:** definicion clara de incidencias, mermas y recomendaciones, lectura consistente desde la SSOT y ausencia de fuentes paralelas.  
+**Evidencias:** vistas o consultas de calidad operativa, referencias en indice maestro y commits de validacion.
+
+**Historial:**
+
+- 2026-07-25: Version inicial del goal para formalizar Calidad Operativa como dominio separado sobre la SSOT certificada.
+- 2026-07-25: Se define como capa transversal de incidencias, mermas, causa raiz y recomendaciones.
+
 ### 5. Reglas de uso
 
 - Cada goal debe tener identificador unico.
