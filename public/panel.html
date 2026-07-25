@@ -1282,7 +1282,7 @@
             const monto = Number(pedido.monto || pedido.total || 0).toFixed(2);
             try {
                 new Notification('Nuevo pedido en cocina', {
-                    body: `${cliente} Â· $${monto}`,
+                    body: `${cliente} · $${monto}`,
                     tag: `pedido-${key}`,
                 });
             } catch (_err) {
@@ -1599,7 +1599,7 @@
                             : (estado === 'RECHAZADA'
                                 ? 'Liquidacion rechazada'
                                 : (estado === 'PENDIENTE' ? 'Liquidacion reportada' : `Liquidacion ${estado}`));
-                        const detalle = `${texto} Â· ${evento.repartidorUid || evento.driverUid || 'driver'}`;
+                        const detalle = `${texto} · ${evento.repartidorUid || evento.driverUid || 'driver'}`;
                         const tipo = estado === 'AUTORIZADA' ? 'ok' : (estado === 'RECHAZADA' ? 'err' : 'ok');
                         showToast(detalle, tipo);
                     });

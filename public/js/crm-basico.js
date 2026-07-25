@@ -255,7 +255,7 @@ function renderCommerceCard(commerce) {
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h4 class="text-lg font-semibold text-crm-info">${commerce?.nombre || 'Comercio sin nombre'}</h4>
-          <p class="text-sm text-slate-300">${[commerce?.categoria, commerce?.ciudad].filter(Boolean).join(' ? ') || 'Sin clasificacion'}</p>
+          <p class="text-sm text-slate-300">${[commerce?.categoria, commerce?.ciudad].filter(Boolean).join(' · ') || 'Sin clasificacion'}</p>
         </div>
         <div class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">
           ${commerce?.activo ? 'Activo' : 'Inactivo'}
@@ -349,7 +349,7 @@ function renderLoyaltyCard(customer) {
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h4 class="text-lg font-semibold ${toneClass}">${customer?.nombre || 'Cliente sin nombre'}</h4>
-          <p class="text-sm text-slate-300">${label} ? ${customer?.sugerencia || 'sin_accion'}</p>
+          <p class="text-sm text-slate-300">${label} · ${customer?.sugerencia || 'sin_accion'}</p>
         </div>
         <div class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">
           ${customer?.prioridad || 'baja'}
