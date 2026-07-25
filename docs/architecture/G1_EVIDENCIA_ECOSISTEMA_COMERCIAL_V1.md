@@ -45,3 +45,7 @@ El Gate G1 sirve para confirmar que el ecosistema comercial:
 ## 6. Criterio de continuidad
 
 Cuando la revision cruzada de C2, C3, C4 y C5 confirme consistencia total, `GOAL-G1-001` podra considerarse superado y el siguiente bloque de trabajo quedara habilitado.
+
+## 7. Matriz de consistencia
+
+- [`G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md`](C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md)
