@@ -1,0 +1,54 @@
+.nelly-pattern-shell {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius);
+  background: rgba(3, 10, 20, 0.32);
+  box-shadow: var(--nelly-shadow-soft);
+}
+
+.nelly-pattern-stack {
+  display: grid;
+  gap: var(--nelly-space-4);
+}
+
+.nelly-pattern-kpi-row {
+  display: grid;
+  gap: var(--nelly-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.nelly-pattern-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nelly-space-3);
+}
+
+.nelly-pattern-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nelly-space-2);
+}
+
+.nelly-pattern-panel {
+  display: grid;
+  gap: var(--nelly-space-3);
+  padding: var(--nelly-space-4);
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.26);
+}
+
+.nelly-pattern-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--nelly-text);
+}
+
+.nelly-pattern-panel__body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}

@@ -1,0 +1,71 @@
+.nelly-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nelly-space-2);
+  border-radius: var(--nelly-radius-pill);
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 10, 20, 0.45);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nelly-text);
+}
+
+.nelly-state--loading {
+  color: var(--nelly-info);
+  background: rgba(110, 168, 254, 0.18);
+}
+
+.nelly-state--empty {
+  color: var(--nelly-muted);
+  background: rgba(3, 10, 20, 0.32);
+}
+
+.nelly-state--success {
+  color: var(--nelly-success);
+}
+
+.nelly-state--warn {
+  color: var(--nelly-warn);
+}
+
+.nelly-state--danger {
+  color: var(--nelly-danger);
+}
+
+.nelly-state--offline {
+  color: var(--nelly-muted);
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.nelly-state--live {
+  color: var(--nelly-success);
+  box-shadow: 0 0 0 1px rgba(53, 242, 193, 0.12);
+}
+
+.nelly-empty-state {
+  display: grid;
+  gap: 0.35rem;
+  place-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.28);
+  color: var(--nelly-muted);
+}
+
+.nelly-empty-state__title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--nelly-text);
+}
+
+.nelly-empty-state__body {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

@@ -26,6 +26,8 @@
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/patterns.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
   <link rel="stylesheet" href="/styles/components/card.css" />
   <link rel="stylesheet" href="/styles/components/badge.css" />
@@ -39,7 +41,7 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div class="max-w-3xl space-y-4">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="nelly-chip nelly-chip--success">Tiempo real</span>
+              <span class="nelly-state nelly-state--live">Tiempo real</span>
               <span class="nelly-chip nelly-chip--info">S4</span>
               <span class="nelly-chip nelly-chip--accent">Operacion</span>
             </div>
@@ -93,11 +95,11 @@
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado general</p>
-              <h2 id="dashboard-status" class="mt-1 text-3xl font-bold text-ops-accent">Cargando...</h2>
+              <h2 id="dashboard-status" class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-ops-accent">Cargando...</h2>
               <p class="mt-2 text-sm leading-6 text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-              <span class="nelly-chip nelly-chip--success">Backend vivo</span>
+              <span class="nelly-state nelly-state--success">Backend vivo</span>
               <span class="nelly-chip nelly-chip--info">Snapshot cargado</span>
               <span class="nelly-chip nelly-chip--accent">Observabilidad</span>
             </div>

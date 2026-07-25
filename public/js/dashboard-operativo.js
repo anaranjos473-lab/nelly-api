@@ -96,8 +96,8 @@ async function fetchOperationalDashboard() {
 function renderSnapshot(snapshot) {
   ui.dashboardStatus.textContent = snapshot?.ok ? 'SALUDABLE' : 'CON ALERTAS';
   ui.dashboardStatus.className = snapshot?.ok
-    ? 'mt-1 text-2xl font-bold text-ops-accent'
-    : 'mt-1 text-2xl font-bold text-red-300';
+    ? 'nelly-state nelly-state--success mt-1 text-2xl font-bold text-ops-accent'
+    : 'nelly-state nelly-state--warn mt-1 text-2xl font-bold text-red-300';
 
   ui.overviewPedidosActivos.textContent = String(snapshot?.overview?.pedidos_activos ?? 0);
   ui.overviewRepartidores.textContent = String(snapshot?.overview?.repartidores ?? 0);
@@ -154,7 +154,7 @@ async function refreshDashboard() {
     renderSnapshot(snapshot);
   } catch (error) {
     ui.dashboardStatus.textContent = 'SIN DATOS';
-    ui.dashboardStatus.className = 'mt-1 text-2xl font-bold text-red-300';
+    ui.dashboardStatus.className = 'nelly-state nelly-state--offline mt-1 text-2xl font-bold text-red-300';
     ui.projectionSummary.innerHTML = renderEmptyState(
       'No fue posible cargar el snapshot',
       error.message
