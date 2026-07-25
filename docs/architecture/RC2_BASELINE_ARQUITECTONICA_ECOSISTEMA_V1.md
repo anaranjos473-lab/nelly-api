@@ -29,6 +29,17 @@ Esta baseline cubre:
 | Promociones Ligeras | Proponer acciones comerciales manuales | C4 | Sugerencias de promocion |
 | Calidad Operativa | Capturar incidencias y causa raiz | SSOT | Indicadores de calidad y recomendaciones |
 
+## 3.1 Matriz oficial de dominios
+
+| Dominio | Proposito | Consume | Produce | Responsable |
+| --- | --- | --- | --- | --- |
+| Operacion | Ejecutar pedidos y entregas | SSOT | Eventos operativos | Operacion |
+| CRM | Gestionar clientes y comercios | SSOT | Perfiles e historial | Comercial |
+| Fidelizacion | Mantener la relacion con clientes | CRM | Segmentos y seguimiento | Comercial |
+| Inteligencia Comercial | Analizar oportunidades | CRM + Q1 | Recomendaciones | Comercial |
+| Promociones Ligeras | Proponer acciones comerciales | C4 | Propuestas de promocion | Comercial |
+| Calidad Operativa | Medir calidad y mejora continua | SSOT | Incidencias, causa raiz e indicadores | Operacion |
+
 ## 4. Reglas de arquitectura
 
 - una sola SSOT;
@@ -37,6 +48,15 @@ Esta baseline cubre:
 - C4 usa evidencia de C2, C3 y Q1 para recomendar;
 - C5 usa C4 para proponer acciones manuales;
 - ninguna capa debe crear una verdad paralela.
+
+## 4.1 Principios de RC2
+
+- la SSOT es la unica fuente de verdad;
+- ningun dominio puede duplicar datos de otro;
+- cada dominio tiene una unica responsabilidad;
+- las recomendaciones deben ser explicables y basadas en reglas verificables;
+- las nuevas capacidades deben integrarse a un dominio existente o justificar la creacion de uno nuevo;
+- ningun desarrollo puede romper G1 sin una nueva revision de consistencia.
 
 ## 5. Restricciones
 
@@ -56,4 +76,4 @@ Esta baseline debe consultarse antes de abrir nuevas capacidades comerciales u o
 ## 8. Historial
 
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.
-
+- 2026-07-25: Se agrega la matriz oficial de dominios y los principios de RC2 como contrato de evolucion del ecosistema.

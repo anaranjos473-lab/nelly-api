@@ -167,7 +167,7 @@ El Gate G1 verifica que C2, C3, C4 y C5 consumen la misma SSOT, mantienen metric
 ### RC2 - Baseline Arquitectonica
 - [`RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC2_BASELINE_ARQUITECTONICA_ECOSISTEMA_V1.md)
 #### Resumen RC2
-La baseline arquitectonica RC2 formaliza la separacion entre Operacion, CRM, Fidelizacion, Inteligencia Comercial, Promociones Ligeras y Calidad Operativa, todos sobre la misma SSOT y bajo el control transversal de G1.
+La baseline arquitectonica RC2 formaliza la separacion entre Operacion, CRM, Fidelizacion, Inteligencia Comercial, Promociones Ligeras y Calidad Operativa, todos sobre la misma SSOT y bajo el control transversal de G1. Tambien define la matriz oficial de dominios y los principios de evolucion del ecosistema.
 
 ### Goal Q1 - Calidad Operativa
 - [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)
