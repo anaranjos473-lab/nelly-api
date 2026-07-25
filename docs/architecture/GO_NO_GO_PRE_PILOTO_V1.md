@@ -148,14 +148,58 @@ La jornada debe detenerse o mantenerse en revision si ocurre cualquiera de estos
 - se detecta un error critico reproducible;
 - se requiere cambiar de puerto para continuar.
 
-## 9. Decision GO/NO-GO
+## 9. Condiciones de permanencia del GO
+
+El GO no es una autorizacion permanente.
+
+El GO permanece vigente mientras se cumplan todas estas condiciones:
+
+- `npm run doctor:operational` mantiene dictamen `OPERABLE`;
+- el puerto oficial sigue siendo `3001`;
+- no existen errores criticos abiertos;
+- OV1 sigue produciendo evidencia trazable;
+- C4, C5 y Q1 continuan visibles en el snapshot;
+- ledger y finanzas permanecen saludables;
+- no se requieren puertos alternos ni reinicios improvisados para operar.
+
+El GO se suspende temporalmente si ocurre cualquiera de estas condiciones:
+
+- Doctor Operativo emite `NO OPERABLE`;
+- aparece un error critico sin resolver;
+- se pierde trazabilidad de OV1;
+- falla de forma persistente un componente esencial del flujo de pedidos;
+- C4, C5 o Q1 dejan de estar disponibles;
+- ledger o finanzas dejan de conciliar;
+- se necesita cambiar el puerto oficial para completar una jornada.
+
+La suspension no implica rechazo definitivo. Implica detener el piloto, diagnosticar por capas, corregir con evidencia y emitir nuevo dictamen antes de continuar.
+
+## 10. Criterios de exito del piloto
+
+El piloto comercial controlado se considerara exitoso si demuestra, con evidencia:
+
+| Criterio | Resultado esperado |
+| --- | --- |
+| Operacion estable | Jornadas completadas con Doctor previo/posterior `OPERABLE` |
+| Flujo funcional | Pedidos creados, aceptados y entregados sin errores criticos |
+| Autonomia de usuarios | Comercios y repartidores completan tareas basicas con asistencia minima |
+| C4 util | Recomendaciones revisadas y al menos una aplicada o descartada con razon documentada |
+| C5 medible | Al menos una promocion con resultado cuantificable |
+| Q1 util | Incidencias registradas con causa raiz, accion correctiva y seguimiento |
+| Finanzas | Ledger y finanzas saludables al cierre de jornada |
+| Soporte | Incidencias documentadas y clasificadas por capa |
+| Continuidad | Sin necesidad de cambios estructurales al core durante el piloto |
+
+El piloto no debera cerrarse por fecha, sino por evidencia suficiente para decidir continuidad, ajuste o pausa.
+
+## 11. Decision GO/NO-GO
 
 | Decision | Estado |
 | --- | --- |
 | GO | Recomendado |
 | NO-GO | No recomendado con la evidencia actual |
 
-## 10. Recomendacion formal
+## 12. Recomendacion formal
 
 Se recomienda avanzar a **piloto comercial controlado**.
 
@@ -169,7 +213,7 @@ La recomendacion se basa en:
 - puerto oficial `3001` estable;
 - ausencia de necesidad de abrir nuevos dominios antes del piloto.
 
-## 11. No autorizaciones
+## 13. No autorizaciones
 
 Este GO no autoriza:
 
@@ -181,7 +225,7 @@ Este GO no autoriza:
 - nuevas fuentes de verdad;
 - cambios estructurales al core.
 
-## 12. Siguiente paso
+## 14. Siguiente paso
 
 Preparar la primera jornada de piloto comercial controlado con:
 
@@ -194,6 +238,7 @@ Preparar la primera jornada de piloto comercial controlado con:
 7. Doctor Operativo posterior.
 8. Dictamen diario.
 
-## 13. Historial
+## 15. Historial
 
 - 2026-07-25: Se crea el GO/NO-GO pre piloto con base en RC2, OV1, Doctor Operativo y Series 004, 005 y 006.
+- 2026-07-25: Se agregan condiciones de permanencia del GO y criterios de exito del piloto.
