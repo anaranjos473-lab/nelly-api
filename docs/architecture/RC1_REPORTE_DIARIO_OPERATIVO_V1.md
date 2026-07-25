@@ -92,6 +92,13 @@ Antes del piloto controlado, se debe ejecutar y documentar el Gate UX-Release de
 
 Este gate no reemplaza la certificacion visual pre-piloto. La complementa con una corrida funcional, visual y operativa de cierre.
 
+## Siguiente hito
+
+El siguiente hito operativo queda definido en:
+
+- [`RC2_PILOTO_CONTROLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC2_PILOTO_CONTROLADO_V1.md)
+- [`ACTA_Liberacion_PILOTO_CONTROLADO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ACTA_Liberacion_PILOTO_CONTROLADO_V1.md)
+
 ## Pendientes no bloqueantes
 - Validacion del flujo de pago electronico cuando exista una ruta especifica para probarlo.
 - Ejecucion de `validate-functional-metrics` en un entorno con Firebase operativo.
