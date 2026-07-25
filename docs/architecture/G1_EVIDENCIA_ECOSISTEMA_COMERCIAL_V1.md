@@ -49,3 +49,4 @@ Cuando la revision cruzada de C2, C3, C4 y C5 confirme consistencia total, `GOAL
 ## 7. Matriz de consistencia
 
 - [`G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md`](C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md)
+- [`G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md`](C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md)

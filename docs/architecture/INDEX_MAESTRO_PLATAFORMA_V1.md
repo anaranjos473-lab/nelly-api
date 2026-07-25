@@ -160,6 +160,7 @@ El Gate G1 verifica que C2, C3, C4 y C5 consumen la misma SSOT, mantienen metric
 #### Evidencia G1
 - [`G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_EVIDENCIA_ECOSISTEMA_COMERCIAL_V1.md)
 - [`G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_V1.md)
+- [`G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/G1_MATRIZ_CONSISTENCIA_C2_C5_Q1_V1.md)
 - [`CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_G1_ECOSISTEMA_COMERCIAL_V1.md)
 
 ### Goal Q1 - Calidad Operativa
