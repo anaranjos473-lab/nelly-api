@@ -84,6 +84,14 @@ Fecha de cierre: `2026-07-25`
 - Se elimino la dependencia de CDNs externos en el render de los paneles pre-piloto.
 - La validacion quedo registrada con evidencia en `.codex-tmp/panel-validation/validation-report.json`.
 
+## Gate UX-Release
+
+Antes del piloto controlado, se debe ejecutar y documentar el Gate UX-Release definido en:
+
+- [`GATE_UX_RELEASE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GATE_UX_RELEASE_V1.md)
+
+Este gate no reemplaza la certificacion visual pre-piloto. La complementa con una corrida funcional, visual y operativa de cierre.
+
 ## Pendientes no bloqueantes
 - Validacion del flujo de pago electronico cuando exista una ruta especifica para probarlo.
 - Ejecucion de `validate-functional-metrics` en un entorno con Firebase operativo.
