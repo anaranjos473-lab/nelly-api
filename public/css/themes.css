@@ -1,3 +1,45 @@
-/* Kitchen Premium themes placeholder.
-   Stage A: structure only, no behavior change. */
+/* Nelly theme aliases used by the main public panels. */
 
+:root {
+  --ops-bg: #07111f;
+  --ops-card: #101b2f;
+  --ops-line: #25395a;
+  --ops-accent: #35f2c1;
+  --ops-warn: #ff9f66;
+  --ops-info: #7db0ff;
+
+  --comm-bg: #06131a;
+  --comm-card: #0f1f29;
+  --comm-line: #1f3642;
+  --comm-accent: #7cf7c7;
+  --comm-warn: #ffb36b;
+  --comm-info: #8bb4ff;
+
+  --crm-bg: #07131a;
+  --crm-card: #0f1f29;
+  --crm-line: #1f3642;
+  --crm-accent: #8bf3c8;
+  --crm-warn: #ffb36b;
+  --crm-info: #8bb4ff;
+
+  --panel-bg: #0b1020;
+  --panel-card: #121a2e;
+  --panel-line: #253252;
+  --panel-accent: #f8b91b;
+  --panel-warn: #ff7a59;
+  --panel-info: #6ea8fe;
+}
+
+body {
+  color: #f8fafc;
+}
+
+.nelly-surface {
+  background: var(--nelly-bg, #07111f);
+}
+
+.nelly-grid {
+  background:
+    radial-gradient(circle at top left, rgba(248, 185, 27, 0.12), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(110, 168, 254, 0.10), transparent 32%);
+}

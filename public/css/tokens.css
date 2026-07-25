@@ -1,3 +1,142 @@
-/* Kitchen Premium tokens placeholder.
-   Stage A: structure only, no behavior change. */
+:root {
+  --nelly-bg: #06111f;
+  --nelly-bg-elevated: #0f1b2f;
+  --nelly-surface: rgba(15, 27, 47, 0.94);
+  --nelly-surface-soft: rgba(15, 27, 47, 0.72);
+  --nelly-line: rgba(37, 57, 90, 0.96);
+  --nelly-line-soft: rgba(255, 255, 255, 0.08);
+  --nelly-text: #f8fafc;
+  --nelly-muted: #94a3b8;
+  --nelly-accent: #f8b91b;
+  --nelly-info: #6ea8fe;
+  --nelly-success: #35f2c1;
+  --nelly-warn: #ff9f66;
+  --nelly-danger: #fb7185;
+  --nelly-radius: 20px;
+  --nelly-radius-sm: 14px;
+  --nelly-shadow: 0 24px 60px rgba(2, 6, 23, 0.35);
+  --nelly-shadow-soft: 0 12px 30px rgba(2, 6, 23, 0.22);
+  --nelly-font: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
 
+html {
+  background: var(--nelly-bg);
+  color: var(--nelly-text);
+}
+
+body {
+  font-family: var(--nelly-font);
+  background:
+    radial-gradient(circle at top left, rgba(248, 185, 27, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(110, 168, 254, 0.11), transparent 26%),
+    linear-gradient(180deg, #07111f 0%, #091524 100%);
+}
+
+.nelly-shell {
+  min-height: 100%;
+}
+
+.nelly-panel {
+  border: 1px solid var(--nelly-line);
+  border-radius: var(--nelly-radius);
+  background: var(--nelly-surface);
+  box-shadow: var(--nelly-shadow);
+  backdrop-filter: blur(14px);
+}
+
+.nelly-panel-soft {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.35);
+}
+
+.nelly-kpi {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: 16px;
+  background: rgba(3, 10, 20, 0.45);
+  box-shadow: var(--nelly-shadow-soft);
+}
+
+.nelly-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: 9999px;
+  background: rgba(3, 10, 20, 0.38);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--nelly-text);
+}
+
+.nelly-chip--accent {
+  color: var(--nelly-accent);
+}
+
+.nelly-chip--info {
+  color: var(--nelly-info);
+}
+
+.nelly-chip--success {
+  color: var(--nelly-success);
+}
+
+.nelly-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--nelly-line-soft);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  transition: transform 0.16s ease, filter 0.16s ease, background-color 0.16s ease;
+}
+
+.nelly-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.nelly-btn--accent {
+  background: linear-gradient(180deg, #ffd34d, #f8b91b);
+  color: #0b1220;
+}
+
+.nelly-btn--ghost {
+  background: rgba(3, 10, 20, 0.36);
+  color: var(--nelly-text);
+}
+
+.nelly-input {
+  border: 1px solid var(--nelly-line);
+  border-radius: 14px;
+  background: rgba(3, 10, 20, 0.65);
+  color: var(--nelly-text);
+  outline: none;
+}
+
+.nelly-input:focus {
+  box-shadow: 0 0 0 2px rgba(248, 185, 27, 0.22);
+  border-color: rgba(248, 185, 27, 0.68);
+}
+
+.nelly-section-label {
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--nelly-muted);
+}
+
+.nelly-hero-title {
+  font-size: clamp(1.5rem, 2vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--nelly-text);
+}
+
+.nelly-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+}
