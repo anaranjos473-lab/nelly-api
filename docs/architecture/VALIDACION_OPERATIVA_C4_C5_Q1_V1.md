@@ -152,6 +152,7 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 ## 8.1 Evidencias registradas
 
 - `OV1_CORRIDA_001_V1.md`: primera corrida con snapshot autenticado, C4 generando oportunidades, C5 generando promociones ligeras y Q1 pendiente de captura operativa explicita.
+- `OV1_CORRIDA_002_V1.md`: segunda corrida con correccion del promedio de entrega y Q1 disponible como proyeccion `operational_quality`.
 
 ## 9. Relacion con RC2
 
@@ -162,3 +163,4 @@ OV1 podra cerrarse cuando exista evidencia suficiente de que:
 - 2026-07-25: Se formaliza OV1 como programa de validacion operativa del ecosistema comercial.
 - 2026-07-25: Se enlaza la checklist operativa de OV1 como herramienta de ejecucion.
 - 2026-07-25: Se registra OV1 Corrida 001 con datos vivos del snapshot operativo autenticado.
+- 2026-07-25: Se registra OV1 Corrida 002 con P0/P1 corregidos.

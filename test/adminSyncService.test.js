@@ -135,6 +135,30 @@ describe('adminSyncService', () => {
     expect(metrics.pedidosCanceladosHoy).toBe(1);
     expect(metrics.conductoresActivos).toBe(2);
     expect(metrics.avgAsignacionMinutos).toBe(12.5);
+    expect(metrics.avgEntregaMinutos).toBe(20);
+  });
+
+  test('buildAdminOrdersMetrics ignores operational time outliers', () => {
+    const metrics = buildAdminOrdersMetrics({
+      now: new Date('2026-07-22T12:00:00-06:00').getTime(),
+      pedidos: {
+        A: {
+          createdAt: new Date('2026-07-22T08:00:00-06:00').getTime(),
+          aceptado_en: new Date('2026-07-22T08:10:00-06:00').getTime(),
+          entregado_en: new Date('2026-07-22T08:30:00-06:00').getTime(),
+          estado: 'ENTREGADO'
+        },
+        B: {
+          createdAt: new Date('2026-07-22T08:00:00-06:00').getTime(),
+          aceptado_en: new Date('2026-07-22T08:05:00-06:00').getTime(),
+          entregado_en: new Date('2026-07-23T08:05:00-06:00').getTime(),
+          estado: 'ENTREGADO'
+        }
+      }
+    });
+
+    expect(metrics.avgAsignacionMinutos).toBe(7.5);
+    expect(metrics.avgEntregaMinutos).toBe(20);
   });
 
   test('validateAdminOrderRequest centralizes request checks', () => {

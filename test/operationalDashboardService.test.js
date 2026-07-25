@@ -5,7 +5,16 @@ describe('Operational dashboard snapshot', () => {
     const snapshot = buildOperationalDashboardSnapshot({
       health: { success: true, ok: true },
       pedidos: {
-        P1: { estado: 'ENTREGADO' }
+        P1: {
+          id: 'P1',
+          estado: 'ENTREGADO',
+          calidad_operativa: {
+            tipo: 'empaque_danado',
+            causa_raiz: 'sellado_insuficiente',
+            merma_estimada: 20,
+            accion_correctiva: 'reforzar_empaque'
+          }
+        }
       },
       pedidosActivos: {},
       conductores: {
@@ -23,6 +32,21 @@ describe('Operational dashboard snapshot', () => {
       eventos: [
         { tipo: 'pedido.entregado' }
       ],
+      market: {
+        comercios: {
+          M1: { nombre: 'Comercio 1', ciudad: 'Tuxtla' }
+        },
+        catalogo_por_comercio: {
+          M1: {
+            P1: { nombre: 'Producto 1', disponible: true }
+          }
+        },
+        indices: {
+          comercios_por_ciudad: {
+            Tuxtla: { M1: true }
+          }
+        }
+      },
       now: 1000
     });
 
@@ -40,5 +64,11 @@ describe('Operational dashboard snapshot', () => {
     expect(snapshot.projections.finance.summary.ventas_brutas).toBe(500);
     expect(snapshot.projections.notification.summary.active).toBe(1);
     expect(snapshot.projections.ai.insights[0].score).toBe(0);
+    expect(snapshot.projections.operational_quality.summary.incidencias).toBe(1);
+    expect(snapshot.projections.operational_quality.summary.merma_estimada).toBe(20);
+    expect(snapshot.projections.operational_quality.root_causes[0]).toMatchObject({
+      causa: 'sellado_insuficiente',
+      total: 1
+    });
   });
 });

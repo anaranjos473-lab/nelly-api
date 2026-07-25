@@ -264,6 +264,8 @@ function buildAdminOrdersMetrics({
   now = Date.now()
 } = {}) {
   const todayStart = getTodayStartMexicoCity(now);
+  const MAX_ASSIGNMENT_MINUTES = 120;
+  const MAX_DELIVERY_MINUTES = 240;
 
   let pedidosCreadosHoy = 0;
   let pedidosEntregadosHoy = 0;
@@ -301,13 +303,19 @@ function buildAdminOrdersMetrics({
     }
 
     if (createdAt && assignedAt && assignedAt >= createdAt) {
-      totalAssignmentMinutes += (assignedAt - createdAt) / 60000;
-      assignmentCount += 1;
+      const assignmentMinutes = (assignedAt - createdAt) / 60000;
+      if (assignmentMinutes <= MAX_ASSIGNMENT_MINUTES) {
+        totalAssignmentMinutes += assignmentMinutes;
+        assignmentCount += 1;
+      }
     }
 
     if (assignedAt && deliveredAt && deliveredAt >= assignedAt) {
-      totalDeliveryMinutes += (deliveredAt - assignedAt) / 60000;
-      deliveryCount += 1;
+      const deliveryMinutes = (deliveredAt - assignedAt) / 60000;
+      if (deliveryMinutes <= MAX_DELIVERY_MINUTES) {
+        totalDeliveryMinutes += deliveryMinutes;
+        deliveryCount += 1;
+      }
     }
   });
 

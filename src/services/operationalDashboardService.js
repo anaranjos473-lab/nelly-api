@@ -7,6 +7,7 @@ import {
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
   buildLoyaltyProjection,
+  buildOperationalQualityProjection,
   roundMoney
 } from './dashboardProjections.js';
 
@@ -51,6 +52,7 @@ function buildOperationalDashboardSnapshot({
   const commerceCRMProjection = buildCommerceCRMProjection(orderEntries, market);
   const loyaltyProjection = buildLoyaltyProjection(customerCRMProjection.customers);
   const commerceLoyaltyProjection = buildCommerceLoyaltyProjection(orderEntries, commerceCRMProjection.commerces);
+  const operationalQualityProjection = buildOperationalQualityProjection(orderEntries);
   const commercialInsightsProjection = buildCommercialInsightsProjection({
     customerCRMProjection,
     commerceCRMProjection,
@@ -171,6 +173,7 @@ function buildOperationalDashboardSnapshot({
       marketplace: marketplaceProjection,
       commercial: commercialProjection,
       commercial_insights: commercialInsightsProjection,
+      operational_quality: operationalQualityProjection,
       crm: {
         ok: Boolean(customerCRMProjection.ok && commerceCRMProjection.ok),
         summary: {

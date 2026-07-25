@@ -522,6 +522,73 @@ function buildCommercialInsightsProjection({
   };
 }
 
+function buildOperationalQualityProjection(orderEntries = []) {
+  const incidents = [];
+  const rootCauses = new Map();
+  const byType = new Map();
+  let estimatedWaste = 0;
+
+  orderEntries.forEach((pedido) => {
+    const quality = pedido?.calidad_operativa || pedido?.quality || {};
+    const issueType = String(
+      quality?.tipo
+      || quality?.incidencia_tipo
+      || pedido?.incidencia_tipo
+      || pedido?.tipo_incidencia
+      || ''
+    ).trim();
+    const rootCause = String(
+      quality?.causa_raiz
+      || quality?.root_cause
+      || pedido?.causa_raiz
+      || ''
+    ).trim();
+    const wasteValue = Number(
+      quality?.merma_estimada
+      || quality?.waste_value
+      || pedido?.merma_estimada
+      || 0
+    );
+
+    if (!issueType && !rootCause && !wasteValue) return;
+
+    const normalizedType = issueType || 'incidencia_sin_tipo';
+    const normalizedCause = rootCause || 'causa_no_registrada';
+    byType.set(normalizedType, (byType.get(normalizedType) || 0) + 1);
+    rootCauses.set(normalizedCause, (rootCauses.get(normalizedCause) || 0) + 1);
+    if (Number.isFinite(wasteValue) && wasteValue > 0) {
+      estimatedWaste = roundMoney(estimatedWaste + wasteValue);
+    }
+
+    incidents.push({
+      pedido_id: pedido?.id || pedido?.pedidoId || pedido?.id_pedido || null,
+      tipo: normalizedType,
+      causa_raiz: normalizedCause,
+      merma_estimada: Number.isFinite(wasteValue) ? roundMoney(wasteValue) : 0,
+      accion_correctiva: quality?.accion_correctiva || pedido?.accion_correctiva || null
+    });
+  });
+
+  const topRootCauses = [...rootCauses.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([causa, total]) => ({ causa, total }));
+
+  return {
+    ok: true,
+    summary: {
+      incidencias: incidents.length,
+      tipos: byType.size,
+      causas_raiz: rootCauses.size,
+      merma_estimada: estimatedWaste,
+      acciones_correctivas: incidents.filter((item) => item.accion_correctiva).length
+    },
+    incidents: incidents.slice(0, 20),
+    root_causes: topRootCauses,
+    signal: incidents.length > 0 ? 'calidad_operativa_con_incidencias' : 'calidad_operativa_sin_incidencias'
+  };
+}
+
 export {
   buildCommercialProjection,
   buildCommercialInsightsProjection,
@@ -530,5 +597,6 @@ export {
   buildMarketplaceProjection,
   buildCustomerCRMProjection,
   buildLoyaltyProjection,
+  buildOperationalQualityProjection,
   roundMoney
 };
