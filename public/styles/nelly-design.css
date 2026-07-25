@@ -12,10 +12,23 @@
   --nelly-success: #35f2c1;
   --nelly-warn: #ff9f66;
   --nelly-danger: #fb7185;
+  --nelly-focus: rgba(248, 185, 27, 0.28);
+  --nelly-loading: rgba(110, 168, 254, 0.22);
+  --nelly-offline: rgba(148, 163, 184, 0.18);
   --nelly-radius: 20px;
   --nelly-radius-sm: 14px;
+  --nelly-radius-pill: 9999px;
+  --nelly-space-1: 0.25rem;
+  --nelly-space-2: 0.5rem;
+  --nelly-space-3: 0.75rem;
+  --nelly-space-4: 1rem;
+  --nelly-space-5: 1.5rem;
+  --nelly-space-6: 2rem;
   --nelly-shadow: 0 24px 60px rgba(2, 6, 23, 0.35);
   --nelly-shadow-soft: 0 12px 30px rgba(2, 6, 23, 0.22);
+  --nelly-shadow-floating: 0 28px 80px rgba(2, 6, 23, 0.45);
+  --nelly-transition-fast: 160ms;
+  --nelly-transition-normal: 240ms;
   --nelly-font: "Poppins", "Inter", "Segoe UI", sans-serif;
 }
 
@@ -27,15 +40,37 @@ body {
   margin: 0;
   font-family: var(--nelly-font);
   color: var(--nelly-text);
+  background-color: var(--nelly-bg-deep);
   background:
     radial-gradient(circle at top left, rgba(248, 185, 27, 0.12), transparent 28%),
     radial-gradient(circle at top right, rgba(110, 168, 254, 0.11), transparent 26%),
     linear-gradient(180deg, #07111f 0%, #091524 100%);
 }
 
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(248, 185, 27, 0.25);
+  color: var(--nelly-text);
+}
+
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--nelly-accent);
+  outline-offset: 2px;
 }
 
 .nelly-shell {
@@ -60,6 +95,17 @@ a {
   background: rgba(3, 10, 20, 0.35);
 }
 
+.nelly-surface {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.42);
+  box-shadow: var(--nelly-shadow-soft);
+}
+
+.nelly-surface--floating {
+  box-shadow: var(--nelly-shadow-floating);
+}
+
 .nelly-section-label {
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -77,4 +123,76 @@ a {
 .nelly-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+}
+
+.nelly-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nelly-space-2);
+  border-radius: var(--nelly-radius-pill);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nelly-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 10, 20, 0.45);
+}
+
+.nelly-state--loading {
+  color: var(--nelly-info);
+  background: var(--nelly-loading);
+}
+
+.nelly-state--empty {
+  color: var(--nelly-muted);
+  background: rgba(3, 10, 20, 0.3);
+}
+
+.nelly-state--success {
+  color: var(--nelly-success);
+}
+
+.nelly-state--warn {
+  color: var(--nelly-warn);
+}
+
+.nelly-state--danger {
+  color: var(--nelly-danger);
+}
+
+.nelly-state--offline {
+  color: var(--nelly-muted);
+  background: var(--nelly-offline);
+}
+
+.nelly-kpi {
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.32);
+  box-shadow: var(--nelly-shadow-soft);
+}
+
+.nelly-section {
+  display: grid;
+  gap: var(--nelly-space-4);
+}
+
+.nelly-stack {
+  display: grid;
+  gap: var(--nelly-space-3);
+}
+
+.nelly-muted {
+  color: var(--nelly-muted);
+}
+
+.nelly-transition {
+  transition:
+    background-color var(--nelly-transition-normal) ease,
+    border-color var(--nelly-transition-normal) ease,
+    color var(--nelly-transition-normal) ease,
+    box-shadow var(--nelly-transition-normal) ease,
+    transform var(--nelly-transition-fast) ease;
 }
