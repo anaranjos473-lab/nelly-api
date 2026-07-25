@@ -156,6 +156,8 @@ La inteligencia comercial transforma la evidencia ya validada por C1, C2 y C3 en
 Las promociones ligeras reutilizan la evidencia de C4 para sugerir acciones manuales simples de reactivacion y seguimiento, sin automatizacion compleja ni nuevas fuentes de verdad.
 #### Evidencia C5
 - [`C5_EVIDENCIA_PROMOCIONES_LIGERAS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/C5_EVIDENCIA_PROMOCIONES_LIGERAS_V1.md)
+#### Certificacion C5
+- [`CERTIFICACION_C5_PROMOCIONES_LIGERAS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_C5_PROMOCIONES_LIGERAS_V1.md)
 
 ### Gate G1 - Ecosistema Comercial
 - [`GOAL-G1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-G1-001.md)
