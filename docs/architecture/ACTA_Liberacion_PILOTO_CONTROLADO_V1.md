@@ -11,25 +11,25 @@ Dejar un unico registro de decision al final de la corrida, con evidencia sufici
 
 | Campo | Valor |
 | --- | --- |
-| Fecha |  |
-| Responsable |  |
-| Entorno |  |
-| Base URL |  |
-| Commit |  |
-| Evidencia |  |
-| Runsheet |  |
-| Gate UX-Release |  |
-| Recorrido extremo a extremo |  |
+| Fecha | 2026-07-25 |
+| Responsable | Codex |
+| Entorno | Local pre-piloto |
+| Base URL | http://127.0.0.1:3001 |
+| Commit | b0557df |
+| Evidencia | .codex-tmp/panel-validation/validation-report.json |
+| Runsheet | UX_RELEASE_RUNSHEET_V1.md |
+| Gate UX-Release | GATE_UX_RELEASE_V1.md |
+| Recorrido extremo a extremo | Pendiente de ejecucion RC2 |
 
 ## Dictamen
 
 | Campo | Valor |
 | --- | --- |
-| Resultado | APROBADO / APROBADO CON OBSERVACIONES / NO APROBADO |
-| Observaciones |  |
-| Riesgos abiertos |  |
-| Acciones siguientes |  |
-| Evidencia minima |  |
+| Resultado | APROBADO CON OBSERVACIONES |
+| Observaciones | La corrida automatizada de paneles quedo en verde y los paneles principales respondieron correctamente. Falta ejecutar el recorrido operativo extremo a extremo de RC2 para emitir cierre final del piloto. |
+| Riesgos abiertos | Pendiente de validacion operativa directa del flujo crear -> cocina -> pool -> repartidor -> entrega -> finanzas -> CRM. |
+| Acciones siguientes | Ejecutar RC2 con el runsheet vivo y completar el acta final con evidencia del flujo real. |
+| Evidencia minima | validation-report.json, capturas de paneles, captura del runsheet completado. |
 
 ## Evidencia minima requerida
 
