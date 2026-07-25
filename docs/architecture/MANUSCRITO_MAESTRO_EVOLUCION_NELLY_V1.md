@@ -208,6 +208,7 @@ Este manuscrito solo se considera ejecutable cuando exista evidencia de:
 - `ROADMAP_COMERCIAL_NELLY_COMMERCE_V1.md`
 - `PLAN_EVIDENCIA_PILOTO_MAQUINA_ESTADOS_V1.md`
 - `MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md`
+
 ### Ruta de lectura sugerida
 
 1. `PLAN_ESTRATEGICO_NELLY_V1.md`
@@ -218,3 +219,5 @@ Este manuscrito solo se considera ejecutable cuando exista evidencia de:
 ## Cierre
 
 Nelly debe crecer por etapas: primero demostrar que la operacion local funciona, luego convertir esa base en tienda propia, despues abrir la plataforma a APIs y finalmente consolidar Nelly OS como nucleo logistico y comercial reusable.
+
+No se requiere mas documentacion para esta linea mientras no exista nueva evidencia del piloto o de la operacion real que justifique reabrirla.

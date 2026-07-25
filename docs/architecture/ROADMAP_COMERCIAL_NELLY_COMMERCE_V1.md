@@ -176,3 +176,5 @@ El roadmap solo pasa de propuesta a ejecucion cuando:
 ## Cierre
 
 La meta no es crear mas frentes, sino crecer en el orden correcto: primero delivery estable, luego tienda propia, despues comercio omnicanal y finalmente automatizacion inteligente.
+
+No hace falta crear mas documentos para esta linea, salvo que el piloto o la operacion real aporten evidencia nueva que obligue a revisar la secuencia.
