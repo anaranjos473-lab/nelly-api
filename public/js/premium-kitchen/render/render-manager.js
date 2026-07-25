@@ -256,17 +256,17 @@ export function createRenderManager() {
         : `onclick="${config.funcion}"`;
 
       const html = `
-                <div class="card-pedido animate__animated animate__fadeIn">
-                    <div class="repartidor-mini__meta">
+                <div class="nelly-pattern-card animate__animated animate__fadeIn">
+                    <div class="nelly-pattern-card__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
                         <span class="nelly-state nelly-state--empty">${estadoLabel}</span>
                     </div>
-                    <p class="repartidor-mini__title">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
-                    <p class="repartidor-mini__desc">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
-                    ${ubicacionHumanizada ? `<p class="repartidor-mini__desc">${ubicacionHumanizada}</p>` : ''}
-                    <p class="repartidor-mini__desc">${pedido.descripcion || 'Sin descripcion'}</p>
-                    <p class="repartidor-mini__amount">$${monto.toFixed(2)}</p>
-                    <button ${botonAttrs} class="btn-action ${config.clase}">
+                    <p class="nelly-pattern-card__title">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
+                    <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
+                    ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${ubicacionHumanizada}</p>` : ''}
+                    <p class="nelly-pattern-card__body">${pedido.descripcion || 'Sin descripcion'}</p>
+                    <p class="nelly-pattern-card__amount">$${monto.toFixed(2)}</p>
+                    <button ${botonAttrs} class="nelly-btn ${config.clase}">
                         ${config.texto}
                     </button>
                 </div>
