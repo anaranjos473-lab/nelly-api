@@ -4,25 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nelly Delivery - CRM Basico</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            crm: {
-              bg: "#07131a",
-              card: "#0f1f29",
-              line: "#1f3642",
-              accent: "#8bf3c8",
-              warn: "#ffb36b",
-              info: "#8bb4ff"
-            }
-          }
-        }
-      }
-    };
-  </script>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
@@ -34,7 +15,7 @@
   <link rel="stylesheet" href="/styles/components/kpi.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
 </head>
-<body class="h-full bg-crm-bg text-slate-100 nelly-shell">
+<body class="h-full text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
@@ -58,6 +39,21 @@
               <button id="btn-refresh" type="button" class="nelly-btn nelly-btn--accent">Refrescar</button>
             </div>
           </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-[34rem]">
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Clientes totales</p>
+              <p id="overview-clientes-totales" class="mt-2 text-2xl font-bold text-crm-accent">0</p>
+            </div>
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Clientes recurrentes</p>
+              <p id="overview-clientes-recurrentes" class="mt-2 text-2xl font-bold text-crm-warn">0</p>
+            </div>
+            <div class="nelly-kpi p-4">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Comercios totales</p>
+              <p id="overview-comercios-totales" class="mt-2 text-2xl font-bold text-crm-info">0</p>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -75,60 +71,52 @@
 
       <section id="crm-section" class="hidden space-y-6">
         <article class="nelly-panel p-5 sm:p-6">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Estado CRM</p>
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl space-y-3">
+              <p class="nelly-section-label">Estado CRM</p>
               <h2 id="crm-status" class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-crm-accent">Cargando snapshot...</h2>
               <p class="mt-2 text-sm leading-6 text-slate-300">La vista consolida clientes, comercios y señales de fidelizacion en una sola lectura operativa.</p>
             </div>
-            <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Clientes totales</p>
-                <p id="overview-clientes-totales" class="text-lg font-bold text-crm-accent">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Clientes recurrentes</p>
-                <p id="overview-clientes-recurrentes" class="text-lg font-bold text-crm-warn">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Comercios totales</p>
-                <p id="overview-comercios-totales" class="text-lg font-bold text-crm-info">0</p>
-              </div>
+            <div class="grid gap-3 sm:grid-cols-3">
+              <span id="customer-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+              <span id="commerce-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+              <span id="loyalty-summary" class="nelly-state nelly-state--empty">Sin datos</span>
             </div>
           </div>
         </article>
 
         <article class="nelly-pattern-section">
-          <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div class="nelly-pattern-section__header">
             <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400">Exploracion rapida</p>
-              <h3 class="mt-1 text-xl font-semibold text-crm-accent">Buscar fichas por cliente o comercio</h3>
+              <p class="nelly-section-label">Exploracion rapida</p>
+              <h3 class="nelly-pattern-section__title">Buscar fichas por cliente o comercio</h3>
             </div>
-            <div class="nelly-pattern-grid-2 lg:w-[48rem]">
-              <label class="block">
-                <span class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Cliente destacado</span>
-                <select id="customer-select" class="nelly-select w-full px-3 py-2 text-sm">
-                  <option value="">Cargando clientes...</option>
-                </select>
-              </label>
-              <label class="block">
-                <span class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Comercio destacado</span>
-                <select id="commerce-select" class="nelly-select w-full px-3 py-2 text-sm">
-                  <option value="">Cargando comercios...</option>
-                </select>
-              </label>
-            </div>
+            <span class="nelly-state nelly-state--live">SSOT</span>
+          </div>
+          <div class="nelly-pattern-grid-2">
+            <label class="block">
+              <span class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Cliente destacado</span>
+              <select id="customer-select" class="nelly-select w-full px-3 py-2 text-sm">
+                <option value="">Cargando clientes...</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="mb-1 block text-xs uppercase tracking-wide text-slate-400">Comercio destacado</span>
+              <select id="commerce-select" class="nelly-select w-full px-3 py-2 text-sm">
+                <option value="">Cargando comercios...</option>
+              </select>
+            </label>
           </div>
         </article>
 
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <article class="nelly-pattern-section">
-            <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="nelly-pattern-section__header">
               <div>
-                <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de cliente</p>
-                <h3 class="mt-1 text-xl font-semibold text-crm-accent">Clientes relevantes</h3>
+                <p class="nelly-section-label">Ficha de cliente</p>
+                <h3 class="nelly-pattern-section__title">Clientes relevantes</h3>
               </div>
-              <span id="customer-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+              <span id="customer-summary-inline" class="nelly-state nelly-state--empty">Sin datos</span>
             </div>
             <div id="customer-detail" class="nelly-pattern-panel mb-4">
               <p class="nelly-pattern-panel__title">Selecciona un cliente</p>
@@ -138,12 +126,12 @@
           </article>
 
           <article class="nelly-pattern-section">
-            <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="nelly-pattern-section__header">
               <div>
-                <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de comercio</p>
-                <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios del marketplace</h3>
+                <p class="nelly-section-label">Ficha de comercio</p>
+                <h3 class="nelly-pattern-section__title text-crm-info">Comercios del marketplace</h3>
               </div>
-              <span id="commerce-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+              <span id="commerce-summary-inline" class="nelly-state nelly-state--empty">Sin datos</span>
             </div>
             <div id="commerce-detail" class="nelly-pattern-panel mb-4">
               <p class="nelly-pattern-panel__title">Selecciona un comercio</p>
@@ -154,12 +142,12 @@
         </div>
 
         <article class="nelly-pattern-section">
-          <div class="mb-4 flex items-center justify-between gap-3">
+          <div class="nelly-pattern-section__header">
             <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion Basica</p>
-              <h3 class="mt-1 text-xl font-semibold text-crm-warn">Clientes recurrentes e inactivos</h3>
+              <p class="nelly-section-label">C3 · Fidelizacion basica</p>
+              <h3 class="nelly-pattern-section__title text-crm-warn">Clientes recurrentes e inactivos</h3>
             </div>
-            <span id="loyalty-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+            <span id="loyalty-summary-inline" class="nelly-state nelly-state--empty">Sin datos</span>
           </div>
           <div id="loyalty-detail" class="nelly-pattern-panel mb-4">
             <p class="nelly-pattern-panel__title">Selecciona un criterio</p>
@@ -169,12 +157,12 @@
         </article>
 
         <article class="nelly-pattern-section">
-          <div class="mb-4 flex items-center justify-between gap-3">
+          <div class="nelly-pattern-section__header">
             <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion por Comercio</p>
-              <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios con recurrencia e inactividad</h3>
+              <p class="nelly-section-label">C3 · Fidelizacion por comercio</p>
+              <h3 class="nelly-pattern-section__title text-crm-info">Comercios con recurrencia e inactividad</h3>
             </div>
-            <span id="commerce-loyalty-summary" class="nelly-state nelly-state--empty">Sin datos</span>
+            <span id="commerce-loyalty-summary-inline" class="nelly-state nelly-state--empty">Sin datos</span>
           </div>
           <div id="commerce-loyalty-detail" class="nelly-pattern-panel mb-4">
             <p class="nelly-pattern-panel__title">Selecciona una lectura comercial</p>
@@ -186,6 +174,6 @@
     </main>
   </div>
 
-  <script type="module" src="./js/crm-basico.js?v=20260725-c2-4"></script>
+  <script type="module" src="./js/crm-basico.js?v=20260725-c2-5"></script>
 </body>
 </html>

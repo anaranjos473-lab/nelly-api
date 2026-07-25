@@ -20,15 +20,19 @@ const ui = {
   customerSelect: document.getElementById('customer-select'),
   commerceSelect: document.getElementById('commerce-select'),
   customerSummary: document.getElementById('customer-summary'),
+  customerSummaryInline: document.getElementById('customer-summary-inline'),
   customerDetail: document.getElementById('customer-detail'),
   customerList: document.getElementById('customer-list'),
   commerceSummary: document.getElementById('commerce-summary'),
+  commerceSummaryInline: document.getElementById('commerce-summary-inline'),
   commerceDetail: document.getElementById('commerce-detail'),
   commerceList: document.getElementById('commerce-list'),
   loyaltySummary: document.getElementById('loyalty-summary'),
+  loyaltySummaryInline: document.getElementById('loyalty-summary-inline'),
   loyaltyDetail: document.getElementById('loyalty-detail'),
   loyaltyList: document.getElementById('loyalty-list'),
   commerceLoyaltySummary: document.getElementById('commerce-loyalty-summary'),
+  commerceLoyaltySummaryInline: document.getElementById('commerce-loyalty-summary-inline'),
   commerceLoyaltyDetail: document.getElementById('commerce-loyalty-detail'),
   commerceLoyaltyList: document.getElementById('commerce-loyalty-list')
 };
@@ -431,10 +435,19 @@ function renderCRM(snapshot) {
   ui.overviewClientesRecurrentes.textContent = String(summary.clientes_recurrentes ?? 0);
   ui.overviewComerciosTotales.textContent = String(summary.comercios_totales ?? 0);
 
-  ui.customerSummary.textContent = `${state.customers.length} fichas`;
-  ui.commerceSummary.textContent = `${state.commerces.length} comercios`;
-  ui.loyaltySummary.textContent = `${loyaltyCustomers.length} candidatos`;
-  ui.commerceLoyaltySummary.textContent = `${commerceLoyaltyList.length} comercios`;
+  const customerSummaryText = `${state.customers.length} fichas`;
+  const commerceSummaryText = `${state.commerces.length} comercios`;
+  const loyaltySummaryText = `${loyaltyCustomers.length} candidatos`;
+  const commerceLoyaltySummaryText = `${commerceLoyaltyList.length} comercios`;
+
+  ui.customerSummary.textContent = customerSummaryText;
+  ui.customerSummaryInline.textContent = customerSummaryText;
+  ui.commerceSummary.textContent = commerceSummaryText;
+  ui.commerceSummaryInline.textContent = commerceSummaryText;
+  ui.loyaltySummary.textContent = loyaltySummaryText;
+  ui.loyaltySummaryInline.textContent = loyaltySummaryText;
+  ui.commerceLoyaltySummary.textContent = commerceLoyaltySummaryText;
+  ui.commerceLoyaltySummaryInline.textContent = commerceLoyaltySummaryText;
 
   syncSelectors();
   updateDetails();
@@ -480,9 +493,13 @@ async function refreshCRM() {
     ui.crmStatus.textContent = 'ERROR';
     ui.crmStatus.className = 'nelly-state nelly-state--danger mt-1 text-2xl font-bold text-red-300';
     ui.customerSummary.textContent = 'No disponible';
+    ui.customerSummaryInline.textContent = 'No disponible';
     ui.commerceSummary.textContent = 'No disponible';
+    ui.commerceSummaryInline.textContent = 'No disponible';
     ui.loyaltySummary.textContent = 'No disponible';
+    ui.loyaltySummaryInline.textContent = 'No disponible';
     ui.commerceLoyaltySummary.textContent = 'No disponible';
+    ui.commerceLoyaltySummaryInline.textContent = 'No disponible';
     ui.customerDetail.innerHTML = emptyStateHTML('No fue posible cargar clientes', error.message);
     ui.commerceDetail.innerHTML = emptyStateHTML('No fue posible cargar comercios', error.message);
     ui.loyaltyDetail.innerHTML = emptyStateHTML('No fue posible cargar fidelizacion', error.message);
