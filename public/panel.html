@@ -555,15 +555,15 @@
     <div class="floating-menu">
         <button id="btn-historial" class="btn-filtro btn-menu">Corte de Caja</button>
         <button id="btn-heatmap" class="btn-filtro btn-menu">Mapa de Calor</button>
-        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">Ver Mapa Repartidores</button>
+        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">Mapa Nelly</button>
         <button id="btn-debug" class="debug-btn btn-menu">DEBUG</button>
     </div>
 
-    <!-- Modal del mapa de repartidores activos -->
+    <!-- Modal del mapa de flota activa -->
     <div id="modal-mapa-repartidores" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;background:rgba(0,0,0,0.25);">
         <div style="position:absolute;top:40px;left:50%;transform:translateX(-50%);background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:20px;max-width:900px;width:90%;height:600px;">
-            <h3 style="margin-top:0;">Repartidores Activos en Tiempo Real</h3>
-            <div class="toggle-switch"><input type="checkbox" id="toggle-repartidores" checked><label for="toggle-repartidores">Mostrar repartidores</label></div>
+            <h3 style="margin-top:0;">Flota Nelly en Tiempo Real</h3>
+            <div class="toggle-switch"><input type="checkbox" id="toggle-repartidores" checked><label for="toggle-repartidores">Mostrar flota</label></div>
             <div id="map" style="height:500px;width:100%;border-radius:8px;"></div>
             <button id="btn-cerrar-mapa-repartidores" class="btn-filtro" style="position:absolute;top:10px;right:10px;z-index:1002;">Cerrar</button>
         </div>
