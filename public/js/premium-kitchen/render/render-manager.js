@@ -259,7 +259,7 @@ export function createRenderManager() {
                 <div class="card-pedido animate__animated animate__fadeIn">
                     <div class="repartidor-mini__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
-                        <span class="nelly-chip">${estadoLabel}</span>
+                        <span class="nelly-state nelly-state--empty">${estadoLabel}</span>
                     </div>
                     <p class="repartidor-mini__title">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
                     <p class="repartidor-mini__desc">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
