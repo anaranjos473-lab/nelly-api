@@ -93,31 +93,45 @@
 <body class="h-full bg-panel-bg text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="mb-6 flex flex-col gap-4 rounded-2xl border border-panel-line bg-panel-card/90 p-5 shadow-glow sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight">Panel de Administracion</h1>
-          <p class="mt-1 text-sm text-slate-300">Gestion en tiempo real de repartidores, deuda y pedidos activos.</p>
-        </div>
-        <div id="session-box" class="hidden items-center gap-3">
-          <a href="/dashboard-comercial.html" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Dashboard Comercial</a>
-          <a href="/dashboard-operativo.html" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Dashboard S4</a>
-          <a href="/crm-basico.html" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm font-semibold hover:bg-slate-800">CRM Basico</a>
-          <span id="session-email" class="rounded-full border border-panel-line bg-slate-900/50 px-3 py-1 text-xs text-slate-200"></span>
-          <button id="btn-logout" class="rounded-lg border border-panel-line bg-slate-800 px-3 py-2 text-sm font-semibold hover:bg-slate-700">Cerrar sesion</button>
+      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-3xl space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="nelly-chip nelly-chip--success">Administracion</span>
+              <span class="nelly-chip nelly-chip--info">Panel</span>
+              <span class="nelly-chip nelly-chip--accent">Control total</span>
+            </div>
+            <div>
+              <p class="nelly-section-label text-panel-accent">Admin · Centro de Control</p>
+              <h1 class="nelly-hero-title mt-2">Panel de Administracion</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Gestion en tiempo real de repartidores, deuda, pedidos activos y ubicacion operativa con una lectura consistente y directa.</p>
+            </div>
+            <div class="nelly-divider"></div>
+            <div class="flex flex-wrap gap-2">
+              <a href="/dashboard-comercial.html" class="nelly-btn nelly-btn--ghost">Dashboard Comercial</a>
+              <a href="/dashboard-operativo.html" class="nelly-btn nelly-btn--ghost">Dashboard S4</a>
+              <a href="/crm-basico.html" class="nelly-btn nelly-btn--ghost">CRM Basico</a>
+            </div>
+          </div>
+          <div id="session-box" class="hidden items-center gap-3">
+            <span id="session-email" class="nelly-chip"></span>
+            <button id="btn-logout" class="nelly-btn nelly-btn--ghost">Cerrar sesion</button>
+          </div>
         </div>
       </header>
 
-      <section id="login-section" class="mx-auto max-w-md rounded-2xl border border-panel-line bg-panel-card/95 p-6 shadow-glow">
-        <h2 class="text-lg font-semibold">Acceso Administrativo</h2>
-        <p class="mt-1 text-sm text-slate-300">Solo correos autorizados pueden entrar al dashboard.</p>
+      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
+        <p class="nelly-section-label">Acceso Admin</p>
+        <h2 class="nelly-hero-title mt-2 text-2xl">Ingresar al panel</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-300">Solo correos autorizados pueden entrar al dashboard.</p>
         <form id="login-form" class="mt-5 space-y-4">
           <div>
             <label for="login-email" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Correo</label>
-            <input id="login-email" type="email" required class="w-full rounded-lg border border-panel-line bg-slate-900/70 px-3 py-2 text-sm text-white outline-none ring-panel-accent transition focus:ring" placeholder="admin@nellydelivery.com" />
+            <input id="login-email" type="email" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="admin@nellydelivery.com" />
           </div>
           <div>
             <label for="login-password" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Contraseña</label>
-            <input id="login-password" type="password" required class="w-full rounded-lg border border-panel-line bg-slate-900/70 px-3 py-2 text-sm text-white outline-none ring-panel-accent transition focus:ring" placeholder="********" />
+            <input id="login-password" type="password" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="********" />
           </div>
           <button type="submit" class="nelly-btn nelly-btn--accent w-full">Iniciar sesion</button>
           <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
@@ -125,28 +139,36 @@
       </section>
 
       <section id="dashboard-section" class="hidden space-y-6">
+        <article class="nelly-panel p-5 sm:p-6">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div class="max-w-2xl space-y-2">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Rentabilidad del día</p>
+              <h2 class="text-2xl font-bold">Lectura operativa y financiera</h2>
+              <p class="text-sm leading-6 text-slate-300">Se consolida ventas, comisiones, entregas y mapa de calor en un solo bloque de control.</p>
+            </div>
+            <span class="nelly-chip">Realtime</span>
+          </div>
+          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="nelly-panel-soft p-4">
+              <p class="text-xs text-slate-400">Ventas Brutas</p>
+              <p id="metric-ventas-brutas" class="mt-2 text-2xl font-bold text-panel-accent">$0.00</p>
+            </div>
+            <div class="nelly-panel-soft p-4">
+              <p class="text-xs text-slate-400">Comisiones Nelly</p>
+              <p id="metric-comisiones-nelly" class="mt-2 text-2xl font-bold text-panel-warn">$0.00</p>
+            </div>
+            <div class="nelly-panel-soft p-4">
+              <p class="text-xs text-slate-400">Entregas</p>
+              <p id="metric-conteo-entregas" class="mt-2 text-2xl font-bold text-panel-info">0</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <p class="mb-2 text-xs text-slate-400">Mapa de calor por zona</p>
+            <ul id="metric-mapa-calor" class="grid grid-cols-2 gap-2 text-sm text-slate-200 md:grid-cols-4"></ul>
+          </div>
+        </article>
+
         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <article class="rounded-xl border border-panel-line bg-panel-card p-4 col-span-1 md:col-span-3">
-            <h2 class="text-lg font-semibold mb-2">Rentabilidad del Día</h2>
-            <div class="flex flex-col md:flex-row md:items-end md:gap-8 gap-2">
-              <div>
-                <p class="text-xs text-slate-400">Ventas Brutas</p>
-                <p id="metric-ventas-brutas" class="text-2xl font-bold text-panel-accent">$0.00</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400">Comisiones Nelly</p>
-                <p id="metric-comisiones-nelly" class="text-2xl font-bold text-panel-warn">$0.00</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400">Entregas</p>
-                <p id="metric-conteo-entregas" class="text-2xl font-bold text-panel-info">0</p>
-              </div>
-            </div>
-            <div class="mt-4">
-              <p class="text-xs text-slate-400 mb-1">Mapa de calor por zona:</p>
-              <ul id="metric-mapa-calor" class="text-sm text-slate-200 grid grid-cols-2 md:grid-cols-4 gap-2"></ul>
-            </div>
-          </article>
           <article class="nelly-kpi p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Repartidores</p>
             <p id="metric-drivers" class="mt-2 text-2xl font-bold">0</p>
@@ -159,6 +181,9 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Bloqueo por deuda</p>
             <p id="metric-blocked-debt" class="mt-2 text-2xl font-bold text-panel-info">0</p>
           </article>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
           <article class="nelly-kpi p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Total no elegibles</p>
             <p id="metric-blocked-total" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
@@ -167,9 +192,6 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Activos</p>
             <p id="metric-orders" class="mt-2 text-2xl font-bold text-panel-info">0</p>
           </article>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
           <article class="nelly-kpi p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Creados Hoy</p>
             <p id="metric-pedidos-creados" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
@@ -178,6 +200,9 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Entregados Hoy</p>
             <p id="metric-pedidos-entregados" class="mt-2 text-2xl font-bold text-panel-info">0</p>
           </article>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
           <article class="nelly-kpi p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Cancelados Hoy</p>
             <p id="metric-pedidos-cancelados" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
@@ -186,32 +211,21 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Conductores Activos</p>
             <p id="metric-conductores-activos" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
           </article>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Tiempo Asignación</p>
-            <p id="metric-tiempo-asignacion" class="mt-2 text-2xl font-bold text-panel-info">0 min</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Tiempo Entrega</p>
-            <p id="metric-tiempo-entrega" class="mt-2 text-2xl font-bold text-panel-accent">0 min</p>
-          </article>
           <article class="nelly-kpi p-4">
             <p class="text-xs uppercase tracking-wide text-slate-400">Fraudes Detectados</p>
             <p id="metric-fraudes-detectados" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
           </article>
         </div>
 
-        <article class="rounded-2xl border border-panel-line bg-panel-card p-4">
+        <article class="nelly-panel p-4">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-semibold">Gestor de Repartidores (Realtime)</h2>
             <p class="text-xs text-slate-400">Sincronización protegida via backend cada 5 segundos.</p>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-sm">
+            <table class="nelly-table text-sm">
               <thead>
-                <tr class="border-b border-panel-line text-left text-xs uppercase tracking-wide text-slate-400">
+                <tr class="text-left text-xs uppercase tracking-wide text-slate-400">
                   <th class="px-2 py-2 sm:px-3">Nombre</th>
                   <th class="hidden px-3 py-2 md:table-cell">UID</th>
                   <th class="px-2 py-2 sm:px-3">Nivel</th>
@@ -224,15 +238,15 @@
           </div>
         </article>
 
-        <article class="rounded-2xl border border-panel-line bg-panel-card p-4">
+        <article class="nelly-panel p-4">
           <h2 class="mb-4 text-lg font-semibold">Generador de Pedidos Manuales</h2>
           <form id="manual-order-form" class="grid grid-cols-1 gap-3 md:grid-cols-2">
             <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">
               <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Datos del cliente</p>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input id="order-client" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Nombre del cliente" />
-                <input id="order-phone" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Telefono" />
-                <input id="order-address" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
+                <input id="order-client" required class="nelly-input px-3 py-2 text-sm" placeholder="Nombre del cliente" />
+                <input id="order-phone" required class="nelly-input px-3 py-2 text-sm" placeholder="Telefono" />
+                <input id="order-address" required class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
               </div>
             </section>
 
@@ -243,20 +257,20 @@
               </div>
               <p class="mb-4 text-xs text-slate-400">Este bloque captura la ubicación como la piensa el operador: tipo de lugar, método de entrega, referencia y notas. Las coordenadas quedan en segundo plano.</p>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <select id="order-place-type" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm">
+                <select id="order-place-type" required class="nelly-select px-3 py-2 text-sm">
                   <option value="casa">Casa</option>
                   <option value="oficina">Oficina</option>
                   <option value="departamento">Departamento</option>
                   <option value="hotel">Hotel</option>
                   <option value="otro">Otro</option>
                 </select>
-                <select id="order-delivery-method" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm">
+                <select id="order-delivery-method" required class="nelly-select px-3 py-2 text-sm">
                   <option value="puerta">Encontrarse en la puerta</option>
                   <option value="exterior">Encontrarse afuera</option>
                   <option value="recepcion">Encontrarse en la recepción</option>
                 </select>
-                <input id="order-reference" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Referencia de ubicación (color, portón, piso, acceso, etc.)" />
-                <textarea id="order-location-notes" rows="2" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Notas para la entrega (instrucciones, acceso, recepción)"></textarea>
+                <input id="order-reference" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Referencia de ubicación (color, portón, piso, acceso, etc.)" />
+                <textarea id="order-location-notes" rows="2" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas para la entrega (instrucciones, acceso, recepción)"></textarea>
               </div>
             </section>
 
@@ -281,7 +295,7 @@
                   <div class="rounded-xl border border-panel-line bg-slate-900/40 p-3">
                     <label for="location-search" class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Buscar dirección</label>
                     <div class="flex flex-col gap-2 sm:flex-row">
-                      <input id="location-search" class="w-full rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm outline-none focus:border-cyan-400" placeholder="Ave La Coyote, Tuxtla Gutiérrez, Chiapas" />
+                      <input id="location-search" class="nelly-input w-full px-3 py-2 text-sm outline-none" placeholder="Ave La Coyote, Tuxtla Gutiérrez, Chiapas" />
                       <button id="location-search-btn" type="button" class="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-100 hover:bg-sky-400/20">Buscar</button>
                     </div>
                     <p class="mt-2 text-xs text-slate-400">El mapa centrará el resultado y mantendrá un pin fijo en el centro.</p>
@@ -330,21 +344,21 @@
                 <span class="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-1 text-[11px] font-semibold text-sky-200">Contrato operativo</span>
               </div>
               <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <textarea id="order-items" required rows="3" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
-                <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Subtotal MXN" />
-                <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Costo de envío MXN" />
-                <input id="order-tip" required type="number" min="0" step="0.01" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm" placeholder="Propina MXN" />
-                <select id="order-payment-method" required class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm">
+                <textarea id="order-items" required rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
+                <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Subtotal MXN" />
+                <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Costo de envío MXN" />
+                <input id="order-tip" required type="number" min="0" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Propina MXN" />
+                <select id="order-payment-method" required class="nelly-select px-3 py-2 text-sm">
                   <option value="efectivo">Efectivo</option>
                   <option value="tarjeta">Tarjeta</option>
                   <option value="transferencia">Transferencia</option>
                 </select>
-                <input id="order-total" readonly type="number" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Total calculado MXN" />
-                <textarea id="order-notes" rows="3" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2 text-sm md:col-span-2" placeholder="Notas del pedido (referencias, observaciones)"></textarea>
+                <input id="order-total" readonly type="number" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Total calculado MXN" />
+                <textarea id="order-notes" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas del pedido (referencias, observaciones)"></textarea>
               </div>
             </section>
 
-            <button id="order-submit" type="submit" class="rounded-lg bg-panel-accent px-4 py-2 text-sm font-bold text-slate-950 hover:brightness-110 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300 md:col-span-2">Crear Pedido</button>
+            <button id="order-submit" type="submit" class="nelly-btn nelly-btn--accent md:col-span-2">Crear Pedido</button>
           </form>
           <p id="order-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
         </article>

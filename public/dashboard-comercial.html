@@ -36,22 +36,33 @@
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div>
-          <p class="text-xs uppercase tracking-[0.3em] text-comm-accent">C1 · Dashboard Comercial</p>
-          <h1 class="mt-2 text-2xl font-bold tracking-tight">Nelly Delivery - Dashboard Comercial</h1>
-          <p class="mt-1 text-sm text-slate-300">Una lectura comercial construida solo sobre la SSOT certificada.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <a href="/dashboard-operativo.html" class="nelly-btn nelly-btn--ghost">Dashboard Operativo</a>
-          <a href="/admin-dashboard.html" class="nelly-btn nelly-btn--ghost">Panel Admin</a>
-          <a href="/crm-basico.html" class="nelly-btn nelly-btn--ghost">CRM Basico</a>
-          <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar</button>
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div class="max-w-3xl space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="nelly-chip nelly-chip--success">Ventas</span>
+              <span class="nelly-chip nelly-chip--info">C1</span>
+              <span class="nelly-chip nelly-chip--accent">Inteligencia comercial</span>
+            </div>
+            <div>
+              <p class="nelly-section-label text-comm-accent">C1 · Dashboard Comercial</p>
+              <h1 class="nelly-hero-title mt-2">Centro Comercial de Nelly</h1>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Lectura comercial construida sobre la SSOT certificada para ver ventas, recurrencia, margen y siguientes acciones con claridad ejecutiva.</p>
+            </div>
+            <div class="nelly-divider"></div>
+            <div class="flex flex-wrap gap-2">
+              <a href="/dashboard-operativo.html" class="nelly-btn nelly-btn--ghost">Dashboard Operativo</a>
+              <a href="/admin-dashboard.html" class="nelly-btn nelly-btn--ghost">Panel Admin</a>
+              <a href="/crm-basico.html" class="nelly-btn nelly-btn--ghost">CRM Basico</a>
+              <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar</button>
+            </div>
+          </div>
         </div>
       </header>
 
       <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
-        <h2 class="text-lg font-semibold">Acceso Comercial</h2>
-        <p class="mt-1 text-sm text-slate-300">Usa una cuenta autorizada para consultar el snapshot comercial.</p>
+        <p class="nelly-section-label">Acceso Comercial</p>
+        <h2 class="nelly-hero-title mt-2 text-2xl">Consultar snapshot comercial</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-300">Usa una cuenta autorizada para consultar el snapshot comercial.</p>
         <form id="login-form" class="mt-5 space-y-4">
           <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
           <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
@@ -61,11 +72,12 @@
       </section>
 
       <section id="dashboard-section" class="hidden space-y-6">
-        <article class="nelly-panel p-5">
+        <article class="nelly-panel p-5 sm:p-6">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado comercial</p>
-              <h2 id="dashboard-status" class="mt-1 text-2xl font-bold text-comm-accent">Cargando...</h2>
+              <h2 id="dashboard-status" class="mt-1 text-3xl font-bold text-comm-accent">Cargando...</h2>
+              <p class="mt-2 text-sm leading-6 text-slate-300">La vista da prioridad a ventas, ticket promedio, recurrencia y señales accionables para el equipo comercial.</p>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <div class="nelly-kpi px-3 py-2">
@@ -88,56 +100,56 @@
           </div>
         </article>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Operación</p>
             <h3 id="operation-signal" class="mt-2 text-xl font-semibold text-comm-accent">Sin datos</h3>
-            <p id="operation-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="operation-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura operativa.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Alertas comerciales</p>
             <h3 id="alerts-signal" class="mt-2 text-xl font-semibold text-comm-warn">Sin alertas</h3>
-            <p id="alerts-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="alerts-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando alertas comerciales.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Liquidez y margen</p>
             <h3 id="finance-signal" class="mt-2 text-xl font-semibold text-comm-info">Sin datos</h3>
-            <p id="finance-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="finance-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura financiera.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Operación comercial</p>
             <h3 id="ops-signal" class="mt-2 text-xl font-semibold text-comm-accent">Sin datos</h3>
-            <p id="ops-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="ops-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando resumen de operación comercial.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Marketplace</p>
             <h3 id="market-signal" class="mt-2 text-xl font-semibold text-comm-accent">Sin datos</h3>
-            <p id="market-summary" class="mt-2 text-sm text-slate-300"></p>
+            <p id="market-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando señales del marketplace.</p>
           </article>
           <article class="nelly-panel p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400">Ruta siguiente</p>
             <h3 class="mt-2 text-xl font-semibold text-comm-info">CRM Basico</h3>
-            <p class="mt-2 text-sm text-slate-300">Recurrencia, historial de pedidos y seguimiento de comercios sobre evidencia real.</p>
+            <p class="mt-2 text-sm leading-6 text-slate-300">Recurrencia, historial de pedidos y seguimiento de comercios sobre evidencia real.</p>
             <a href="/crm-basico.html" class="mt-4 inline-flex rounded-lg border border-comm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Abrir CRM</a>
           </article>
-        </div>
+        </section>
 
         <article class="nelly-panel p-5">
           <h2 class="text-lg font-semibold">KPIs clave</h2>
           <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+            <div class="nelly-panel-soft p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Ventas del mes</p>
               <p id="kpi-ventas-mes" class="mt-2 text-lg font-bold text-comm-accent">$0.00</p>
             </div>
-            <div class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+            <div class="nelly-panel-soft p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos entregados</p>
               <p id="kpi-pedidos-entregados" class="mt-2 text-lg font-bold text-comm-info">0</p>
             </div>
-            <div class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+            <div class="nelly-panel-soft p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Frecuencia compra</p>
               <p id="kpi-frecuencia-compra" class="mt-2 text-lg font-bold text-comm-warn">0.00</p>
             </div>
-            <div class="rounded-xl border border-comm-line bg-slate-950/40 p-4">
+            <div class="nelly-panel-soft p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Entregas puntuales</p>
               <p id="kpi-entregas-puntuales" class="mt-2 text-lg font-bold text-comm-accent">0%</p>
             </div>
@@ -146,10 +158,10 @@
 
         <article class="nelly-panel p-5">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">C4 · Inteligencia Comercial</p>
               <h2 class="mt-1 text-xl font-semibold text-comm-accent">Oportunidades y acciones sugeridas</h2>
-              <p class="mt-1 text-sm text-slate-300">Vista derivada de la SSOT certificada para detectar clientes y comercios que necesitan seguimiento.</p>
+              <p class="mt-1 text-sm leading-6 text-slate-300">Vista derivada de la SSOT certificada para detectar clientes y comercios que necesitan seguimiento.</p>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <div class="nelly-kpi px-3 py-2">
@@ -185,10 +197,10 @@
 
         <article class="nelly-panel p-5">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div class="max-w-2xl space-y-2">
               <p class="text-xs uppercase tracking-wide text-slate-400">C5 · Promociones Ligeras</p>
-              <h2 class="mt-1 text-xl font-semibold text-comm-info">Sugerencias manuales de reactivación</h2>
-              <p class="mt-1 text-sm text-slate-300">Capa ligera derivada de C4 para proponer acciones simples sin automatización compleja.</p>
+              <h2 class="mt-1 text-xl font-semibold text-comm-info">Sugerencias manuales de reactivacion</h2>
+              <p class="mt-1 text-sm leading-6 text-slate-300">Capa ligera derivada de C4 para proponer acciones simples sin automatizacion compleja.</p>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
               <div class="nelly-kpi px-3 py-2">
@@ -196,7 +208,7 @@
                 <p id="c5-promotions-total" class="text-lg font-bold text-comm-accent">0</p>
               </div>
               <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Reactivación</p>
+                <p class="text-xs text-slate-400">Reactivacion</p>
                 <p id="c5-reactivation-total" class="text-lg font-bold text-comm-warn">0</p>
               </div>
               <div class="nelly-kpi px-3 py-2">
@@ -215,6 +227,6 @@
     </main>
   </div>
 
-  <script type="module" src="./js/dashboard-comercial.js?v=20260725-c1-2"></script>
+  <script type="module" src="./js/dashboard-comercial.js?v=20260725-c1-3"></script>
 </body>
 </html>
