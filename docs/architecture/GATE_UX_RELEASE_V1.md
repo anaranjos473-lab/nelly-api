@@ -100,6 +100,7 @@ Si aparece `429 Too Many Requests` durante la validacion automatizada:
 Este gate complementa la certificacion visual pre-piloto:
 
 - `VALIDACION_PANELES_PRE_PILOTO_V1.md`
+- `CHECKLIST_UX_RELEASE_V1.md`
 
 La certificacion pre-piloto valida la base visual y de autenticacion.
 El Gate UX-Release confirma que esa base sigue operable en una corrida mas cercana al uso real.
