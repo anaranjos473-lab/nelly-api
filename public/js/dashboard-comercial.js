@@ -3,7 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+} from './local-auth.js';
 
 const ui = {
   loginSection: document.getElementById('login-section'),

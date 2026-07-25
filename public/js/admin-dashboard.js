@@ -30,14 +30,14 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+} from "./local-auth.js";
 import {
   onValue,
   push,
   ref,
   set,
   update
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+} from "./local-auth.js";
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
   "admin@nellydelivery.com",
