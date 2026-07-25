@@ -81,6 +81,10 @@ Esta baseline debe consultarse antes de abrir nuevas capacidades comerciales u o
 
 `CIERRE_C3_C4_ECOSISTEMA_V1.md` deja constancia del cierre funcional de `GOAL-C3-001` y del cierre con salvedad operativa de `GOAL-C4-001`. Esta referencia consolida la linea base comercial antes de abrir cualquier nueva capacidad.
 
+## 7.3 Relacion con la matriz final del ecosistema
+
+`MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md` fija la lectura consolidada de Operacion, C2, C3, C4, C5, Q1, G1 y RC2 para evitar ambiguedades antes de cualquier ampliacion futura.
+
 ## 8. Historial
 
 - 2026-07-25: Se crea la baseline arquitectonica RC2 como referencia estable del ecosistema.

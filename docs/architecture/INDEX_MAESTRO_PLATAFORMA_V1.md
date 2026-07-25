@@ -178,6 +178,11 @@ La baseline arquitectonica RC2 formaliza la separacion entre Operacion, CRM, Fid
 #### Resumen Estado Final
 El mapa final distingue capacidades cerradas, dominios abiertos y controles transversales antes de abrir cualquier nueva capacidad.
 
+### Matriz Final Ecosistema
+- [`MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md)
+#### Resumen Matriz Final
+La matriz final fija el estado consolidado de Operacion, C2, C3, C4, C5, Q1, G1 y RC2, y deja a C5 como baseline abierta con evidencia estructural consolidada.
+
 ### Goal Q1 - Calidad Operativa
 - [`GOAL-Q1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-Q1-001.md)
 #### Resumen Q1

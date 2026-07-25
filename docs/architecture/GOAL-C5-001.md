@@ -97,6 +97,17 @@ GOAL-C5-001 se considerara exitoso cuando:
 
 GOAL-C5-001 permanece como baseline abierta y siguiente frente de desarrollo. No debe interpretarse como capacidad cerrada hasta que exista evidencia de ejecucion funcional sobre la SSOT certificada.
 
+### 5.3 Evidencia estructural consolidada
+
+La primera integracion visual de C5 ya quedo registrada como evidencia estructural sobre el Dashboard Comercial. Esa evidencia confirma:
+
+- una vista inicial de promociones ligeras;
+- reutilizacion de la proyeccion derivada de C4;
+- continuidad con C1, C2, C3 y C4;
+- ausencia de una fuente de verdad paralela.
+
+Esta evidencia no cierra C5, pero si deja asentada su base funcional y documental.
+
 ### 6. Evidencias
 
 - vistas o consultas de promociones ligeras;
