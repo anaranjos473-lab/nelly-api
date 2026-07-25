@@ -17,6 +17,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 | ADR-006 | Autenticacion | Activo | [`docs/adr/ADR-006-AUTHENTICATION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-006-AUTHENTICATION.md) |
 | ADR-007 | Separacion de bloqueo manual y bloqueo por deuda | Activo | [`docs/adr/ADR-007-BLOQUEO-REPARTIDORES.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-007-BLOQUEO-REPARTIDORES.md) |
 | ADR-008 | Maquina de estados logistica de ultima milla | Propuesta | [`docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md) |
+| ADR-009 | Comparativo maquina de estados logistica | Propuesta | [`docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md) |
 
 ## Criterio de Uso
 
@@ -26,6 +27,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 - Si el cambio toca responsabilidades generales del sistema, leer ADR-SSOT-001.
 - Si el cambio toca bloqueo de repartidores, leer ADR-007.
 - Si el cambio toca la maquina de estados logistica de ultima milla, leer ADR-008.
+- Si el cambio toca la comparativa entre contratos de estados, leer ADR-009.
 
 ## Regla
 
