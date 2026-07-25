@@ -168,6 +168,7 @@ El roadmap solo pasa de propuesta a ejecucion cuando:
 ## Relacion con otros documentos
 
 - `PLAN_ESTRATEGICO_NELLY_V1.md`
+- `MANUSCRITO_MAESTRO_EVOLUCION_NELLY_V1.md`
 - `RC2_PILOTO_CONTROLADO_V1.md`
 - `PLAN_EVIDENCIA_PILOTO_MAQUINA_ESTADOS_V1.md`
 - `MATRIZ_FINAL_ECOSISTEMA_COMERCIAL_V1.md`
@@ -175,4 +176,3 @@ El roadmap solo pasa de propuesta a ejecucion cuando:
 ## Cierre
 
 La meta no es crear mas frentes, sino crecer en el orden correcto: primero delivery estable, luego tienda propia, despues comercio omnicanal y finalmente automatizacion inteligente.
-
