@@ -19,6 +19,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 | ADR-008 | Maquina de estados logistica de ultima milla | Propuesta | [`docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md) |
 | ADR-009 | Comparativo maquina de estados logistica | Propuesta | [`docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md) |
 | ADR-010 | Decision final maquina de estados logistica | Propuesta | [`docs/adr/ADR-010-DECISION_MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-010-DECISION_MAQUINA_ESTADOS_LOGISTICA.md) |
+| PLAN-MAQUINA-ESTADOS | Migracion maquina de estados logistica | Propuesto | [`docs/architecture/PLAN_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PLAN_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
 
 ## Criterio de Uso
 
@@ -30,6 +31,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 - Si el cambio toca la maquina de estados logistica de ultima milla, leer ADR-008.
 - Si el cambio toca la comparativa entre contratos de estados, leer ADR-009.
 - Si el cambio toca la decision final sobre adopcion, leer ADR-010.
+- Si el cambio toca la migracion por fases de la maquina enriquecida, leer PLAN-MAQUINA-ESTADOS.
 
 ## Regla
 
