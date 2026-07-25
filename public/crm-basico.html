@@ -29,48 +29,48 @@
 <body class="h-full bg-crm-bg text-slate-100 nelly-shell">
   <div class="min-h-full nelly-grid">
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="mb-6 flex flex-col gap-4 rounded-2xl border border-crm-line bg-crm-card/95 p-5 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
         <div>
           <p class="text-xs uppercase tracking-[0.3em] text-crm-accent">C2 · CRM Basico</p>
           <h1 class="mt-2 text-2xl font-bold tracking-tight">Nelly Delivery - CRM Basico</h1>
           <p class="mt-1 text-sm text-slate-300">Ficha de clientes y comercios construida solo sobre la SSOT certificada.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <a href="/dashboard-comercial.html" class="rounded-lg border border-crm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Dashboard Comercial</a>
-          <a href="/dashboard-operativo.html" class="rounded-lg border border-crm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Dashboard Operativo</a>
-          <a href="/admin-dashboard.html" class="rounded-lg border border-crm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Panel Admin</a>
-          <button id="btn-refresh" type="button" class="rounded-lg bg-crm-accent px-3 py-2 text-sm font-bold text-slate-950 hover:brightness-110">Refrescar</button>
+          <a href="/dashboard-comercial.html" class="nelly-btn nelly-btn--ghost">Dashboard Comercial</a>
+          <a href="/dashboard-operativo.html" class="nelly-btn nelly-btn--ghost">Dashboard Operativo</a>
+          <a href="/admin-dashboard.html" class="nelly-btn nelly-btn--ghost">Panel Admin</a>
+          <button id="btn-refresh" type="button" class="nelly-btn nelly-btn--accent">Refrescar</button>
         </div>
       </header>
 
-      <section id="login-section" class="mx-auto max-w-md rounded-2xl border border-crm-line bg-crm-card/95 p-6 shadow-lg">
+      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
         <h2 class="text-lg font-semibold">Acceso CRM</h2>
         <p class="mt-1 text-sm text-slate-300">Usa una cuenta autorizada para consultar el CRM basico.</p>
         <form id="login-form" class="mt-5 space-y-4">
-          <input id="login-email" type="email" required class="w-full rounded-lg border border-crm-line bg-slate-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-crm-accent" placeholder="admin@nellydelivery.com" />
-          <input id="login-password" type="password" required class="w-full rounded-lg border border-crm-line bg-slate-900/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-crm-accent" placeholder="********" />
-          <button type="submit" class="w-full rounded-lg bg-crm-accent px-4 py-2 text-sm font-bold text-slate-950 hover:brightness-110">Abrir CRM</button>
+          <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
+          <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
+          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Abrir CRM</button>
           <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
         </form>
       </section>
 
       <section id="crm-section" class="hidden space-y-6">
-        <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+        <article class="nelly-panel p-5">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado CRM</p>
               <h2 id="crm-status" class="mt-1 text-2xl font-bold text-crm-accent">Cargando...</h2>
             </div>
             <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-              <div class="rounded-xl border border-crm-line bg-slate-900/50 px-3 py-2">
+              <div class="nelly-kpi px-3 py-2">
                 <p class="text-xs text-slate-400">Clientes totales</p>
                 <p id="overview-clientes-totales" class="text-lg font-bold text-crm-accent">0</p>
               </div>
-              <div class="rounded-xl border border-crm-line bg-slate-900/50 px-3 py-2">
+              <div class="nelly-kpi px-3 py-2">
                 <p class="text-xs text-slate-400">Clientes recurrentes</p>
                 <p id="overview-clientes-recurrentes" class="text-lg font-bold text-crm-warn">0</p>
               </div>
-              <div class="rounded-xl border border-crm-line bg-slate-900/50 px-3 py-2">
+              <div class="nelly-kpi px-3 py-2">
                 <p class="text-xs text-slate-400">Comercios totales</p>
                 <p id="overview-comercios-totales" class="text-lg font-bold text-crm-info">0</p>
               </div>
@@ -78,7 +78,7 @@
           </div>
         </article>
 
-        <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+        <article class="nelly-panel p-5">
           <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">Exploracion rapida</p>
@@ -102,50 +102,50 @@
         </article>
 
         <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <div class="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de cliente</p>
                 <h3 class="mt-1 text-xl font-semibold text-crm-accent">Clientes relevantes</h3>
               </div>
-              <span id="customer-summary" class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">Sin datos</span>
+              <span id="customer-summary" class="nelly-chip">Sin datos</span>
             </div>
             <div id="customer-detail" class="mb-4 rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-200">Selecciona un cliente para ver su ficha completa.</div>
             <div id="customer-list" class="space-y-3"></div>
           </article>
 
-          <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+          <article class="nelly-panel p-5">
             <div class="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs uppercase tracking-wide text-slate-400">Ficha de comercio</p>
                 <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios del marketplace</h3>
               </div>
-              <span id="commerce-summary" class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">Sin datos</span>
+              <span id="commerce-summary" class="nelly-chip">Sin datos</span>
             </div>
             <div id="commerce-detail" class="mb-4 rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-200">Selecciona un comercio para ver su ficha completa.</div>
             <div id="commerce-list" class="space-y-3"></div>
           </article>
         </div>
 
-        <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+        <article class="nelly-panel p-5">
           <div class="mb-4 flex items-center justify-between gap-3">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion Basica</p>
               <h3 class="mt-1 text-xl font-semibold text-crm-warn">Clientes recurrentes e inactivos</h3>
             </div>
-            <span id="loyalty-summary" class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">Sin datos</span>
+            <span id="loyalty-summary" class="nelly-chip">Sin datos</span>
           </div>
           <div id="loyalty-detail" class="mb-4 rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-200">La vista de fidelizacion se alimenta solo de la SSOT certificada.</div>
           <div id="loyalty-list" class="space-y-3"></div>
         </article>
 
-        <article class="rounded-2xl border border-crm-line bg-crm-card p-5 shadow-lg">
+        <article class="nelly-panel p-5">
           <div class="mb-4 flex items-center justify-between gap-3">
             <div>
               <p class="text-xs uppercase tracking-wide text-slate-400">C3 · Fidelizacion por Comercio</p>
               <h3 class="mt-1 text-xl font-semibold text-crm-info">Comercios con recurrencia e inactividad</h3>
             </div>
-            <span id="commerce-loyalty-summary" class="rounded-full border border-crm-line bg-slate-900/60 px-3 py-1 text-xs text-slate-200">Sin datos</span>
+            <span id="commerce-loyalty-summary" class="nelly-chip">Sin datos</span>
           </div>
           <div id="commerce-loyalty-detail" class="mb-4 rounded-xl border border-crm-line bg-slate-950/40 p-4 text-sm text-slate-200">La lectura por comercio reutiliza la SSOT del marketplace y el historial de pedidos.</div>
           <div id="commerce-loyalty-list" class="space-y-3"></div>
@@ -154,6 +154,6 @@
     </main>
   </div>
 
-  <script type="module" src="./js/crm-basico.js?v=20260725-c2-2"></script>
+  <script type="module" src="./js/crm-basico.js?v=20260725-c2-3"></script>
 </body>
 </html>
