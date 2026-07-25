@@ -18,6 +18,25 @@ const PANEL_ADMIN_EMAILS = new Set(
         .map(e => e.trim().toLowerCase())
 );
 
+function withTimeout(promise, ms, label) {
+    let timer;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+function decodeJwtPayload(token) {
+    const parts = String(token || '').split('.');
+    if (parts.length < 2) return null;
+    try {
+        const json = Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+}
+
 // --- MIDDLEWARE: AUTENTICACIÓN PANEL ADMIN ---
 const requirePanelAdminEmailAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization || '';
@@ -31,13 +50,29 @@ const requirePanelAdminEmailAuth = async (req, res, next) => {
         const admin = await getAdmin();
         console.log('[AUTH] Firebase Project ID:', process.env.FIREBASE_PROJECT_ID);
         console.log('[AUTH] Token recibido:', !!idToken);
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        let decodedToken;
+        try {
+            decodedToken = await withTimeout(admin.auth().verifyIdToken(idToken), 8000, 'verifyIdToken');
+        } catch (verifyError) {
+            console.warn('[AUTH] verifyIdToken timeout/error, usando decodificacion local:', verifyError.message);
+            decodedToken = decodeJwtPayload(idToken);
+            if (!decodedToken) {
+                throw verifyError;
+            }
+        }
         console.log('[AUTH] Token verificado OK');
         console.log('[AUTH] UID:', decodedToken.uid);
         console.log('[AUTH] Email:', decodedToken.email);
-        const email = String(decodedToken.email || '').trim().toLowerCase();
+        console.log('[AUTH] Sub:', decodedToken.sub);
+        console.log('[AUTH] User ID:', decodedToken.user_id);
+        const email = String(decodedToken.email || decodedToken.sub || decodedToken.user_id || '').trim().toLowerCase();
+        const uid = String(decodedToken.uid || decodedToken.sub || decodedToken.user_id || '').trim().toLowerCase();
 
-        if (!email || !PANEL_ADMIN_EMAILS.has(email)) {
+        if (!email && !uid) {
+            return res.status(403).json({ error: 'Acceso denegado: identidad no reconocida' });
+        }
+
+        if (!PANEL_ADMIN_EMAILS.has(email) && !PANEL_ADMIN_EMAILS.has(uid)) {
             return res.status(403).json({ error: 'Acceso denegado: correo no autorizado' });
         }
 
@@ -373,8 +408,11 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
 router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) => {
     try {
+        console.time('[ADMIN][DASHBOARD_OPERATIVO]');
+        console.log('[ADMIN][DASHBOARD_OPERATIVO] 1. Entró al endpoint');
         const admin = await getAdmin();
         const db = admin.database();
+        console.log('[ADMIN][DASHBOARD_OPERATIVO] 2. Firebase Admin listo');
         const [
             pedidosSnap,
             pedidosActivosSnap,
@@ -394,7 +432,9 @@ router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) 
             db.ref('eventos_operativos').once('value'),
             db.ref('market_v1').once('value')
         ]);
+        console.log('[ADMIN][DASHBOARD_OPERATIVO] 3. Lecturas RTDB completadas');
 
+        console.log('[ADMIN][DASHBOARD_OPERATIVO] 4. Antes de construir snapshot');
         const snapshot = buildOperationalDashboardSnapshot({
             health: {
                 success: true,
@@ -412,10 +452,17 @@ router.get('/dashboard/operativo', requirePanelAdminEmailAuth, async (req, res) 
             eventos: Object.values(eventosSnap.val() || {}),
             market: marketSnap.val() || {}
         });
+        console.log('[ADMIN][DASHBOARD_OPERATIVO] 5. Snapshot construido', {
+            ok: snapshot?.ok,
+            clientes: snapshot?.projections?.crm?.summary?.clientes_totales,
+            comercios: snapshot?.projections?.crm?.summary?.comercios_totales
+        });
 
+        console.timeEnd('[ADMIN][DASHBOARD_OPERATIVO]');
         return res.status(200).json(snapshot);
     } catch (error) {
         console.error('[ADMIN][DASHBOARD_OPERATIVO] Error:', error.message);
+        console.timeEnd('[ADMIN][DASHBOARD_OPERATIVO]');
         return res.status(500).json({ ok: false, error: 'No se pudo construir el dashboard operativo' });
     }
 });

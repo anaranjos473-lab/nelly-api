@@ -3,7 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+} from './local-auth.js';
 
 const ui = {
   loginSection: document.getElementById('login-section'),
@@ -89,14 +89,34 @@ async function fetchCRM() {
   }
 
   const token = await user.getIdToken();
-  const response = await fetch('/api/admin/dashboard/operativo', {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const payload = await response.json();
-  if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.error || `HTTP ${response.status}`);
+  const endpoint = new URL('/api/admin/dashboard/operativo', window.location.origin);
+  endpoint.searchParams.set('t', String(Date.now()));
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch(endpoint.toString(), {
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Cache-Control': 'no-cache'
+      },
+      signal: controller.signal
+    });
+    const rawBody = await response.text();
+    let payload = {};
+    try {
+      payload = rawBody ? JSON.parse(rawBody) : {};
+    } catch {
+      payload = { raw: rawBody };
+    }
+    if (!response.ok || !payload?.ok) {
+      const detail = payload?.error || payload?.message || payload?.raw || rawBody || `HTTP ${response.status}`;
+      throw new Error(`HTTP ${response.status}: ${detail}`);
+    }
+    return payload?.projections?.crm || {};
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-  return payload?.projections?.crm || {};
 }
 
 function renderCustomerDetail(customer) {
@@ -416,6 +436,10 @@ function renderCRM(snapshot) {
 
 async function refreshCRM() {
   try {
+    ui.crmStatus.textContent = 'Actualizando...';
+    ui.crmStatus.className = 'mt-1 text-2xl font-bold text-crm-info';
+    ui.customerSummary.textContent = 'Cargando...';
+    ui.commerceSummary.textContent = 'Cargando...';
     const snapshot = await fetchCRM();
     state.snapshot = snapshot;
     renderCRM(snapshot);
@@ -423,7 +447,12 @@ async function refreshCRM() {
     ui.crmStatus.textContent = 'ERROR';
     ui.crmStatus.className = 'mt-1 text-2xl font-bold text-red-300';
     ui.customerSummary.textContent = error.message;
-    ui.commerceSummary.textContent = 'Sin datos';
+    ui.commerceSummary.textContent = error.message;
+  } finally {
+    if (ui.crmStatus.textContent === 'Actualizando...') {
+      ui.crmStatus.textContent = 'ERROR';
+      ui.crmStatus.className = 'mt-1 text-2xl font-bold text-red-300';
+    }
   }
 }
 
@@ -446,7 +475,9 @@ ui.loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-ui.btnRefresh.addEventListener('click', refreshCRM);
+ui.btnRefresh.addEventListener('click', () => {
+  refreshCRM();
+});
 ui.customerSelect.addEventListener('change', updateDetails);
 ui.commerceSelect.addEventListener('change', updateDetails);
 

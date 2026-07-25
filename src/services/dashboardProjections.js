@@ -161,12 +161,54 @@ function buildCustomerCRMProjection(orderEntries = []) {
 }
 
 function buildCommerceCRMProjection(orderEntries = [], market = {}) {
-  const commerceList = Object.entries(market?.comercios || {}).map(([commerceId, commerce]) => {
-    const catalogo = market?.catalogo_por_comercio?.[commerceId] || {};
+  const commerceEntries = new Map();
+
+  Object.entries(market?.comercios || {}).forEach(([commerceId, commerce]) => {
+    commerceEntries.set(commerceId, {
+      comercio_id: commerceId,
+      nombre: commerce?.nombre || commerce?.name || commerceId,
+      categoria: commerce?.categoria || commerce?.category || null,
+      ciudad: commerce?.ciudad || commerce?.city || null,
+      zona_principal: commerce?.ciudad || commerce?.city || Object.keys(market?.indices?.comercios_por_ciudad || {})[0] || null,
+      activo: commerce?.activo !== false,
+      pedidos_aproximados: 0,
+      productos_disponibles: 0,
+      productos_totales: 0,
+      productos_populares: [],
+      horario_pico: null
+    });
+  });
+
+  orderEntries.forEach((pedido) => {
+    const commerceId = String(pedido?.comercio_id || pedido?.tienda_id || pedido?.merchant_id || '').trim();
+    const commerceName = String(pedido?.comercio?.nombre || pedido?.tienda?.nombre || pedido?.marketplace?.nombre || pedido?.comercio_nombre || pedido?.tienda_nombre || '').trim();
+    const key = commerceId || commerceName;
+    if (!key) return;
+
+    const current = commerceEntries.get(key) || {
+      comercio_id: commerceId || key,
+      nombre: commerceName || commerceId || key,
+      categoria: null,
+      ciudad: null,
+      zona_principal: null,
+      activo: true,
+      pedidos_aproximados: 0,
+      productos_disponibles: 0,
+      productos_totales: 0,
+      productos_populares: [],
+      horario_pico: null
+    };
+
+    current.pedidos_aproximados += 1;
+    if (!current.nombre) current.nombre = commerceName || commerceId || key;
+    if (commerceName && !current.nombre) current.nombre = commerceName;
+    commerceEntries.set(key, current);
+  });
+
+  const commerceList = [...commerceEntries.values()].map((commerce) => {
+    const catalogo = market?.catalogo_por_comercio?.[commerce.comercio_id] || {};
     const productos = Object.values(catalogo);
-    const vendidos = orderEntries.filter((pedido) => String(pedido?.comercio_id || pedido?.tienda_id || pedido?.merchant_id || '').trim() === commerceId).length;
-    const city = commerce?.ciudad || commerce?.city || null;
-    const zonaPrincipal = city || Object.keys(market?.indices?.comercios_por_ciudad || {})[0] || null;
+    const productosDisponibles = productos.filter((producto) => producto?.disponible !== false).length;
     const topProducts = productos
       .filter((producto) => producto && typeof producto === 'object')
       .sort((a, b) => String(b.ventas || 0).localeCompare(String(a.ventas || 0)))
@@ -174,17 +216,11 @@ function buildCommerceCRMProjection(orderEntries = [], market = {}) {
       .map((producto) => producto?.nombre || producto?.name || 'Producto');
 
     return {
-      comercio_id: commerceId,
-      nombre: commerce?.nombre || commerce?.name || commerceId,
-      categoria: commerce?.categoria || commerce?.category || null,
-      ciudad: city,
-      zona_principal: zonaPrincipal,
-      activo: commerce?.activo !== false,
-      pedidos_aproximados: vendidos,
-      productos_disponibles: productos.filter((producto) => producto?.disponible !== false).length,
-      productos_totales: productos.length,
-      productos_populares: topProducts,
-      horario_pico: null
+      ...commerce,
+      pedidos_aproximados: commerce.pedidos_aproximados || 0,
+      productos_disponibles: commerce.productos_disponibles || productosDisponibles,
+      productos_totales: commerce.productos_totales || productos.length,
+      productos_populares: commerce.productos_populares.length > 0 ? commerce.productos_populares : topProducts
     };
   });
 
