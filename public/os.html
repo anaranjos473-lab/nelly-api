@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nelly OS</title>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/themes.css">
+  <link rel="stylesheet" href="/styles/nelly-design.css">
+  <link rel="stylesheet" href="/styles/components/button.css">
+  <link rel="stylesheet" href="/styles/components/card.css">
+  <link rel="stylesheet" href="/styles/components/badge.css">
+  <link rel="stylesheet" href="/styles/components/forms.css">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--nelly-font);
+      background:
+        radial-gradient(circle at top left, rgba(255, 183, 3, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 24%),
+        linear-gradient(180deg, #07111f 0%, #081525 50%, #050b14 100%);
+      color: #e5eefb;
+    }
+    .shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+    .panel {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(8, 15, 28, 0.75);
+      backdrop-filter: blur(16px);
+      border-radius: 28px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+      padding: 28px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      color: #9cc2ff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 14px 0 12px;
+      font-size: clamp(2.4rem, 5vw, 4.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+    .subtitle {
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: #bfd0e3;
+      max-width: 58ch;
+    }
+    .grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .tile {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: inherit;
+      padding: 18px 18px 18px 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      min-height: 92px;
+    }
+    .tile:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 214, 102, 0.4);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    }
+    .tile strong {
+      display: block;
+      font-size: 1.04rem;
+      margin-bottom: 6px;
+    }
+    .tile span {
+      color: #b6c6da;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .arrow {
+      font-size: 1.3rem;
+      color: #ffd24d;
+      flex-shrink: 0;
+    }
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+    .meta {
+      display: grid;
+      gap: 12px;
+    }
+    .meta-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .meta-card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+    .meta-card p {
+      margin: 0;
+      color: #bfd0e3;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: #8ea2bb;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="panel">
+        <span class="eyebrow">Nelly OS · Sistema Operativo Logístico</span>
+        <h1>Una sola entrada para toda la operación.</h1>
+        <p class="subtitle">
+          Nelly OS centraliza Delivery, Control, Commerce, Driver, CRM, Analytics y Developer en una experiencia unificada.
+          Esta portada está pensada para demostraciones, pilotaje y navegación diaria sin perder la identidad de producto.
+        </p>
+
+        <div class="grid">
+          <a class="tile" href="/control">
+            <div>
+              <strong>Nelly Control</strong>
+              <span>Centro de operaciones y snapshot operativo.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+          <a class="tile" href="/commerce">
+            <div>
+              <strong>Nelly Commerce</strong>
+              <span>Ventas, métricas comerciales y lectura ejecutiva.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+          <a class="tile" href="/admin">
+            <div>
+              <strong>Nelly Admin</strong>
+              <span>Administración, repartidores y operación interna.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+          <a class="tile" href="/driver">
+            <div>
+              <strong>Nelly Driver</strong>
+              <span>Experiencia del repartidor y trazabilidad móvil.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+          <a class="tile" href="/crm">
+            <div>
+              <strong>Nelly CRM</strong>
+              <span>Clientes, comercios e historial comercial.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+          <a class="tile" href="/analytics">
+            <div>
+              <strong>Nelly Analytics</strong>
+              <span>Reportes, indicadores y observabilidad operativa.</span>
+            </div>
+            <div class="arrow">→</div>
+          </a>
+        </div>
+      </div>
+
+      <aside class="panel stack">
+        <div class="meta-card">
+          <h2>Versión</h2>
+          <p>RC 1.0 · Navegación unificada</p>
+        </div>
+        <div class="meta-card">
+          <h2>Acceso rápido</h2>
+          <p><a href="/panel.html" style="color:#ffd24d;text-decoration:none;">/panel</a> para la vista general y <a href="/developer" style="color:#ffd24d;text-decoration:none;">/developer</a> para la capa técnica.</p>
+        </div>
+        <div class="meta-card">
+          <h2>Identidad</h2>
+          <p>Todos los módulos comparten el mismo núcleo y proyectan una sola marca: Nelly.</p>
+        </div>
+      </aside>
+    </section>
+
+    <div class="footer">
+      <span>Diseñado para piloto, demo y operación diaria.</span>
+      <span>Si el navegador abre <code>/</code>, entra a Nelly OS.</span>
+    </div>
+  </main>
+</body>
+</html>

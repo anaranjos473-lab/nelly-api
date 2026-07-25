@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { Worker } from 'worker_threads';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import usuariosRouter from './routes/usuarios.js';
 import repartidoresRouter from './routes/repartidores.js';
 import { getAdmin } from './config/firebase-admin-esm.js';
@@ -30,6 +31,8 @@ validateCriticalSecrets();
 const app = express();
 app.set('trust proxy', 1);
 const runtimeStartedAt = new Date().toISOString();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(cors({
     origin: [
@@ -49,13 +52,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 const panelAliases = {
-    '/nellydelivery': '/panel.html',
-    '/nellydelivery/comercial': '/dashboard-comercial.html',
-    '/nellydelivery/operativo': '/dashboard-operativo.html',
-    '/nellydelivery/admin': '/admin-dashboard.html',
-    '/nellydelivery/crm': '/crm-basico.html',
-    '/nellydelivery/repartidor': '/repartidor.html',
-    '/nellydelivery/panel': '/panel.html'
+    '/nellydelivery': '/os',
+    '/nellydelivery/comercial': '/commerce',
+    '/nellydelivery/operativo': '/control',
+    '/nellydelivery/admin': '/admin',
+    '/nellydelivery/crm': '/crm',
+    '/nellydelivery/repartidor': '/driver',
+    '/nellydelivery/panel': '/os',
+    '/control': '/dashboard-operativo.html',
+    '/commerce': '/dashboard-comercial.html',
+    '/admin': '/admin-dashboard.html',
+    '/crm': '/crm-basico.html',
+    '/driver': '/repartidor.html',
+    '/analytics': '/panel.html',
+    '/developer': '/panel.html'
 };
 
 for (const [alias, target] of Object.entries(panelAliases)) {
@@ -63,6 +73,14 @@ for (const [alias, target] of Object.entries(panelAliases)) {
         res.redirect(302, target);
     });
 }
+
+app.get('/os', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'os.html'));
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'os.html'));
+});
 
 function isProduction() {
     return process.env.NODE_ENV === 'production';
@@ -90,10 +108,6 @@ async function requireDiagnosticAccess(req, res, next) {
         return res.status(401).json({ success: false, error: 'Token invalido' });
     }
 }
-
-app.get('/', (req, res) => {
-    res.send('Nelly API esta en linea y operativa');
-});
 
 app.get('/api/salud', (req, res) => {
     res.status(200).json({
