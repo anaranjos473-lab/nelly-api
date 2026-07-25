@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nelly Delivery - Admin Dashboard</title>
+  <title>Nelly OS - Nelly Admin</title>
   <style>
     .map-shell {
       position: relative;
@@ -74,15 +74,15 @@
           <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div class="max-w-3xl space-y-4">
               <div>
-                <p class="nelly-section-label text-panel-accent">Admin · Centro de Control</p>
-                <h1 class="nelly-hero-title mt-2">Panel de Administracion</h1>
+                <p class="nelly-section-label text-panel-accent">Nelly OS · Admin</p>
+                <h1 class="nelly-hero-title mt-2">Nelly Admin</h1>
                 <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Gestion en tiempo real de repartidores, deuda, pedidos activos y ubicacion operativa con una lectura consistente y directa.</p>
               </div>
               <div class="nelly-divider"></div>
               <div class="flex flex-wrap gap-2">
-                <a href="/dashboard-comercial.html" class="nelly-btn nelly-btn--ghost">Dashboard Comercial</a>
-                <a href="/dashboard-operativo.html" class="nelly-btn nelly-btn--ghost">Dashboard S4</a>
-                <a href="/crm-basico.html" class="nelly-btn nelly-btn--ghost">CRM Basico</a>
+                <a href="/commerce" class="nelly-btn nelly-btn--ghost">Nelly Commerce</a>
+                <a href="/control" class="nelly-btn nelly-btn--ghost">Nelly Control</a>
+                <a href="/crm" class="nelly-btn nelly-btn--ghost">Nelly CRM</a>
                 <a href="#manual-order-form" class="nelly-btn nelly-btn--ghost">Ir a pedidos</a>
               </div>
             </div>
@@ -116,8 +116,8 @@
       </header>
 
       <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
-        <p class="nelly-section-label">Acceso Admin</p>
-        <h2 class="nelly-hero-title mt-2 text-2xl">Ingresar al panel</h2>
+        <p class="nelly-section-label">Acceso Nelly Admin</p>
+        <h2 class="nelly-hero-title mt-2 text-2xl">Ingresar a Nelly Admin</h2>
         <p class="mt-2 text-sm leading-6 text-slate-300">Solo correos autorizados pueden entrar al dashboard.</p>
         <form id="login-form" class="mt-5 space-y-4">
           <div>
@@ -128,7 +128,7 @@
             <label for="login-password" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Contraseña</label>
             <input id="login-password" type="password" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="********" />
           </div>
-          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Iniciar sesion</button>
+          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Iniciar sesion en Nelly Admin</button>
           <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
         </form>
       </section>
