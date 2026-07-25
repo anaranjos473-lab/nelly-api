@@ -92,7 +92,7 @@
             </div>
             <div class="nelly-kpi p-4">
               <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
-              <p id="status" class="mt-2 text-lg font-bold text-panel-accent">Conectando...</p>
+              <p id="status" class="nelly-status-pill nelly-status-pill--warn mt-2">Conectando...</p>
             </div>
           </div>
         </div>
@@ -337,20 +337,32 @@
 
       listaDisponibles.innerHTML = disponibles.length
         ? disponibles.map(({ key, pedido }) => cardHTML(key, pedido, true)).join('')
-        : '<p class="text-sm text-slate-300">Sin pedidos disponibles</p>';
+        : `
+          <div class="nelly-empty-state">
+            <p class="nelly-empty-state__title">Sin pedidos disponibles</p>
+            <p class="nelly-empty-state__body">Cuando cocina publique pedidos listos, aparecerán aquí para tomarlos.</p>
+          </div>
+        `;
 
       listaMios.innerHTML = mios.length
         ? mios.map(({ key, pedido }) => cardHTML(key, pedido, false)).join('')
-        : '<p class="text-sm text-slate-300">No tienes pedidos asignados</p>';
+        : `
+          <div class="nelly-empty-state">
+            <p class="nelly-empty-state__title">No tienes pedidos asignados</p>
+            <p class="nelly-empty-state__body">Cuando aceptes un pedido, lo verás en esta sección con su estado activo.</p>
+          </div>
+        `;
     }
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
+        statusEl.className = 'nelly-status-pill nelly-status-pill--ok mt-2';
         onValue(ref(rtdb, 'pedidos'), (snapshot) => {
           renderListas(snapshot.val());
         }, (error) => {
           statusEl.textContent = `Error de datos: ${error.message}`;
+          statusEl.className = 'nelly-status-pill nelly-status-pill--danger mt-2';
         });
       } else {
         autenticar();

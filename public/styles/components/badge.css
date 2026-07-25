@@ -14,3 +14,28 @@
 .nelly-chip--accent { color: var(--nelly-accent); }
 .nelly-chip--info { color: var(--nelly-info); }
 .nelly-chip--success { color: var(--nelly-success); }
+
+.nelly-empty-state {
+  display: grid;
+  gap: 0.35rem;
+  place-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--nelly-radius-sm);
+  background: rgba(3, 10, 20, 0.28);
+  color: var(--nelly-muted);
+}
+
+.nelly-empty-state__title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--nelly-text);
+}
+
+.nelly-empty-state__body {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

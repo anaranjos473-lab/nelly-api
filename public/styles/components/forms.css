@@ -14,3 +14,20 @@
   box-shadow: 0 0 0 2px rgba(248, 185, 27, 0.22);
   border-color: rgba(248, 185, 27, 0.68);
 }
+
+.nelly-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 10, 20, 0.45);
+  color: var(--nelly-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.nelly-status-pill--ok { color: var(--nelly-success); }
+.nelly-status-pill--warn { color: var(--nelly-warn); }
+.nelly-status-pill--danger { color: var(--nelly-danger); }
