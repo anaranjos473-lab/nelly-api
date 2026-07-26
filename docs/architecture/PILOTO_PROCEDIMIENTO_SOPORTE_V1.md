@@ -51,6 +51,42 @@ Toda solicitud relevante debe incluir al menos:
 
 Soporte funciona cuando las incidencias quedan clasificadas, trazables y no se resuelven mediante cambios tecnicos sin evidencia.
 
+## 7. Guion rapido de soporte
+
+Usar este guion cuando entre una llamada o mensaje durante el piloto.
+
+### Si llama un cliente
+
+1. Saludar y pedir el numero de pedido.
+2. Confirmar el estado real en panel o backend.
+3. Explicar solo lo confirmado.
+4. Indicar el siguiente paso si existe.
+5. Registrar la llamada y el resultado.
+
+### Si llama un restaurante
+
+1. Confirmar el comercio y el pedido.
+2. Verificar si el pedido sigue activo.
+3. Definir si se reintenta, reasigna o cancela.
+4. Registrar causa y hora.
+5. Notificar al responsable operativo si se repite.
+
+### Si llama un repartidor
+
+1. Confirmar identidad y pedido.
+2. Verificar si puede continuar o necesita relevo.
+3. Registrar motivo y estado.
+4. Reasignar solo si el pedido sigue viable.
+5. Escalar si hay cancelaciones repetidas.
+
+### Cierre estandar
+
+- Confirmar el resumen de lo ocurrido.
+- Registrar evidencia si existe.
+- Clasificar severidad.
+- Decidir si queda resuelto, en seguimiento o escalado.
+- No prometer tiempos ni cambios que no hayan sido confirmados.
+
 ## 7. Historial
 
 - 2026-07-25: Se crea el procedimiento de soporte para piloto.

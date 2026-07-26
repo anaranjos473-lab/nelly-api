@@ -107,10 +107,30 @@ Validar la línea de estado:
 - Validación visual no ejecutada en navegador en esta sesión por limitación de herramientas disponibles.
 - Existe un documento paralelo de release candidate que sigue modificado fuera de este cierre.
 
+## Resumen Final de Preparación
+
+| Eje | Estado | Lectura operativa |
+| --- | --- | --- |
+| Arquitectura | Aprobada | Backend, contratos y máquina de estados congelados para piloto |
+| Producto | Aprobado | Cliente, restaurante, repartidor y admin cubiertos |
+| Integración | Aprobada | Flujo extremo a extremo cubierto en la base operativa |
+| Escalabilidad | Aprobada | Se evitó ampliar alcance innecesario antes del piloto |
+| Riesgo técnico | Bajo | No se observan bloqueos estructurales pendientes |
+| Riesgo operativo | Medio | Depende de restaurantes, repartidores, clientes e internet |
+| Soporte | Listo | Protocolo de soporte e incidencias ya definido |
+| Documentación | Completa | ADR, runbook, checklist y protocolos operativos disponibles |
+| Ramas | Ordenadas | `release/pilot-1.0` congelada, `develop` para trabajo nuevo |
+| Backup | Pendiente de verificación final | Ya existe respaldo local y release preparada, falta cierre de evidencia si se desea certificar al 100% |
+
+### Lectura de uso
+
+- Si la validación manual de navegación y consola sigue limpia, el piloto puede arrancar.
+- Si aparece un bloqueo funcional o un error de red crítico, el estado debe regresar a revisión.
+- Si lo único que cambia son incidencias operativas reales, el protocolo ya permite contenerlas sin reabrir arquitectura.
+
 ## Recomendación
 
 Si la navegación real pasa y no aparecen regresiones visuales o funcionales, el dictamen recomendado es:
 
 - `GO` para piloto controlado
 - `NO-GO` solo si aparece un bloqueo funcional en QA o un error de navegación crítico
-

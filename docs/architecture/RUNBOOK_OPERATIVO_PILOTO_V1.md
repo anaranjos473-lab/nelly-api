@@ -123,6 +123,82 @@ Si aparece `ERROR`, `CRITICAL` o `NO OPERABLE`:
 6. Emitir dictamen.
 7. Reanudar solo con Doctor Operativo `OPERABLE`.
 
+### 4.5 Protocolo de contingencias operativas
+
+Cuando ocurra una situacion real durante el piloto, el operador debe responder con un flujo simple, repetible y documentado.
+
+#### Si un restaurante falla
+
+Ejemplos:
+
+- no responde;
+- se queda sin sistema;
+- no confirma el pedido;
+- no puede preparar a tiempo.
+
+Accion del operador:
+
+1. Confirmar si el pedido aun esta en ventana util.
+2. Llamar o escribir al restaurante una sola vez.
+3. Marcar la incidencia en el registro operativo.
+4. Decidir si el pedido se reintenta, se reasigna o se cancela segun impacto.
+5. Informar al cliente solo con el estado real.
+6. Si el fallo se repite, suspender nuevas altas de ese comercio hasta revisar causa.
+
+#### Si un repartidor cancela
+
+Ejemplos:
+
+- cancela antes de salir;
+- se desconecta;
+- no avanza;
+- no contesta.
+
+Accion del operador:
+
+1. Verificar si otro repartidor puede tomar el pedido.
+2. Reasignar solo si el pedido sigue viable.
+3. Registrar hora, motivo y repartidor involucrado.
+4. Avisar al cliente si cambia el ETA o la continuidad del pedido.
+5. Si la cancelacion se repite, revisar al repartidor antes de seguir asignando.
+
+#### Si un cliente llama
+
+Ejemplos:
+
+- pregunta por su pedido;
+- reporta demora;
+- quiere cancelar;
+- dice que llego mal el pedido.
+
+Accion del operador:
+
+1. Identificar pedido, telefono y estado actual.
+2. Confirmar el evento real en el panel o en el backend.
+3. Responder solo con informacion confirmada.
+4. Registrar la llamada como evidencia de operacion.
+5. Si hay reclamo operativo, abrir incidencia y notificar al responsable correspondiente.
+6. No prometer tiempos ni estados no confirmados por el sistema.
+
+#### Regla general
+
+- Si el problema afecta un solo pedido, primero contener.
+- Si el problema se repite, registrar y escalar.
+- Si el problema rompe el flujo, pausar nuevas operaciones hasta obtener dictamen.
+- Si no hay evidencia suficiente, no inventar una causa.
+
+### 4.6 Checklist rapida del operador
+
+Usar esta lista cuando ocurra una incidencia operativa:
+
+- identificar el pedido;
+- confirmar el estado real en el panel o backend;
+- decidir si se contiene, reasigna o cancela;
+- registrar hora, motivo y evidencia;
+- avisar al cliente solo con informacion confirmada;
+- escalar si el fallo se repite;
+- no abrir cambios tecnicos sin evidencia.
+
 ## 5. Al finalizar la jornada
 
 ### 5.1 Doctor posterior

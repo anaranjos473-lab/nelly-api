@@ -52,6 +52,35 @@ Una incidencia puede cerrarse cuando:
 - tiene seguimiento posterior;
 - queda trazable para OV1.
 
-## 6. Historial
+## 6. Plantilla rapida de una pagina
+
+Usar este formato para registrar una incidencia sin extender el reporte.
+
+```text
+Fecha y hora:
+Pedido:
+Comercio:
+Repartidor:
+Canal de deteccion:
+Tipo:
+Severidad:
+Descripcion corta:
+Causa raiz probable:
+Accion aplicada:
+Seguimiento:
+Estado de cierre:
+Responsable:
+Evidencia:
+```
+
+### Guía de uso
+
+- Si no hay dato, escribir `N/A`.
+- Si la causa raiz no se conoce, registrar `Pendiente de analisis`.
+- Si el problema afecta varios pedidos, abrir una sola incidencia madre y listar los pedidos relacionados.
+- Si el problema se repite, vincularlo a la incidencia previa.
+- Si la evidencia existe, adjuntarla o referenciarla con ruta, captura o log.
+
+## 7. Historial
 
 - 2026-07-25: Se crea el procedimiento de incidencias para piloto.

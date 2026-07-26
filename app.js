@@ -53,6 +53,12 @@ app.use(express.static('public'));
 
 const panelAliases = {
     '/nellydelivery': '/os',
+    '/administrar': '/admin',
+    '/operaciones': '/control',
+    '/operar': '/control',
+    '/comercio': '/commerce',
+    '/tienda': '/commerce',
+    '/logistica': '/driver',
     '/nellydelivery/comercial': '/commerce',
     '/nellydelivery/operativo': '/control',
     '/nellydelivery/admin': '/admin',

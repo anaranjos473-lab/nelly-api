@@ -85,7 +85,9 @@
                 <a href="/commerce" class="nelly-btn nelly-btn--ghost">Nelly Commerce</a>
                 <a href="/control" class="nelly-btn nelly-btn--ghost">Nelly Control</a>
                 <a href="/crm" class="nelly-btn nelly-btn--ghost">Nelly CRM</a>
-                <a href="#manual-order-form" class="nelly-btn nelly-btn--ghost">Ir a pedidos</a>
+                <a href="#manual-order-form" class="nelly-btn nelly-btn--ghost">Pedidos</a>
+                <a href="#restaurant-onboarding-form" class="nelly-btn nelly-btn--ghost">Restaurantes</a>
+                <a href="#restaurant-list-section" class="nelly-btn nelly-btn--ghost">Estado operativo</a>
               </div>
             </div>
             <div class="nelly-panel-soft p-4 sm:p-5">
@@ -109,6 +111,23 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <a href="#manual-order-form" class="nelly-panel-soft block p-4 transition hover:border-cyan-400/30 hover:bg-slate-900/60">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos</p>
+              <p class="mt-2 text-base font-semibold text-slate-100">Crear y ubicar pedidos manuales</p>
+              <p class="mt-1 text-sm text-slate-300">Cliente, tienda, mapa y confirmacion en un solo flujo.</p>
+            </a>
+            <a href="#restaurant-onboarding-form" class="nelly-panel-soft block p-4 transition hover:border-emerald-400/30 hover:bg-slate-900/60">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Restaurantes</p>
+              <p class="mt-2 text-base font-semibold text-slate-100">Alta controlada y trazable</p>
+              <p class="mt-1 text-sm text-slate-300">Prospecto, validacion, alta y estado operativo.</p>
+            </a>
+            <a href="/crm" class="nelly-panel-soft block p-4 transition hover:border-violet-400/30 hover:bg-slate-900/60">
+              <p class="text-xs uppercase tracking-wide text-slate-400">CRM</p>
+              <p class="mt-2 text-base font-semibold text-slate-100">Vista comercial separada</p>
+              <p class="mt-1 text-sm text-slate-300">Abrir la lectura de clientes y comercios sin mezclarla con operacion.</p>
+            </a>
           </div>
           <div id="session-box" class="hidden items-center gap-3">
             <span id="session-email" class="nelly-chip"></span>
@@ -302,6 +321,7 @@
                   </div>
 
                   <div class="map-shell">
+                    <div class="absolute left-3 top-3 z-[600] rounded-full border border-cyan-400/30 bg-slate-950/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cyan-100">Mapa operativo</div>
                     <div id="order-map"></div>
                     <div class="map-crosshair"></div>
                     <div class="map-pin"></div>
@@ -363,7 +383,7 @@
           <p id="order-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
         </article>
 
-        <article class="nelly-pattern-section">
+        <article id="restaurant-onboarding-section" class="nelly-pattern-section">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-semibold">Alta controlada de restaurantes</h2>
             <span class="nelly-state nelly-state--live">Prospecto -> Validacion -> Alta -> Prueba</span>
@@ -399,7 +419,7 @@
           <p id="restaurant-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
         </article>
 
-        <article class="nelly-pattern-section">
+        <article id="restaurant-list-section" class="nelly-pattern-section">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="text-lg font-semibold">Restaurantes dados de alta</h2>
             <div class="flex flex-wrap gap-2">

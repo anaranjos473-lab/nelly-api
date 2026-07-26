@@ -4,6 +4,7 @@ Indice maestro de documentos para iniciar y ejecutar el piloto controlado.
 
 ## Documentos Principales
 
+- [docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md)
 - [HANDOFF_DOCUMENTAL_2026_07_21.md](/C:/Users/hp14/OneDrive/Desktop/nelly/HANDOFF_DOCUMENTAL_2026_07_21.md)
 - [HANDOFF_OPERATIVO_PILOTO_2026_07_21.md](/C:/Users/hp14/OneDrive/Desktop/nelly/HANDOFF_OPERATIVO_PILOTO_2026_07_21.md)
 - [CHECKLIST_PILOTO_CAMPO_2026_07_21.md](/C:/Users/hp14/OneDrive/Desktop/nelly/CHECKLIST_PILOTO_CAMPO_2026_07_21.md)
@@ -21,19 +22,20 @@ Indice maestro de documentos para iniciar y ejecutar el piloto controlado.
 
 ## Uso Recomendado
 
-1. Leer el handoff documental para confirmar el cierre de la limpieza.
-2. Leer el handoff operativo para entender el contexto del piloto.
-3. Abrir el checklist de campo durante la operacion.
-4. Usar la orden de arranque como documento principal de ejecucion.
-5. Usar el checklist final para decidir el cierre tecnico del piloto.
-6. Usar el acta de cierre como documento ejecutivo para consolidar la decision final.
-7. Usar el PRD de Kitchen Premium como base de producto para la siguiente etapa de evolucion.
-8. Usar el blueprint tecnico como guia de modularizacion y migracion incremental.
-9. Usar la matriz B0 antes de tocar `panel.html` o mover logica.
-10. Usar la matriz de dependencias del panel para iniciar B1 con cambios minimos.
-11. Usar la Definition of Done para cerrar cualquier commit o micro-etapa.
-12. Usar el tablero de progreso para marcar el avance de B1 a B7.
-13. Usar la baseline funcional congelada para comparar finanzas y cierre operativo antes de tocar OrdersManager.
+1. Leer el Manifiesto 4 Casillas para ubicar cada funcion en su modulo correcto.
+2. Leer el handoff documental para confirmar el cierre de la limpieza.
+3. Leer el handoff operativo para entender el contexto del piloto.
+4. Abrir el checklist de campo durante la operacion.
+5. Usar la orden de arranque como documento principal de ejecucion.
+6. Usar el checklist final para decidir el cierre tecnico del piloto.
+7. Usar el acta de cierre como documento ejecutivo para consolidar la decision final.
+8. Usar el PRD de Kitchen Premium como base de producto para la siguiente etapa de evolucion.
+9. Usar el blueprint tecnico como guia de modularizacion y migracion incremental.
+10. Usar la matriz B0 antes de tocar `panel.html` o mover logica.
+11. Usar la matriz de dependencias del panel para iniciar B1 con cambios minimos.
+12. Usar la Definition of Done para cerrar cualquier commit o micro-etapa.
+13. Usar el tablero de progreso para marcar el avance de B1 a B7.
+14. Usar la baseline funcional congelada para comparar finanzas y cierre operativo antes de tocar OrdersManager.
 
 ## Paquete Kitchen Premium B2/B3
 

@@ -71,6 +71,9 @@ El Plan Estrategico explica la vision y los principios que guian a Nelly como pl
 ### Manifiesto NES
 - [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
 
+### Manifiesto 4 Casillas Nelly OS
+- [`MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md)
+
 ### Biblioteca de Skills NES
 - [`BIBLIOTECA_SKILLS_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/BIBLIOTECA_SKILLS_NES_V1.md)
 
