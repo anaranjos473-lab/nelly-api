@@ -6,6 +6,18 @@ const AUTHORIZED_USERS = new Map([
 const listeners = new Set();
 let currentUser = null;
 
+const LOCAL_API_ORIGIN = window.location?.origin || 'http://127.0.0.1:3001';
+const PROD_API_ORIGIN = 'https://nelly-api-8lh1.onrender.com';
+const AUTH_API_ORIGIN = (() => {
+  const configured = String(window.__NELLY_AUTH_API_ENDPOINT__ || '').trim().replace(/\/+$/, '');
+  if (configured) return configured;
+  const host = String(window.location?.hostname || '').toLowerCase();
+  if (host === '127.0.0.1' || host === 'localhost' || host === '::1') {
+    return LOCAL_API_ORIGIN;
+  }
+  return PROD_API_ORIGIN;
+})();
+
 function errorMessage(error, fallback = 'Error desconocido') {
   if (!error) return fallback;
   if (typeof error === 'string') return error;
@@ -30,9 +42,6 @@ function makeUser(email, password, token) {
       try {
         return await createPanelToken(email);
       } catch (error) {
-        if (email === 'operaciones@nellydelivery.com') {
-          return await createPanelTokenFromBackend(email);
-        }
         if (token) {
           return token;
         }
@@ -43,7 +52,7 @@ function makeUser(email, password, token) {
 }
 
 async function createPanelToken(email) {
-  const url = new URL('/api/auth/panel-token', window.location.origin);
+  const url = new URL('/api/auth/panel-token', AUTH_API_ORIGIN);
   url.searchParams.set('uid', email);
   const response = await fetch(url.toString(), { method: 'GET' });
   const payload = await response.json().catch(() => ({}));

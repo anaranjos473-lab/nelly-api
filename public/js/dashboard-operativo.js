@@ -43,6 +43,14 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   'operaciones@nellydelivery.com'
 ]);
 
+const API_ORIGIN = (() => {
+  const host = String(window.location?.hostname || '').toLowerCase();
+  if (host === '127.0.0.1' || host === 'localhost' || host === '::1') {
+    return window.location.origin;
+  }
+  return 'https://nelly-api-8lh1.onrender.com';
+})();
+
 function renderEmptyState(title, body) {
   return `
     <div class="nelly-empty-state">
@@ -84,7 +92,7 @@ async function fetchOperationalDashboard() {
   }
 
   const token = await user.getIdToken();
-  const response = await fetch('/api/admin/dashboard/operativo', {
+  const response = await fetch(`${API_ORIGIN}/api/admin/dashboard/operativo`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   const payload = await response.json();

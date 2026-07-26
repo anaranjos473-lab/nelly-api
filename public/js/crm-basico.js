@@ -42,6 +42,14 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
   'operaciones@nellydelivery.com'
 ]);
 
+const API_ORIGIN = (() => {
+  const host = String(window.location?.hostname || '').toLowerCase();
+  if (host === '127.0.0.1' || host === 'localhost' || host === '::1') {
+    return window.location.origin;
+  }
+  return 'https://nelly-api-8lh1.onrender.com';
+})();
+
 const state = {
   snapshot: null,
   customers: [],
@@ -102,7 +110,7 @@ async function fetchCRM() {
   }
 
   const token = await user.getIdToken();
-  const endpoint = new URL('/api/admin/dashboard/operativo', window.location.origin);
+  const endpoint = new URL('/api/admin/dashboard/operativo', API_ORIGIN);
   endpoint.searchParams.set('t', String(Date.now()));
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 30000);
