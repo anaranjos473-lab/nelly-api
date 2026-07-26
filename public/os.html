@@ -139,6 +139,17 @@
       border-color: rgba(255, 210, 77, 0.45);
       background: rgba(13, 29, 50, 0.95);
     }
+    .tile--future {
+      cursor: default;
+      border-style: dashed;
+      border-color: rgba(255, 210, 77, 0.24);
+      background: rgba(255, 210, 77, 0.045);
+    }
+    .tile--future:hover {
+      transform: none;
+      border-color: rgba(255, 210, 77, 0.34);
+      background: rgba(255, 210, 77, 0.06);
+    }
     .tile__top {
       display: flex;
       align-items: flex-start;
@@ -269,7 +280,7 @@
           <p>Centros de trabajo por responsabilidad operativa</p>
         </div>
       </div>
-      <div class="release">Pilot Ready · 4 Casillas</div>
+      <div class="release">Pilot Ready - 4 Casillas</div>
     </header>
 
     <section class="intro">
@@ -378,6 +389,50 @@
             </div>
             <div class="tile__go"><span>Abrir developer</span><span>-></span></div>
           </a>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h3>Vision post-piloto</h3>
+          <span>Referencia de producto, no activa durante piloto</span>
+        </div>
+        <div class="side-grid" aria-label="Centros candidatos post-piloto">
+          <article class="tile tile--future">
+            <div>
+              <div class="tile__top">
+                <span class="tile__code">EXE</span>
+                <span class="tile__question">Que decision debo tomar?</span>
+              </div>
+              <h4>Panel Ejecutivo</h4>
+              <p>Ventas, margen, cumplimiento y crecimiento para direccion. Separado de Analytics: decide, no explora.</p>
+            </div>
+            <div class="tile__go"><span>Post-piloto</span><span>vision</span></div>
+          </article>
+
+          <article class="tile tile--future">
+            <div>
+              <div class="tile__top">
+                <span class="tile__code">FIN</span>
+                <span class="tile__question">Que debo conciliar?</span>
+              </div>
+              <h4>Centro Financiero</h4>
+              <p>Ingresos, pagos, comisiones, efectivo, cuentas por cobrar y liquidaciones sin mezclarse con Gobierno.</p>
+            </div>
+            <div class="tile__go"><span>Post-piloto</span><span>vision</span></div>
+          </article>
+
+          <article class="tile tile--future">
+            <div>
+              <div class="tile__top">
+                <span class="tile__code">UX</span>
+                <span class="tile__question">Como se mantiene simple?</span>
+              </div>
+              <h4>Accion dominante</h4>
+              <p>Cada Centro prioriza la accion principal del usuario antes que llenar la pantalla con graficas.</p>
+            </div>
+            <div class="tile__go"><span>Regla de diseno</span><span>activa</span></div>
+          </article>
         </div>
       </section>
 

@@ -37,6 +37,33 @@ Cada Centro responde una sola pregunta de negocio:
 
 Si una funcionalidad responde otra pregunta, esta en el Centro equivocado.
 
+### 2.1 Vision de Centros ampliados
+La referencia visual de paneles especializados se adopta como vision de diseno, no como especificacion funcional activa del piloto.
+
+Centros activos para piloto:
+
+| Centro | Mision | Accion dominante |
+| --- | --- | --- |
+| Gobierno del Ecosistema | Configurar y auditar la plataforma. | Administrar |
+| Centro de Operaciones | Resolver lo que ocurre ahora. | Asignar / resolver pedido |
+| Centro Comercial | Operar la tienda y vender. | Cocinar / vender |
+| Centro Logistico | Mover pedidos y coordinar entregas. | Entregar |
+| CRM | Entender y fidelizar clientes. | Fidelizar |
+| Analytics | Medir tendencias y resultados. | Analizar |
+| Developer | Diagnosticar la plataforma. | Diagnosticar |
+
+Centros candidatos post-piloto:
+
+| Centro | Mision | Condicion para activar |
+| --- | --- | --- |
+| Panel Ejecutivo | Tomar decisiones de negocio: ventas, margen, cumplimiento y crecimiento. | Evidencia del piloto que justifique una vista directiva separada de Analytics. |
+| Centro Financiero | Conciliar ingresos, pagos, comisiones, efectivo y liquidaciones. | Volumen operativo suficiente para separar finanzas de Gobierno y Analytics. |
+
+Reglas:
+- Ejecutivo no reemplaza Analytics. Ejecutivo decide; Analytics profundiza.
+- Finanzas no pertenece a Gobierno. Gobierno configura; Finanzas concilia y liquida.
+- Ninguno de estos Centros se activa durante el piloto sin gate, evidencia y validacion.
+
 ### 3. Backend decide, clientes reflejan
 La verdad operativa permanece en:
 

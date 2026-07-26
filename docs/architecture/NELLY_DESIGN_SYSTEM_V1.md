@@ -26,6 +26,17 @@ Todos los Centros de Trabajo deben compartir estructura, componentes y estados.
 
 El contenido cambia por responsabilidad, pero el lenguaje visual permanece constante.
 
+### Regla de accion dominante
+Cada Centro debe mostrar primero la accion que ayuda al usuario a avanzar.
+
+No todos los Centros necesitan la misma densidad de informacion:
+- Logistica/Repartidor puede operar con pocos elementos si la tarea es aceptar, navegar, llamar y completar.
+- Ejecutivo puede requerir mas indicadores porque su tarea es decidir.
+- Developer debe priorizar utilidad tecnica sobre apariencia comercial.
+- CRM debe priorizar oportunidades y acciones de fidelizacion antes que conteos decorativos.
+
+La pregunta de diseno no es "cuantos graficos caben", sino "que accion debe tomar esta persona ahora".
+
 ## Estructura comun de un Centro de Trabajo
 Cada Centro debe usar este orden:
 
@@ -206,6 +217,20 @@ Debe reutilizar la convencion oficial de estados.
 | CRM | Como entiendo al cliente? | fichas, segmentos, historial |
 | Analytics | Que tendencia debo observar? | KPIs, graficas, reportes |
 | Developer | Que esta pasando tecnicamente? | logs, estado, version, diagnostico |
+
+## Accion dominante por Centro
+
+| Centro | Primera lectura | Accion dominante |
+| --- | --- | --- |
+| Gobierno | Que debo configurar o auditar? | Administrar |
+| Operaciones | Que pedido requiere atencion ahora? | Asignar / resolver |
+| Comercio | Que debe cocinar o vender la tienda? | Preparar / publicar |
+| Logistica | Que entrega debe moverse ahora? | Aceptar / entregar |
+| CRM | Que cliente requiere una accion comercial? | Fidelizar |
+| Analytics | Que tendencia debo observar? | Analizar |
+| Developer | Que componente tecnico esta fallando? | Diagnosticar |
+| Panel Ejecutivo | Que decision de negocio debo tomar? | Decidir |
+| Centro Financiero | Que ingreso, pago o liquidacion debo conciliar? | Conciliar |
 
 ## Regla de adopcion
 Toda pantalla nueva debe intentar resolver su interfaz con estos componentes antes de crear CSS propio.
