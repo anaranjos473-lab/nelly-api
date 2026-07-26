@@ -129,6 +129,32 @@ Referencia:
 - No implementar permisos reales por UI solamente.
 - No abrir funcionalidades nuevas durante el piloto sin gate.
 
+## Auditoria previa a integracion
+
+Antes de integrar cualquier cambio nuevo, debe completarse esta lista:
+
+| Pregunta | Si/No | Evidencia minima |
+| --- | --- | --- |
+| Pertenece a un unico Centro de Trabajo? |  | Centro declarado y responsabilidad clara. |
+| Respeta el Design System? |  | Componentes/clases reutilizadas o justificacion si hay patron nuevo. |
+| Esta contemplado en la matriz de roles? |  | Rol usuario definido o impacto de permisos documentado. |
+| No rompe el Manifiesto de las 4 Casillas? |  | No mezcla administracion, operacion, comercio o logistica. |
+| No convierte Nelly OS en panel operativo? |  | El hub solo dirige; el trabajo ocurre en el Centro correcto. |
+| Preserva contratos certificados? |  | Sin cambio de backend/Android certificado o evidencia de prueba. |
+| Tiene impacto documentado en bitacora si afecta el piloto? |  | Incidencia, observacion o decision registrada. |
+| Tiene validacion minima ejecutada? |  | Sintaxis, ruta, consola o prueba funcional segun aplique. |
+
+### Criterio de bloqueo
+
+Si alguna respuesta critica es `No` o `No claro`, el cambio no se integra hasta resolver la duda.
+
+Son respuestas criticas:
+- Centro de Trabajo;
+- Manifiesto de las 4 Casillas;
+- contratos certificados;
+- impacto en piloto;
+- matriz de roles cuando el cambio afecta acceso o visibilidad.
+
 ## Jerarquia documental
 
 1. [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
