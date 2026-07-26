@@ -41,3 +41,5 @@ export async function listRestaurantOnboardingLocal() {
     return [];
   }
 }
+
+export { LOCAL_STORE_PATH };

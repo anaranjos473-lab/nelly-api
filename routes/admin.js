@@ -8,7 +8,7 @@ import {
     normalizeAdminOrderRequest
 } from '../src/services/adminSyncService.js';
 import { buildOperationalDashboardSnapshot } from '../src/services/operationalDashboardService.js';
-import { saveRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
+import { listRestaurantOnboardingLocal, saveRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
 
 const router = express.Router();
 
@@ -269,6 +269,28 @@ router.post('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
     } catch (error) {
         console.error('[ADMIN][RESTAURANTES_CREATE] Error:', error.message);
         return res.status(500).json({ ok: false, error: 'No se pudo crear el restaurante' });
+    }
+});
+
+router.get('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        if (String(process.env.DISABLE_RUNTIME_AGENTS || '').trim().toLowerCase() === 'true') {
+            const restaurantes = await listRestaurantOnboardingLocal();
+            return res.status(200).json({ ok: true, store: 'local-file', restaurantes });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+        const snap = await db.ref('market_v1/restaurantes').once('value');
+        const value = snap.val() || {};
+        const restaurantes = Object.entries(value).map(([id, restaurant]) => ({
+            id,
+            ...(restaurant || {})
+        }));
+        return res.status(200).json({ ok: true, store: 'firebase-rtdb', restaurantes });
+    } catch (error) {
+        console.error('[ADMIN][RESTAURANTES_LIST] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo listar restaurantes' });
     }
 });
 

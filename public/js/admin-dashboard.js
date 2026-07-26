@@ -171,7 +171,10 @@ const ui = {
   restaurantMenu: document.getElementById("restaurant-menu"),
   restaurantNotes: document.getElementById("restaurant-notes"),
   restaurantSubmit: document.getElementById("restaurant-submit"),
-  restaurantFeedback: document.getElementById("restaurant-feedback")
+  restaurantFeedback: document.getElementById("restaurant-feedback"),
+  restaurantRefresh: document.getElementById("restaurant-refresh"),
+  restaurantListBody: document.getElementById("restaurant-list-body"),
+  restaurantCount: document.getElementById("restaurant-count")
 };
 
 let currentDrivers = {};
@@ -522,6 +525,54 @@ function setRestaurantFeedback(message, type = "ok") {
     return;
   }
   ui.restaurantFeedback.className = "mt-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-200";
+}
+
+function renderRestaurantList(restaurantes = []) {
+  if (ui.restaurantCount) {
+    ui.restaurantCount.textContent = `${restaurantes.length} registros`;
+  }
+  if (!ui.restaurantListBody) return;
+
+  if (!Array.isArray(restaurantes) || restaurantes.length === 0) {
+    ui.restaurantListBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Sin restaurantes registrados todavia.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  ui.restaurantListBody.innerHTML = restaurantes.map((restaurant) => `
+    <tr class="border-t border-panel-line/40">
+      <td class="px-3 py-3 font-semibold text-slate-100">${escapeHtml(restaurant.nombre_comercial || restaurant.nombre || 'Sin nombre')}</td>
+      <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.responsable || 'Sin responsable')}</td>
+      <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.estado || 'Sin estado')}</td>
+      <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.zona_cobertura || 'Sin zona')}</td>
+      <td class="px-3 py-3 text-slate-400">${escapeHtml(restaurant.origen || 'firebase-rtdb')}</td>
+    </tr>
+  `).join('');
+}
+
+async function refreshRestaurantList() {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      renderRestaurantList([]);
+      return;
+    }
+    const idToken = await user.getIdToken();
+    const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes`, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || 'No se pudo listar restaurantes');
+    }
+    renderRestaurantList(Array.isArray(payload.restaurantes) ? payload.restaurantes : []);
+  } catch (error) {
+    renderRestaurantList([]);
+    setRestaurantFeedback(`No se pudo actualizar la lista: ${error.message}`, 'error');
+  }
 }
 
 function switchToDashboard(email) {
@@ -1203,6 +1254,7 @@ async function createRestaurantOnboarding(event) {
       ui.restaurantState.value = "En revision";
     }
     setRestaurantFeedback(`Restaurante ${payload?.id || nombre} registrado en alta controlada.`, "ok");
+    await refreshRestaurantList();
   } catch (error) {
     setRestaurantFeedback(`No se pudo guardar el alta: ${error.message}`, "error");
   }
@@ -1262,6 +1314,9 @@ if (ui.orderItems) {
 ui.orderForm.addEventListener("submit", createManualOrder);
 if (ui.restaurantForm) {
   ui.restaurantForm.addEventListener("submit", createRestaurantOnboarding);
+}
+if (ui.restaurantRefresh) {
+  ui.restaurantRefresh.addEventListener("click", refreshRestaurantList);
 }
 
 if (ui.locationSearchBtn) {
@@ -1409,6 +1464,7 @@ onAuthStateChanged(auth, async (user) => {
     startDashboardPolling();
     dashboardListenersAttached = true;
   }
+  await refreshRestaurantList();
   renderOrderPreview();
   updateOrderValidationState();
 });
