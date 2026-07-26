@@ -25,18 +25,11 @@ async function refreshRentabilidadMetrics() {
     document.getElementById("metric-mapa-calor").innerHTML = '<li class="nelly-empty-state nelly-empty-state__body col-span-2">Mapa no disponible</li>';
   }
 }
-import { auth, rtdb } from "./admin-firebase-config.js";
+import { auth } from "./admin-firebase-config.js";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
-} from "./local-auth.js";
-import {
-  onValue,
-  push,
-  ref,
-  set,
-  update
 } from "./local-auth.js";
 
 const AUTHORIZED_ADMIN_EMAILS = new Set([
@@ -831,44 +824,34 @@ function bindToggleEvents() {
       const nextValue = target.checked;
 
       try {
-        await update(ref(rtdb, `${activeDriversBasePath}/${uid}`), {
-          bloqueado_por_deuda: nextValue,
-          "estatus/bloqueado_por_deuda": nextValue,
-          "perfil/bloqueado_por_deuda": nextValue,
-          "estatus/bloqueo_manual": nextValue,
-          "estatus/updated_at": Date.now()
-        });
-      } catch (error) {
-        try {
-          const user = auth.currentUser;
-          if (!user) {
-            throw new Error("Sesion no activa");
-          }
-
-          const idToken = await user.getIdToken();
-          const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/repartidores/manual-lock`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${idToken}`
-            },
-            body: JSON.stringify({ uid, bloqueado: nextValue })
-          });
-
-          if (!response.ok) {
-            let message = `HTTP ${response.status}`;
-            try {
-              const payload = await response.json();
-              message = payload?.error || message;
-            } catch (_parseError) {}
-            throw new Error(message);
-          }
-
-          syncDashboardData();
-        } catch (fallbackError) {
-          target.checked = !nextValue;
-          window.alert(`No se pudo actualizar bloqueo manual: ${fallbackError.message}`);
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error("Sesion no activa");
         }
+
+        const idToken = await user.getIdToken();
+        const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/repartidores/manual-lock`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ uid, bloqueado: nextValue })
+        });
+
+        if (!response.ok) {
+          let message = `HTTP ${response.status}`;
+          try {
+            const payload = await response.json();
+            message = payload?.error || message;
+          } catch (_parseError) {}
+          throw new Error(message);
+        }
+
+        syncDashboardData();
+      } catch (error) {
+        target.checked = !nextValue;
+        window.alert(`No se pudo actualizar bloqueo manual: ${error.message}`);
       }
     });
   });

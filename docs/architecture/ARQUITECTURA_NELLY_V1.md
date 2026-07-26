@@ -84,9 +84,12 @@ La verdad operativa permanece en:
 
 Los clientes no inventan estado de negocio.
 
+Las mutaciones criticas de pedidos, deuda, liquidaciones, repartidores, finanzas y restaurantes deben pasar por backend. Los paneles pueden consultar modelos operativos, pero no deben escribir directo a Firebase para datos criticos.
+
 Referencia:
 - [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md)
 - [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
+- [`INVENTARIO_ENTIDADES_DATOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INVENTARIO_ENTIDADES_DATOS_V1.md)
 
 ### 4. La arquitectura del piloto esta congelada
 Durante el piloto no se reabre arquitectura sin evidencia operativa.
@@ -183,6 +186,8 @@ Antes de integrar cualquier cambio nuevo, debe completarse esta lista:
 | No convierte Nelly OS en panel operativo? |  | El hub solo dirige; el trabajo ocurre en el Centro correcto. |
 | Preserva contratos certificados? |  | Sin cambio de backend/Android certificado o evidencia de prueba. |
 | Tiene impacto documentado en bitacora si afecta el piloto? |  | Incidencia, observacion o decision registrada. |
+| Respeta la fuente oficial de datos? |  | Entidad verificada contra `INVENTARIO_ENTIDADES_DATOS_V1.md`. |
+| Evita escrituras directas desde paneles sobre datos criticos? |  | Mutacion realizada por endpoint backend o justificacion tecnica aprobada. |
 | Tiene validacion minima ejecutada? |  | Sintaxis, ruta, consola o prueba funcional segun aplique. |
 
 ### Criterio de bloqueo
