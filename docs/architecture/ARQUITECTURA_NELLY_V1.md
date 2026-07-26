@@ -28,7 +28,7 @@ Vision de acceso:
 | 3 | CRM | Finanzas |
 | 4 | Analytics | Developer |
 
-Finanzas se muestra como vision de crecimiento post-piloto hasta que exista evidencia operativa para activarlo.
+Finanzas queda activo con alcance minimo de piloto para deuda de conductores, pagos, reinicio controlado y liquidaciones. El Panel Ejecutivo permanece como vision post-piloto.
 
 Referencia:
 - [`MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md)
@@ -43,6 +43,7 @@ Cada Centro responde una sola pregunta de negocio:
 | Centro Comercial | Como vendo mas? |
 | Centro Logistico | Como muevo el pedido? |
 | CRM | Como entiendo y fidelizo clientes? |
+| Centro Financiero | Que ingreso, pago o deuda debo conciliar? |
 | Analytics | Que debo medir? |
 | Developer | Que debo diagnosticar tecnicamente? |
 
@@ -60,6 +61,7 @@ Centros activos para piloto:
 | Centro Comercial | Operar la tienda y vender. | Cocinar / vender |
 | Centro Logistico | Mover pedidos y coordinar entregas. | Entregar |
 | CRM | Entender y fidelizar clientes. | Fidelizar |
+| Centro Financiero | Conciliar deuda, pagos y liquidaciones del piloto. | Liquidar / conciliar |
 | Analytics | Medir tendencias y resultados. | Analizar |
 | Developer | Diagnosticar la plataforma. | Diagnosticar |
 
@@ -68,12 +70,11 @@ Centros candidatos post-piloto:
 | Centro | Mision | Condicion para activar |
 | --- | --- | --- |
 | Panel Ejecutivo | Tomar decisiones de negocio: ventas, margen, cumplimiento y crecimiento. | Evidencia del piloto que justifique una vista directiva separada de Analytics. |
-| Centro Financiero | Conciliar ingresos, pagos, comisiones, efectivo y liquidaciones. | Volumen operativo suficiente para separar finanzas de Gobierno y Analytics. |
 
 Reglas:
 - Ejecutivo no reemplaza Analytics. Ejecutivo decide; Analytics profundiza.
 - Finanzas no pertenece a Gobierno. Gobierno configura; Finanzas concilia y liquida.
-- Ninguno de estos Centros se activa durante el piloto sin gate, evidencia y validacion.
+- Finanzas se activa durante el piloto solo con alcance minimo de deuda, pagos, reinicio autorizado y liquidaciones; no abre contabilidad completa.
 - Los Centros no deben ser simetricos por obligacion. Cada panel debe tener la densidad proporcional a la tarea del usuario.
 
 ### 3. Backend decide, clientes reflejan
@@ -140,6 +141,7 @@ El usuario debe entrar directamente a su espacio de trabajo.
 | Restaurante | `/commerce` |
 | Repartidor | App NellyDriver |
 | Supervisor Comercial | `/commerce` + `/crm` |
+| Administrador Financiero | `/finanzas` |
 | Analista | `/analytics` |
 | Desarrollador | `/developer` |
 

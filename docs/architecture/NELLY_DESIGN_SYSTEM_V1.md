@@ -9,6 +9,7 @@ Este documento consolida la experiencia visual activa para:
 - Centro Comercial.
 - Centro Logistico.
 - CRM.
+- Centro Financiero.
 - Analytics.
 - Developer.
 
@@ -224,6 +225,7 @@ Debe reutilizar la convencion oficial de estados.
 | Comercio | Como vendo mas? | ventas, menu, productos, horarios |
 | Logistica | Como muevo el pedido? | mapa, conductores, asignaciones, rutas |
 | CRM | Como entiendo al cliente? | fichas, segmentos, historial |
+| Finanzas | Que pago, deuda o liquidacion debo conciliar? | deuda, pagos, liquidaciones, auditoria |
 | Analytics | Que tendencia debo observar? | KPIs, graficas, reportes |
 | Developer | Que esta pasando tecnicamente? | logs, estado, version, diagnostico |
 
@@ -236,10 +238,10 @@ Debe reutilizar la convencion oficial de estados.
 | Comercio | Que debe cocinar o vender la tienda? | Preparar / publicar |
 | Logistica | Que entrega debe moverse ahora? | Aceptar / entregar |
 | CRM | Que cliente requiere una accion comercial? | Fidelizar |
+| Centro Financiero | Que deuda debe liquidarse para operar? | Liquidar / conciliar |
 | Analytics | Que tendencia debo observar? | Analizar |
 | Developer | Que componente tecnico esta fallando? | Diagnosticar |
 | Panel Ejecutivo | Que decision de negocio debo tomar? | Decidir |
-| Centro Financiero | Que ingreso, pago o liquidacion debo conciliar? | Conciliar |
 
 ## Regla de adopcion
 Toda pantalla nueva debe intentar resolver su interfaz con estos componentes antes de crear CSS propio.

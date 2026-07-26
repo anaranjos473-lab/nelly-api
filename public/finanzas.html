@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nelly OS - Centro Financiero</title>
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/themes.css" />
+  <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
+  <style>
+    .finance-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 12px;
+    }
+
+    .finance-form {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .finance-form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .finance-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--wc-muted);
+      line-height: 1.45;
+    }
+
+    .finance-check input {
+      margin-top: 3px;
+    }
+
+    .finance-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .finance-result {
+      min-height: 42px;
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--wc-muted);
+      background: rgba(4, 14, 26, 0.52);
+    }
+
+    .finance-result.ok {
+      border-color: rgba(24, 215, 166, 0.42);
+      color: #bbf7d0;
+      background: rgba(24, 215, 166, 0.1);
+    }
+
+    .finance-result.error {
+      border-color: rgba(255, 83, 100, 0.42);
+      color: #ffd8dc;
+      background: rgba(255, 83, 100, 0.12);
+    }
+
+    .finance-status-blocked {
+      color: var(--wc-red);
+      font-weight: 900;
+    }
+
+    .finance-status-ok {
+      color: var(--wc-green);
+      font-weight: 900;
+    }
+
+    @media (max-width: 960px) {
+      .finance-grid,
+      .finance-form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="nelly-work-body">
+  <span class="sr-only">Nelly Delivery - Centro Financiero</span>
+
+  <section id="login-section" class="wc-login-shell">
+    <article class="wc-login-card">
+      <p class="wc-eyebrow">Acceso Nelly Finanzas</p>
+      <h1>Centro Financiero</h1>
+      <p>Liquida deuda de conductores, consulta liquidaciones y prepara el reinicio operativo del piloto.</p>
+      <form id="login-form" class="wc-login-form">
+        <label>
+          Correo
+          <input id="login-email" type="email" value="admin@nellydelivery.com" autocomplete="username" required />
+        </label>
+        <label>
+          Contrasena
+          <input id="login-password" type="password" value="NellyS4Test123!" autocomplete="current-password" required />
+        </label>
+        <button type="submit">Entrar a Finanzas</button>
+        <div id="login-error" class="wc-error hidden" role="alert"></div>
+      </form>
+    </article>
+  </section>
+
+  <section id="app-section" class="wc-shell hidden">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Finanzas</small>
+        </span>
+      </a>
+
+      <nav class="wc-nav" aria-label="Navegacion de finanzas">
+        <a class="active" href="#finance-overview">Resumen</a>
+        <a href="#finance-action">Liquidar deuda</a>
+        <a href="#finance-drivers">Conductores</a>
+        <a href="#finance-liquidations">Liquidaciones</a>
+        <a href="/admin">Gobierno</a>
+        <a href="/control">Operaciones</a>
+        <a href="/analytics">Analytics</a>
+      </nav>
+
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Centro financiero</strong>
+        <small>Pagos, deuda y conciliacion del piloto</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Centro de Trabajo</p>
+          <h1>Centro Financiero</h1>
+          <p class="wc-muted">La accion principal es liberar deuda operativa con pago registrado o liquidacion piloto autorizada.</p>
+        </div>
+        <div class="wc-top-actions">
+          <span id="session-email" class="wc-pill green">Sesion activa</span>
+          <button id="btn-refresh" type="button" class="wc-action-secondary">Refrescar</button>
+          <button id="btn-logout" type="button" class="wc-action-danger">Cerrar sesion</button>
+        </div>
+      </header>
+
+      <section id="finance-overview" class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Deuda total visible</small>
+          <strong id="metric-total-debt">$0.00</strong>
+          <em>Conductores registrados</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Con deuda</small>
+          <strong id="metric-drivers-debt">0</strong>
+          <em>Requieren liquidacion</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Bloqueados</small>
+          <strong id="metric-drivers-blocked">0</strong>
+          <em>Por deuda o bloqueo manual</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Liquidaciones</small>
+          <strong id="metric-liquidations">0</strong>
+          <em>RTDB / liquidaciones</em>
+        </article>
+      </section>
+
+      <section id="finance-action" class="wc-action-strip">
+        <article class="wc-action-focus">
+          <p class="wc-eyebrow">Accion dominante</p>
+          <h2>Liquidar deuda de conductor</h2>
+          <p>Usa este flujo cuando el conductor paga o cuando, por decision del piloto, se autoriza reiniciar su deuda para permitir que pueda finalizar y operar.</p>
+          <form id="payment-form" class="finance-form">
+            <div class="finance-form-row">
+              <label>
+                UID del conductor
+                <input id="driver-uid" class="wc-input" placeholder="driver_piloto" required />
+              </label>
+              <label>
+                Monto a aplicar
+                <input id="payment-amount" class="wc-input" type="number" min="0" step="0.01" placeholder="0.00" required />
+              </label>
+            </div>
+            <label>
+              Observacion operativa
+              <input id="payment-note" class="wc-input" placeholder="Pago recibido / reinicio autorizado para piloto" />
+            </label>
+            <label class="finance-check">
+              <input id="pilot-reset-confirm" type="checkbox" />
+              <span>Confirmo que el reinicio piloto esta autorizado y que el monto aplicado corresponde a deuda operativa real o ajuste documentado.</span>
+            </label>
+            <div class="finance-actions">
+              <button type="submit" class="wc-action">Registrar pago</button>
+              <button id="btn-pilot-reset" type="button" class="wc-action-danger">Aplicar reinicio piloto</button>
+              <button id="btn-debt-debug" type="button" class="wc-action-secondary">Diagnosticar deuda</button>
+            </div>
+            <div id="payment-result" class="finance-result">Selecciona un conductor o escribe su UID para operar.</div>
+          </form>
+        </article>
+
+        <aside class="wc-action-aside">
+          <article class="wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Regla piloto</p>
+                <h2>Pagan o se reinicia con autorizacion</h2>
+              </div>
+              <span class="wc-state wc-state-pending">Controlado</span>
+            </div>
+            <ol class="wc-action-steps">
+              <li><strong>1</strong><span>Identifica al conductor con deuda.</span></li>
+              <li><strong>2</strong><span>Registra pago real o valida reinicio piloto.</span></li>
+              <li><strong>3</strong><span>Verifica que deuda baje y el bloqueo se libere.</span></li>
+            </ol>
+          </article>
+
+          <article class="wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Diagnostico</p>
+                <h2>Estado de deuda</h2>
+              </div>
+              <span id="debug-state" class="wc-state wc-state-processing">Pendiente</span>
+            </div>
+            <div id="debug-output" class="wc-empty">Sin diagnostico aun.</div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="finance-grid">
+        <article id="finance-drivers" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Conductores</p>
+              <h2>Deuda y elegibilidad</h2>
+            </div>
+            <span id="drivers-count" class="wc-pill">0 registros</span>
+          </div>
+          <div class="wc-table-wrap">
+            <table class="wc-table">
+              <thead>
+                <tr>
+                  <th>Conductor</th>
+                  <th>UID</th>
+                  <th>Deuda</th>
+                  <th>Limite</th>
+                  <th>Estado</th>
+                  <th>Accion</th>
+                </tr>
+              </thead>
+              <tbody id="drivers-table-body">
+                <tr><td colspan="6"><div class="wc-loading">Cargando conductores...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article id="finance-liquidations" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Liquidaciones</p>
+              <h2>Solicitudes recientes</h2>
+            </div>
+            <span class="wc-state wc-state-active">Lectura</span>
+          </div>
+          <div id="liquidations-list" class="wc-list">
+            <div class="wc-loading">Cargando liquidaciones...</div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </section>
+
+  <script type="module" src="/js/finanzas.js"></script>
+</body>
+</html>

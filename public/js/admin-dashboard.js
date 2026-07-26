@@ -76,7 +76,7 @@ window.validarNomina = async function(uid, montoPago) {
     if (!user) throw new Error('Sesion no activa');
     const idToken = await user.getIdToken();
     // 1. Consultar liquidaciones
-    const liquidaciones = await fetch(`${ADMIN_API_ENDPOINT}/api/liquidaciones`, {
+    const liquidaciones = await fetch(`${ADMIN_API_ENDPOINT}/api/panel/finanzas/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
     console.log('[Nomina][Test] Liquidaciones:', liquidaciones);
@@ -91,7 +91,7 @@ window.validarNomina = async function(uid, montoPago) {
     }).then(r => r.json());
     console.log('[Nomina][Test] Resultado pago:', pago);
     // 3. Consultar liquidaciones nuevamente
-    const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINT}/api/liquidaciones`, {
+    const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINT}/api/panel/finanzas/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
     console.log('[Nomina][Test] Liquidaciones tras pago:', liquidaciones2);

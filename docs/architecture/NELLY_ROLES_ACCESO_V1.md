@@ -25,7 +25,7 @@ El usuario no debe buscar su herramienta; Nelly OS debe dirigirlo a su espacio d
 | Analista | Analytics | `/analytics` | Solo lectura, sin modificar informacion operativa. |
 | Desarrollador | Developer | `/developer` | Diagnostico tecnico separado de la operacion. |
 | Direccion / Ejecutivo | Panel Ejecutivo | Post-piloto | Vista candidata para decisiones de negocio; no activa durante piloto. |
-| Administrador Financiero | Centro Financiero | Post-piloto | Vista candidata para liquidaciones, comisiones y conciliaciones; no activa durante piloto. |
+| Administrador Financiero | Centro Financiero | `/finanzas` | Liquidaciones, deuda de conductores, pagos y reinicio controlado del piloto. |
 
 ## Principios de acceso
 
@@ -52,13 +52,13 @@ El usuario no debe buscar su herramienta; Nelly OS debe dirigirlo a su espacio d
 | Centro Financiero | Administrador Financiero, Administrador General |
 
 ### Modulos post-piloto
-Panel Ejecutivo y Centro Financiero quedan documentados como vision de producto, no como permisos activos.
+Panel Ejecutivo queda documentado como vision de producto, no como permiso activo.
 
 Durante el piloto:
-- no se crean accesos operativos obligatorios para estos Centros;
+- Centro Financiero queda activo solo para deuda, pagos, liquidaciones y reinicio controlado;
 - no se mezclan finanzas dentro de Gobierno como operacion diaria;
 - no se usa Analytics como sustituto del Panel Ejecutivo;
-- cualquier activacion futura debe pasar por gate de desarrollo, seguridad y evidencia del piloto.
+- cualquier ampliacion financiera futura debe pasar por gate de desarrollo, seguridad y evidencia del piloto.
 
 ## Implementacion durante piloto
 
