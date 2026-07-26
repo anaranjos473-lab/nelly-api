@@ -12,6 +12,13 @@ function isEnabled(value) {
   return String(value || '').trim().toLowerCase() === 'true';
 }
 
+function shouldRunRuntimeAgents() {
+  if (isEnabled(process.env.DISABLE_RUNTIME_AGENTS)) {
+    return false;
+  }
+  return process.env.NODE_ENV !== 'test';
+}
+
 async function iniciarC5ShadowValidator() {
   if (!isEnabled(process.env.ENABLE_C5_SHADOW_VALIDATOR)) return;
 
@@ -67,10 +74,14 @@ process.on('SIGTERM', () => {
 
 const PORT = process.env.PORT || 3001;
 
-if (process.env.NODE_ENV !== 'test') {
+if (shouldRunRuntimeAgents()) {
   await iniciarAgentes();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor de Nelly corriendo en el puerto ${PORT}`);
   });
   void iniciarC5ShadowValidator();
+} else {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor de Nelly corriendo en el puerto ${PORT} sin agentes runtime`);
+  });
 }
