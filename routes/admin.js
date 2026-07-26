@@ -8,7 +8,7 @@ import {
     normalizeAdminOrderRequest
 } from '../src/services/adminSyncService.js';
 import { buildOperationalDashboardSnapshot } from '../src/services/operationalDashboardService.js';
-import { listRestaurantOnboardingLocal, saveRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
+import { listRestaurantOnboardingLocal, saveRestaurantOnboardingLocal, updateRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
 
 const router = express.Router();
 
@@ -291,6 +291,61 @@ router.get('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
     } catch (error) {
         console.error('[ADMIN][RESTAURANTES_LIST] Error:', error.message);
         return res.status(500).json({ ok: false, error: 'No se pudo listar restaurantes' });
+    }
+});
+
+router.patch('/restaurantes/:restaurantId/estado', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const restaurantId = String(req.params.restaurantId || '').trim();
+        const estado = String(req.body?.estado || '').trim();
+        const estadosValidos = new Set(['Activo', 'En revision', 'Suspendido']);
+
+        if (!restaurantId) {
+            return res.status(400).json({ ok: false, error: 'restaurantId es requerido' });
+        }
+
+        if (!estadosValidos.has(estado)) {
+            return res.status(400).json({ ok: false, error: 'Estado invalido' });
+        }
+
+        const now = Date.now();
+        const updates = {
+            estado,
+            actualizado_en: now
+        };
+
+        if (String(process.env.DISABLE_RUNTIME_AGENTS || '').trim().toLowerCase() === 'true') {
+            const restaurante = await updateRestaurantOnboardingLocal(restaurantId, updates);
+            if (!restaurante) {
+                return res.status(404).json({ ok: false, error: 'Restaurante no encontrado' });
+            }
+            return res.status(200).json({
+                ok: true,
+                id: restaurantId,
+                restaurante,
+                store: 'local-file'
+            });
+        }
+
+        const admin = await getAdmin();
+        const db = admin.database();
+        const ref = db.ref(`market_v1/restaurantes/${restaurantId}`);
+        const snap = await ref.once('value');
+        if (!snap.exists()) {
+            return res.status(404).json({ ok: false, error: 'Restaurante no encontrado' });
+        }
+
+        await ref.update(updates);
+        const restaurante = {
+            id: restaurantId,
+            ...(snap.val() || {}),
+            ...updates
+        };
+
+        return res.status(200).json({ ok: true, id: restaurantId, restaurante, store: 'firebase-rtdb' });
+    } catch (error) {
+        console.error('[ADMIN][RESTAURANTES_UPDATE_STATUS] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo actualizar el estado del restaurante' });
     }
 });
 

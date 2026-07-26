@@ -633,7 +633,7 @@ function renderRestaurantList(restaurantes = []) {
   if (!Array.isArray(filteredRestaurants) || filteredRestaurants.length === 0) {
     ui.restaurantListBody.innerHTML = `
       <tr>
-        <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Sin restaurantes registrados todavia.</td>
+        <td colspan="6" class="px-3 py-4 text-center text-sm text-slate-400">Sin restaurantes registrados todavia.</td>
       </tr>
     `;
     return;
@@ -648,8 +648,42 @@ function renderRestaurantList(restaurantes = []) {
       </td>
       <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.zona_cobertura || 'Sin zona')}</td>
       <td class="px-3 py-3 text-slate-400">${escapeHtml(restaurant.origen || 'firebase-rtdb')}</td>
+      <td class="px-3 py-3 text-right">
+        <button
+          type="button"
+          class="nelly-btn nelly-btn--ghost restaurant-mark-active-btn"
+          data-restaurant-id="${escapeHtml(restaurant.id || '')}"
+          data-restaurant-name="${escapeHtml(restaurant.nombre_comercial || restaurant.nombre || 'Sin nombre')}"
+          ${String(restaurant.estado || '').trim().toLowerCase() === 'activo' ? 'disabled' : ''}
+        >
+          Marcar activo
+        </button>
+      </td>
     </tr>
   `).join('');
+}
+
+async function updateRestaurantState(restaurantId, estado) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Sesion no activa');
+  }
+
+  const idToken = await user.getIdToken();
+  const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes/${encodeURIComponent(restaurantId)}/estado`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`
+    },
+    body: JSON.stringify({ estado })
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.error || 'No se pudo actualizar el estado del restaurante');
+  }
+  return payload;
 }
 
 async function refreshRestaurantList() {
@@ -1443,6 +1477,27 @@ if (ui.restaurantFilterSuspended) {
     restaurantFilterState = 'suspended';
     updateRestaurantFilterButtons();
     refreshRestaurantList();
+  });
+}
+
+if (ui.restaurantListBody) {
+  ui.restaurantListBody.addEventListener("click", async (event) => {
+    const button = event.target?.closest?.(".restaurant-mark-active-btn");
+    if (!button || button.disabled) return;
+    const restaurantId = String(button.dataset.restaurantId || '').trim();
+    const restaurantName = String(button.dataset.restaurantName || 'restaurant').trim();
+    if (!restaurantId) return;
+
+    button.disabled = true;
+    try {
+      await updateRestaurantState(restaurantId, 'Activo');
+      setRestaurantFeedback(`Restaurante ${restaurantName} marcado como activo.`, 'ok');
+      await refreshRestaurantList();
+    } catch (error) {
+      setRestaurantFeedback(`No se pudo actualizar ${restaurantName}: ${error.message}`, 'error');
+    } finally {
+      button.disabled = false;
+    }
   });
 }
 
