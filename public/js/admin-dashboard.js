@@ -177,7 +177,9 @@ const ui = {
   restaurantCount: document.getElementById("restaurant-count"),
   restaurantActiveCount: document.getElementById("restaurant-active-count"),
   restaurantPendingCount: document.getElementById("restaurant-pending-count"),
-  restaurantRecentCount: document.getElementById("restaurant-recent-count")
+  restaurantRecentCount: document.getElementById("restaurant-recent-count"),
+  restaurantLastName: document.getElementById("restaurant-last-name"),
+  restaurantLastTime: document.getElementById("restaurant-last-time")
 };
 
 let currentDrivers = {};
@@ -552,6 +554,19 @@ function renderRestaurantList(restaurantes = []) {
   }
   if (ui.restaurantRecentCount) {
     ui.restaurantRecentCount.textContent = String(recientes);
+  }
+  const sorted = Array.isArray(restaurantes)
+    ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
+    : [];
+  const latest = sorted[0];
+  if (ui.restaurantLastName) {
+    ui.restaurantLastName.textContent = latest?.nombre_comercial || latest?.nombre || 'Sin registros aun';
+  }
+  if (ui.restaurantLastTime) {
+    const timestamp = Number(latest?.creado_en || 0);
+    ui.restaurantLastTime.textContent = Number.isFinite(timestamp) && timestamp > 0
+      ? `Registrado el ${new Date(timestamp).toLocaleString('es-MX')}`
+      : 'Hora pendiente';
   }
   if (!ui.restaurantListBody) return;
 
