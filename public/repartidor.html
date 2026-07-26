@@ -1,142 +1,148 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nelly OS - Nelly Driver</title>
+  <title>Nelly OS - Centro Logistico</title>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
-  <link rel="stylesheet" href="/styles/components/card.css" />
-  <link rel="stylesheet" href="/styles/components/badge.css" />
-  <link rel="stylesheet" href="/styles/components/kpi.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
   <style>
-    .repartidor-card {
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(3, 10, 20, 0.45);
-      border-radius: 18px;
-      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.22);
-      backdrop-filter: blur(14px);
+    .driver-order {
+      border: 1px solid var(--wc-line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(4, 14, 26, 0.66);
     }
-    .repartidor-list {
-      display: grid;
-      gap: 0.75rem;
-    }
-    .repartidor-mini {
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(3, 10, 20, 0.38);
-      border-radius: 14px;
-      padding: 0.9rem;
-    }
-    .repartidor-mini__meta {
+    .driver-order__top {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 0.75rem;
+      gap: 12px;
     }
-    .repartidor-mini__title {
-      margin: 0.55rem 0 0;
-      font-size: 0.98rem;
-      font-weight: 700;
-      color: #f8fafc;
+    .driver-order__title {
+      margin: 8px 0 0;
+      font-size: 1rem;
+      font-weight: 900;
     }
-    .repartidor-mini__desc {
-      margin: 0.35rem 0 0;
-      font-size: 0.88rem;
+    .driver-order__desc {
+      margin: 6px 0 0;
+      color: var(--wc-muted);
       line-height: 1.5;
-      color: #cbd5e1;
     }
-    .repartidor-mini__amount {
-      margin: 0.65rem 0 0;
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #8bb4ff;
+    .driver-order__amount {
+      margin: 10px 0 0;
+      color: #93c5fd;
+      font-size: 1.2rem;
+      font-weight: 950;
     }
-    .repartidor-mini__action {
-      margin-top: 0.75rem;
+    .driver-order__action {
+      margin-top: 12px;
     }
   </style>
 </head>
-<body class="h-full bg-panel-bg text-slate-100 nelly-shell">
-  <div class="min-h-full nelly-grid">
-    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div class="max-w-3xl space-y-4">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="nelly-chip nelly-chip--success">Tiempo real</span>
-              <span class="nelly-chip nelly-chip--info">Flota Nelly</span>
-              <span class="nelly-chip nelly-chip--accent">Entrega</span>
-            </div>
-            <div>
-              <p class="nelly-section-label text-panel-accent">Nelly OS · Driver</p>
-              <h1 class="nelly-hero-title mt-2">Nelly Driver</h1>
-              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Acceso operativo para ver pedidos disponibles y los pedidos asignados a tu UID, con una lectura más limpia y coherente con el resto de Nelly.</p>
-            </div>
-            <div class="nelly-divider"></div>
-            <div class="flex flex-wrap gap-2">
-              <a href="/os" class="nelly-btn nelly-btn--ghost">Volver a Nelly OS</a>
-              <span class="nelly-chip">Web operativa</span>
-            </div>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-3 lg:w-[30rem]">
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Disponibles</p>
-              <p id="count-disponibles" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Asignados</p>
-              <p id="count-mios" class="mt-2 text-2xl font-bold text-panel-info">0</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
-              <p id="status" class="nelly-status-pill nelly-status-pill--warn mt-2">Conectando...</p>
-            </div>
-          </div>
+<body class="nelly-work-body">
+  <section class="wc-shell">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Logistica</small>
+        </span>
+      </a>
+      <nav class="wc-nav" aria-label="Navegacion logistica">
+        <a class="active" href="#driver-access">Acceso</a>
+        <a href="#available-orders">Pedidos disponibles</a>
+        <a href="#my-orders">Mis pedidos</a>
+        <a href="/control">Operaciones</a>
+        <a href="/admin">Admin</a>
+      </nav>
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Estado del repartidor</strong>
+        <small id="status">Conectando...</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Casilla 4</p>
+          <h1>Centro Logistico</h1>
+          <p class="wc-muted">La pregunta aqui es directa: que pedido muevo ahora y que entrega tengo en curso.</p>
+        </div>
+        <div class="wc-top-actions">
+          <a href="/control">Centro de Operaciones</a>
+          <a href="/os">Nelly OS</a>
         </div>
       </header>
 
-      <section class="repartidor-card p-5 sm:p-6">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div class="max-w-xl">
-            <p class="nelly-section-label">Acceso repartidor</p>
-            <h2 class="nelly-hero-title mt-2 text-2xl">Guardar UID de repartidor</h2>
-            <p class="mt-2 text-sm text-slate-300">Tu UID se guarda localmente para autenticarte y tomar pedidos desde este navegador.</p>
+      <section class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Pedidos disponibles</small>
+          <strong id="count-disponibles">0</strong>
+          <em>Listos para tomar</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Mis pedidos</small>
+          <strong id="count-mios">0</strong>
+          <em>En curso</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Conexion</small>
+          <strong>Web</strong>
+          <em>UID local</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Modo piloto</small>
+          <strong>Activo</strong>
+          <em>Contrato certificado</em>
+        </article>
+      </section>
+
+      <section id="driver-access" class="wc-card">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Acceso repartidor</p>
+            <h2>Guardar UID de repartidor</h2>
           </div>
-          <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <input id="nombre-repartidor" class="nelly-input min-w-0 px-3 py-3 text-sm sm:w-80" placeholder="Tu UID de repartidor" />
-            <button id="btn-guardar" class="nelly-btn nelly-btn--accent">Guardar</button>
-          </div>
+          <span class="wc-pill green">Identidad operativa</span>
+        </div>
+        <p class="wc-muted">Tu UID se guarda localmente para autenticarte y tomar pedidos desde este navegador.</p>
+        <div class="wc-row" style="margin-top:14px">
+          <input id="nombre-repartidor" class="wc-input" placeholder="Tu UID de repartidor" />
+          <button id="btn-guardar" class="wc-action">Guardar</button>
         </div>
       </section>
 
-      <section class="mt-6 grid gap-4 lg:grid-cols-2">
-        <article class="repartidor-card p-5">
-          <div class="mb-4 flex items-center justify-between">
+      <section class="wc-grid" style="margin-top:12px">
+        <article id="available-orders" class="wc-card">
+          <div class="wc-card-header">
             <div>
-              <p class="nelly-section-label">Pedidos disponibles</p>
-              <h3 class="mt-2 text-xl font-semibold text-panel-accent">Listos para tomar</h3>
+              <p class="wc-eyebrow">Pedidos disponibles</p>
+              <h2>Listos para tomar</h2>
             </div>
-            <span class="nelly-chip">Estado LISTO</span>
+            <span class="wc-pill green">Estado LISTO</span>
           </div>
-          <div id="lista-disponibles" class="repartidor-list"></div>
+          <div id="lista-disponibles" class="wc-list"></div>
         </article>
 
-        <article class="repartidor-card p-5">
-          <div class="mb-4 flex items-center justify-between">
+        <article id="my-orders" class="wc-card">
+          <div class="wc-card-header">
             <div>
-              <p class="nelly-section-label">Mis pedidos</p>
-              <h3 class="mt-2 text-xl font-semibold text-panel-info">Pedidos en curso</h3>
+              <p class="wc-eyebrow">Mis pedidos</p>
+              <h2>Entregas en curso</h2>
             </div>
-            <span class="nelly-chip">UID activo</span>
+            <span class="wc-pill blue">UID activo</span>
           </div>
-          <div id="lista-mios" class="repartidor-list"></div>
+          <div id="lista-mios" class="wc-list"></div>
         </article>
       </section>
     </main>
-  </div>
+  </section>
 
   <script type="module">
     import { auth, rtdb } from './firebase.js';
@@ -150,15 +156,16 @@
     const countDisponibles = document.getElementById('count-disponibles');
     const countMios = document.getElementById('count-mios');
 
-    const DRIVER_TOKEN_ENDPOINTS = [
-      'http://127.0.0.1:3001/api/auth/driver-token',
-      'https://nelly-api-8lh1.onrender.com/api/auth/driver-token'
-    ];
+    const API_ORIGIN = (() => {
+      const host = String(window.location?.hostname || '').toLowerCase();
+      if (host === '127.0.0.1' || host === 'localhost' || host === '::1') {
+        return window.location.origin;
+      }
+      return 'https://nelly-api-8lh1.onrender.com';
+    })();
 
-    const DELIVERY_ACCEPT_ENDPOINTS = [
-      'http://127.0.0.1:3001/api/delivery/accept-order',
-      'https://nelly-api-8lh1.onrender.com/api/delivery/accept-order'
-    ];
+    const DRIVER_TOKEN_ENDPOINTS = [`${API_ORIGIN}/api/auth/driver-token`];
+    const DELIVERY_ACCEPT_ENDPOINTS = [`${API_ORIGIN}/api/delivery/accept-order`];
 
     let authRequestInFlight = false;
     let repartidorUid = localStorage.getItem('nelly_repartidor_uid') || '';
@@ -212,18 +219,18 @@
       const cliente = pedido.cliente_nombre || pedido.cliente || 'Cliente';
       const descripcion = pedido.descripcion || 'Sin descripcion';
       const extra = tomar
-        ? `<button class="nelly-btn nelly-btn--accent w-full" onclick="window.tomarPedido('${id}')">Tomar pedido</button>`
-        : `<span class="nelly-chip nelly-chip--success">Asignado a ti</span>`;
+        ? `<button class="wc-action" onclick="window.tomarPedido('${id}')">Tomar pedido</button>`
+        : `<span class="wc-pill green">Asignado a ti</span>`;
       return `
-        <div class="repartidor-mini">
-          <div class="repartidor-mini__meta">
-            <p class="text-sm font-semibold text-panel-accent">#${shortId}</p>
-            <span class="nelly-chip">Pedido</span>
+        <div class="driver-order">
+          <div class="driver-order__top">
+            <p class="wc-eyebrow">#${shortId}</p>
+            <span class="wc-pill blue">Pedido</span>
           </div>
-          <p class="repartidor-mini__title">${cliente}</p>
-          <p class="repartidor-mini__desc">${descripcion}</p>
-          <p class="repartidor-mini__amount">$${monto}</p>
-          <div class="repartidor-mini__action">${extra}</div>
+          <p class="driver-order__title">${cliente}</p>
+          <p class="driver-order__desc">${descripcion}</p>
+          <p class="driver-order__amount">$${monto}</p>
+          <div class="driver-order__action">${extra}</div>
         </div>
       `;
     }
@@ -339,18 +346,18 @@
       listaDisponibles.innerHTML = disponibles.length
         ? disponibles.map(({ key, pedido }) => cardHTML(key, pedido, true)).join('')
         : `
-          <div class="nelly-empty-state">
-            <p class="nelly-empty-state__title">Sin pedidos disponibles</p>
-            <p class="nelly-empty-state__body">Cuando cocina publique pedidos listos, aparecerán aquí para tomarlos.</p>
+          <div class="wc-card">
+            <h3>Sin pedidos disponibles</h3>
+            <p class="wc-muted">Cuando cocina publique pedidos listos, apareceran aqui para tomarlos.</p>
           </div>
         `;
 
       listaMios.innerHTML = mios.length
         ? mios.map(({ key, pedido }) => cardHTML(key, pedido, false)).join('')
         : `
-          <div class="nelly-empty-state">
-            <p class="nelly-empty-state__title">No tienes pedidos asignados</p>
-            <p class="nelly-empty-state__body">Cuando aceptes un pedido, lo verás en esta sección con su estado activo.</p>
+          <div class="wc-card">
+            <h3>No tienes pedidos asignados</h3>
+            <p class="wc-muted">Cuando aceptes un pedido, lo veras en esta seccion con su estado activo.</p>
           </div>
         `;
     }
@@ -358,12 +365,10 @@
     onAuthStateChanged(auth, (user) => {
       if (user) {
         statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
-        statusEl.className = 'nelly-status-pill nelly-status-pill--ok mt-2';
         onValue(ref(rtdb, 'pedidos'), (snapshot) => {
           renderListas(snapshot.val());
         }, (error) => {
           statusEl.textContent = `Error de datos: ${error.message}`;
-          statusEl.className = 'nelly-status-pill nelly-status-pill--danger mt-2';
         });
       } else {
         autenticar();

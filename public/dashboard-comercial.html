@@ -1,247 +1,226 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nelly OS - Nelly Commerce</title>
+  <title>Nelly OS - Centro Comercial</title>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
   <link rel="stylesheet" href="/styles/states.css" />
   <link rel="stylesheet" href="/styles/patterns.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
-  <link rel="stylesheet" href="/styles/components/card.css" />
-  <link rel="stylesheet" href="/styles/components/badge.css" />
-  <link rel="stylesheet" href="/styles/components/kpi.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
 </head>
-<body class="h-full bg-comm-bg text-slate-100 nelly-shell">
-  <span style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Nelly Delivery - Dashboard Comercial</span>
-  <div class="min-h-full nelly-grid">
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-6">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="nelly-icon nelly-icon--sales" aria-hidden="true"></span>
-            <span class="nelly-state nelly-state--success-soft">Ventas</span>
-            <span class="nelly-chip nelly-chip--info">C1</span>
-            <span class="nelly-chip nelly-chip--accent">Inteligencia comercial</span>
-            <span class="nelly-chip">SSOT certificada</span>
-          </div>
-          <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <div class="max-w-3xl space-y-4">
-              <div>
-                <p class="nelly-section-label text-comm-accent">Nelly OS · Commerce</p>
-                <h1 class="nelly-hero-title mt-2">Nelly Commerce</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Lectura comercial construida sobre la SSOT certificada para ver ventas, recurrencia, margen y siguientes acciones con claridad ejecutiva.</p>
-              </div>
-              <div class="nelly-divider"></div>
-              <div class="flex flex-wrap gap-2">
-                <a href="/control" class="nelly-btn nelly-btn--ghost">Nelly Control</a>
-                <a href="/admin" class="nelly-btn nelly-btn--ghost">Nelly Admin</a>
-                <a href="/crm" class="nelly-btn nelly-btn--ghost">Nelly CRM</a>
-                <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar</button>
-              </div>
-            </div>
-            <div class="nelly-panel-soft p-4 sm:p-5">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Lectura rapida</p>
-              <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Estado</p>
-                  <p id="dashboard-status" class="mt-1 text-xl font-bold text-comm-accent">Cargando snapshot...</p>
-                </div>
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--orders" aria-hidden="true"></span>C4</p>
-                  <p class="mt-1 text-lg font-bold text-comm-accent">Oportunidades y acciones</p>
-                </div>
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--sales" aria-hidden="true"></span>C5</p>
-                  <p class="mt-1 text-lg font-bold text-comm-info">Promociones ligeras</p>
-                </div>
-              </div>
-            </div>
-          </div>
+<body class="nelly-work-body">
+  <span class="sr-only">Nelly Delivery - Centro Comercial</span>
+
+  <section id="login-section" class="wc-login-shell">
+    <div class="wc-login-card">
+      <p class="wc-eyebrow">Nelly OS / Comercio</p>
+      <h1>Centro Comercial</h1>
+      <p>Ventas, menus, productos, horarios y clientes frecuentes sin mezclar administracion ni logistica.</p>
+      <form id="login-form" class="wc-login-form">
+        <input id="login-email" type="email" required placeholder="admin@nellydelivery.com" />
+        <input id="login-password" type="password" required placeholder="********" />
+        <button type="submit">Abrir Centro Comercial</button>
+        <p id="login-error" class="wc-error hidden"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="dashboard-section" class="wc-shell hidden">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Comercio</small>
+        </span>
+      </a>
+      <nav class="wc-nav" aria-label="Navegacion comercial">
+        <a class="active" href="#commerce-overview">Resumen</a>
+        <a href="#commerce-store">Tienda</a>
+        <a href="#commerce-opportunities">Oportunidades</a>
+        <a href="#commerce-promotions">Promociones</a>
+        <a href="/crm">CRM</a>
+        <a href="/control">Operaciones</a>
+      </nav>
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Estado comercial</strong>
+        <small id="dashboard-status">Cargando snapshot...</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Casilla 3</p>
+          <h1>Centro Comercial</h1>
+          <p class="wc-muted">La pregunta aqui es simple: como vendo mas y como mantengo saludable cada tienda.</p>
+        </div>
+        <div class="wc-top-actions">
+          <button id="btn-refresh" type="button">Refrescar</button>
+          <a href="/crm">Nelly CRM</a>
+          <a href="/admin">Admin</a>
         </div>
       </header>
 
-      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
-        <p class="nelly-section-label">Acceso Nelly Commerce</p>
-        <h2 class="nelly-hero-title mt-2 text-2xl">Consultar snapshot de Nelly Commerce</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-300">Usa una cuenta autorizada para consultar el snapshot comercial.</p>
-        <form id="login-form" class="mt-5 space-y-4">
-          <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
-          <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
-          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Abrir Nelly Commerce</button>
-          <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
-        </form>
-      </section>
-
-      <section id="dashboard-section" class="hidden space-y-6">
-        <article class="nelly-panel p-5 sm:p-6">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Estado comercial</p>
-              <h2 class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-comm-accent">Snapshot comercial</h2>
-              <p class="mt-2 text-sm leading-6 text-slate-300">La vista da prioridad a ventas, ticket promedio, recurrencia y señales accionables para el equipo comercial.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Ventas del día</p>
-                <p id="overview-ventas-dia" class="text-lg font-bold text-comm-accent">$0.00</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Pedidos activos</p>
-                <p id="overview-pedidos-activos" class="text-lg font-bold">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Ticket promedio</p>
-                <p id="overview-ticket-promedio" class="text-lg font-bold text-comm-info">$0.00</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Clientes recurrentes</p>
-                <p id="overview-clientes-recurrentes" class="text-lg font-bold text-comm-warn">0</p>
-              </div>
-            </div>
-          </div>
+      <section id="commerce-overview" class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Ventas del dia</small>
+          <strong id="overview-ventas-dia">$0.00</strong>
+          <em>Lectura comercial</em>
         </article>
-
-        <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Operación</p>
-            <h3 id="operation-signal" class="mt-2 text-xl font-semibold text-comm-accent">Lectura pendiente</h3>
-            <p id="operation-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando lectura operativa certificada.</p>
-          </article>
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Alertas comerciales</p>
-            <h3 id="alerts-signal" class="mt-2 text-xl font-semibold text-comm-warn">Alertas pendientes</h3>
-            <p id="alerts-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando señales de atencion comercial.</p>
-          </article>
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Liquidez y margen</p>
-            <h3 id="finance-signal" class="mt-2 text-xl font-semibold text-comm-info">Lectura financiera pendiente</h3>
-            <p id="finance-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando consolidacion de margen y liquidez.</p>
-          </article>
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Operación comercial</p>
-            <h3 id="ops-signal" class="mt-2 text-xl font-semibold text-comm-accent">Operacion pendiente</h3>
-            <p id="ops-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando resumen operativo comercial.</p>
-          </article>
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Marketplace</p>
-            <h3 id="market-signal" class="mt-2 text-xl font-semibold text-comm-accent">Marketplace pendiente</h3>
-            <p id="market-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando señales del ecosistema comercial.</p>
-          </article>
-          <article class="nelly-panel p-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Ruta siguiente</p>
-            <h3 class="mt-2 text-xl font-semibold text-comm-info">Nelly CRM</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-300">Recurrencia, historial de pedidos y seguimiento de comercios sobre evidencia real.</p>
-            <div class="mt-4 flex flex-wrap gap-2">
-              <a href="/crm" class="inline-flex rounded-lg border border-comm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Abrir Nelly CRM</a>
-              <a href="/control" class="inline-flex rounded-lg border border-comm-line bg-slate-900/70 px-3 py-2 text-sm font-semibold hover:bg-slate-800">Ver Nelly Control</a>
-            </div>
-          </article>
-        </section>
-
-        <article class="nelly-panel p-5">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--sales" aria-hidden="true"></span>KPIs clave</p>
-              <h2 class="text-lg font-semibold">Resumen comercial en una mirada</h2>
-            </div>
-            <span class="nelly-state nelly-state--empty">Actualizacion bajo demanda</span>
-          </div>
-          <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Ventas del mes</p>
-              <p id="kpi-ventas-mes" class="mt-2 text-lg font-bold text-comm-accent">$0.00</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos entregados</p>
-              <p id="kpi-pedidos-entregados" class="mt-2 text-lg font-bold text-comm-info">0</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Frecuencia compra</p>
-              <p id="kpi-frecuencia-compra" class="mt-2 text-lg font-bold text-comm-warn">0.00</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Entregas puntuales</p>
-              <p id="kpi-entregas-puntuales" class="mt-2 text-lg font-bold text-comm-accent">0%</p>
-            </div>
-          </div>
+        <article class="wc-kpi">
+          <small>Pedidos activos</small>
+          <strong id="overview-pedidos-activos">0</strong>
+          <em>Demanda actual</em>
         </article>
-
-        <article class="nelly-panel p-5">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">C4 · Inteligencia Comercial</p>
-              <h2 class="mt-1 text-xl font-semibold text-comm-accent">Oportunidades y acciones sugeridas</h2>
-              <p class="mt-1 text-sm leading-6 text-slate-300">Vista derivada de la SSOT certificada para detectar clientes y comercios que necesitan seguimiento.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Oportunidades</p>
-                <p id="c4-oportunities-total" class="text-lg font-bold text-comm-accent">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Clientes en riesgo</p>
-                <p id="c4-customers-risk" class="text-lg font-bold text-comm-warn">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Comercios en riesgo</p>
-                <p id="c4-commerces-risk" class="text-lg font-bold text-comm-info">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Acciones sugeridas</p>
-                <p id="c4-actions-total" class="text-lg font-bold text-comm-accent">0</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400">Vista de oportunidades</p>
-              <div id="c4-opportunities-list" class="mt-3 space-y-3"></div>
-            </div>
-            <div>
-              <p class="text-xs uppercase tracking-wide text-slate-400">Acciones sugeridas</p>
-              <div id="c4-actions-list" class="mt-3 space-y-3"></div>
-            </div>
-          </div>
+        <article class="wc-kpi">
+          <small>Ticket promedio</small>
+          <strong id="overview-ticket-promedio">$0.00</strong>
+          <em>Valor por pedido</em>
         </article>
-
-        <article class="nelly-panel p-5">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">C5 · Promociones Ligeras</p>
-              <h2 class="mt-1 text-xl font-semibold text-comm-info">Sugerencias manuales de reactivacion</h2>
-              <p class="mt-1 text-sm leading-6 text-slate-300">Capa ligera derivada de C4 para proponer acciones simples sin automatizacion compleja.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Promociones</p>
-                <p id="c5-promotions-total" class="text-lg font-bold text-comm-accent">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Reactivacion</p>
-                <p id="c5-reactivation-total" class="text-lg font-bold text-comm-warn">0</p>
-              </div>
-              <div class="nelly-kpi px-3 py-2">
-                <p class="text-xs text-slate-400">Seguimiento</p>
-                <p id="c5-followup-total" class="text-lg font-bold text-comm-info">0</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-5">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Promociones sugeridas</p>
-            <div id="c5-promotions-list" class="mt-3 space-y-3"></div>
-          </div>
+        <article class="wc-kpi">
+          <small>Clientes recurrentes</small>
+          <strong id="overview-clientes-recurrentes">0</strong>
+          <em>Fidelidad</em>
         </article>
       </section>
+
+      <section class="wc-grid">
+        <article id="commerce-store" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Tienda</p>
+              <h2>Tablero del restaurante</h2>
+            </div>
+            <span class="wc-pill green">10 segundos</span>
+          </div>
+          <div class="wc-module-grid">
+            <div class="wc-module">
+              <p class="wc-eyebrow">Pedidos</p>
+              <h3 id="operation-signal">Lectura pendiente</h3>
+              <p id="operation-summary">Esperando lectura operativa certificada.</p>
+            </div>
+            <div class="wc-module">
+              <p class="wc-eyebrow">Menu y productos</p>
+              <h3 id="market-signal">Marketplace pendiente</h3>
+              <p id="market-summary">Esperando senales del ecosistema comercial.</p>
+            </div>
+            <div class="wc-module">
+              <p class="wc-eyebrow">Liquidez</p>
+              <h3 id="finance-signal">Lectura pendiente</h3>
+              <p id="finance-summary">Esperando consolidacion de margen y liquidez.</p>
+            </div>
+          </div>
+        </article>
+
+        <aside class="wc-stack">
+          <article class="wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Alertas comerciales</p>
+                <h2 id="alerts-signal">Alertas pendientes</h2>
+              </div>
+              <span class="wc-pill yellow">Atencion</span>
+            </div>
+            <p id="alerts-summary" class="wc-muted">Esperando senales de atencion comercial.</p>
+          </article>
+          <article class="wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Operacion comercial</p>
+                <h2 id="ops-signal">Operacion pendiente</h2>
+              </div>
+              <span class="wc-pill blue">SSOT</span>
+            </div>
+            <p id="ops-summary" class="wc-muted">Esperando resumen operativo comercial.</p>
+          </article>
+        </aside>
+      </section>
+
+      <section class="wc-kpi-grid" style="margin-top:12px">
+        <article class="wc-kpi">
+          <small>Ventas del mes</small>
+          <strong id="kpi-ventas-mes">$0.00</strong>
+          <em>Tendencia</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Pedidos entregados</small>
+          <strong id="kpi-pedidos-entregados">0</strong>
+          <em>Conversion</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Frecuencia compra</small>
+          <strong id="kpi-frecuencia-compra">0.00</strong>
+          <em>Recurrencia</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Entregas puntuales</small>
+          <strong id="kpi-entregas-puntuales">0%</strong>
+          <em>Experiencia</em>
+        </article>
+      </section>
+
+      <section id="commerce-opportunities" class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">C4 / Inteligencia comercial</p>
+              <h2>Oportunidades y acciones</h2>
+            </div>
+            <span class="wc-pill green"><span id="c4-oportunities-total">0</span> oportunidades</span>
+          </div>
+          <div class="wc-kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px">
+            <div class="wc-kpi">
+              <small>Clientes en riesgo</small>
+              <strong id="c4-customers-risk">0</strong>
+            </div>
+            <div class="wc-kpi">
+              <small>Comercios en riesgo</small>
+              <strong id="c4-commerces-risk">0</strong>
+            </div>
+            <div class="wc-kpi">
+              <small>Acciones sugeridas</small>
+              <strong id="c4-actions-total">0</strong>
+            </div>
+          </div>
+          <div id="c4-opportunities-list" class="wc-list"></div>
+        </article>
+
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Siguiente accion</p>
+              <h2>Que debe hacer comercio</h2>
+            </div>
+            <span class="wc-pill blue">Priorizado</span>
+          </div>
+          <div id="c4-actions-list" class="wc-list"></div>
+        </article>
+      </section>
+
+      <article id="commerce-promotions" class="wc-card" style="margin-top:12px">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">C5 / Promociones ligeras</p>
+            <h2>Reactivacion manual y seguimiento</h2>
+          </div>
+          <div class="wc-top-actions">
+            <span class="wc-pill green"><span id="c5-promotions-total">0</span> promociones</span>
+            <span class="wc-pill yellow"><span id="c5-reactivation-total">0</span> reactivacion</span>
+            <span class="wc-pill blue"><span id="c5-followup-total">0</span> seguimiento</span>
+          </div>
+        </div>
+        <div id="c5-promotions-list" class="wc-list"></div>
+      </article>
     </main>
-  </div>
+  </section>
 
-  <script type="module" src="./js/dashboard-comercial.js?v=20260725-c1-3"></script>
+  <script type="module" src="./js/dashboard-comercial.js?v=20260726-work-center"></script>
 </body>
 </html>
-
