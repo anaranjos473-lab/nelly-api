@@ -71,8 +71,8 @@ const panelAliases = {
     '/admin': '/admin-dashboard.html',
     '/crm': '/crm-basico.html',
     '/driver': '/repartidor.html',
-    '/analytics': '/panel.html',
-    '/developer': '/panel.html',
+    '/analytics': '/analytics.html',
+    '/developer': '/developer.html',
     '/tracking': '/seguimiento.html',
     '/cliente': '/seguimiento.html'
 };

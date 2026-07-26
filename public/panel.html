@@ -659,7 +659,7 @@
             </div>
         </div>
 
-    <audio id="audio-notificacion" src="alerta.mp3" preload="auto"></audio>
+    <audio id="audio-notificacion" src="/alerta.mp3" preload="auto"></audio>
 
     <!-- Bloque compat de Firebase eliminado. Usar solo inicializacion modular con type=module. -->
     <script type="module" src="js/logistica-maps.js"></script>
@@ -1334,7 +1334,6 @@
             if (!audio) {
                 return;
             }
-
             if (nombre && !audio.src.endsWith(nombre) && nombre !== 'notificacion_nueva.mp3') {
                 audio.src = nombre;
             }

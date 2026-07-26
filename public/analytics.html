@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nelly OS - Nelly Analytics</title>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/themes.css">
+  <link rel="stylesheet" href="/styles/nelly-design.css">
+  <link rel="stylesheet" href="/styles/components/button.css">
+  <link rel="stylesheet" href="/styles/components/card.css">
+  <link rel="stylesheet" href="/styles/components/badge.css">
+  <link rel="stylesheet" href="/styles/components/kpi.css">
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; min-height: 100vh; background: #07111f; color: #e5eefb; font-family: var(--nelly-font); }
+    .shell { width: min(1160px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 44px; }
+    .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px; }
+    .title h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: 0; }
+    .title p { margin: 8px 0 0; color: #b8c7d9; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .panel { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(9,19,34,0.9); padding: 18px; }
+    .panel h2 { margin: 0 0 8px; font-size: 1rem; letter-spacing: 0; }
+    .panel p { margin: 0; color: #b8c7d9; line-height: 1.45; }
+    .kpi { font-size: 2rem; font-weight: 900; color: #ffd24d; margin-top: 12px; }
+    .status { display: inline-flex; border: 1px solid rgba(255,210,77,0.28); border-radius: 999px; padding: 7px 11px; color: #f8df8d; background: rgba(255,210,77,0.08); font-size: 0.82rem; }
+    @media (max-width: 860px) { .topbar { align-items: flex-start; flex-direction: column; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="title">
+        <p class="nelly-section-label">Nelly OS · Analytics</p>
+        <h1>Nelly Analytics</h1>
+        <p>Lectura de KPIs, reportes y tendencias. Este modulo observa; no modifica informacion operativa.</p>
+      </div>
+      <a class="nelly-btn nelly-btn--ghost" href="/os">Volver a Nelly OS</a>
+    </header>
+
+    <section class="grid" aria-label="Estado de analytics">
+      <article class="panel">
+        <span class="status">Solo lectura</span>
+        <h2>Operativo</h2>
+        <p>Indicadores de pedidos, entregas, tiempos y estado general.</p>
+        <div class="kpi">KPI</div>
+      </article>
+      <article class="panel">
+        <span class="status">Tendencias</span>
+        <h2>Comercial</h2>
+        <p>Ventas, recurrencia, comercios y comportamiento por periodo.</p>
+        <div class="kpi">BI</div>
+      </article>
+      <article class="panel">
+        <span class="status">Piloto</span>
+        <h2>Observaciones</h2>
+        <p>Durante el piloto, las conclusiones se registran en runsheets y actas.</p>
+        <div class="kpi">RC2</div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
