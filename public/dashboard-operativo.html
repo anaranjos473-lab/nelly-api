@@ -50,6 +50,7 @@
       <nav class="ops-nav" aria-label="Navegacion del centro operativo">
         <a class="active" href="#ops-live-map">Mapa en vivo</a>
         <a href="#ops-orders">Pedidos</a>
+        <a href="#ops-manual-order">Pedido manual</a>
         <a href="#ops-drivers">Repartidores</a>
         <a href="#ops-assignment">Asignaciones</a>
         <a href="#ops-incidents">Incidencias <span id="nav-incidents-count">0</span></a>
@@ -127,7 +128,7 @@
             <button type="button">Por asignar <span id="tab-unassigned-count">0</span></button>
           </div>
           <div id="orders-list" class="ops-orders-list"></div>
-          <a class="ops-link" href="/admin#manual-order-form">Crear pedido manual</a>
+          <a class="ops-link" href="#ops-manual-order">Crear pedido manual</a>
         </article>
 
         <article id="ops-live-map" class="ops-panel ops-map-panel">
@@ -210,6 +211,39 @@
             </div>
           </article>
         </aside>
+      </section>
+
+      <section id="ops-manual-order" class="ops-panel" style="margin-top: 12px;">
+        <div class="ops-panel-header">
+          <div>
+            <p class="ops-eyebrow">Pedido manual</p>
+            <h2>Resolver captura asistida</h2>
+          </div>
+          <span class="ops-status success">Flujo operativo</span>
+        </div>
+        <div class="ops-bottom-grid">
+          <article class="ops-panel">
+            <p class="ops-eyebrow">1. Captura</p>
+            <h2>Datos del cliente</h2>
+            <p class="ops-muted">Nombre, telefono, direccion, referencia y metodo de entrega.</p>
+          </article>
+          <article class="ops-panel">
+            <p class="ops-eyebrow">2. Ubicacion</p>
+            <h2>Mapa y confirmacion</h2>
+            <p class="ops-muted">Buscar direccion, usar ubicacion, confirmar y ocultar coordenadas tecnicas.</p>
+          </article>
+          <article class="ops-panel">
+            <p class="ops-eyebrow">3. Pedido</p>
+            <h2>Items y pago</h2>
+            <p class="ops-muted">Subtotal, envio, propina, metodo de pago y notas del pedido.</p>
+          </article>
+          <article class="ops-panel">
+            <p class="ops-eyebrow">Accion principal</p>
+            <h2>Crear pedido</h2>
+            <p class="ops-muted">La herramienta certificada actual se abre en modo de soporte hasta extraerla como modulo operativo independiente.</p>
+            <a class="ops-link" href="/admin#manual-order-section">Abrir generador certificado</a>
+          </article>
+        </div>
       </section>
 
       <section class="ops-bottom-grid">

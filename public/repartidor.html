@@ -55,6 +55,7 @@
       </a>
       <nav class="wc-nav" aria-label="Navegacion logistica">
         <a class="active" href="#driver-access">Acceso</a>
+        <a href="#fleet-governance">Flota y bloqueos</a>
         <a href="#available-orders">Pedidos disponibles</a>
         <a href="#my-orders">Mis pedidos</a>
         <a href="/control">Operaciones</a>
@@ -115,6 +116,33 @@
         <div class="wc-row" style="margin-top:14px">
           <input id="nombre-repartidor" class="wc-input" placeholder="Tu UID de repartidor" />
           <button id="btn-guardar" class="wc-action">Guardar</button>
+        </div>
+      </section>
+
+      <section id="fleet-governance" class="wc-card" style="margin-top:12px">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Flota y bloqueos</p>
+            <h2>Elegibilidad logistica</h2>
+          </div>
+          <span class="wc-state wc-state-processing">Control operativo</span>
+        </div>
+        <div class="wc-module-grid">
+          <article class="wc-module">
+            <p class="wc-eyebrow">Conductores</p>
+            <h3>Disponibilidad</h3>
+            <p>UID activo, conexion local y pedidos disponibles para tomar.</p>
+          </article>
+          <article class="wc-module">
+            <p class="wc-eyebrow">Bloqueos</p>
+            <h3>Elegibilidad</h3>
+            <p>Las restricciones por deuda o bloqueo manual se diagnostican desde Gobierno y se reflejan en la operacion.</p>
+          </article>
+          <article class="wc-module">
+            <p class="wc-eyebrow">Deudas</p>
+            <h3>Continuidad</h3>
+            <p>Si un conductor no puede operar, el coordinador valida deuda, bloqueo y reasignacion.</p>
+          </article>
         </div>
       </section>
 
