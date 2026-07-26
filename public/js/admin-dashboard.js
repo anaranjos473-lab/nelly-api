@@ -533,6 +533,18 @@ function setRestaurantFeedback(message, type = "ok") {
   ui.restaurantFeedback.className = "mt-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-200";
 }
 
+function applyRestaurantStatusChip(status) {
+  if (!ui.restaurantLastStatus) return;
+  const normalized = String(status || '').trim().toLowerCase();
+  const baseClasses = 'mt-1 inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold';
+  const statusClasses = {
+    activo: 'bg-emerald-400/15 text-emerald-200 border border-emerald-400/30',
+    'en revision': 'bg-amber-400/15 text-amber-200 border border-amber-400/30',
+    suspendido: 'bg-red-400/15 text-red-200 border border-red-400/30'
+  };
+  ui.restaurantLastStatus.className = `${baseClasses} ${statusClasses[normalized] || 'bg-slate-700/40 text-slate-200 border border-slate-600/50'}`;
+}
+
 function renderRestaurantList(restaurantes = []) {
   if (ui.restaurantCount) {
     ui.restaurantCount.textContent = `${restaurantes.length} registros`;
@@ -573,6 +585,7 @@ function renderRestaurantList(restaurantes = []) {
     ui.restaurantLastStatus.textContent = latest?.estado
       ? `Estado actual: ${latest.estado}`
       : 'Estado pendiente';
+    applyRestaurantStatusChip(latest?.estado);
   }
   if (!ui.restaurantListBody) return;
 
