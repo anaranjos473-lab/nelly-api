@@ -180,7 +180,11 @@ const ui = {
   restaurantRecentCount: document.getElementById("restaurant-recent-count"),
   restaurantLastName: document.getElementById("restaurant-last-name"),
   restaurantLastTime: document.getElementById("restaurant-last-time"),
-  restaurantLastStatus: document.getElementById("restaurant-last-status")
+  restaurantLastStatus: document.getElementById("restaurant-last-status"),
+  restaurantFilterAll: document.getElementById("restaurant-filter-all"),
+  restaurantFilterActive: document.getElementById("restaurant-filter-active"),
+  restaurantFilterPending: document.getElementById("restaurant-filter-pending"),
+  restaurantFilterSuspended: document.getElementById("restaurant-filter-suspended")
 };
 
 let currentDrivers = {};
@@ -189,6 +193,7 @@ let dashboardListenersAttached = false;
 let dashboardPollingId = null;
 let activeAdminUser = null;
 let dashboardSyncInFlight = false;
+let restaurantFilterState = 'all';
 let orderMapInstance = null;
 let orderMapReady = false;
 let orderMapMarker = null;
@@ -556,6 +561,29 @@ function getRestaurantStatusChipClass(status) {
   return `${baseClasses} ${statusClasses[normalized] || 'bg-slate-700/40 text-slate-200 border border-slate-600/50'}`;
 }
 
+function matchesRestaurantFilter(restaurant) {
+  const estado = String(restaurant?.estado || '').trim().toLowerCase();
+  if (restaurantFilterState === 'active') return estado === 'activo';
+  if (restaurantFilterState === 'pending') return estado === 'en revision';
+  if (restaurantFilterState === 'suspended') return estado === 'suspendido';
+  return true;
+}
+
+function updateRestaurantFilterButtons() {
+  const buttons = [
+    [ui.restaurantFilterAll, 'all'],
+    [ui.restaurantFilterActive, 'active'],
+    [ui.restaurantFilterPending, 'pending'],
+    [ui.restaurantFilterSuspended, 'suspended']
+  ];
+  buttons.forEach(([button, key]) => {
+    if (!button) return;
+    button.className = restaurantFilterState === key
+      ? 'nelly-btn nelly-btn--accent'
+      : 'nelly-btn nelly-btn--ghost';
+  });
+}
+
 function renderRestaurantList(restaurantes = []) {
   if (ui.restaurantCount) {
     ui.restaurantCount.textContent = `${restaurantes.length} registros`;
@@ -600,7 +628,9 @@ function renderRestaurantList(restaurantes = []) {
   }
   if (!ui.restaurantListBody) return;
 
-  if (!Array.isArray(restaurantes) || restaurantes.length === 0) {
+  const filteredRestaurants = Array.isArray(restaurantes) ? restaurantes.filter(matchesRestaurantFilter) : [];
+
+  if (!Array.isArray(filteredRestaurants) || filteredRestaurants.length === 0) {
     ui.restaurantListBody.innerHTML = `
       <tr>
         <td colspan="5" class="px-3 py-4 text-center text-sm text-slate-400">Sin restaurantes registrados todavia.</td>
@@ -609,7 +639,7 @@ function renderRestaurantList(restaurantes = []) {
     return;
   }
 
-  ui.restaurantListBody.innerHTML = restaurantes.map((restaurant) => `
+  ui.restaurantListBody.innerHTML = filteredRestaurants.map((restaurant) => `
     <tr class="border-t border-panel-line/40">
       <td class="px-3 py-3 font-semibold text-slate-100">${escapeHtml(restaurant.nombre_comercial || restaurant.nombre || 'Sin nombre')}</td>
       <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.responsable || 'Sin responsable')}</td>
@@ -1387,6 +1417,34 @@ if (ui.restaurantForm) {
 if (ui.restaurantRefresh) {
   ui.restaurantRefresh.addEventListener("click", refreshRestaurantList);
 }
+if (ui.restaurantFilterAll) {
+  ui.restaurantFilterAll.addEventListener("click", () => {
+    restaurantFilterState = 'all';
+    updateRestaurantFilterButtons();
+    refreshRestaurantList();
+  });
+}
+if (ui.restaurantFilterActive) {
+  ui.restaurantFilterActive.addEventListener("click", () => {
+    restaurantFilterState = 'active';
+    updateRestaurantFilterButtons();
+    refreshRestaurantList();
+  });
+}
+if (ui.restaurantFilterPending) {
+  ui.restaurantFilterPending.addEventListener("click", () => {
+    restaurantFilterState = 'pending';
+    updateRestaurantFilterButtons();
+    refreshRestaurantList();
+  });
+}
+if (ui.restaurantFilterSuspended) {
+  ui.restaurantFilterSuspended.addEventListener("click", () => {
+    restaurantFilterState = 'suspended';
+    updateRestaurantFilterButtons();
+    refreshRestaurantList();
+  });
+}
 
 if (ui.locationSearchBtn) {
   ui.locationSearchBtn.addEventListener("click", async () => {
@@ -1533,6 +1591,7 @@ onAuthStateChanged(auth, async (user) => {
     startDashboardPolling();
     dashboardListenersAttached = true;
   }
+  updateRestaurantFilterButtons();
   await refreshRestaurantList();
   renderOrderPreview();
   updateOrderValidationState();
