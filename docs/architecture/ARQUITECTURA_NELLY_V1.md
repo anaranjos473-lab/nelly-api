@@ -32,6 +32,7 @@ Finanzas queda activo con alcance minimo de piloto para deuda de conductores, pa
 
 Referencia:
 - [`MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md)
+- [`MANIFIESTO_DEL_DATO_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_DEL_DATO_NELLY_V1.md)
 
 ### 2. Un Centro de Trabajo = una responsabilidad
 Cada Centro responde una sola pregunta de negocio:
@@ -86,11 +87,14 @@ Los clientes no inventan estado de negocio.
 
 Las mutaciones criticas de pedidos, deuda, liquidaciones, repartidores, finanzas y restaurantes deben pasar por backend. Los paneles pueden consultar modelos operativos, pero no deben escribir directo a Firebase para datos criticos.
 
+Para la evolucion post-piloto, Firestore queda definido como fuente oficial persistente de negocio y RTDB como memoria operativa/proyeccion viva. Durante el piloto se conserva el baseline certificado en RTDB hasta que exista migracion certificada por entidad.
+
 Referencia:
 - [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md)
 - [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
 - [`ARQUITECTURA_DATOS_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ARQUITECTURA_DATOS_NELLY_V1.md)
 - [`INVENTARIO_ENTIDADES_DATOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INVENTARIO_ENTIDADES_DATOS_V1.md)
+- [`ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md)
 
 ### 4. La arquitectura del piloto esta congelada
 Durante el piloto no se reabre arquitectura sin evidencia operativa.
@@ -189,6 +193,7 @@ Antes de integrar cualquier cambio nuevo, debe completarse esta lista:
 | Tiene impacto documentado en bitacora si afecta el piloto? |  | Incidencia, observacion o decision registrada. |
 | Respeta la fuente oficial de datos? |  | Entidad verificada contra `ARQUITECTURA_DATOS_NELLY_V1.md`. |
 | Evita escrituras directas desde paneles sobre datos criticos? |  | Mutacion realizada por endpoint backend o justificacion tecnica aprobada. |
+| Respeta la separacion Firestore/RTDB? |  | Negocio persistente en Firestore objetivo; estado vivo/proyeccion en RTDB. |
 | Tiene validacion minima ejecutada? |  | Sintaxis, ruta, consola o prueba funcional segun aplique. |
 
 ### Criterio de bloqueo

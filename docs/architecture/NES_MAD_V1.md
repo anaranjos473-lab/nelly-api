@@ -52,6 +52,7 @@ Cada fila de la matriz debe incluir, como minimo:
 | Decision | Opciones evaluadas | Elegida | Motivo | Estado | Referencia |
 | --- | --- | --- | --- | --- | --- |
 | Base de datos operativa | Firestore / PostgreSQL | Firestore | Menor complejidad y continuidad con la arquitectura existente | Vigente | `MANIFIESTO_NES_V1.md`, `POL_ARCH_001.md` |
+| Separacion Firestore/RTDB | Una sola base / doble base sin regla / Firestore negocio + RTDB vivo | Firestore para negocio persistente; RTDB para memoria operativa | Evita doble verdad y aprovecha los servicios existentes sin nueva infraestructura | Arquitectura objetivo | `ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`, `ARQUITECTURA_DATOS_NELLY_V1.md` |
 | Backend principal | Express / NestJS | Express | Estabilidad, conocimiento del equipo y compatibilidad con la base actual | Vigente | `POL_ARCH_001.md` |
 | Modelo de eventos | Sin Event Bus / Event Bus | Event Bus | Facilita desacoplamiento, trazabilidad y automatizacion por capacidades | Vigente | `ARQ_HARNESS_ENGINEERING_V1.md` |
 | Gobierno de IA | Sin politica / Politica formal | Politica formal | Permite trazabilidad, auditabilidad y control de automatizaciones | Vigente | `POL_IA_001.md` |

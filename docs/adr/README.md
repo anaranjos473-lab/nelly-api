@@ -19,6 +19,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 | ADR-008 | Maquina de estados logistica de ultima milla | Propuesta | [`docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-008-MAQUINA_ESTADOS_LOGISTICA.md) |
 | ADR-009 | Comparativo maquina de estados logistica | Propuesta | [`docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-009-COMPARATIVO_MAQUINA_ESTADOS_LOGISTICA.md) |
 | ADR-010 | Decision final maquina de estados logistica | Propuesta | [`docs/adr/ADR-010-DECISION_MAQUINA_ESTADOS_LOGISTICA.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-010-DECISION_MAQUINA_ESTADOS_LOGISTICA.md) |
+| ADR-011 | Estrategia SSOT Firestore + Realtime Database | Arquitectura objetivo | [`docs/adr/ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md) |
 | PLAN-MAQUINA-ESTADOS | Migracion maquina de estados logistica | Propuesto | [`docs/architecture/PLAN_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PLAN_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
 | MATRIZ-MAQUINA-ESTADOS | Matriz operativa de migracion | Propuesto | [`docs/architecture/MATRIZ_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MATRIZ_MIGRACION_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
 | ROADMAP-MAQUINA-ESTADOS | Roadmap ejecutivo de migracion | Propuesto | [`docs/architecture/ROADMAP_EJECUTIVO_MAQUINA_ESTADOS_LOGISTICA_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ROADMAP_EJECUTIVO_MAQUINA_ESTADOS_LOGISTICA_V1.md) |
@@ -35,6 +36,7 @@ Este indice reune las decisiones arquitectonicas que guian el proyecto. Antes de
 - Si el cambio toca la maquina de estados logistica de ultima milla, leer ADR-008.
 - Si el cambio toca la comparativa entre contratos de estados, leer ADR-009.
 - Si el cambio toca la decision final sobre adopcion, leer ADR-010.
+- Si el cambio toca Firestore, RTDB, fuente oficial de datos, pedidos persistentes o finanzas persistentes, leer ADR-011.
 - Si el cambio toca la migracion por fases de la maquina enriquecida, leer PLAN-MAQUINA-ESTADOS.
 - Si el cambio toca la matriz operativa de migracion, leer MATRIZ-MAQUINA-ESTADOS.
 - Si el cambio toca el resumen ejecutivo de migracion, leer ROADMAP-MAQUINA-ESTADOS.

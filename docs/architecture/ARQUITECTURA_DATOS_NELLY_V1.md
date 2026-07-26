@@ -1,7 +1,7 @@
 # ARQUITECTURA DE DATOS NELLY V1
 
 ## Estado
-Documento rector de datos para el piloto controlado de Nelly OS.
+Documento rector de datos para el piloto controlado de Nelly OS y arquitectura objetivo post-piloto.
 
 Fecha: 2026-07-26
 
@@ -18,7 +18,7 @@ Definir, para cada entidad relevante del ecosistema:
 Este documento convierte el inventario previo en una arquitectura operativa de datos. Su objetivo es evitar inconsistencias entre Firestore, Realtime Database, backend, paneles web y Android.
 
 ## Principio rector
-La fuente de verdad operativa para el piloto es:
+La fuente de verdad operativa certificada para el piloto es:
 
 `Backend -> Firebase RTDB -> Android/Web`
 
@@ -32,6 +32,28 @@ Nunca:
 
 `Centro de Trabajo -> Firebase directo`
 
+## Decision Firestore + RTDB
+Se adopta una separacion formal entre base persistente de negocio y memoria operativa.
+
+### Baseline piloto
+Durante el piloto, el runtime certificado permanece en RTDB para pedidos, reparto y finanzas operativas.
+
+No se migra una entidad critica a Firestore sin plan, adaptador backend, pruebas y certificacion.
+
+### Arquitectura objetivo post-piloto
+Firestore sera la fuente oficial persistente de negocio.
+
+RTDB sera memoria operativa y capa de proyecciones vivas.
+
+| Capa | Responsabilidad |
+| --- | --- |
+| Firestore | Verdad oficial de negocio, historico, auditoria, finanzas persistentes, configuracion durable. |
+| RTDB | Estado en vivo, GPS, presence, heartbeat, cola operativa, snapshots y vistas temporales. |
+
+Referencia:
+- `ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`
+- `MANIFIESTO_DEL_DATO_NELLY_V1.md`
+
 ## Clasificacion de datos
 
 | Clasificacion | Descripcion | Regla |
@@ -44,6 +66,8 @@ Nunca:
 | Candidata | Entidad prevista para una fase posterior. | No activar sin backend propietario. |
 
 ## Matriz oficial de entidades
+
+Esta matriz describe el baseline actual del piloto. La columna de fuente oficial no debe cambiarse en runtime sin una migracion certificada.
 
 | Entidad | Fuente oficial | Propietario | Puede escribir | Puede leer | Proyeccion RTDB | Centros consumidores | Clasificacion |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -68,6 +92,23 @@ Nunca:
 | `chats/{pedidoId}` | RTDB | Futuro backend de chat | Ninguno en piloto sin backend dedicado | Pendiente | Candidata futura | Soporte, Cliente, Operaciones | Candidata |
 | Firestore `users` | Firestore | Backend usuarios legacy | Backend usuarios | API legacy/admin tecnico | No oficial en RTDB | Gobierno legacy | Legacy |
 | Firestore `pedidos` | Ninguna para piloto | Sin propietario activo | Nadie debe escribir en piloto | Nadie como fuente oficial | No aplica; RTDB `pedidos` reemplaza | Ninguno oficial | Deprecada |
+
+## Arquitectura objetivo por dominio
+
+Esta matriz define la direccion post-piloto. No sustituye el baseline actual hasta que exista migracion certificada.
+
+| Dominio | Fuente oficial objetivo | Proyeccion RTDB permitida | Propietario | Centros consumidores |
+| --- | --- | --- | --- | --- |
+| Pedidos | Firestore `orders/{id}` | `operational_view/orders/{id}`, `pedidos_para_reparto`, `pedidos_en_camino` durante transicion | Servicio de Pedidos | Operaciones, Comercio, Logistica, CRM, Finanzas, Analytics |
+| Restaurantes | Firestore `restaurants/{id}` o `market/restaurants/{id}` | Snapshot de disponibilidad si se requiere | Servicio de Comercio/Admin | Gobierno, Comercio, Operaciones |
+| Clientes | Firestore `customers/{id}` | Resumen CRM si se requiere | Servicio CRM | CRM, Comercio, Analytics |
+| Usuarios y roles | Firestore `users/{id}` | Presence/online en RTDB si aplica | Servicio de Identidad | Gobierno, Developer |
+| Finanzas | Firestore `finance/*` | `dashboard_finanzas`, `ventas_hoy`, `saldo_actual` | Servicio Financiero | Finanzas, Gobierno, Analytics |
+| Metricas persistentes | Firestore `metrics/*` | Snapshots operativos de lectura rapida | Servicio Analytics | Analytics, Ejecutivo futuro |
+| Configuracion | Firestore `configuration/*` | Cache RTDB para agentes si se justifica | Servicio Gobierno/Config | Gobierno, Developer |
+| Bitacora y auditoria | Firestore `audit/*`, `forensics/*` | Alertas vivas en RTDB | Servicio Auditoria/Developer | Gobierno, Developer, Soporte |
+| Estado online/GPS | RTDB `conductores_activos`, `presence`, `heartbeat` | No aplica; RTDB es fuente viva | Servicio Logistico | Logistica, Operaciones |
+| Cola operativa | RTDB `cola_operativa`, snapshots | No aplica; RTDB es fuente viva | Servicio Operaciones | Operaciones, Logistica |
 
 ## Lectura por Centro de Trabajo
 
@@ -132,6 +173,16 @@ Si una pantalla necesita cambiar cualquiera de esos datos, debe existir un endpo
 | `conductores_activos` vs `repartidores_activos` | Ambos son proyecciones vivas temporales. | Elegir una proyeccion unica de logistica post-piloto. |
 | `finanzas` vs `historial_ventas` vs `liquidaciones` | Finanzas es agregado; liquidaciones y pedidos entregados sustentan conciliacion. | Definir ledger financiero completo post-piloto. |
 
+## Duplicidades no permitidas en arquitectura objetivo
+
+| Dato | Regla |
+| --- | --- |
+| Estado oficial de pedido | Solo Firestore `orders/{id}` cuando la migracion este certificada. |
+| Dinero, deuda, comisiones y liquidaciones | Solo Firestore `finance/*` como verdad persistente post-piloto. |
+| GPS y presencia | Solo RTDB como verdad viva. |
+| Configuracion persistente | Firestore; RTDB solo cache operativa si hay justificacion. |
+| Metricas historicas | Firestore; RTDB solo snapshot de visualizacion. |
+
 ## Relacion con documentos existentes
 
 Este documento es la referencia oficial de arquitectura de datos.
@@ -157,6 +208,8 @@ Antes de agregar o modificar una entidad, responder:
 | Duplica informacion existente? | Si duplica, justificar como proyeccion temporal. |
 | Afecta finanzas, pedidos o repartidores? | Requiere validacion extra. |
 | Rompe algun contrato certificado? | Si rompe, requiere certificacion nueva. |
+| Pertenece a Firestore o RTDB? | Firestore para negocio persistente; RTDB para estado vivo/proyeccion. |
+| Puede existir como proyeccion? | Si, pero debe declarar su fuente canonica. |
 
 ## Decision
 ARQUITECTURA DE DATOS NELLY V1 queda adoptada como documento rector para el piloto controlado.

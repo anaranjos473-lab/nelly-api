@@ -118,6 +118,22 @@ Contiene KPIs, reportes y tendencias. Es de solo lectura y no modifica informaci
 ### Developer
 Contiene herramientas tecnicas: logs, APIs, estado, versiones y diagnostico.
 
+## Principio transversal - Manifiesto del Dato
+
+Las 4 Casillas ordenan responsabilidades funcionales.
+
+El Manifiesto del Dato ordena la verdad del sistema.
+
+Cada entidad debe tener:
+- un dueno;
+- una fuente oficial;
+- escritores autorizados;
+- lectores autorizados;
+- proyecciones declaradas si existen.
+
+Referencia:
+- `MANIFIESTO_DEL_DATO_NELLY_V1.md`
+
 ## Nelly OS
 Nelly OS es un centro de acceso, no un panel gigante.
 
@@ -156,6 +172,7 @@ A partir de este manifiesto, ningun desarrollo nuevo entra al ecosistema sin res
 3. En cual Centro de Trabajo pertenece?
 4. Afecta otro Centro de Trabajo?
 5. Puede resolverse sin romper la separacion de responsabilidades?
+6. Que dato modifica y cual es su fuente oficial?
 
 Si alguna respuesta no esta clara, el cambio queda en revision antes de implementarse.
 
