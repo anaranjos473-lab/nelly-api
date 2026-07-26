@@ -72,7 +72,8 @@ const panelAliases = {
 
 for (const [alias, target] of Object.entries(panelAliases)) {
     app.get(alias, (req, res) => {
-        res.redirect(302, target);
+        const queryString = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+        res.redirect(302, `${target}${queryString}`);
     });
 }
 
