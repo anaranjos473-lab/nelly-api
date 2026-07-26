@@ -72,6 +72,7 @@
         <div>
           <p class="ops-eyebrow">Nelly OS / Casilla 2</p>
           <h1>Panel de Operaciones</h1>
+          <p class="ops-muted">Primero resolver; despues medir.</p>
         </div>
         <div class="ops-top-actions">
           <span id="dashboard-status" class="ops-live-pill">Cargando snapshot...</span>
@@ -79,6 +80,29 @@
           <a href="/admin" class="ops-admin-link">Admin</a>
         </div>
       </header>
+
+      <section class="ops-action-strip" aria-label="Accion dominante de operaciones">
+        <article class="ops-action-focus">
+          <p class="ops-eyebrow">Accion dominante</p>
+          <h2>Pedido esperando asignacion</h2>
+          <p>Si hay pedidos por asignar, la prioridad del operador es resolverlos antes de revisar graficas o metricas historicas.</p>
+          <div class="ops-top-actions">
+            <a class="ops-admin-link" href="#ops-orders">Ver cola</a>
+            <a class="ops-admin-link" href="#ops-assignment">Asignar</a>
+            <a class="ops-admin-link" href="#ops-incidents">Revisar incidencias</a>
+          </div>
+        </article>
+        <aside class="ops-action-aside">
+          <article class="ops-panel">
+            <p class="ops-eyebrow">Orden operativo</p>
+            <ul class="ops-action-steps">
+              <li><strong>1</strong><span>Resolver pedido por asignar.</span></li>
+              <li><strong>2</strong><span>Ver mapa y repartidor disponible.</span></li>
+              <li><strong>3</strong><span>Monitorear cola, tiempos y KPIs.</span></li>
+            </ul>
+          </article>
+        </aside>
+      </section>
 
       <section id="ops-metrics" class="ops-kpi-grid" aria-label="Indicadores principales">
         <article class="ops-kpi">
