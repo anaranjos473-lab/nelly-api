@@ -26,6 +26,7 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 2. Recorrido extremo a extremo por corrida.
 3. Registro de incidencias por corrida.
 4. Acta de liberacion consolidada para piloto controlado.
+5. Protocolo formal de alta de restaurantes para el siguiente frente operativo.
 
 ## 1. Preparacion
 
@@ -52,6 +53,7 @@ Ejecutar el piloto controlado sobre la base certificada, usando el Runsheet UX-R
 - Revisar si aparecieron `429` o fallos de entorno.
 - Confirmar consistencia entre corridas.
 - Llenar el acta de liberacion consolidada.
+- Si RC2 queda cerrado, pasar al protocolo de alta de restaurantes sin abrir registro libre.
 
 ## Flujo esperado
 
@@ -91,6 +93,7 @@ RC2 no abre nuevas capacidades. Solo ordena la ejecucion controlada del piloto y
 - `GATE_UX_RELEASE_V1.md`
 - `UX_RELEASE_RUNSHEET_V1.md`
 - `CHECKLIST_UX_RELEASE_V1.md`
+- `ALTA_RESTAURANTES_PILOTO_V1.md`
 
 ## Historial
 
