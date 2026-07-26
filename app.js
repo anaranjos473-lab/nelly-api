@@ -59,6 +59,7 @@ const panelAliases = {
     '/nellydelivery/crm': '/crm',
     '/nellydelivery/repartidor': '/driver',
     '/nellydelivery/panel': '/os',
+    '/panel': '/os',
     '/control': '/dashboard-operativo.html',
     '/commerce': '/dashboard-comercial.html',
     '/admin': '/admin-dashboard.html',
