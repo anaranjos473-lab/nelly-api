@@ -47,18 +47,24 @@ const AUTHORIZED_ADMIN_EMAILS = new Set([
 // Permite cambiar el endpoint desde la consola para pruebas de nomina
 window.setAdminApiEndpoint = function(url) {
   if (typeof url === 'string' && url.startsWith('http')) {
-    ADMIN_API_ENDPOINTS[0] = url.replace(/\/+$/, '');
-    console.log('[Nomina][Test] ADMIN_API_ENDPOINTS cambiado a:', ADMIN_API_ENDPOINTS[0]);
+    window.__NELLY_ADMIN_API_ENDPOINT__ = url.replace(/\/+$/, '');
+    console.log('[Nomina][Test] ADMIN_API_ENDPOINT cambiado a:', window.__NELLY_ADMIN_API_ENDPOINT__);
   } else {
-    console.warn('URL invalida para ADMIN_API_ENDPOINTS');
+    console.warn('URL invalida para ADMIN_API_ENDPOINT');
   }
 };
 
 const LOCAL_ADMIN_API_ENDPOINT = window.location?.origin || "http://127.0.0.1:3001";
-const ADMIN_API_ENDPOINTS = [
-  LOCAL_ADMIN_API_ENDPOINT,
-  "https://nelly-api-8lh1.onrender.com"
-];
+const PROD_ADMIN_API_ENDPOINT = "https://nelly-api-8lh1.onrender.com";
+const ADMIN_API_ENDPOINT = (() => {
+  const configured = String(window.__NELLY_ADMIN_API_ENDPOINT__ || "").trim().replace(/\/+$/, "");
+  if (configured) return configured;
+  const host = String(window.location?.hostname || "").toLowerCase();
+  if (host === "127.0.0.1" || host === "localhost" || host === "::1") {
+    return LOCAL_ADMIN_API_ENDPOINT;
+  }
+  return PROD_ADMIN_API_ENDPOINT;
+})();
 const ADMIN_API_TIMEOUT_MS = 15000;
 console.log("ADMIN DASHBOARD VERSION 522db1b");
 
@@ -70,12 +76,12 @@ window.validarNomina = async function(uid, montoPago) {
     if (!user) throw new Error('Sesion no activa');
     const idToken = await user.getIdToken();
     // 1. Consultar liquidaciones
-    const liquidaciones = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
+    const liquidaciones = await fetch(`${ADMIN_API_ENDPOINT}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
     console.log('[Nomina][Test] Liquidaciones:', liquidaciones);
     // 2. Ejecutar pago
-    const pago = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/panel/finanzas/registrar-pago-deuda`, {
+    const pago = await fetch(`${ADMIN_API_ENDPOINT}/api/panel/finanzas/registrar-pago-deuda`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +91,7 @@ window.validarNomina = async function(uid, montoPago) {
     }).then(r => r.json());
     console.log('[Nomina][Test] Resultado pago:', pago);
     // 3. Consultar liquidaciones nuevamente
-    const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/liquidaciones`, {
+    const liquidaciones2 = await fetch(`${ADMIN_API_ENDPOINT}/api/liquidaciones`, {
       headers: { Authorization: `Bearer ${idToken}` }
     }).then(r => r.json());
     console.log('[Nomina][Test] Liquidaciones tras pago:', liquidaciones2);
@@ -670,7 +676,7 @@ async function updateRestaurantState(restaurantId, estado) {
   }
 
   const idToken = await user.getIdToken();
-  const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes/${encodeURIComponent(restaurantId)}/estado`, {
+  const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/restaurantes/${encodeURIComponent(restaurantId)}/estado`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -694,7 +700,7 @@ async function refreshRestaurantList() {
       return;
     }
     const idToken = await user.getIdToken();
-    const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes`, {
+    const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/restaurantes`, {
       headers: { Authorization: `Bearer ${idToken}` }
     });
     const payload = await response.json().catch(() => ({}));
@@ -814,28 +820,22 @@ function bindToggleEvents() {
           }
 
           const idToken = await user.getIdToken();
-          let success = false;
+          const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/repartidores/manual-lock`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`
+            },
+            body: JSON.stringify({ uid, bloqueado: nextValue })
+          });
 
-          for (const baseUrl of ADMIN_API_ENDPOINTS) {
+          if (!response.ok) {
+            let message = `HTTP ${response.status}`;
             try {
-              const response = await fetch(`${baseUrl}/api/admin/repartidores/manual-lock`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${idToken}`
-                },
-                body: JSON.stringify({ uid, bloqueado: nextValue })
-              });
-
-              if (response.ok) {
-                success = true;
-                break;
-              }
-            } catch (_networkError) {}
-          }
-
-          if (!success) {
-            throw new Error("Sin respuesta valida del backend");
+              const payload = await response.json();
+              message = payload?.error || message;
+            } catch (_parseError) {}
+            throw new Error(message);
           }
 
           syncDashboardData();
@@ -855,43 +855,37 @@ async function fetchAdminApi(path, options = {}) {
   }
 
   const idToken = await user.getIdToken();
-  let lastError = new Error("Sin respuesta valida del backend");
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), ADMIN_API_TIMEOUT_MS);
 
-  for (const baseUrl of ADMIN_API_ENDPOINTS) {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), ADMIN_API_TIMEOUT_MS);
-
-    try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        ...options,
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-          ...(options.headers || {})
-        }
-      });
-
-      if (!response.ok) {
-        let message = `HTTP ${response.status}`;
-        try {
-          const payload = await response.json();
-          message = payload?.error || message;
-        } catch (_parseError) {}
-        throw new Error(message);
+  try {
+    const response = await fetch(`${ADMIN_API_ENDPOINT}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+        ...(options.headers || {})
       }
+    });
 
-      return response.json();
-    } catch (error) {
-      lastError = error?.name === "AbortError"
-        ? new Error(`Timeout consultando ${path}`)
-        : error;
-    } finally {
-      window.clearTimeout(timeoutId);
+    if (!response.ok) {
+      let message = `HTTP ${response.status}`;
+      try {
+        const payload = await response.json();
+        message = payload?.error || message;
+      } catch (_parseError) {}
+      throw new Error(message);
     }
-  }
 
-  throw lastError;
+    return response.json();
+  } catch (error) {
+    throw error?.name === "AbortError"
+      ? new Error(`Timeout consultando ${path}`)
+      : error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 function updateOrderTotalValue() {
@@ -1257,46 +1251,41 @@ async function createManualOrder(event) {
     let created = false;
     let pedidoId = null;
 
-    for (const baseUrl of ADMIN_API_ENDPOINTS) {
-      try {
-        const response = await fetch(`${baseUrl}/api/admin/pedidos`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${idToken}`
-          },
-          body: JSON.stringify({
-            cliente_nombre: client,
-            telefono: phone,
-            direccion: address,
-            tipo_ubicacion: placeType,
-            metodo_entrega: deliveryMethod,
-            referencia_ubicacion: reference,
-            notas_ubicacion: locationNotes,
-            cliente_lat: clientLat,
-            cliente_lng: clientLng,
-            tienda_lat: storeLat,
-            tienda_lng: storeLng,
-            descripcion: notes || 'Pedido telefonico',
-            items,
-            subtotal: Number(subtotal.toFixed(2)),
-            costo_envio: Number(shipping.toFixed(2)),
-            propina: Number(tip.toFixed(2)),
-            total,
-            pago: {
-              metodo: paymentMethod,
-              estado: 'pendiente'
-            }
-          })
-        });
-
-        if (response.ok) {
-          const payload = await response.json();
-          pedidoId = payload?.id || null;
-          created = true;
-          break;
+    const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/pedidos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify({
+        cliente_nombre: client,
+        telefono: phone,
+        direccion: address,
+        tipo_ubicacion: placeType,
+        metodo_entrega: deliveryMethod,
+        referencia_ubicacion: reference,
+        notas_ubicacion: locationNotes,
+        cliente_lat: clientLat,
+        cliente_lng: clientLng,
+        tienda_lat: storeLat,
+        tienda_lng: storeLng,
+        descripcion: notes || 'Pedido telefonico',
+        items,
+        subtotal: Number(subtotal.toFixed(2)),
+        costo_envio: Number(shipping.toFixed(2)),
+        propina: Number(tip.toFixed(2)),
+        total,
+        pago: {
+          metodo: paymentMethod,
+          estado: 'pendiente'
         }
-      } catch (_networkError) {}
+      })
+    });
+
+    if (response.ok) {
+      const payload = await response.json();
+      pedidoId = payload?.id || null;
+      created = true;
     }
 
     if (!created) {
@@ -1353,7 +1342,7 @@ async function createRestaurantOnboarding(event) {
     }
 
     const idToken = await user.getIdToken();
-    const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes`, {
+    const response = await fetch(`${ADMIN_API_ENDPOINT}/api/admin/restaurantes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
