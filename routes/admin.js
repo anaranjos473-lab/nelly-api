@@ -8,6 +8,7 @@ import {
     normalizeAdminOrderRequest
 } from '../src/services/adminSyncService.js';
 import { buildOperationalDashboardSnapshot } from '../src/services/operationalDashboardService.js';
+import { saveRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
 
 const router = express.Router();
 
@@ -198,11 +199,9 @@ router.post('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
         }
 
         const now = Date.now();
-        const admin = await getAdmin();
-        const db = admin.database();
-        const restauranteId = db.ref('market_v1/restaurantes').push().key;
+        let restauranteId = null;
         const record = {
-            id: restauranteId,
+            id: null,
             nombre_comercial,
             responsable,
             telefono,
@@ -223,9 +222,50 @@ router.post('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
             actualizado_en: now
         };
 
-        await db.ref(`market_v1/restaurantes/${restauranteId}`).set(record);
+        if (String(process.env.DISABLE_RUNTIME_AGENTS || '').trim().toLowerCase() === 'true') {
+            const localResult = await saveRestaurantOnboardingLocal({
+                ...record,
+                id: `local-${now}`,
+                store: 'local-file'
+            });
+            return res.status(201).json({
+                ok: true,
+                id: `local-${now}`,
+                restaurante: {
+                    ...record,
+                    id: `local-${now}`
+                },
+                store: localResult.store,
+                path: localResult.path,
+                fallback_reason: 'DISABLE_RUNTIME_AGENTS=true'
+            });
+        }
 
-        return res.status(201).json({ ok: true, id: restauranteId, restaurante: record });
+        try {
+            const admin = await getAdmin();
+            const db = admin.database();
+            restauranteId = db.ref('market_v1/restaurantes').push().key;
+            record.id = restauranteId;
+            await db.ref(`market_v1/restaurantes/${restauranteId}`).set(record);
+            return res.status(201).json({ ok: true, id: restauranteId, restaurante: record, store: 'firebase-rtdb' });
+        } catch (firebaseError) {
+            const localResult = await saveRestaurantOnboardingLocal({
+                ...record,
+                id: `local-${now}`,
+                store: 'local-file'
+            });
+            return res.status(201).json({
+                ok: true,
+                id: `local-${now}`,
+                restaurante: {
+                    ...record,
+                    id: `local-${now}`
+                },
+                store: localResult.store,
+                path: localResult.path,
+                fallback_reason: firebaseError.message
+            });
+        }
     } catch (error) {
         console.error('[ADMIN][RESTAURANTES_CREATE] Error:', error.message);
         return res.status(500).json({ ok: false, error: 'No se pudo crear el restaurante' });
