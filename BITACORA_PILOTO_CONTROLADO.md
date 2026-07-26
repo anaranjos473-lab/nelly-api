@@ -39,6 +39,37 @@ Una incidencia solo se convierte en cambio de codigo cuando:
 - Redisenos durante la corrida.
 - Cambios de maquina de estados sin evidencia del piloto.
 
+## Fases del piloto
+
+### Fase 1 - Validacion funcional
+No desarrollar nada. Solo comprobar que cada modulo cumple su proposito.
+
+| Modulo | Validar | Evidencia minima |
+| --- | --- | --- |
+| Administrador | Alta de restaurantes, edicion, usuarios y configuracion | Captura, ID de registro o log |
+| Operaciones | Crear pedido, cambio de estados, seguimiento y alertas | ID de pedido y resultado del flujo |
+| Comercio | Menu, productos, horarios y recepcion de pedidos | Registro del comercio y pedido de prueba |
+| Logistica | Aceptacion, asignacion, entrega y finalizacion | ID de pedido, repartidor y estado final |
+
+### Fase 2 - Validacion con usuarios
+Confirmar si los usuarios entienden el flujo, no solo si el sistema funciona.
+
+Registrar:
+- dudas frecuentes;
+- pasos que requieren explicacion;
+- botones que no se entienden;
+- errores por confusion;
+- comentarios de cliente, restaurante, operador o repartidor.
+
+### Fase 3 - Priorizacion
+Clasificar cada observacion antes de convertirla en tarea.
+
+| Tipo | Criterio | Decision |
+| --- | --- | --- |
+| Critica | Impide operar | Corregir inmediatamente |
+| Importante | No impide operar, pero afecta experiencia o eficiencia | Programar para la siguiente version |
+| Mejora | Idea de UX, optimizacion o refinamiento | Acumular para roadmap |
+
 ## Criterios de severidad
 
 | Severidad | Criterio | Accion |
@@ -48,17 +79,24 @@ Una incidencia solo se convierte en cambio de codigo cuando:
 | Media | Genera friccion operativa repetible sin detener el flujo | Registrar patron y planificar correccion |
 | Baja | Observacion menor, capacitacion o detalle visual no bloqueante | Registrar y revisar al cierre |
 
+## Criterios de impacto y reproducibilidad
+
+| Campo | Valores sugeridos | Proposito |
+| --- | --- | --- |
+| Impacto | Cliente, Restaurante, Operador, Repartidor, Administrador, Tecnico | Identificar a quien afecta |
+| Reproducibilidad | Siempre, Ocasional, Una vez, No reproducido | Evitar decisiones por percepcion aislada |
+
 ## Tabla de incidencias
 
-| ID | Fecha | Modulo | Incidencia | Severidad | Estado | Responsable | Evidencia | Accion / Cierre |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PIL-000 | 2026-07-26 | General | Bitacora creada para inicio de piloto controlado | Baja | Cerrada | Equipo Nelly | Commit / validacion paneles | Documento operativo activo |
+| ID | Fecha | Fase | Modulo | Incidencia | Severidad | Impacto | Reproducibilidad | Estado | Responsable | Evidencia | Accion / Cierre |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| PIL-000 | 2026-07-26 | Preparacion | General | Bitacora creada para inicio de piloto controlado | Baja | Equipo Nelly | Una vez | Cerrada | Equipo Nelly | Commit / validacion paneles | Documento operativo activo |
 
 ## Registro rapido
 
 Copiar esta fila para cada nuevo hallazgo:
 
-| PIL-___ | AAAA-MM-DD | Modulo | Descripcion breve | Baja/Media/Alta/Critica | Abierta/En analisis/Cerrada | Responsable | Captura/log/pedido | Accion tomada |
+| PIL-___ | AAAA-MM-DD | Fase 1/2/3 | Modulo | Descripcion breve | Baja/Media/Alta/Critica | Cliente/Restaurante/Operador/Repartidor/Administrador/Tecnico | Siempre/Ocasional/Una vez/No reproducido | Abierta/En analisis/Cerrada | Responsable | Captura/log/pedido | Accion tomada |
 
 ## Reglas de cierre
 
@@ -70,4 +108,3 @@ Copiar esta fila para cada nuevo hallazgo:
 
 ## Dictamen inicial
 Con base en la validacion de paneles, navegacion, repositorio y separacion por casillas, el piloto puede iniciar con monitoreo cercano y registro disciplinado de incidencias en esta bitacora.
-
