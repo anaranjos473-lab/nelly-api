@@ -17,6 +17,9 @@ Ser la puerta de entrada unica al recorrido completo de la plataforma, desde la 
 
 ## Bloques principales
 
+### Arquitectura Nelly V1
+- [`ARQUITECTURA_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ARQUITECTURA_NELLY_V1.md)
+
 ### Plan Estrategico
 - [`PLAN_ESTRATEGICO_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PLAN_ESTRATEGICO_NELLY_V1.md)
 #### Resumen Plan Estrategico
