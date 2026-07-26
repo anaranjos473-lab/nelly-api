@@ -104,6 +104,26 @@
   cursor: pointer;
 }
 
+.wc-action-secondary,
+.wc-action-danger {
+  border: 1px solid var(--wc-line);
+  border-radius: 12px;
+  padding: 11px 14px;
+  color: var(--wc-text);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.wc-action-secondary {
+  background: rgba(6, 18, 34, 0.72);
+}
+
+.wc-action-danger {
+  border-color: rgba(255, 83, 100, 0.44);
+  color: #ffd8dc;
+  background: rgba(255, 83, 100, 0.16);
+}
+
 .wc-error {
   border: 1px solid rgba(255, 83, 100, 0.5);
   border-radius: 10px;
@@ -243,6 +263,47 @@
 .wc-pill.yellow { color: var(--wc-yellow); }
 .wc-pill.blue { color: #93c5fd; }
 
+.wc-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--wc-line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--wc-text);
+  background: rgba(6, 18, 34, 0.72);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.wc-state::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.wc-state-active,
+.wc-state-completed {
+  color: var(--wc-green);
+}
+
+.wc-state-pending {
+  color: var(--wc-yellow);
+}
+
+.wc-state-processing {
+  color: var(--wc-blue);
+}
+
+.wc-state-error,
+.wc-state-blocked {
+  color: var(--wc-red);
+}
+
 .wc-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(150px, 1fr));
@@ -323,6 +384,52 @@
   border-radius: 14px;
   padding: 12px;
   background: rgba(4, 14, 26, 0.62);
+}
+
+.wc-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--wc-line);
+  border-radius: 16px;
+  background: rgba(4, 14, 26, 0.5);
+}
+
+.wc-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.wc-table th,
+.wc-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(87, 127, 176, 0.18);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.wc-table th {
+  color: var(--wc-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wc-empty,
+.wc-loading {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  border: 1px dashed var(--wc-line);
+  border-radius: 16px;
+  padding: 18px;
+  color: var(--wc-muted);
+  background: rgba(4, 14, 26, 0.42);
+  text-align: center;
+}
+
+.wc-loading {
+  color: #93c5fd;
+  border-color: rgba(43, 130, 255, 0.32);
 }
 
 @media (max-width: 1100px) {

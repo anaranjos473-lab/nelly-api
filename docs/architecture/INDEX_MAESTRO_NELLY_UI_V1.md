@@ -14,6 +14,9 @@ Ser la puerta de entrada unica al sistema visual oficial de Nelly, desde la cons
 
 ## Bloques principales
 
+### Nelly Design System V1
+- [`NELLY_DESIGN_SYSTEM_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_DESIGN_SYSTEM_V1.md)
+
 ### Congelamiento documental
 - [`NELLY_UI_V1_0_CONGELAMIENTO_DOCUMENTAL.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_UI_V1_0_CONGELAMIENTO_DOCUMENTAL.md)
 
@@ -39,6 +42,7 @@ Ser la puerta de entrada unica al sistema visual oficial de Nelly, desde la cons
 - UI 1.5 fija la iconografia.
 - UI 2.0 fija la experiencia del Dashboard Operativo.
 - UX-01 fija la pantalla insignia de ejecucion.
+- Nelly Design System V1 fija la aplicacion practica para los Centros de Trabajo.
 - Cualquier cambio nuevo debe consultar primero este indice antes de modificar pantallas o patrones.
 
 ## Criterio de uso

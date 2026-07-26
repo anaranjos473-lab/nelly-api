@@ -1,62 +1,130 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nelly OS - Nelly Developer</title>
-  <link rel="stylesheet" href="/css/tokens.css">
-  <link rel="stylesheet" href="/css/themes.css">
-  <link rel="stylesheet" href="/styles/nelly-design.css">
-  <link rel="stylesheet" href="/styles/components/button.css">
-  <link rel="stylesheet" href="/styles/components/card.css">
-  <link rel="stylesheet" href="/styles/components/badge.css">
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/themes.css" />
+  <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
   <style>
-    :root { color-scheme: dark; }
-    body { margin: 0; min-height: 100vh; background: #07111f; color: #e5eefb; font-family: var(--nelly-font); }
-    .shell { width: min(1160px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 44px; }
-    .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px; }
-    .title h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: 0; }
-    .title p { margin: 8px 0 0; color: #b8c7d9; line-height: 1.5; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .panel { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(9,19,34,0.9); padding: 18px; }
-    .panel h2 { margin: 0 0 8px; font-size: 1rem; letter-spacing: 0; }
-    .panel p { margin: 0 0 14px; color: #b8c7d9; line-height: 1.45; }
-    .code { display: block; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(0,0,0,0.22); color: #f8df8d; padding: 10px; overflow-wrap: anywhere; }
-    .status { display: inline-flex; border: 1px solid rgba(139,243,200,0.28); border-radius: 999px; padding: 7px 11px; color: #8bf3c8; background: rgba(139,243,200,0.08); font-size: 0.82rem; margin-bottom: 12px; }
-    @media (max-width: 860px) { .topbar { align-items: flex-start; flex-direction: column; } .grid { grid-template-columns: 1fr; } }
+    .dev-code {
+      display: block;
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      padding: 12px;
+      color: #f8df8d;
+      background: rgba(0, 0, 0, 0.22);
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
-<body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="title">
-        <p class="nelly-section-label">Nelly OS · Developer</p>
-        <h1>Nelly Developer</h1>
-        <p>Herramientas tecnicas para diagnostico, estado, APIs y versiones. Separado de la operacion diaria.</p>
-      </div>
-      <a class="nelly-btn nelly-btn--ghost" href="/os">Volver a Nelly OS</a>
-    </header>
+<body class="nelly-work-body">
+  <span class="sr-only">Nelly Delivery - Nelly Developer</span>
 
-    <section class="grid" aria-label="Herramientas tecnicas">
-      <article class="panel">
-        <span class="status">Health</span>
-        <h2>Estado de API</h2>
-        <p>Endpoint local de salud para confirmar disponibilidad del backend.</p>
-        <a class="nelly-btn nelly-btn--ghost" href="/api/health">Abrir health</a>
+  <section class="wc-shell">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Developer</small>
+        </span>
+      </a>
+
+      <nav class="wc-nav" aria-label="Navegacion tecnica">
+        <a class="active" href="#developer-overview">Diagnostico</a>
+        <a href="#developer-health">Health</a>
+        <a href="#developer-contracts">Contratos</a>
+        <a href="#developer-evidence">Evidencia</a>
+        <a href="/analytics">Analytics</a>
+        <a href="/admin">Gobierno</a>
+        <a href="/os">Nelly OS</a>
+      </nav>
+
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Herramientas tecnicas</strong>
+        <small>Diagnostico separado de la operacion</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Transversal tecnico</p>
+          <h1>Nelly Developer</h1>
+          <p class="wc-muted">APIs, estado, versiones y diagnostico sin mezclar herramientas tecnicas con la operacion diaria.</p>
+        </div>
+        <div class="wc-top-actions">
+          <span class="wc-state wc-state-active">Disponible</span>
+          <a class="wc-action-secondary" href="/api/health">Abrir health</a>
+        </div>
+      </header>
+
+      <section id="developer-overview" class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Modo</small>
+          <strong>Tech</strong>
+          <em>Diagnostico</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Contratos</small>
+          <strong>API</strong>
+          <em>Backend decide</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Evidencia</small>
+          <strong>Logs</strong>
+          <em>Antes de cambio</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Estado</small>
+          <strong>OK</strong>
+          <em>Separado</em>
+        </article>
+      </section>
+
+      <section class="wc-grid">
+        <article id="developer-health" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Health</p>
+              <h2>Estado de API</h2>
+            </div>
+            <span class="wc-state wc-state-active">Verificable</span>
+          </div>
+          <p class="wc-muted">Endpoint de salud para confirmar disponibilidad del backend.</p>
+          <div class="wc-top-actions" style="margin-top: 14px;">
+            <a class="wc-action-secondary" href="/api/health">/api/health</a>
+          </div>
+        </article>
+
+        <article id="developer-contracts" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Contratos</p>
+              <h2>Rutas publicas</h2>
+            </div>
+            <span class="wc-state wc-state-processing">Backend</span>
+          </div>
+          <code class="dev-code">/api/admin - /api/delivery - /api/pedidos</code>
+        </article>
+      </section>
+
+      <article id="developer-evidence" class="wc-card" style="margin-top: 12px;">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Proceso tecnico</p>
+            <h2>Evidencia antes de cambiar codigo</h2>
+          </div>
+          <span class="wc-state wc-state-pending">Disciplina</span>
+        </div>
+        <code class="dev-code">Evidence -> Diagnosis -> Fix -> Validation -> Documentation</code>
       </article>
-      <article class="panel">
-        <span class="status">Rutas</span>
-        <h2>Contratos publicos</h2>
-        <p>Versiones y endpoints se validan desde backend, sin mezclar UI operativa.</p>
-        <code class="code">/api/admin · /api/delivery · /api/pedidos</code>
-      </article>
-      <article class="panel">
-        <span class="status">Piloto</span>
-        <h2>Diagnostico</h2>
-        <p>Los hallazgos tecnicos se registran en runbooks e incidencias antes de cambiar codigo.</p>
-        <code class="code">Evidence -> Diagnosis -> Fix -> Validation</code>
-      </article>
-    </section>
-  </main>
+    </main>
+  </section>
 </body>
 </html>
