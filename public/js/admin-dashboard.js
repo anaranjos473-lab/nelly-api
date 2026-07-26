@@ -153,7 +153,25 @@ const ui = {
   targetStore: document.getElementById("target-store"),
   orderMap: document.getElementById("order-map"),
   orderSubmit: document.getElementById("order-submit"),
-  orderFeedback: document.getElementById("order-feedback")
+  orderFeedback: document.getElementById("order-feedback"),
+  restaurantForm: document.getElementById("restaurant-onboarding-form"),
+  restaurantName: document.getElementById("restaurant-name"),
+  restaurantOwner: document.getElementById("restaurant-owner"),
+  restaurantPhone: document.getElementById("restaurant-phone"),
+  restaurantWhatsapp: document.getElementById("restaurant-whatsapp"),
+  restaurantEmail: document.getElementById("restaurant-email"),
+  restaurantHours: document.getElementById("restaurant-hours"),
+  restaurantAddress: document.getElementById("restaurant-address"),
+  restaurantLat: document.getElementById("restaurant-lat"),
+  restaurantLng: document.getElementById("restaurant-lng"),
+  restaurantCommission: document.getElementById("restaurant-commission"),
+  restaurantZone: document.getElementById("restaurant-zone"),
+  restaurantUser: document.getElementById("restaurant-user"),
+  restaurantState: document.getElementById("restaurant-state"),
+  restaurantMenu: document.getElementById("restaurant-menu"),
+  restaurantNotes: document.getElementById("restaurant-notes"),
+  restaurantSubmit: document.getElementById("restaurant-submit"),
+  restaurantFeedback: document.getElementById("restaurant-feedback")
 };
 
 let currentDrivers = {};
@@ -493,6 +511,17 @@ function setOrderFeedback(message, type = "ok") {
     return;
   }
   ui.orderFeedback.className = "mt-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-200";
+}
+
+function setRestaurantFeedback(message, type = "ok") {
+  if (!ui.restaurantFeedback) return;
+  ui.restaurantFeedback.textContent = message;
+  ui.restaurantFeedback.classList.remove("hidden");
+  if (type === "ok") {
+    ui.restaurantFeedback.className = "mt-3 rounded-lg bg-emerald-900/40 px-3 py-2 text-xs text-emerald-200";
+    return;
+  }
+  ui.restaurantFeedback.className = "mt-3 rounded-lg bg-red-900/40 px-3 py-2 text-xs text-red-200";
 }
 
 function switchToDashboard(email) {
@@ -1104,6 +1133,81 @@ async function createManualOrder(event) {
   }
 }
 
+async function createRestaurantOnboarding(event) {
+  event.preventDefault();
+
+  const nombre = String(ui.restaurantName?.value || "").trim();
+  const responsable = String(ui.restaurantOwner?.value || "").trim();
+  const telefono = String(ui.restaurantPhone?.value || "").trim();
+  const whatsapp = String(ui.restaurantWhatsapp?.value || "").trim();
+  const correo = String(ui.restaurantEmail?.value || "").trim();
+  const horario = String(ui.restaurantHours?.value || "").trim();
+  const direccion = String(ui.restaurantAddress?.value || "").trim();
+  const lat = Number(ui.restaurantLat?.value);
+  const lng = Number(ui.restaurantLng?.value);
+  const comision = Number(ui.restaurantCommission?.value || 0);
+  const zonaCobertura = String(ui.restaurantZone?.value || "").trim();
+  const usuario = String(ui.restaurantUser?.value || "").trim();
+  const estado = String(ui.restaurantState?.value || "En revision").trim();
+  const menu = String(ui.restaurantMenu?.value || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const notas = String(ui.restaurantNotes?.value || "").trim();
+
+  if (!nombre || !responsable || !telefono || !whatsapp || !horario || !direccion || !zonaCobertura || !usuario) {
+    setRestaurantFeedback("Completa nombre, responsable, telefono, WhatsApp, horario, direccion, zona y usuario.", "error");
+    return;
+  }
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    setRestaurantFeedback("Ingresa coordenadas validas.", "error");
+    return;
+  }
+
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("Sesion no activa");
+    }
+
+    const idToken = await user.getIdToken();
+    const response = await fetch(`${ADMIN_API_ENDPOINTS[0]}/api/admin/restaurantes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify({
+        nombre_comercial: nombre,
+        responsable,
+        telefono,
+        whatsapp,
+        correo,
+        direccion,
+        coordenadas: { lat, lng },
+        horario,
+        comision,
+        zona_cobertura: zonaCobertura,
+        usuario,
+        estado,
+        menu,
+        notas
+      })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.ok) {
+      throw new Error(payload?.error || "No se pudo crear el restaurante");
+    }
+
+    ui.restaurantForm.reset();
+    if (ui.restaurantState) {
+      ui.restaurantState.value = "En revision";
+    }
+    setRestaurantFeedback(`Restaurante ${payload?.id || nombre} registrado en alta controlada.`, "ok");
+  } catch (error) {
+    setRestaurantFeedback(`No se pudo guardar el alta: ${error.message}`, "error");
+  }
+}
+
 ui.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   setLoginError("");
@@ -1156,6 +1260,9 @@ if (ui.orderItems) {
 });
 
 ui.orderForm.addEventListener("submit", createManualOrder);
+if (ui.restaurantForm) {
+  ui.restaurantForm.addEventListener("submit", createRestaurantOnboarding);
+}
 
 if (ui.locationSearchBtn) {
   ui.locationSearchBtn.addEventListener("click", async () => {

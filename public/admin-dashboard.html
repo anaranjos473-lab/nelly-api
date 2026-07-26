@@ -360,6 +360,42 @@
           </form>
           <p id="order-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
         </article>
+
+        <article class="nelly-pattern-section">
+          <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-lg font-semibold">Alta controlada de restaurantes</h2>
+            <span class="nelly-state nelly-state--live">Prospecto -> Validacion -> Alta -> Prueba</span>
+          </div>
+          <p class="mb-4 text-sm leading-6 text-slate-300">Este flujo sigue la checklist operativa del piloto y deja trazabilidad en <code>market_v1/restaurantes</code> antes de activar cualquier restaurante.</p>
+          <form id="restaurant-onboarding-form" class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <input id="restaurant-name" required class="nelly-input px-3 py-2 text-sm" placeholder="Nombre comercial" />
+            <input id="restaurant-owner" required class="nelly-input px-3 py-2 text-sm" placeholder="Responsable" />
+            <input id="restaurant-phone" required class="nelly-input px-3 py-2 text-sm" placeholder="Telefono" />
+            <input id="restaurant-whatsapp" required class="nelly-input px-3 py-2 text-sm" placeholder="WhatsApp" />
+            <input id="restaurant-email" type="email" class="nelly-input px-3 py-2 text-sm" placeholder="Correo" />
+            <input id="restaurant-hours" required class="nelly-input px-3 py-2 text-sm" placeholder="Horario" />
+            <input id="restaurant-address" required class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
+            <div class="grid grid-cols-2 gap-3 md:col-span-2">
+              <input id="restaurant-lat" required type="number" step="any" class="nelly-input px-3 py-2 text-sm" placeholder="Latitud" />
+              <input id="restaurant-lng" required type="number" step="any" class="nelly-input px-3 py-2 text-sm" placeholder="Longitud" />
+            </div>
+            <input id="restaurant-commission" required type="number" min="0" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Comision %" />
+            <input id="restaurant-zone" required class="nelly-input px-3 py-2 text-sm" placeholder="Zona de cobertura" />
+            <input id="restaurant-user" required class="nelly-input px-3 py-2 text-sm" placeholder="Usuario del restaurante" />
+            <select id="restaurant-state" class="nelly-select px-3 py-2 text-sm">
+              <option value="En revision">En revision</option>
+              <option value="Activo">Activo</option>
+              <option value="Suspendido">Suspendido</option>
+            </select>
+            <textarea id="restaurant-menu" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Menu inicial (una linea por producto)"></textarea>
+            <textarea id="restaurant-notes" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas del alta / observaciones"></textarea>
+            <div class="md:col-span-2 flex flex-wrap items-center gap-2">
+              <button id="restaurant-submit" type="submit" class="nelly-btn nelly-btn--accent">Guardar alta controlada</button>
+              <span class="text-xs text-slate-400">El registro se guarda en <code>market_v1/restaurantes</code>.</span>
+            </div>
+          </form>
+          <p id="restaurant-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
+        </article>
       </section>
     </main>
   </div>

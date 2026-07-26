@@ -169,6 +169,69 @@ router.post('/repartidores/manual-lock', requirePanelAdminEmailAuth, async (req,
     }
 });
 
+// --- ENDPOINT: ALTA CONTROLADA DE RESTAURANTES ---
+router.post('/restaurantes', requirePanelAdminEmailAuth, async (req, res) => {
+    try {
+        const nombre_comercial = String(req.body?.nombre_comercial || '').trim();
+        const responsable = String(req.body?.responsable || '').trim();
+        const telefono = String(req.body?.telefono || '').trim();
+        const whatsapp = String(req.body?.whatsapp || '').trim();
+        const correo = String(req.body?.correo || '').trim();
+        const direccion = String(req.body?.direccion || '').trim();
+        const coordenadas = req.body?.coordenadas || {};
+        const horario = String(req.body?.horario || '').trim();
+        const comision = Number(req.body?.comision || 0);
+        const zona_cobertura = String(req.body?.zona_cobertura || '').trim();
+        const menu = Array.isArray(req.body?.menu) ? req.body.menu : [];
+        const usuario = String(req.body?.usuario || '').trim();
+        const estado = String(req.body?.estado || 'En revision').trim();
+        const notas = String(req.body?.notas || '').trim();
+
+        if (!nombre_comercial || !responsable || !telefono || !whatsapp || !direccion || !horario || !zona_cobertura || !usuario) {
+            return res.status(400).json({ ok: false, error: 'Faltan datos requeridos para el alta' });
+        }
+
+        const lat = Number(coordenadas?.lat);
+        const lng = Number(coordenadas?.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return res.status(400).json({ ok: false, error: 'Coordenadas invalidas' });
+        }
+
+        const now = Date.now();
+        const admin = await getAdmin();
+        const db = admin.database();
+        const restauranteId = db.ref('market_v1/restaurantes').push().key;
+        const record = {
+            id: restauranteId,
+            nombre_comercial,
+            responsable,
+            telefono,
+            whatsapp,
+            correo,
+            direccion,
+            coordenadas: { lat, lng },
+            horario,
+            comision: Number.isFinite(comision) ? comision : 0,
+            zona_cobertura,
+            menu,
+            usuario,
+            estado,
+            notas,
+            origen: 'panel-admin',
+            etapa: 'prospecto',
+            creado_en: now,
+            actualizado_en: now
+        };
+
+        await db.ref(`market_v1/restaurantes/${restauranteId}`).set(record);
+
+        return res.status(201).json({ ok: true, id: restauranteId, restaurante: record });
+    } catch (error) {
+        console.error('[ADMIN][RESTAURANTES_CREATE] Error:', error.message);
+        return res.status(500).json({ ok: false, error: 'No se pudo crear el restaurante' });
+    }
+});
+
 // --- ENDPOINT TEMPORAL DE DIAGNOSTICO DE DEUDA ---
 router.get('/debug/deuda/:uid', requirePanelAdminEmailAuth, async (req, res) => {
     try {
