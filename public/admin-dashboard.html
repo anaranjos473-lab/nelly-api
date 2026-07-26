@@ -1,22 +1,100 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nelly OS - Nelly Admin</title>
+  <title>Nelly OS - Gobierno del Ecosistema</title>
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/themes.css" />
+  <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/patterns.css" />
+  <link rel="stylesheet" href="/styles/components/button.css" />
+  <link rel="stylesheet" href="/styles/components/forms.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
   <style>
-    .map-shell {
+    .gov-section {
+      margin-top: 12px;
+    }
+
+    .gov-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .gov-field,
+    .gov-textarea,
+    .gov-select {
+      width: 100%;
+      border: 1px solid rgba(87, 127, 176, 0.35);
+      border-radius: 12px;
+      padding: 12px 13px;
+      color: #06101c;
+      background: #e8f0ff;
+    }
+
+    .gov-textarea {
+      min-height: 98px;
+      resize: vertical;
+    }
+
+    .gov-select {
+      appearance: auto;
+    }
+
+    .gov-span-2 {
+      grid-column: span 2;
+    }
+
+    .gov-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .gov-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--wc-line);
+      border-radius: 16px;
+      background: rgba(4, 14, 26, 0.5);
+    }
+
+    .gov-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    .gov-table th,
+    .gov-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(87, 127, 176, 0.18);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .gov-table th {
+      color: var(--wc-muted);
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .gov-map-shell {
       position: relative;
       overflow: hidden;
-      border-radius: 1rem;
-      border: 1px solid rgba(37, 50, 82, 0.95);
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(10, 15, 30, 0.96));
       min-height: 320px;
+      border: 1px solid var(--wc-line);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(24, 215, 166, 0.16), transparent 18%),
+        linear-gradient(135deg, rgba(43, 130, 255, 0.1), rgba(4, 14, 26, 0.92));
     }
 
     #order-map {
-      width: 100%;
       min-height: 320px;
+      width: 100%;
     }
 
     .map-pin {
@@ -27,11 +105,11 @@
       height: 22px;
       transform: translate(-50%, -100%) rotate(-45deg);
       border-radius: 9999px 9999px 9999px 0;
-      background: #00d9a6;
+      background: #18d7a6;
       border: 3px solid #08111f;
-      box-shadow: 0 0 0 6px rgba(0, 217, 166, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 0 0 6px rgba(24, 215, 166, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
       pointer-events: none;
-      z-index: 500;
+      z-index: 5;
     }
 
     .map-crosshair {
@@ -42,441 +120,459 @@
       height: 92px;
       transform: translate(-50%, -50%);
       border-radius: 9999px;
-      border: 1px solid rgba(110, 168, 254, 0.22);
-      background: radial-gradient(circle, rgba(0, 217, 166, 0.08), transparent 60%);
+      border: 1px solid rgba(110, 168, 254, 0.28);
+      background: radial-gradient(circle, rgba(24, 215, 166, 0.08), transparent 60%);
       pointer-events: none;
-      z-index: 400;
+      z-index: 4;
+    }
+
+    .gov-segment {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      background: rgba(6, 18, 34, 0.72);
+    }
+
+    .gov-segment button,
+    .gov-soft-button {
+      border: 0;
+      padding: 10px 12px;
+      color: var(--wc-text);
+      background: transparent;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .gov-soft-button {
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      background: rgba(6, 18, 34, 0.72);
+    }
+
+    #target-client[class*="bg-panel-accent"],
+    #target-store[class*="bg-panel-accent"] {
+      color: #041221;
+      background: linear-gradient(135deg, var(--wc-green), #1ed1f2);
+    }
+
+    .gov-feedback {
+      margin-top: 12px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.84rem;
+    }
+
+    #order-preview {
+      min-height: 170px;
+    }
+
+    @media (max-width: 980px) {
+      .gov-form-grid,
+      .gov-mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gov-span-2 {
+        grid-column: span 1;
+      }
     }
   </style>
-  <link rel="stylesheet" href="/css/tokens.css" />
-  <link rel="stylesheet" href="/css/themes.css" />
-  <link rel="stylesheet" href="/styles/nelly-design.css" />
-  <link rel="stylesheet" href="/styles/states.css" />
-  <link rel="stylesheet" href="/styles/patterns.css" />
-  <link rel="stylesheet" href="/styles/components/button.css" />
-  <link rel="stylesheet" href="/styles/components/card.css" />
-  <link rel="stylesheet" href="/styles/components/badge.css" />
-  <link rel="stylesheet" href="/styles/components/kpi.css" />
-  <link rel="stylesheet" href="/styles/components/forms.css" />
 </head>
-<body class="h-full bg-panel-bg text-slate-100 nelly-shell">
-  <span style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Panel de Administracion</span>
-  <span style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Gestor de Repartidores</span>
-  <div class="min-h-full nelly-grid">
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-6">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="nelly-state nelly-state--success-soft">Administracion</span>
-            <span class="nelly-chip nelly-chip--info">Nelly Admin</span>
-            <span class="nelly-chip nelly-chip--accent">Control total</span>
-            <span class="nelly-chip">SSOT operativa</span>
-            <span class="nelly-icon nelly-icon--shield" aria-hidden="true"></span>
-          </div>
-          <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <div class="max-w-3xl space-y-4">
-              <div>
-                <p class="nelly-section-label text-panel-accent">Nelly OS · Admin</p>
-                <h1 class="nelly-hero-title mt-2">Nelly Admin</h1>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Gestion en tiempo real de repartidores, deuda, pedidos activos y ubicacion operativa con una lectura consistente y directa.</p>
-              </div>
-              <div class="nelly-divider"></div>
-              <div class="flex flex-wrap gap-2">
-                <a href="/commerce" class="nelly-btn nelly-btn--ghost">Nelly Commerce</a>
-                <a href="/control" class="nelly-btn nelly-btn--ghost">Nelly Control</a>
-                <a href="/crm" class="nelly-btn nelly-btn--ghost">Nelly CRM</a>
-                <a href="#manual-order-form" class="nelly-btn nelly-btn--ghost">Pedidos</a>
-                <a href="#restaurant-onboarding-form" class="nelly-btn nelly-btn--ghost">Restaurantes</a>
-                <a href="#restaurant-list-section" class="nelly-btn nelly-btn--ghost">Estado operativo</a>
-              </div>
-            </div>
-            <div class="nelly-panel-soft p-4 sm:p-5">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Lectura rapida</p>
-              <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--drivers" aria-hidden="true"></span>Flota Nelly</p>
-                  <p id="metric-drivers" class="mt-1 text-xl font-bold text-panel-accent">0</p>
-                </div>
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--orders" aria-hidden="true"></span>Pedidos activos</p>
-                  <p id="metric-orders" class="mt-1 text-xl font-bold text-panel-info">0</p>
-                </div>
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--alerts" aria-hidden="true"></span>No elegibles</p>
-                  <p id="metric-blocked-total" class="mt-1 text-xl font-bold text-panel-warn">0</p>
-                </div>
-                <div class="nelly-kpi px-3 py-3">
-                  <p class="text-xs text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--money" aria-hidden="true"></span>Rentabilidad</p>
-                  <p id="metric-ventas-brutas" class="mt-1 text-xl font-bold text-panel-accent">$0.00</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <a href="#manual-order-form" class="nelly-panel-soft block p-4 transition hover:border-cyan-400/30 hover:bg-slate-900/60">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos</p>
-              <p class="mt-2 text-base font-semibold text-slate-100">Crear y ubicar pedidos manuales</p>
-              <p class="mt-1 text-sm text-slate-300">Cliente, tienda, mapa y confirmacion en un solo flujo.</p>
-            </a>
-            <a href="#restaurant-onboarding-form" class="nelly-panel-soft block p-4 transition hover:border-emerald-400/30 hover:bg-slate-900/60">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Restaurantes</p>
-              <p class="mt-2 text-base font-semibold text-slate-100">Alta controlada y trazable</p>
-              <p class="mt-1 text-sm text-slate-300">Prospecto, validacion, alta y estado operativo.</p>
-            </a>
-            <a href="/crm" class="nelly-panel-soft block p-4 transition hover:border-violet-400/30 hover:bg-slate-900/60">
-              <p class="text-xs uppercase tracking-wide text-slate-400">CRM</p>
-              <p class="mt-2 text-base font-semibold text-slate-100">Vista comercial separada</p>
-              <p class="mt-1 text-sm text-slate-300">Abrir la lectura de clientes y comercios sin mezclarla con operacion.</p>
-            </a>
-          </div>
-          <div id="session-box" class="hidden items-center gap-3">
-            <span id="session-email" class="nelly-chip"></span>
-            <button id="btn-logout" class="nelly-btn nelly-btn--ghost">Cerrar sesion</button>
-          </div>
+<body class="nelly-work-body">
+  <span class="sr-only">Nelly Delivery - Gobierno del Ecosistema</span>
+
+  <section id="login-section" class="wc-login-shell">
+    <div class="wc-login-card">
+      <p class="wc-eyebrow">Nelly OS / Administrar</p>
+      <h1>Gobierno del Ecosistema</h1>
+      <p>Entrada exclusiva para configurar, auditar y mantener saludable la plataforma Nelly.</p>
+      <form id="login-form" class="wc-login-form">
+        <input id="login-email" type="email" required placeholder="admin@nellydelivery.com" />
+        <input id="login-password" type="password" required placeholder="********" />
+        <button type="submit">Iniciar sesion</button>
+        <p id="login-error" class="wc-error hidden"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="dashboard-section" class="wc-shell hidden">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Administrar</small>
+        </span>
+      </a>
+
+      <nav class="wc-nav" aria-label="Navegacion de gobierno">
+        <a class="active" href="#gov-overview">Gobierno</a>
+        <a href="#restaurant-onboarding-section">Restaurantes</a>
+        <a href="#restaurant-list-section">Estado operativo</a>
+        <a href="#fleet-governance">Flota y bloqueos</a>
+        <a href="#manual-order-section">Soporte pedidos</a>
+        <a href="/control">Operaciones</a>
+        <a href="/commerce">Comercio</a>
+        <a href="/crm">CRM</a>
+      </nav>
+
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Centro de gobierno</strong>
+        <small>Configuracion y auditoria</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Casilla 1</p>
+          <h1>Gobierno del Ecosistema</h1>
+          <p class="wc-muted">Aqui se gobiernan usuarios, restaurantes, flota, seguridad, parametros y soporte operativo.</p>
+        </div>
+        <div id="session-box" class="hidden wc-top-actions">
+          <span id="session-email" class="wc-pill blue"></span>
+          <button id="btn-logout" type="button" class="wc-action">Cerrar sesion</button>
         </div>
       </header>
 
-      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
-        <p class="nelly-section-label">Acceso Nelly Admin</p>
-        <h2 class="nelly-hero-title mt-2 text-2xl">Ingresar a Nelly Admin</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-300">Solo correos autorizados pueden entrar al dashboard.</p>
-        <form id="login-form" class="mt-5 space-y-4">
-          <div>
-            <label for="login-email" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Correo</label>
-            <input id="login-email" type="email" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="admin@nellydelivery.com" />
+      <section id="gov-overview" class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Flota registrada</small>
+          <strong id="metric-drivers">0</strong>
+          <em>Elegibilidad</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Pedidos activos</small>
+          <strong id="metric-orders">0</strong>
+          <em>Soporte</em>
+        </article>
+        <article class="wc-kpi">
+          <small>No elegibles</small>
+          <strong id="metric-blocked-total">0</strong>
+          <em>Riesgo operativo</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Ventas brutas</small>
+          <strong id="metric-ventas-brutas">$0.00</strong>
+          <em>Lectura financiera</em>
+        </article>
+      </section>
+
+      <section class="wc-grid gov-section">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Mapa de gobierno</p>
+              <h2>Que se administra aqui</h2>
+            </div>
+            <span class="wc-pill green">Regla 10 segundos</span>
           </div>
-          <div>
-            <label for="login-password" class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-300">Contraseña</label>
-            <input id="login-password" type="password" required class="nelly-input w-full px-3 py-2 text-sm text-white" placeholder="********" />
+          <div class="wc-module-grid">
+            <a class="wc-module" href="#restaurant-onboarding-section">
+              <p class="wc-eyebrow">Restaurantes</p>
+              <h3>Alta controlada</h3>
+              <p>Prospecto, validacion, alta y activacion para piloto.</p>
+            </a>
+            <a class="wc-module" href="#fleet-governance">
+              <p class="wc-eyebrow">Seguridad</p>
+              <h3>Flota y bloqueos</h3>
+              <p>Deuda, bloqueo manual y no elegibles.</p>
+            </a>
+            <a class="wc-module" href="#manual-order-section">
+              <p class="wc-eyebrow">Soporte</p>
+              <h3>Pedido manual</h3>
+              <p>Herramienta asistida para crear pedidos por operador.</p>
+            </a>
           </div>
-          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Iniciar sesion en Nelly Admin</button>
-          <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
+        </article>
+
+        <aside class="wc-stack">
+          <article class="wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Rentabilidad del dia</p>
+                <h2>Lectura financiera</h2>
+              </div>
+              <span class="wc-pill green">Tiempo real</span>
+            </div>
+            <div class="wc-list">
+              <div class="wc-row"><span>Comisiones Nelly</span><strong id="metric-comisiones-nelly">$0.00</strong></div>
+              <div class="wc-row"><span>Entregas</span><strong id="metric-conteo-entregas">0</strong></div>
+              <div class="wc-row"><span>Bloqueo manual</span><strong id="metric-blocked-manual">0</strong></div>
+              <div class="wc-row"><span>Bloqueo por deuda</span><strong id="metric-blocked-debt">0</strong></div>
+            </div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="wc-kpi-grid gov-section">
+        <article class="wc-kpi">
+          <small>Pedidos creados hoy</small>
+          <strong id="metric-pedidos-creados">0</strong>
+          <em>Entrada</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Entregados hoy</small>
+          <strong id="metric-pedidos-entregados">0</strong>
+          <em>Cierre</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Cancelados hoy</small>
+          <strong id="metric-pedidos-cancelados">0</strong>
+          <em>Incidencia</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Conductores activos</small>
+          <strong id="metric-conductores-activos">0</strong>
+          <em>Disponibilidad</em>
+        </article>
+      </section>
+
+      <section class="wc-kpi-grid gov-section">
+        <article class="wc-kpi">
+          <small>Tiempo asignacion</small>
+          <strong id="metric-tiempo-asignacion">0 min</strong>
+          <em>Promedio</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Tiempo entrega</small>
+          <strong id="metric-tiempo-entrega">0 min</strong>
+          <em>Promedio</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Fraudes detectados</small>
+          <strong id="metric-fraudes-detectados">0</strong>
+          <em>Control</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Mapa de calor</small>
+          <strong>Activo</strong>
+          <em>Territorio</em>
+        </article>
+      </section>
+
+      <article class="wc-card gov-section">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Mapa de calor por zona</p>
+            <h2>Lectura territorial</h2>
+          </div>
+          <span class="wc-pill blue">Finanzas</span>
+        </div>
+        <ul id="metric-mapa-calor" class="wc-list"></ul>
+      </article>
+
+      <article id="restaurant-onboarding-section" class="wc-card gov-section">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Restaurantes</p>
+            <h2>Alta controlada de restaurantes</h2>
+          </div>
+          <span class="wc-pill green">Prospecto -> Validacion -> Alta -> Prueba</span>
+        </div>
+        <p class="wc-muted">Este flujo deja trazabilidad en market_v1/restaurantes antes de activar cualquier restaurante.</p>
+        <form id="restaurant-onboarding-form" class="gov-form-grid gov-section">
+          <input id="restaurant-name" required class="gov-field" placeholder="Nombre comercial" />
+          <input id="restaurant-owner" required class="gov-field" placeholder="Responsable" />
+          <input id="restaurant-phone" required class="gov-field" placeholder="Telefono" />
+          <input id="restaurant-whatsapp" required class="gov-field" placeholder="WhatsApp" />
+          <input id="restaurant-email" type="email" class="gov-field" placeholder="Correo" />
+          <input id="restaurant-hours" required class="gov-field" placeholder="Horario" />
+          <input id="restaurant-address" required class="gov-field gov-span-2" placeholder="Direccion" />
+          <input id="restaurant-lat" required type="number" step="any" class="gov-field" placeholder="Latitud" />
+          <input id="restaurant-lng" required type="number" step="any" class="gov-field" placeholder="Longitud" />
+          <input id="restaurant-commission" required type="number" min="0" step="0.01" class="gov-field" placeholder="Comision %" />
+          <input id="restaurant-zone" required class="gov-field" placeholder="Zona de cobertura" />
+          <input id="restaurant-user" required class="gov-field" placeholder="Usuario del restaurante" />
+          <select id="restaurant-state" class="gov-select">
+            <option value="En revision">En revision</option>
+            <option value="Activo">Activo</option>
+            <option value="Suspendido">Suspendido</option>
+          </select>
+          <textarea id="restaurant-menu" rows="3" class="gov-textarea gov-span-2" placeholder="Menu inicial (una linea por producto)"></textarea>
+          <textarea id="restaurant-notes" rows="3" class="gov-textarea gov-span-2" placeholder="Notas del alta / observaciones"></textarea>
+          <div class="gov-span-2">
+            <button id="restaurant-submit" type="submit" class="wc-action">Guardar alta controlada</button>
+          </div>
         </form>
-      </section>
+        <p id="restaurant-feedback" class="gov-feedback hidden"></p>
+      </article>
 
-      <section id="dashboard-section" class="hidden space-y-6">
-        <article class="nelly-panel p-5 sm:p-6">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="max-w-2xl space-y-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Rentabilidad del día</p>
-              <h2 class="text-2xl font-bold">Lectura operativa y financiera</h2>
-              <p class="text-sm leading-6 text-slate-300">Se consolida ventas, comisiones, entregas y mapa de calor en un solo bloque de control.</p>
-            </div>
-            <span class="nelly-state nelly-state--live">Tiempo real</span>
+      <article id="restaurant-list-section" class="wc-card gov-section">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Estado operativo</p>
+            <h2>Restaurantes dados de alta</h2>
           </div>
-          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs text-slate-400">Ventas Brutas</p>
-              <p id="metric-ventas-brutas" class="mt-2 text-2xl font-bold text-panel-accent">$0.00</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs text-slate-400">Comisiones Nelly</p>
-              <p id="metric-comisiones-nelly" class="mt-2 text-2xl font-bold text-panel-warn">$0.00</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs text-slate-400">Entregas</p>
-              <p id="metric-conteo-entregas" class="mt-2 text-2xl font-bold text-panel-info">0</p>
-            </div>
+          <div class="wc-top-actions">
+            <span id="restaurant-count" class="wc-pill blue">0 registros</span>
+            <button id="restaurant-refresh" type="button" class="gov-soft-button">Refrescar</button>
           </div>
-          <div class="nelly-pattern-section mt-4">
-            <div class="nelly-pattern-section__header">
-              <p class="nelly-pattern-section__title">Mapa de calor por zona</p>
-              <span class="nelly-state nelly-state--empty">Lectura territorial</span>
-            </div>
-            <ul id="metric-mapa-calor" class="grid grid-cols-2 gap-2 text-sm text-slate-200 md:grid-cols-4"></ul>
-          </div>
-        </article>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Flota Nelly</p>
-            <p id="metric-drivers" class="mt-2 text-2xl font-bold">0</p>
+        </div>
+        <div class="wc-kpi-grid">
+          <article class="wc-kpi">
+            <small>Activos</small>
+            <strong id="restaurant-active-count">0</strong>
+            <em>Operativos</em>
           </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Bloqueo manual</p>
-            <p id="metric-blocked-manual" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
+          <article class="wc-kpi">
+            <small>Prospectos pendientes</small>
+            <strong id="restaurant-pending-count">0</strong>
+            <em>Por validar</em>
           </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Bloqueo por deuda</p>
-            <p id="metric-blocked-debt" class="mt-2 text-2xl font-bold text-panel-info">0</p>
+          <article class="wc-kpi">
+            <small>Ultimos registros</small>
+            <strong id="restaurant-recent-count">0</strong>
+            <em>Recientes</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Ultima alta</small>
+            <strong id="restaurant-last-name">Sin registros aun</strong>
+            <em id="restaurant-last-time">Hora pendiente</em>
           </article>
         </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Total no elegibles</p>
-            <p id="metric-blocked-total" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Activos</p>
-            <p id="metric-orders" class="mt-2 text-2xl font-bold text-panel-info">0</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Creados Hoy</p>
-            <p id="metric-pedidos-creados" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Entregados Hoy</p>
-            <p id="metric-pedidos-entregados" class="mt-2 text-2xl font-bold text-panel-info">0</p>
-          </article>
+        <p id="restaurant-last-status" class="wc-pill yellow">Estado pendiente</p>
+        <div class="wc-top-actions gov-section">
+          <button id="restaurant-filter-all" type="button" class="gov-soft-button">Todos</button>
+          <button id="restaurant-filter-active" type="button" class="gov-soft-button">Activos</button>
+          <button id="restaurant-filter-pending" type="button" class="gov-soft-button">En revision</button>
+          <button id="restaurant-filter-suspended" type="button" class="gov-soft-button">Suspendidos</button>
         </div>
-
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Pedidos Cancelados Hoy</p>
-            <p id="metric-pedidos-cancelados" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Conductores Activos</p>
-            <p id="metric-conductores-activos" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
-          </article>
-          <article class="nelly-kpi p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Fraudes Detectados</p>
-            <p id="metric-fraudes-detectados" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
-          </article>
+        <div class="gov-table-wrap gov-section">
+          <table class="gov-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Responsable</th>
+                <th>Estado</th>
+                <th>Zona</th>
+                <th>Origen</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="restaurant-list-body"></tbody>
+          </table>
         </div>
+      </article>
 
-        <article class="nelly-pattern-section">
-          <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-lg font-semibold">Gestor de Flota Nelly (Tiempo real)</h2>
-            <p class="text-xs text-slate-400">Sincronización protegida via backend cada 5 segundos.</p>
+      <article id="fleet-governance" class="wc-card gov-section">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Seguridad operativa</p>
+            <h2>Flota y bloqueos</h2>
           </div>
-          <div class="overflow-x-auto">
-            <table class="nelly-table text-sm">
-              <thead>
-                <tr class="text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th class="px-2 py-2 sm:px-3">Nombre</th>
-                  <th class="hidden px-3 py-2 md:table-cell">UID</th>
-                  <th class="px-2 py-2 sm:px-3">Nivel</th>
-                  <th class="px-2 py-2 sm:px-3">Deuda</th>
-                  <th class="px-2 py-2 sm:px-3">Bloqueo</th>
-                </tr>
-              </thead>
-              <tbody id="drivers-table-body"></tbody>
-            </table>
+          <span class="wc-pill yellow">Elegibilidad</span>
+        </div>
+        <div class="gov-table-wrap">
+          <table class="gov-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>UID</th>
+                <th>Nivel</th>
+                <th>Deuda</th>
+                <th>Bloqueo</th>
+              </tr>
+            </thead>
+            <tbody id="drivers-table-body"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article id="manual-order-section" class="wc-card gov-section">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Soporte operativo</p>
+            <h2>Generador de pedidos manuales</h2>
           </div>
-        </article>
+          <span class="wc-pill green">Pedido asistido</span>
+        </div>
+        <form id="manual-order-form" class="gov-form-grid">
+          <input id="order-client" required class="gov-field" placeholder="Nombre del cliente" />
+          <input id="order-phone" required class="gov-field" placeholder="Telefono" />
+          <input id="order-address" required class="gov-field gov-span-2" placeholder="Direccion" />
+          <select id="order-place-type" required class="gov-select">
+            <option value="casa">Casa</option>
+            <option value="oficina">Oficina</option>
+            <option value="departamento">Departamento</option>
+            <option value="hotel">Hotel</option>
+            <option value="otro">Otro</option>
+          </select>
+          <select id="order-delivery-method" required class="gov-select">
+            <option value="puerta">Encontrarse en la puerta</option>
+            <option value="exterior">Encontrarse afuera</option>
+            <option value="recepcion">Encontrarse en la recepcion</option>
+          </select>
+          <input id="order-reference" class="gov-field" placeholder="Referencia de ubicacion" />
+          <textarea id="order-location-notes" rows="2" class="gov-textarea" placeholder="Notas para la entrega"></textarea>
 
-        <article class="nelly-pattern-section">
-          <h2 class="mb-4 text-lg font-semibold">Generador de Pedidos Manuales</h2>
-          <form id="manual-order-form" class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">
-              <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Datos del cliente</p>
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <input id="order-client" required class="nelly-input px-3 py-2 text-sm" placeholder="Nombre del cliente" />
-                <input id="order-phone" required class="nelly-input px-3 py-2 text-sm" placeholder="Telefono" />
-                <input id="order-address" required class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
+          <section class="gov-span-2 wc-card">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Ubicacion de entrega</p>
+                <h2>Buscar, confirmar y ocultar coordenadas</h2>
               </div>
-            </section>
-
-            <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Contexto de entrega</p>
-                <span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[11px] font-semibold text-emerald-200">Visible para operación</span>
+              <div class="gov-segment">
+                <button id="target-client" type="button" class="bg-panel-accent">Cliente</button>
+                <button id="target-store" type="button">Tienda</button>
               </div>
-              <p class="mb-4 text-xs text-slate-400">Este bloque captura la ubicación como la piensa el operador: tipo de lugar, método de entrega, referencia y notas. Las coordenadas quedan en segundo plano.</p>
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <select id="order-place-type" required class="nelly-select px-3 py-2 text-sm">
-                  <option value="casa">Casa</option>
-                  <option value="oficina">Oficina</option>
-                  <option value="departamento">Departamento</option>
-                  <option value="hotel">Hotel</option>
-                  <option value="otro">Otro</option>
-                </select>
-                <select id="order-delivery-method" required class="nelly-select px-3 py-2 text-sm">
-                  <option value="puerta">Encontrarse en la puerta</option>
-                  <option value="exterior">Encontrarse afuera</option>
-                  <option value="recepcion">Encontrarse en la recepción</option>
-                </select>
-                <input id="order-reference" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Referencia de ubicación (color, portón, piso, acceso, etc.)" />
-                <textarea id="order-location-notes" rows="2" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas para la entrega (instrucciones, acceso, recepción)"></textarea>
-              </div>
-            </section>
-
-            <section class="md:col-span-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4">
-              <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-cyan-200">Ubicación de entrega</p>
-                  <h3 class="mt-1 text-sm text-slate-300">Busca una dirección, ajusta el mapa y confirma sin exponer coordenadas.</h3>
+            </div>
+            <div class="gov-form-grid">
+              <div>
+                <input id="location-search" class="gov-field" placeholder="Buscar direccion" />
+                <div class="wc-top-actions gov-section">
+                  <button id="location-search-btn" type="button" class="gov-soft-button">Buscar</button>
+                  <button id="use-current-location" type="button" class="gov-soft-button">Usar mi ubicacion</button>
+                  <button id="confirm-location" type="button" class="wc-action">Confirmar ubicacion</button>
                 </div>
-                <div class="flex items-center gap-2">
-                  <div class="inline-flex overflow-hidden rounded-lg border border-panel-line">
-                    <button id="target-client" type="button" class="bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950">Cliente</button>
-                    <button id="target-store" type="button" class="bg-slate-900/60 px-3 py-2 text-xs font-semibold text-slate-200">Tienda</button>
-                  </div>
-                  <button id="use-current-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20">Usar mi ubicación</button>
-                  <button id="confirm-location" type="button" class="rounded-lg bg-panel-accent px-3 py-2 text-xs font-bold text-slate-950 hover:brightness-110">Confirmar ubicación</button>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-                <div class="space-y-3">
-                  <div class="rounded-xl border border-panel-line bg-slate-900/40 p-3">
-                    <label for="location-search" class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Buscar dirección</label>
-                    <div class="flex flex-col gap-2 sm:flex-row">
-                      <input id="location-search" class="nelly-input w-full px-3 py-2 text-sm outline-none" placeholder="Ave La Coyote, Tuxtla Gutiérrez, Chiapas" />
-                      <button id="location-search-btn" type="button" class="rounded-lg border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-100 hover:bg-sky-400/20">Buscar</button>
-                    </div>
-                    <p class="mt-2 text-xs text-slate-400">El mapa centrará el resultado y mantendrá un pin fijo en el centro.</p>
-                  </div>
-
-                  <div class="map-shell">
-                    <div class="absolute left-3 top-3 z-[600] rounded-full border border-cyan-400/30 bg-slate-950/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cyan-100">Mapa operativo</div>
-                    <div id="order-map"></div>
-                    <div class="map-crosshair"></div>
-                    <div class="map-pin"></div>
-                  </div>
-                </div>
-
-                <div class="space-y-3">
-                  <div class="rounded-xl border border-slate-700/70 bg-slate-950/35 p-3">
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400">Dirección encontrada</p>
-                    <p id="location-found-address" class="mt-1 text-sm font-semibold text-slate-100">Sin ubicación aún</p>
-                    <p id="location-found-status" class="mt-2 text-xs text-emerald-200">El operador solo ve dirección legible.</p>
-                  </div>
-
-                  <div class="rounded-xl border border-slate-700/70 bg-slate-950/35 p-3">
-                    <p class="text-[11px] uppercase tracking-wide text-slate-400">Ubicación técnica</p>
-                    <p class="mt-1 text-sm text-slate-100">Las coordenadas se llenan automáticamente y quedan ocultas.</p>
-                    <input id="order-client-lat" type="hidden" />
-                    <input id="order-client-lng" type="hidden" />
-                    <input id="order-store-lat" type="hidden" />
-                    <input id="order-store-lng" type="hidden" />
-                    <div class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-300">
-                      <p id="location-coords-preview" class="rounded-lg border border-panel-line bg-slate-900/60 px-3 py-2">Lat/Lng pendientes</p>
-                      <div class="flex flex-wrap gap-2">
-                        <a id="preview-open-maps" href="#" target="_self" class="rounded-lg border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-400/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50">Abrir en Maps</a>
-                        <button id="preview-copy-location" type="button" class="rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-50">Copiar ubicación</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="rounded-xl border border-cyan-400/20 bg-cyan-400/5 p-3">
-                    <p class="text-[11px] uppercase tracking-wide text-cyan-200">Estado de captura</p>
-                    <p id="location-capture-state" class="mt-1 text-sm font-semibold text-slate-100">Busca una dirección o usa tu ubicación actual.</p>
-                  </div>
+                <div class="gov-map-shell gov-section">
+                  <div id="order-map"></div>
+                  <div class="map-crosshair"></div>
+                  <div class="map-pin"></div>
                 </div>
               </div>
-            </section>
-            <section class="md:col-span-2 rounded-xl border border-panel-line bg-slate-900/30 p-4">
-              <div class="mb-3 flex items-center justify-between gap-3">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Items y pago</p>
-                <span class="rounded-full border border-sky-400/30 bg-sky-400/10 px-2 py-1 text-[11px] font-semibold text-sky-200">Contrato operativo</span>
-              </div>
-              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <textarea id="order-items" required rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Items del pedido (una linea por item, ejemplo: 2x Pizza $120)"></textarea>
-                <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Subtotal MXN" />
-                <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Costo de envío MXN" />
-                <input id="order-tip" required type="number" min="0" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Propina MXN" />
-                <select id="order-payment-method" required class="nelly-select px-3 py-2 text-sm">
-                  <option value="efectivo">Efectivo</option>
-                  <option value="tarjeta">Tarjeta</option>
-                  <option value="transferencia">Transferencia</option>
-                </select>
-                <input id="order-total" readonly type="number" class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Total calculado MXN" />
-                <textarea id="order-notes" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas del pedido (referencias, observaciones)"></textarea>
-              </div>
-            </section>
+              <aside class="wc-stack">
+                <div class="wc-row"><span>Direccion encontrada</span><strong id="location-found-address">Sin ubicacion aun</strong></div>
+                <div class="wc-row"><span>Estado</span><strong id="location-found-status">El operador solo ve direccion legible.</strong></div>
+                <div class="wc-row"><span>Coordenadas</span><strong id="location-coords-preview">Lat/Lng pendientes</strong></div>
+                <div class="wc-row"><span>Captura</span><strong id="location-capture-state">Busca una direccion o usa tu ubicacion actual.</strong></div>
+                <div class="wc-top-actions">
+                  <a id="preview-open-maps" href="#" target="_self" class="wc-pill blue">Abrir en Maps</a>
+                  <button id="preview-copy-location" type="button" class="gov-soft-button">Copiar ubicacion</button>
+                </div>
+                <input id="order-client-lat" type="hidden" />
+                <input id="order-client-lng" type="hidden" />
+                <input id="order-store-lat" type="hidden" />
+                <input id="order-store-lng" type="hidden" />
+              </aside>
+            </div>
+          </section>
 
-            <button id="order-submit" type="submit" class="nelly-btn nelly-btn--accent md:col-span-2">Crear Pedido</button>
-          </form>
-          <p id="order-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
-        </article>
-
-        <article id="restaurant-onboarding-section" class="nelly-pattern-section">
-          <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-lg font-semibold">Alta controlada de restaurantes</h2>
-            <span class="nelly-state nelly-state--live">Prospecto -> Validacion -> Alta -> Prueba</span>
-          </div>
-          <p class="mb-4 text-sm leading-6 text-slate-300">Este flujo sigue la checklist operativa del piloto y deja trazabilidad en <code>market_v1/restaurantes</code> antes de activar cualquier restaurante.</p>
-          <form id="restaurant-onboarding-form" class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <input id="restaurant-name" required class="nelly-input px-3 py-2 text-sm" placeholder="Nombre comercial" />
-            <input id="restaurant-owner" required class="nelly-input px-3 py-2 text-sm" placeholder="Responsable" />
-            <input id="restaurant-phone" required class="nelly-input px-3 py-2 text-sm" placeholder="Telefono" />
-            <input id="restaurant-whatsapp" required class="nelly-input px-3 py-2 text-sm" placeholder="WhatsApp" />
-            <input id="restaurant-email" type="email" class="nelly-input px-3 py-2 text-sm" placeholder="Correo" />
-            <input id="restaurant-hours" required class="nelly-input px-3 py-2 text-sm" placeholder="Horario" />
-            <input id="restaurant-address" required class="nelly-input px-3 py-2 text-sm md:col-span-2" placeholder="Direccion" />
-            <div class="grid grid-cols-2 gap-3 md:col-span-2">
-              <input id="restaurant-lat" required type="number" step="any" class="nelly-input px-3 py-2 text-sm" placeholder="Latitud" />
-              <input id="restaurant-lng" required type="number" step="any" class="nelly-input px-3 py-2 text-sm" placeholder="Longitud" />
-            </div>
-            <input id="restaurant-commission" required type="number" min="0" step="0.01" class="nelly-input px-3 py-2 text-sm" placeholder="Comision %" />
-            <input id="restaurant-zone" required class="nelly-input px-3 py-2 text-sm" placeholder="Zona de cobertura" />
-            <input id="restaurant-user" required class="nelly-input px-3 py-2 text-sm" placeholder="Usuario del restaurante" />
-            <select id="restaurant-state" class="nelly-select px-3 py-2 text-sm">
-              <option value="En revision">En revision</option>
-              <option value="Activo">Activo</option>
-              <option value="Suspendido">Suspendido</option>
-            </select>
-            <textarea id="restaurant-menu" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Menu inicial (una linea por producto)"></textarea>
-            <textarea id="restaurant-notes" rows="3" class="nelly-textarea px-3 py-2 text-sm md:col-span-2" placeholder="Notas del alta / observaciones"></textarea>
-            <div class="md:col-span-2 flex flex-wrap items-center gap-2">
-              <button id="restaurant-submit" type="submit" class="nelly-btn nelly-btn--accent">Guardar alta controlada</button>
-              <span class="text-xs text-slate-400">El registro se guarda en <code>market_v1/restaurantes</code>.</span>
-            </div>
-          </form>
-          <p id="restaurant-feedback" class="mt-3 hidden rounded-lg px-3 py-2 text-xs"></p>
-        </article>
-
-        <article id="restaurant-list-section" class="nelly-pattern-section">
-          <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="text-lg font-semibold">Restaurantes dados de alta</h2>
-            <div class="flex flex-wrap gap-2">
-              <span id="restaurant-count" class="nelly-state nelly-state--empty">0 registros</span>
-              <button id="restaurant-refresh" type="button" class="nelly-btn nelly-btn--ghost">Refrescar</button>
-            </div>
-          </div>
-          <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Activos</p>
-              <p id="restaurant-active-count" class="mt-2 text-2xl font-bold text-panel-accent">0</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Prospectos pendientes</p>
-              <p id="restaurant-pending-count" class="mt-2 text-2xl font-bold text-panel-warn">0</p>
-            </div>
-            <div class="nelly-panel-soft p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Ultimos registros</p>
-              <p id="restaurant-recent-count" class="mt-2 text-2xl font-bold text-panel-info">0</p>
-            </div>
-          </div>
-          <div class="mb-4 flex flex-wrap gap-2">
-            <button id="restaurant-filter-all" type="button" class="nelly-btn nelly-btn--ghost">Todos</button>
-            <button id="restaurant-filter-active" type="button" class="nelly-btn nelly-btn--ghost">Activos</button>
-            <button id="restaurant-filter-pending" type="button" class="nelly-btn nelly-btn--ghost">En revision</button>
-            <button id="restaurant-filter-suspended" type="button" class="nelly-btn nelly-btn--ghost">Suspendidos</button>
-          </div>
-          <div class="mb-4 rounded-2xl border border-panel-line bg-slate-950/30 p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Ultimo alta registrada</p>
-            <p id="restaurant-last-name" class="mt-2 text-base font-semibold text-slate-100">Sin registros aun</p>
-            <p id="restaurant-last-time" class="mt-1 text-sm text-slate-300">Hora pendiente</p>
-            <p id="restaurant-last-status" class="mt-1 text-sm text-slate-300">Estado pendiente</p>
-          </div>
-          <div class="overflow-x-auto rounded-2xl border border-panel-line">
-            <table class="nelly-table w-full text-sm">
-              <thead>
-                <tr class="text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th class="px-3 py-2">Nombre</th>
-                  <th class="px-3 py-2">Responsable</th>
-                  <th class="px-3 py-2">Estado</th>
-                  <th class="px-3 py-2">Zona</th>
-                  <th class="px-3 py-2">Origen</th>
-                  <th class="px-3 py-2 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="restaurant-list-body"></tbody>
-            </table>
-          </div>
-          <p class="mt-3 text-xs text-slate-400">La lista muestra el estado operativo registrado en Firebase o en el fallback local de desarrollo.</p>
-        </article>
-      </section>
+          <textarea id="order-items" required rows="3" class="gov-textarea gov-span-2" placeholder="Items del pedido (ejemplo: 2x Pizza $120)"></textarea>
+          <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="gov-field" placeholder="Subtotal MXN" />
+          <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="gov-field" placeholder="Costo de envio MXN" />
+          <input id="order-tip" required type="number" min="0" step="0.01" class="gov-field" placeholder="Propina MXN" />
+          <select id="order-payment-method" required class="gov-select">
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="transferencia">Transferencia</option>
+          </select>
+          <input id="order-total" readonly type="number" class="gov-field" placeholder="Total calculado MXN" />
+          <textarea id="order-notes" rows="3" class="gov-textarea" placeholder="Notas del pedido"></textarea>
+          <aside id="order-preview" class="wc-card gov-span-2">
+            <p class="wc-eyebrow" data-preview-head>Vista previa</p>
+            <h3>Pedido asistido</h3>
+            <p class="wc-muted" data-preview-location>Sin ubicacion aun</p>
+          </aside>
+          <button id="order-submit" type="submit" class="wc-action gov-span-2">Crear Pedido</button>
+        </form>
+        <p id="order-feedback" class="gov-feedback hidden"></p>
+      </article>
     </main>
-  </div>
+  </section>
 
-  <script type="module" src="./js/admin-dashboard.js?v=20260725-panel-2"></script>
+  <script type="module" src="./js/admin-dashboard.js?v=20260726-governance-center"></script>
 </body>
 </html>
-
-
-
