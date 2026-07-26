@@ -147,7 +147,31 @@ Antes de agregar una funcion a cualquier panel, responder:
 
 Si no hay una respuesta clara, la funcion no se incorpora hasta decidir su casilla.
 
+## Gate de entrada para desarrollos nuevos
+
+A partir de este manifiesto, ningun desarrollo nuevo entra al ecosistema sin responder primero estas preguntas:
+
+1. Que problema resuelve?
+2. Quien lo utiliza?
+3. En cual Centro de Trabajo pertenece?
+4. Afecta otro Centro de Trabajo?
+5. Puede resolverse sin romper la separacion de responsabilidades?
+
+Si alguna respuesta no esta clara, el cambio queda en revision antes de implementarse.
+
+Este gate aplica a:
+- Nuevas pantallas.
+- Nuevos botones o acciones.
+- Nuevos flujos operativos.
+- Cambios de navegacion.
+- Integraciones entre modulos.
+- Funciones transversales que puedan contaminar un Centro de Trabajo.
+
+La respuesta debe quedar registrada en la tarea, issue, commit, ADR o documento operativo correspondiente, segun el impacto del cambio.
+
 ## Decision
 El Manifiesto 4 Casillas queda adoptado como regla oficial de diseno, navegacion y gobierno de producto para el piloto controlado.
 
 Ninguna funcionalidad nueva puede incorporarse sin responder primero a que casilla pertenece. Si no pertenece con claridad a Administrar, Operar, Comercial o Logistica, debe evaluarse como modulo transversal o replantearse antes de implementarse.
+
+Ningun cambio futuro debe convertir a Nelly OS o a cualquiera de sus Centros de Trabajo en un panel monolitico. Nelly OS dirige; cada Centro de Trabajo ejecuta solo su responsabilidad.

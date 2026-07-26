@@ -82,6 +82,13 @@ Backend decides.
 - Do not modify backend contracts without reading the relevant documentation first.
 - Do not remove investigative logs until the incident is closed.
 - Do not re-open already certified flows unless evidence proves a regression.
+- Do not add a new capability without passing the 4 Casillas gate:
+  - What problem does it solve?
+  - Who uses it?
+  - Which Work Center owns it?
+  - Does it affect another Work Center?
+  - Can it be solved without breaking separation of responsibilities?
+- If any 4 Casillas answer is unclear, pause and review before implementation.
 
 ## Certified Baseline
 
