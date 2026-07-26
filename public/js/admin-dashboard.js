@@ -174,7 +174,10 @@ const ui = {
   restaurantFeedback: document.getElementById("restaurant-feedback"),
   restaurantRefresh: document.getElementById("restaurant-refresh"),
   restaurantListBody: document.getElementById("restaurant-list-body"),
-  restaurantCount: document.getElementById("restaurant-count")
+  restaurantCount: document.getElementById("restaurant-count"),
+  restaurantActiveCount: document.getElementById("restaurant-active-count"),
+  restaurantPendingCount: document.getElementById("restaurant-pending-count"),
+  restaurantRecentCount: document.getElementById("restaurant-recent-count")
 };
 
 let currentDrivers = {};
@@ -530,6 +533,25 @@ function setRestaurantFeedback(message, type = "ok") {
 function renderRestaurantList(restaurantes = []) {
   if (ui.restaurantCount) {
     ui.restaurantCount.textContent = `${restaurantes.length} registros`;
+  }
+  const activos = Array.isArray(restaurantes)
+    ? restaurantes.filter((restaurant) => String(restaurant?.estado || '').toLowerCase() === 'activo').length
+    : 0;
+  const pendientes = Array.isArray(restaurantes)
+    ? restaurantes.filter((restaurant) => String(restaurant?.estado || '').toLowerCase() === 'en revision').length
+    : 0;
+  const recientes = Array.isArray(restaurantes)
+    ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0)).slice(0, 3).length
+    : 0;
+
+  if (ui.restaurantActiveCount) {
+    ui.restaurantActiveCount.textContent = String(activos);
+  }
+  if (ui.restaurantPendingCount) {
+    ui.restaurantPendingCount.textContent = String(pendientes);
+  }
+  if (ui.restaurantRecentCount) {
+    ui.restaurantRecentCount.textContent = String(recientes);
   }
   if (!ui.restaurantListBody) return;
 
