@@ -179,7 +179,8 @@ const ui = {
   restaurantPendingCount: document.getElementById("restaurant-pending-count"),
   restaurantRecentCount: document.getElementById("restaurant-recent-count"),
   restaurantLastName: document.getElementById("restaurant-last-name"),
-  restaurantLastTime: document.getElementById("restaurant-last-time")
+  restaurantLastTime: document.getElementById("restaurant-last-time"),
+  restaurantLastStatus: document.getElementById("restaurant-last-status")
 };
 
 let currentDrivers = {};
@@ -567,6 +568,11 @@ function renderRestaurantList(restaurantes = []) {
     ui.restaurantLastTime.textContent = Number.isFinite(timestamp) && timestamp > 0
       ? `Registrado el ${new Date(timestamp).toLocaleString('es-MX')}`
       : 'Hora pendiente';
+  }
+  if (ui.restaurantLastStatus) {
+    ui.restaurantLastStatus.textContent = latest?.estado
+      ? `Estado actual: ${latest.estado}`
+      : 'Estado pendiente';
   }
   if (!ui.restaurantListBody) return;
 
