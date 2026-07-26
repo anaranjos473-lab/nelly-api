@@ -1,208 +1,275 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nelly OS - Nelly Control</title>
+  <title>Nelly OS - Centro de Operaciones</title>
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/themes.css" />
   <link rel="stylesheet" href="/styles/nelly-design.css" />
   <link rel="stylesheet" href="/styles/states.css" />
   <link rel="stylesheet" href="/styles/patterns.css" />
   <link rel="stylesheet" href="/styles/components/button.css" />
-  <link rel="stylesheet" href="/styles/components/card.css" />
   <link rel="stylesheet" href="/styles/components/badge.css" />
-  <link rel="stylesheet" href="/styles/components/kpi.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
+  <link rel="stylesheet" href="/styles/operational-control.css" />
 </head>
-<body class="h-full text-slate-100 nelly-shell">
-  <span style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">Nelly Delivery - Dashboard Operativo</span>
-  <div class="min-h-full nelly-grid">
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div class="max-w-3xl space-y-4">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="nelly-icon nelly-icon--map" aria-hidden="true"></span>
-              <span class="nelly-state nelly-state--live">Tiempo real</span>
-              <span class="nelly-chip nelly-chip--info">S4</span>
-              <span class="nelly-chip nelly-chip--accent">Operacion</span>
-            </div>
-            <div>
-              <p class="nelly-section-label text-ops-accent">Nelly OS · Control</p>
-              <h1 class="nelly-hero-title mt-2">Nelly Control</h1>
-              <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Lectura unificada del estado operativo, financiero y de observabilidad para decidir rapido que esta sano, que requiere atencion y que sigue en cola.</p>
-            </div>
-            <div class="nelly-divider"></div>
-            <div class="flex flex-wrap gap-2">
-              <a href="/admin" class="nelly-btn nelly-btn--ghost">Volver a Nelly Admin</a>
-              <button id="btn-refresh" class="nelly-btn nelly-btn--accent">Refrescar datos</button>
-            </div>
-          </div>
+<body class="nelly-ops-body">
+  <span class="sr-only">Nelly Delivery - Centro de Operaciones</span>
 
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-[34rem]">
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--orders" aria-hidden="true"></span>Pedidos activos</p>
-              <p id="overview-pedidos-activos" class="mt-2 text-2xl font-bold text-ops-accent">0</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--drivers" aria-hidden="true"></span>Flota Nelly</p>
-              <p id="overview-repartidores" class="mt-2 text-2xl font-bold text-slate-100">0</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--sales" aria-hidden="true"></span>Ventas brutas</p>
-              <p id="overview-ventas-brutas" class="mt-2 text-2xl font-bold text-ops-info">$0.00</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400 flex items-center gap-2"><span class="nelly-icon nelly-icon--money" aria-hidden="true"></span>Comisiones</p>
-              <p id="overview-comisiones" class="mt-2 text-2xl font-bold text-ops-warn">$0.00</p>
-            </div>
-          </div>
+  <section id="login-section" class="ops-login-shell">
+    <div class="ops-login-card">
+      <p class="ops-eyebrow">Nelly OS / Operaciones</p>
+      <h1>Centro de Operaciones</h1>
+      <p>Entrada dirigida para pedidos, cocina, alertas y seguimiento en tiempo real.</p>
+      <form id="login-form" class="ops-login-form">
+        <label>
+          Correo
+          <input id="login-email" type="email" required placeholder="admin@nellydelivery.com" />
+        </label>
+        <label>
+          Contrasena
+          <input id="login-password" type="password" required placeholder="********" />
+        </label>
+        <button type="submit">Abrir centro operativo</button>
+        <p id="login-error" class="ops-login-error hidden"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="dashboard-section" class="ops-app hidden">
+    <aside class="ops-sidebar">
+      <a class="ops-brand" href="/os" aria-label="Volver a Nelly OS">
+        <span class="ops-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Operaciones</small>
+        </span>
+      </a>
+
+      <nav class="ops-nav" aria-label="Navegacion del centro operativo">
+        <a class="active" href="#ops-live-map">Mapa en vivo</a>
+        <a href="#ops-orders">Pedidos</a>
+        <a href="#ops-drivers">Repartidores</a>
+        <a href="#ops-assignment">Asignaciones</a>
+        <a href="#ops-incidents">Incidencias <span id="nav-incidents-count">0</span></a>
+        <a href="#ops-zones">Zonas</a>
+        <a href="#ops-metrics">Metricas en tiempo real</a>
+        <a href="/admin">Configuracion</a>
+      </nav>
+
+      <div class="ops-control-card">
+        <span class="ops-dot"></span>
+        <strong>Centro de control</strong>
+        <small id="ops-control-status">Sincronizando...</small>
+        <small id="ops-latency">Latencia pendiente</small>
+      </div>
+    </aside>
+
+    <main class="ops-main">
+      <header class="ops-topbar">
+        <div>
+          <p class="ops-eyebrow">Nelly OS / Casilla 2</p>
+          <h1>Panel de Operaciones</h1>
+        </div>
+        <div class="ops-top-actions">
+          <span id="dashboard-status" class="ops-live-pill">Cargando snapshot...</span>
+          <button id="btn-refresh" type="button">Refrescar</button>
+          <a href="/admin" class="ops-admin-link">Admin</a>
         </div>
       </header>
 
-      <section id="login-section" class="nelly-panel mx-auto max-w-md p-6">
-        <p class="nelly-section-label">Acceso Nelly Control</p>
-        <h2 class="nelly-hero-title mt-2 text-2xl">Consultar snapshot unificado de Nelly Control</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-300">Usa una cuenta autorizada de Nelly Admin para abrir el estado operativo en tiempo real.</p>
-        <form id="login-form" class="mt-5 space-y-4">
-          <input id="login-email" type="email" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="admin@nellydelivery.com" />
-          <input id="login-password" type="password" required class="nelly-input w-full px-3 py-3 text-sm" placeholder="********" />
-          <button type="submit" class="nelly-btn nelly-btn--accent w-full">Abrir Nelly Control</button>
-          <p id="login-error" class="hidden rounded-lg border border-red-400/40 bg-red-900/30 px-3 py-2 text-xs text-red-200"></p>
-        </form>
+      <section id="ops-metrics" class="ops-kpi-grid" aria-label="Indicadores principales">
+        <article class="ops-kpi">
+          <span class="ops-kpi-icon">P</span>
+          <small>Pedidos activos</small>
+          <strong id="overview-pedidos-activos">0</strong>
+          <em id="kpi-orders-delta">Sin variacion</em>
+        </article>
+        <article class="ops-kpi">
+          <span class="ops-kpi-icon">R</span>
+          <small>Repartidores en linea</small>
+          <strong><span id="overview-repartidores">0</span> / <span id="overview-repartidores-total">0</span></strong>
+          <em id="kpi-drivers-delta">Conexion pendiente</em>
+        </article>
+        <article class="ops-kpi">
+          <span class="ops-kpi-icon">T</span>
+          <small>Tiempo prom. entrega</small>
+          <strong><span id="overview-tiempo-entrega">0</span> min</strong>
+          <em>Meta piloto: lectura estable</em>
+        </article>
+        <article class="ops-kpi">
+          <span class="ops-kpi-icon">Z</span>
+          <small>Zonas activas</small>
+          <strong id="overview-zonas">0 / 5</strong>
+          <em id="overview-zonas-label">Norte, Centro, Sur</em>
+        </article>
+        <article class="ops-kpi">
+          <span class="ops-kpi-icon">S</span>
+          <small>Satisfaccion</small>
+          <strong id="overview-satisfaccion">4.9</strong>
+          <em>Lectura para piloto</em>
+        </article>
       </section>
 
-      <section id="dashboard-section" class="hidden space-y-6">
-        <article class="nelly-panel p-5 sm:p-6">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div class="max-w-2xl space-y-3">
-              <p class="nelly-section-label">Estado general</p>
-              <h2 id="dashboard-status" class="nelly-state nelly-state--loading mt-1 text-3xl font-bold text-ops-accent">Cargando snapshot...</h2>
-              <p class="mt-2 text-sm leading-6 text-slate-300">La plataforma consolida consumidores, finanzas, notificaciones y salud general del backend para que el operador vea primero lo importante.</p>
+      <section class="ops-command-grid">
+        <article id="ops-orders" class="ops-panel ops-orders-panel">
+          <div class="ops-panel-header">
+            <div>
+              <p class="ops-eyebrow">Pedidos en operacion</p>
+              <h2>Cola viva</h2>
             </div>
-            <div class="grid gap-2 sm:grid-cols-3">
-              <span class="nelly-state nelly-state--success-soft">Backend vivo</span>
-              <span class="nelly-state nelly-state--empty">Snapshot cargado</span>
-              <span class="nelly-state nelly-state--live">Observabilidad</span>
+            <button id="orders-filter-button" type="button">Filtrar</button>
+          </div>
+          <div class="ops-tabs">
+            <button class="active" type="button">Activos <span id="tab-active-count">0</span></button>
+            <button type="button">En camino <span id="tab-transit-count">0</span></button>
+            <button type="button">Por asignar <span id="tab-unassigned-count">0</span></button>
+          </div>
+          <div id="orders-list" class="ops-orders-list"></div>
+          <a class="ops-link" href="/admin#manual-order-form">Crear pedido manual</a>
+        </article>
+
+        <article id="ops-live-map" class="ops-panel ops-map-panel">
+          <div class="ops-panel-header">
+            <div>
+              <p class="ops-eyebrow">Mapa de operaciones</p>
+              <h2>Tuxtla Gutierrez</h2>
             </div>
+            <div class="ops-map-toggles">
+              <button class="active" type="button">Mapa</button>
+              <button type="button">Satelite</button>
+            </div>
+          </div>
+          <div class="ops-map-canvas" aria-label="Mapa operativo de zonas y repartidores">
+            <div class="ops-map-grid"></div>
+            <div class="ops-zone zone-north"><strong>Zona Norte</strong><span id="zone-north-count">0 pedidos</span></div>
+            <div class="ops-zone zone-center"><strong>Zona Centro</strong><span id="zone-center-count">0 pedidos</span></div>
+            <div class="ops-zone zone-east"><strong>Zona Oriente</strong><span id="zone-east-count">0 pedidos</span></div>
+            <div class="ops-zone zone-south"><strong>Zona Sur</strong><span id="zone-south-count">0 pedidos</span></div>
+            <div class="ops-route route-a"></div>
+            <div class="ops-route route-b"></div>
+            <span class="ops-pin driver pin-a">R</span>
+            <span class="ops-pin driver pin-b">R</span>
+            <span class="ops-pin driver pin-c">R</span>
+            <span class="ops-pin store pin-d">T</span>
+            <span class="ops-pin alert pin-e">!</span>
+            <div id="map-focus-card" class="ops-map-focus">
+              <strong>Operacion lista</strong>
+              <span>Selecciona un pedido para ver detalle.</span>
+              <progress value="70" max="100"></progress>
+            </div>
+          </div>
+          <div class="ops-map-legend">
+            <span><i class="driver"></i> Repartidor</span>
+            <span><i class="store"></i> Tienda</span>
+            <span><i class="alert"></i> Incidencia</span>
+            <span><i class="zone"></i> Zona activa</span>
           </div>
         </article>
 
-        <section class="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_0.95fr]">
-          <article class="nelly-pattern-section">
-            <div class="nelly-pattern-section__header">
+        <aside class="ops-side-stack">
+          <article class="ops-panel" id="ops-order-detail">
+            <div class="ops-panel-header">
               <div>
-                <p class="nelly-section-label flex items-center gap-2"><span class="nelly-icon nelly-icon--alerts" aria-hidden="true"></span>Centro de alertas</p>
-                <h3 class="nelly-pattern-section__title">Lectura operativa inmediata</h3>
+                <p class="ops-eyebrow">Detalle del pedido</p>
+                <h2 id="detail-order-id">Sin pedido seleccionado</h2>
               </div>
-              <span class="nelly-state nelly-state--live">Live</span>
+              <span id="detail-order-state" class="ops-status">Pendiente</span>
             </div>
-            <div class="nelly-pattern-grid-3">
-              <div class="nelly-pattern-card">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Salud</p>
-                <h4 id="health-signal" class="nelly-pattern-card__title mt-1">Salud pendiente</h4>
-                <p id="health-summary" class="nelly-pattern-card__body">Esperando lectura de salud general del sistema.</p>
-              </div>
-              <div class="nelly-pattern-card">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Finanzas</p>
-                <h4 id="finance-signal" class="nelly-pattern-card__title mt-1">Finanzas pendientes</h4>
-                <p id="finance-summary" class="nelly-pattern-card__body">Esperando lectura financiera consolidada.</p>
-              </div>
-              <div class="nelly-pattern-card">
-                <p class="text-xs uppercase tracking-wide text-slate-400">IA</p>
-                <h4 id="ai-signal" class="nelly-pattern-card__title mt-1">IA pendiente</h4>
-                <p id="ai-summary" class="nelly-pattern-card__body">Esperando recomendaciones del consumidor IA.</p>
-              </div>
-            </div>
+            <div id="detail-order-body" class="ops-detail-body"></div>
           </article>
 
-          <article class="nelly-pattern-section">
-            <div class="nelly-pattern-section__header">
+          <article class="ops-panel">
+            <div class="ops-panel-header">
               <div>
-                <p class="nelly-section-label flex items-center gap-2"><span class="nelly-icon nelly-icon--commercial" aria-hidden="true"></span>Actividad viva</p>
-                <h3 class="nelly-pattern-section__title">Proyecciones y lectura de sistema</h3>
+                <p class="ops-eyebrow">Repartidor</p>
+                <h2 id="detail-driver-name">Sin asignar</h2>
               </div>
+              <span id="detail-driver-state" class="ops-status success">Disponible</span>
             </div>
-            <div class="nelly-pattern-timeline">
-              <div class="nelly-pattern-card">
-                <div class="nelly-pattern-card__meta">
-                  <h4 class="nelly-pattern-card__title">Audit Consumer</h4>
-                  <span class="nelly-chip nelly-chip--info">S3</span>
-                </div>
-                <p id="audit-signal" class="nelly-pattern-card__amount">Lectura pendiente</p>
-                <p id="audit-summary" class="nelly-pattern-card__body">Esperando lectura del consumidor de auditoria.</p>
-              </div>
-              <div class="nelly-pattern-card">
-                <div class="nelly-pattern-card__meta">
-                  <h4 class="nelly-pattern-card__title">Metrics Consumer</h4>
-                  <span class="nelly-chip nelly-chip--accent">S4</span>
-                </div>
-                <p id="metrics-signal" class="nelly-pattern-card__amount">Metricas pendientes</p>
-                <p id="metrics-summary" class="nelly-pattern-card__body">Esperando lectura del consumidor de metricas.</p>
-              </div>
-              <div class="nelly-pattern-card">
-                <div class="nelly-pattern-card__meta">
-                  <h4 class="nelly-pattern-card__title">Marketplace</h4>
-                  <span class="nelly-chip nelly-chip--success">SSOT</span>
-                </div>
-                <p id="marketplace-signal" class="nelly-pattern-card__amount">Marketplace pendiente</p>
-                <p id="marketplace-summary" class="nelly-pattern-card__body">Esperando proyeccion del ecosistema comercial.</p>
-              </div>
+            <div class="ops-driver-actions">
+              <a id="driver-call-link" href="tel:" aria-disabled="true">Llamar</a>
+              <button type="button">Chat</button>
+              <button type="button">Seguir</button>
             </div>
           </article>
-        </section>
 
-        <section class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Audit Consumer</p>
-            <h3 class="mt-2 text-xl font-semibold text-ops-accent">Lectura del consumidor de auditoria</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-300">La lectura detallada del consumidor de auditoria se muestra arriba para mantener una sola señal viva.</p>
+          <article class="ops-panel">
+            <div class="ops-panel-header">
+              <div>
+                <p class="ops-eyebrow">Cliente</p>
+                <h2 id="detail-client-name">Pendiente</h2>
+              </div>
+              <a id="detail-tracking-link" href="/tracking">Tracking</a>
+            </div>
+            <p id="detail-client-address" class="ops-muted">Sin direccion seleccionada.</p>
+            <div class="ops-eta">
+              <span>Llegada estimada</span>
+              <strong id="detail-eta">Pendiente</strong>
+            </div>
           </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Notificaciones</p>
-            <h3 id="notification-signal" class="mt-2 text-xl font-semibold text-ops-accent">Notificaciones pendientes</h3>
-            <p id="notification-summary" class="mt-2 text-sm leading-6 text-slate-300">Esperando actividad del canal de notificaciones.</p>
-          </article>
-          <article class="nelly-pattern-section">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Ledger</p>
-            <h3 class="mt-2 text-xl font-semibold text-ops-warn">Lectura financiera consolidada</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-300">El estado financiero se resume arriba para mantener una sola lectura viva por señal.</p>
-          </article>
-        </section>
+        </aside>
+      </section>
 
-        <article class="nelly-pattern-section">
-          <div class="nelly-pattern-section__header">
+      <section class="ops-bottom-grid">
+        <article id="ops-drivers" class="ops-panel">
+          <div class="ops-panel-header">
             <div>
-              <p class="nelly-section-label">Proyecciones S3</p>
-              <h2 class="text-lg font-semibold text-slate-100">Estado consolidado</h2>
+              <p class="ops-eyebrow">Repartidores en linea</p>
+              <h2>Flota disponible</h2>
             </div>
-            <span class="nelly-state nelly-state--empty">Estado consolidado</span>
+            <a href="/driver">Ver modulo</a>
           </div>
-          <div class="nelly-pattern-grid-3 xl:grid-cols-4">
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Audit</p>
-              <p id="projection-audit" class="mt-2 text-sm text-slate-200">-</p>
+          <div id="drivers-list" class="ops-drivers-list"></div>
+        </article>
+
+        <article id="ops-incidents" class="ops-panel">
+          <div class="ops-panel-header">
+            <div>
+              <p class="ops-eyebrow">Incidencias activas</p>
+              <h2>Atencion operativa</h2>
             </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Metrics</p>
-              <p id="projection-metrics" class="mt-2 text-sm text-slate-200">-</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Finance</p>
-              <p id="projection-finance" class="mt-2 text-sm text-slate-200">-</p>
-            </div>
-            <div class="nelly-kpi p-4">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Resumen</p>
-              <p id="projection-summary" class="mt-2 text-sm text-slate-200">-</p>
-            </div>
+            <span id="incidents-count" class="ops-status danger">0</span>
           </div>
+          <div id="incidents-list" class="ops-incidents-list"></div>
+        </article>
+
+        <article id="ops-assignment" class="ops-panel">
+          <div class="ops-panel-header">
+            <div>
+              <p class="ops-eyebrow">Asignaciones automaticas</p>
+              <h2>Optimizacion</h2>
+            </div>
+            <span id="assignment-score" class="ops-status success">0%</span>
+          </div>
+          <div class="ops-progress"><span id="assignment-progress"></span></div>
+          <ul id="assignment-checks" class="ops-check-list"></ul>
+        </article>
+
+        <article id="ops-zones" class="ops-panel">
+          <div class="ops-panel-header">
+            <div>
+              <p class="ops-eyebrow">Estadisticas en tiempo real</p>
+              <h2>Pedidos vs entregas</h2>
+            </div>
+            <span class="ops-status">Live</span>
+          </div>
+          <div class="ops-chart">
+            <span style="height: 28%"></span>
+            <span style="height: 42%"></span>
+            <span style="height: 55%"></span>
+            <span style="height: 72%"></span>
+            <span style="height: 86%"></span>
+          </div>
+          <p id="overview-finance" class="ops-muted">Ventas: $0.00 / Comisiones: $0.00</p>
+          <p class="sr-only" id="overview-ventas-brutas">$0.00</p>
+          <p class="sr-only" id="overview-comisiones">$0.00</p>
         </article>
       </section>
     </main>
-  </div>
+  </section>
 
-  <script type="module" src="./js/dashboard-operativo.js?v=20260725-s4-4"></script>
+  <script type="module" src="./js/dashboard-operativo.js?v=20260726-ops-command"></script>
 </body>
 </html>
-
