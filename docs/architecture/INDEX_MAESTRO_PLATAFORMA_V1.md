@@ -228,6 +228,9 @@ El manuscrito maestro ordena la evolucion de Nelly desde Delivery Core hasta Nel
 - [`PILOTO_MANUAL_REPARTIDORES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_MANUAL_REPARTIDORES_V1.md)
 - [`PILOTO_PROCEDIMIENTO_SOPORTE_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_PROCEDIMIENTO_SOPORTE_V1.md)
 - [`PILOTO_PROCEDIMIENTO_INCIDENCIAS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/PILOTO_PROCEDIMIENTO_INCIDENCIAS_V1.md)
+#### Alta de restaurantes para piloto
+- [`ALTA_RESTAURANTES_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ALTA_RESTAURANTES_PILOTO_V1.md)
+- [`CHECKLIST_ALTA_RESTAURANTES_PILOTO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CHECKLIST_ALTA_RESTAURANTES_PILOTO_V1.md)
 #### Resumen OV1
 OV1 mide con datos reales si C4 mejora decisiones, C5 genera resultados medibles y Q1 reduce incidencias o mermas, usando la SSOT certificada sin abrir nuevas capacidades. El gate pre piloto exige validacion tecnica completa, corridas repetidas, linea base de metricas, preparacion operativa y criterios de salida medibles antes de invitar comercios.
 
