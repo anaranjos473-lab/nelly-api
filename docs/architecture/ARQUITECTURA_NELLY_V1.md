@@ -19,6 +19,17 @@ Nelly OS dirige al usuario al Centro de Trabajo correcto.
 
 No debe convertirse en un panel gigante ni concentrar operacion, administracion, comercio, logistica, CRM, analytics o developer.
 
+Vision de acceso:
+
+| Fila | Centro A | Centro B |
+| --- | --- | --- |
+| 1 | Gobierno | Operaciones |
+| 2 | Comercio | Logistica |
+| 3 | CRM | Finanzas |
+| 4 | Analytics | Developer |
+
+Finanzas se muestra como vision de crecimiento post-piloto hasta que exista evidencia operativa para activarlo.
+
 Referencia:
 - [`MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_4_CASILLAS_NELLY_OS_V1.md)
 
@@ -63,6 +74,7 @@ Reglas:
 - Ejecutivo no reemplaza Analytics. Ejecutivo decide; Analytics profundiza.
 - Finanzas no pertenece a Gobierno. Gobierno configura; Finanzas concilia y liquida.
 - Ninguno de estos Centros se activa durante el piloto sin gate, evidencia y validacion.
+- Los Centros no deben ser simetricos por obligacion. Cada panel debe tener la densidad proporcional a la tarea del usuario.
 
 ### 3. Backend decide, clientes reflejan
 La verdad operativa permanece en:

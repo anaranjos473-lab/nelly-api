@@ -37,6 +37,15 @@ No todos los Centros necesitan la misma densidad de informacion:
 
 La pregunta de diseno no es "cuantos graficos caben", sino "que accion debe tomar esta persona ahora".
 
+### Regla de proporcionalidad
+Los paneles no deben tener la misma cantidad de informacion por simetria visual.
+
+Cada Centro debe ser proporcional a la tarea:
+- Repartidor puede vivir con 6 elementos si esos elementos permiten aceptar, navegar, llamar y completar.
+- Ejecutivo puede necesitar 25 indicadores si su trabajo es decidir sobre ventas, margen, cumplimiento y crecimiento.
+- Developer puede ser denso si la densidad ayuda a diagnosticar.
+- Comercio y Operaciones deben priorizar cola, estado y siguiente accion antes que graficas historicas.
+
 ## Estructura comun de un Centro de Trabajo
 Cada Centro debe usar este orden:
 
