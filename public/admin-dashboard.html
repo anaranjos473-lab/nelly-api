@@ -18,11 +18,19 @@
     }
 
     .gov-workspace {
-      display: none;
+      display: block;
     }
 
-    .gov-workspace:target {
-      display: block;
+    .gov-page {
+      display: none !important;
+    }
+
+    .gov-page.is-active {
+      display: grid !important;
+    }
+
+    article.gov-page.is-active {
+      display: block !important;
     }
 
     .gov-form-grid {
@@ -253,11 +261,11 @@
       </a>
 
       <nav class="wc-nav" aria-label="Navegacion de gobierno">
-        <a class="active" href="#gov-overview">Gobierno</a>
-        <a href="#restaurant-onboarding-section">Restaurantes</a>
-        <a href="#restaurant-list-section">Estado operativo</a>
-        <a href="/driver">Flota y bloqueos</a>
-        <a href="/control#ops-manual-order">Soporte pedidos</a>
+        <a class="active" href="#gov-overview" data-gov-nav="gov-overview">Gobierno</a>
+        <a href="#restaurant-onboarding-section" data-gov-nav="restaurant-onboarding-section">Restaurantes</a>
+        <a href="#restaurant-list-section" data-gov-nav="restaurant-list-section">Estado operativo</a>
+        <a href="#fleet-governance" data-gov-nav="fleet-governance">Flota y bloqueos</a>
+        <a href="#manual-order-section" data-gov-nav="manual-order-section">Soporte pedidos</a>
         <a href="/control">Operaciones</a>
         <a href="/commerce">Comercio</a>
         <a href="/crm">CRM</a>
@@ -283,7 +291,7 @@
         </div>
       </header>
 
-      <section id="gov-overview" class="wc-kpi-grid">
+      <section id="gov-overview" class="wc-kpi-grid gov-page is-active" data-gov-page="gov-overview">
         <article class="wc-kpi">
           <small>Flota registrada</small>
           <strong id="metric-drivers">0</strong>
@@ -306,7 +314,7 @@
         </article>
       </section>
 
-      <section class="wc-grid gov-section">
+      <section class="wc-grid gov-section gov-page is-active" data-gov-page="gov-overview">
         <article class="wc-card">
           <div class="wc-card-header">
             <div>
@@ -316,25 +324,25 @@
             <span class="wc-pill green">Regla 10 segundos</span>
           </div>
           <div class="gov-command-grid">
-            <a class="gov-command-card" href="#restaurant-onboarding-section">
+            <a class="gov-command-card" href="#restaurant-onboarding-section" data-gov-link="restaurant-onboarding-section">
               <p class="wc-eyebrow">Restaurantes</p>
               <strong>Alta y activacion</strong>
               <p class="wc-muted">Prospectos, validacion, alta y estado operativo.</p>
               <span>Administrar -></span>
             </a>
-            <a class="gov-command-card" href="/driver">
+            <a class="gov-command-card" href="#fleet-governance" data-gov-link="fleet-governance">
               <p class="wc-eyebrow">Flota</p>
               <strong>Conductores</strong>
               <p class="wc-muted">Elegibilidad, entregas y operacion logistica.</p>
               <span>Abrir Logistica -></span>
             </a>
-            <a class="gov-command-card" href="#restaurant-list-section">
+            <a class="gov-command-card" href="#restaurant-list-section" data-gov-link="restaurant-list-section">
               <p class="wc-eyebrow">Estado operativo</p>
               <strong>Restaurantes activos</strong>
               <p class="wc-muted">Activos, pendientes, suspendidos y ultimos registros.</p>
               <span>Revisar -></span>
             </a>
-            <a class="gov-command-card" href="/control#ops-manual-order">
+            <a class="gov-command-card" href="#manual-order-section" data-gov-link="manual-order-section">
               <p class="wc-eyebrow">Pedidos</p>
               <strong>Soporte operativo</strong>
               <p class="wc-muted">Crear pedidos manuales desde Operaciones.</p>
@@ -374,7 +382,7 @@
         </aside>
       </section>
 
-      <section class="wc-kpi-grid gov-section">
+      <section class="wc-kpi-grid gov-section gov-page is-active" data-gov-page="gov-overview">
         <article class="wc-kpi">
           <small>Pedidos creados hoy</small>
           <strong id="metric-pedidos-creados">0</strong>
@@ -397,7 +405,7 @@
         </article>
       </section>
 
-      <section class="wc-kpi-grid gov-section">
+      <section class="wc-kpi-grid gov-section gov-page is-active" data-gov-page="gov-overview">
         <article class="wc-kpi">
           <small>Tiempo asignacion</small>
           <strong id="metric-tiempo-asignacion">0 min</strong>
@@ -420,7 +428,7 @@
         </article>
       </section>
 
-      <article class="wc-card gov-section">
+      <article class="wc-card gov-section gov-page is-active" data-gov-page="gov-overview">
         <div class="wc-card-header">
           <div>
             <p class="wc-eyebrow">Mapa de calor por zona</p>
@@ -431,14 +439,14 @@
         <ul id="metric-mapa-calor" class="wc-list"></ul>
       </article>
 
-      <article id="restaurant-onboarding-section" class="wc-card gov-section gov-workspace">
+      <article id="restaurant-onboarding-section" class="wc-card gov-section gov-workspace gov-page" data-gov-page="restaurant-onboarding-section">
         <div class="wc-card-header">
           <div>
             <p class="wc-eyebrow">Restaurantes</p>
             <h2>Alta controlada de restaurantes</h2>
           </div>
           <div class="wc-top-actions">
-            <a class="wc-pill blue" href="#gov-overview">Volver a gobierno</a>
+            <a class="wc-pill blue" href="#gov-overview" data-gov-link="gov-overview">Volver a gobierno</a>
             <span class="wc-pill green">Prospecto -> Validacion -> Alta -> Prueba</span>
           </div>
         </div>
@@ -470,14 +478,14 @@
         <p id="restaurant-feedback" class="gov-feedback hidden"></p>
       </article>
 
-      <article id="restaurant-list-section" class="wc-card gov-section gov-workspace">
+      <article id="restaurant-list-section" class="wc-card gov-section gov-workspace gov-page" data-gov-page="restaurant-list-section">
         <div class="wc-card-header">
           <div>
             <p class="wc-eyebrow">Estado operativo</p>
             <h2>Restaurantes dados de alta</h2>
           </div>
           <div class="wc-top-actions">
-            <a class="wc-pill blue" href="#gov-overview">Volver a gobierno</a>
+            <a class="wc-pill blue" href="#gov-overview" data-gov-link="gov-overview">Volver a gobierno</a>
             <span id="restaurant-count" class="wc-pill blue">0 registros</span>
             <button id="restaurant-refresh" type="button" class="gov-soft-button">Refrescar</button>
           </div>
@@ -528,7 +536,7 @@
         </div>
       </article>
 
-      <article id="fleet-governance" class="wc-card gov-section gov-workspace">
+      <article id="fleet-governance" class="wc-card gov-section gov-workspace gov-page" data-gov-page="fleet-governance">
         <div class="wc-card-header">
           <div>
             <p class="wc-eyebrow">Seguridad operativa</p>
@@ -555,7 +563,7 @@
         </div>
       </article>
 
-      <article id="manual-order-section" class="wc-card gov-section gov-workspace">
+      <article id="manual-order-section" class="wc-card gov-section gov-workspace gov-page" data-gov-page="manual-order-section">
         <div class="wc-card-header">
           <div>
             <p class="wc-eyebrow">Soporte operativo</p>

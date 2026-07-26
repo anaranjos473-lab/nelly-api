@@ -209,6 +209,31 @@ let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
   store: { lat: 16.7527, lng: -93.1134, address: "", label: "" }
 };
+const GOV_DEFAULT_PAGE = "gov-overview";
+
+function getValidGovPage(pageId) {
+  const normalized = String(pageId || "").replace(/^#/, "").trim();
+  return document.querySelector(`[data-gov-page="${normalized}"]`) ? normalized : GOV_DEFAULT_PAGE;
+}
+
+function setGovPage(pageId, options = {}) {
+  const target = getValidGovPage(pageId);
+  document.querySelectorAll("[data-gov-page]").forEach((section) => {
+    section.classList.toggle("is-active", section.dataset.govPage === target);
+  });
+  document.querySelectorAll("[data-gov-nav]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.govNav === target);
+  });
+
+  if (options.updateHash !== false && window.location.hash !== `#${target}`) {
+    window.history.replaceState(null, "", `#${target}`);
+  }
+
+  if (options.scroll !== false) {
+    document.querySelector(".wc-main")?.scrollTo?.({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
 
 function getActiveLocation() {
   return locationState[activeLocationTarget];
@@ -720,6 +745,7 @@ function switchToDashboard(email) {
   ui.sessionBox.classList.remove("hidden");
   ui.sessionBox.classList.add("flex");
   ui.sessionEmail.textContent = email;
+  setGovPage(window.location.hash || GOV_DEFAULT_PAGE, { scroll: false });
 }
 
 function switchToLogin() {
@@ -1468,6 +1494,22 @@ if (ui.restaurantFilterSuspended) {
     refreshRestaurantList();
   });
 }
+
+document.querySelectorAll("[data-gov-nav], [data-gov-link]").forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const target = link.dataset.govNav || link.dataset.govLink;
+    if (!target) return;
+    event.preventDefault();
+    setGovPage(target);
+  });
+});
+
+window.addEventListener("hashchange", () => {
+  setGovPage(window.location.hash || GOV_DEFAULT_PAGE, {
+    updateHash: false,
+    scroll: false
+  });
+});
 
 if (ui.restaurantListBody) {
   ui.restaurantListBody.addEventListener("click", async (event) => {
