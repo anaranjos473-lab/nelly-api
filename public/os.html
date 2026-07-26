@@ -197,6 +197,44 @@
       font-size: 0.86rem;
       text-align: center;
     }
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .role-card {
+      display: grid;
+      gap: 8px;
+      min-height: 138px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(255,255,255,0.035);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .role-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(139, 243, 200, 0.45);
+      background: rgba(13, 29, 50, 0.95);
+    }
+    .role-card strong {
+      color: #ffffff;
+      font-size: 0.92rem;
+      line-height: 1.2;
+    }
+    .role-card span {
+      color: #8bf3c8;
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .role-card small {
+      color: #bfd0e3;
+      line-height: 1.35;
+    }
     .note {
       border: 1px solid rgba(255, 210, 77, 0.25);
       border-radius: 8px;
@@ -211,10 +249,12 @@
       .side-grid { grid-template-columns: 1fr; }
       .intro { grid-template-columns: 1fr; }
       .flow { grid-template-columns: 1fr; }
+      .role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 620px) {
       .topbar { align-items: flex-start; flex-direction: column; }
       .core-grid { grid-template-columns: 1fr; }
+      .role-grid { grid-template-columns: 1fr; }
       .tile { min-height: 144px; }
     }
   </style>
@@ -337,6 +377,50 @@
               <p>Logs, APIs, estado, versiones y diagnostico tecnico del ecosistema.</p>
             </div>
             <div class="tile__go"><span>Abrir developer</span><span>-></span></div>
+          </a>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h3>Entrada por rol</h3>
+          <span>El usuario entra directo a su espacio de trabajo</span>
+        </div>
+        <div class="role-grid" aria-label="Entradas recomendadas por rol">
+          <a class="role-card" href="/admin">
+            <span>Todos</span>
+            <strong>Administrador General</strong>
+            <small>Gobierno completo del ecosistema.</small>
+          </a>
+          <a class="role-card" href="/control">
+            <span>Operacion</span>
+            <strong>Operador</strong>
+            <small>Operaciones y logistica diaria.</small>
+          </a>
+          <a class="role-card" href="/commerce">
+            <span>Tienda</span>
+            <strong>Restaurante</strong>
+            <small>Centro Comercial y gestion del negocio.</small>
+          </a>
+          <a class="role-card" href="/driver">
+            <span>Driver</span>
+            <strong>Repartidor</strong>
+            <small>App Driver para aceptar y entregar pedidos.</small>
+          </a>
+          <a class="role-card" href="/commerce">
+            <span>Comercial</span>
+            <strong>Supervisor Comercial</strong>
+            <small>Comercio y CRM para crecimiento.</small>
+          </a>
+          <a class="role-card" href="/analytics">
+            <span>Lectura</span>
+            <strong>Analista</strong>
+            <small>Analytics de solo lectura.</small>
+          </a>
+          <a class="role-card" href="/developer">
+            <span>Tecnico</span>
+            <strong>Desarrollador</strong>
+            <small>Diagnostico, API y versiones.</small>
           </a>
         </div>
       </section>
