@@ -545,6 +545,17 @@ function applyRestaurantStatusChip(status) {
   ui.restaurantLastStatus.className = `${baseClasses} ${statusClasses[normalized] || 'bg-slate-700/40 text-slate-200 border border-slate-600/50'}`;
 }
 
+function getRestaurantStatusChipClass(status) {
+  const normalized = String(status || '').trim().toLowerCase();
+  const baseClasses = 'inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[11px] font-semibold';
+  const statusClasses = {
+    activo: 'bg-emerald-400/15 text-emerald-200 border border-emerald-400/30',
+    'en revision': 'bg-amber-400/15 text-amber-200 border border-amber-400/30',
+    suspendido: 'bg-red-400/15 text-red-200 border border-red-400/30'
+  };
+  return `${baseClasses} ${statusClasses[normalized] || 'bg-slate-700/40 text-slate-200 border border-slate-600/50'}`;
+}
+
 function renderRestaurantList(restaurantes = []) {
   if (ui.restaurantCount) {
     ui.restaurantCount.textContent = `${restaurantes.length} registros`;
@@ -602,7 +613,9 @@ function renderRestaurantList(restaurantes = []) {
     <tr class="border-t border-panel-line/40">
       <td class="px-3 py-3 font-semibold text-slate-100">${escapeHtml(restaurant.nombre_comercial || restaurant.nombre || 'Sin nombre')}</td>
       <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.responsable || 'Sin responsable')}</td>
-      <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.estado || 'Sin estado')}</td>
+      <td class="px-3 py-3 text-slate-300">
+        <span class="${getRestaurantStatusChipClass(restaurant.estado)}">${escapeHtml(restaurant.estado || 'Sin estado')}</span>
+      </td>
       <td class="px-3 py-3 text-slate-300">${escapeHtml(restaurant.zona_cobertura || 'Sin zona')}</td>
       <td class="px-3 py-3 text-slate-400">${escapeHtml(restaurant.origen || 'firebase-rtdb')}</td>
     </tr>
