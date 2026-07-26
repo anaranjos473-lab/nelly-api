@@ -12,15 +12,70 @@
   <link rel="stylesheet" href="/styles/components/badge.css" />
   <link rel="stylesheet" href="/styles/components/forms.css" />
   <style>
-    body { margin: 0; min-height: 100vh; font-family: var(--nelly-font); color: #e5eefb; background: radial-gradient(circle at top left, rgba(255,199,60,.16), transparent 30%), radial-gradient(circle at bottom right, rgba(62,113,255,.16), transparent 28%), linear-gradient(180deg,#07111f 0%,#081525 50%,#050b14 100%); }
-    .wrap { width: min(980px, calc(100vw - 32px)); margin: 0 auto; padding: 32px 0 48px; }
-    .panel { border: 1px solid rgba(255,255,255,.08); background: rgba(8,15,28,.78); backdrop-filter: blur(16px); border-radius: 28px; box-shadow: 0 24px 80px rgba(0,0,0,.35); padding: 24px; }
-    .timeline { display: grid; gap: 12px; margin-top: 18px; }
-    .step { display:flex; justify-content:space-between; gap:16px; border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px 16px; background: rgba(255,255,255,.03); }
-    .step strong { display:block; }
-    .step p { margin:4px 0 0; color:#b6c6da; font-size:.92rem; }
-    .ok { color:#00d9a6; font-weight:800; }
-    .no { color:#8ea2bb; font-weight:700; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--nelly-font);
+      color: #e5eefb;
+      background:
+        radial-gradient(circle at top left, rgba(255, 199, 60, 0.16), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(62, 113, 255, 0.16), transparent 28%),
+        linear-gradient(180deg, #07111f 0%, #081525 50%, #050b14 100%);
+    }
+    .wrap {
+      width: min(980px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+    .panel {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 15, 28, 0.78);
+      backdrop-filter: blur(16px);
+      border-radius: 28px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      padding: 24px;
+    }
+    .timeline {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .step {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .step strong {
+      display: block;
+    }
+    .step p {
+      margin: 4px 0 0;
+      color: #b6c6da;
+      font-size: 0.92rem;
+    }
+    .step time {
+      display: block;
+      margin-top: 6px;
+      color: #8ea2bb;
+      font-size: 0.8rem;
+    }
+    .step .copy {
+      margin-top: 8px;
+      color: #d9e7f7;
+      font-size: 0.88rem;
+    }
+    .ok {
+      color: #00d9a6;
+      font-weight: 800;
+    }
+    .no {
+      color: #8ea2bb;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -42,6 +97,7 @@
           <div>
             <p class="text-xs uppercase tracking-wide text-slate-400">Estado actual</p>
             <h2 id="estado-actual" class="text-2xl font-bold text-panel-accent">Pendiente de consulta</h2>
+            <p id="pedido-label" class="mt-2 text-sm text-slate-300">Pedido #---</p>
           </div>
           <span id="pedido-meta" class="nelly-chip">Sin pedido</span>
         </div>
@@ -54,19 +110,52 @@
     const input = document.getElementById('pedido-id');
     const btn = document.getElementById('btn-consultar');
     const estadoActual = document.getElementById('estado-actual');
+    const pedidoLabel = document.getElementById('pedido-label');
     const pedidoMeta = document.getElementById('pedido-meta');
     const timeline = document.getElementById('timeline');
     const feedback = document.getElementById('feedback');
-    const statusLabels = { CREADO: 'Pedido recibido', LISTO: 'En preparación', EN_CURSO: 'Repartidor asignado', ENTREGADO: 'Entregado' };
-    function renderTimeline(items = []) {
-      timeline.innerHTML = items.map((item) => `<div class="step"><div><strong>${item.label}</strong><p>${item.key}</p></div><div class="${item.done ? 'ok' : 'no'}">${item.done ? 'Hecho' : 'Pendiente'}</div></div>`).join('');
+    const statusLabels = {
+      CREADO: 'Hemos recibido tu pedido.',
+      LISTO: 'El restaurante lo está preparando.',
+      EN_CURSO: 'Un repartidor aceptó tu pedido.',
+      EN_RUTA: 'Tu pedido va en camino.',
+      ENTREGADO: '¡Disfruta tu comida!'
+    };
+    const timelineMessages = {
+      CREADO: 'Hemos recibido tu pedido.',
+      LISTO: 'El restaurante lo está preparando.',
+      EN_CURSO: 'Un repartidor aceptó tu pedido.',
+      EN_RUTA: 'Tu pedido va en camino.',
+      ENTREGADO: '¡Disfruta tu comida!'
+    };
+
+    function formatTime(value) {
+      const numeric = Number(value);
+      const date = Number.isFinite(numeric) && numeric > 0 ? new Date(numeric) : null;
+      if (!date) return 'Hora no disponible';
+      return new Intl.DateTimeFormat('es-MX', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Mexico_City'
+      }).format(date);
     }
+
+    function renderTimeline(items = []) {
+      timeline.innerHTML = items.map((item) => {
+        const message = item.message || timelineMessages[item.key] || item.label;
+        const time = formatTime(item.time || item.updated_at || item.updatedAt || item.timestamp || item.timestampActualizacion);
+        return `<div class="step"><div><strong>${item.label}</strong><p class="copy">${message}</p><time>${time}</time></div><div class="${item.done ? 'ok' : 'no'}">${item.done ? 'Hecho' : 'Pendiente'}</div></div>`;
+      }).join('');
+    }
+
     async function consultar() {
       const pedidoId = String(input.value || '').trim();
       if (!pedidoId) {
         feedback.textContent = 'Escribe un ID de pedido para consultar.';
         feedback.classList.remove('hidden');
         estadoActual.textContent = 'Sin pedido';
+        pedidoLabel.textContent = 'Pedido #---';
         pedidoMeta.textContent = 'Falta ID';
         renderTimeline([]);
         return;
@@ -80,16 +169,19 @@
         if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${response.status}`);
         const estado = String(data.estado || '').trim().toUpperCase();
         estadoActual.textContent = statusLabels[estado] || estado || 'Sin estado';
+        pedidoLabel.textContent = `Pedido #${data.pedidoId}`;
         pedidoMeta.textContent = data.pedidoId;
         renderTimeline(Array.isArray(data.timeline) ? data.timeline : []);
       } catch (error) {
         estadoActual.textContent = 'No encontrado';
+        pedidoLabel.textContent = 'Pedido #---';
         pedidoMeta.textContent = 'Error';
         feedback.textContent = `No se pudo consultar el pedido: ${error.message}`;
         feedback.classList.remove('hidden');
         renderTimeline([]);
       }
     }
+
     btn.addEventListener('click', consultar);
     input.addEventListener('keydown', (event) => { if (event.key === 'Enter') consultar(); });
 
@@ -109,6 +201,7 @@
     const pedido = params.get('pedido');
     if (pedido) {
       input.value = pedido;
+      pedidoLabel.textContent = `Pedido #${pedido}`;
       pedidoMeta.textContent = pedido;
       consultar();
       activarAutoRefresh();
