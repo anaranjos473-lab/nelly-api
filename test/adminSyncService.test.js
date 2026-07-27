@@ -38,8 +38,8 @@ describe('adminSyncService', () => {
     expect(payload.total).toBe(13.67);
     expect(payload.lineas).toHaveLength(1);
     expect(payload.pago.metodo).toBe('efectivo');
-    expect(payload.estado_pedido).toBe('CREADO');
-    expect(payload.cliente).toMatchObject({ uid: 'Cliente', id: 'Cliente' });
+    expect(payload.estado_pedido).toBe('PENDIENTE');
+    expect(payload.cliente).toBe('Cliente');
   });
 
   test('normalizeAdminOrderRequest trims and coerces admin input', () => {
@@ -103,7 +103,7 @@ describe('adminSyncService', () => {
 
     expect(record.id).toBe('P2');
     expect(record.shortId).toBe('0101-99');
-    expect(record.estado_pedido).toBe('CREADO');
+    expect(record.estado_pedido).toBe('PENDIENTE');
     expect(record.lineas).toHaveLength(1);
     expect(record.pago.metodo).toBe('efectivo');
   });

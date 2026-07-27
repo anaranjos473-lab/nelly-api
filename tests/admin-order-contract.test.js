@@ -80,7 +80,7 @@ describe('Admin order creation contract', () => {
         metodo: 'efectivo',
         estado: 'pendiente'
       },
-      estado: 'pendiente',
+      estado: 'PENDIENTE',
       estado_pedido: 'PENDIENTE',
       fase_panel: 'Pendiente',
       repartidor_id: null,

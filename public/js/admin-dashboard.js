@@ -1291,14 +1291,15 @@ async function createManualOrder(event) {
       })
     });
 
+    const payload = await response.json().catch(() => ({}));
+
     if (response.ok) {
-      const payload = await response.json();
       pedidoId = payload?.id || null;
       created = true;
     }
 
     if (!created) {
-      throw new Error('No se pudo crear pedido en backend');
+      throw new Error(payload?.error || 'No se pudo crear pedido en backend');
     }
 
     ui.orderForm.reset();

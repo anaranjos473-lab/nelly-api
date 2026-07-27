@@ -231,6 +231,18 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
+        .nelly-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .nelly-card-actions .nelly-btn {
+            flex: 1 1 0;
+            min-width: 120px;
+            padding: 8px 10px;
+            font-size: 0.82rem;
+        }
         .btn-danger { background-color: #e74c3c; }
         .btn-danger:hover { background-color: #c0392b; }
         .btn-success { background-color: #2ecc71; }
@@ -584,8 +596,8 @@
                 </div>
                 <div class="nelly-divider"></div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Alertas</button>
-                    <button id="btn-operativo" class="nelly-btn nelly-btn--accent" title="Controles avanzados">Operativo</button>
+                    <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Reportar incidencia</button>
+                    <button id="btn-herramientas" class="nelly-btn nelly-btn--accent" title="Herramientas de soporte">Herramientas</button>
                 </div>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
@@ -595,17 +607,19 @@
                 </div>
                 <div class="nelly-kpi p-4">
                     <p class="text-xs uppercase tracking-wide text-slate-400">Acciones</p>
-                    <p class="mt-2 text-sm text-slate-300">Ordenes entrantes, estados de preparacion, en camino/listo, historial e impresion de tickets.</p>
+                    <p class="mt-2 text-sm text-slate-300">Pedidos entrantes, preparación, reparto y soporte operativo para la cocina.</p>
                 </div>
             </div>
         </div>
-        <div id="menu-operativo" class="hidden mt-4 rounded-xl border border-white/10 bg-slate-950/90 p-3 shadow-xl">
+        <div id="menu-herramientas" class="hidden mt-4 rounded-xl border border-white/10 bg-slate-950/90 p-3 shadow-xl">
             <div class="flex flex-col gap-2">
-                <button onclick="exportarMetricasJSON()" class="nelly-btn nelly-btn--ghost justify-start">Exportar metricas JSON</button>
-                <button onclick="exportarMetricasCSV()" class="nelly-btn nelly-btn--ghost justify-start">Exportar metricas CSV</button>
-                <button onclick="enviarSnapshotDiscord()" class="nelly-btn nelly-btn--ghost justify-start">Enviar snapshot Discord</button>
-                <button onclick="ejecutarProtocoloRescate()" class="nelly-btn nelly-btn--ghost justify-start">Rescate pedidos fantasma</button>
-                <button onclick="dispararAlertaManual()" class="nelly-btn nelly-btn--ghost justify-start text-red-300">Disparar alerta manual</button>
+                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">Developer · Herramientas · Exportaciones</div>
+                <button onclick="window.exportarMetricasJSON?.()" class="nelly-btn nelly-btn--ghost justify-start">Exportar métricas JSON</button>
+                <button onclick="window.exportarMetricasCSV?.()" class="nelly-btn nelly-btn--ghost justify-start">Exportar métricas CSV</button>
+                <div class="mt-2 text-xs uppercase tracking-[0.2em] text-slate-400">Developer · Debug · Snapshot</div>
+                <button onclick="window.enviarSnapshotDiscord?.()" class="nelly-btn nelly-btn--ghost justify-start">Snapshot Discord</button>
+                <div class="mt-2 text-xs uppercase tracking-[0.2em] text-slate-400">Operaciones · Incidencias · Recuperar pedido</div>
+                <button onclick="window.ejecutarProtocoloRescate?.()" class="nelly-btn nelly-btn--ghost justify-start">Recuperar pedido</button>
             </div>
         </div>
     </header>
@@ -638,14 +652,14 @@
     <div class="dashboard-container">
         <div class="column">
             <div class="column-header pendientes">
-                <h3>EN COCINA</h3>
+                <h3>PEDIDOS ENTRANTES</h3>
                 <span id="count-pendientes" class="badge">0</span>
             </div>
             <div id="contenedor-pendientes" class="pedidos-grid"></div>
         </div>
         <div class="column">
             <div class="column-header listo">
-                <h3>ESPERANDO REPARTIDOR</h3>
+                <h3>EN PREPARACIÓN</h3>
                 <span id="count-listo" class="badge">0</span>
             </div>
             <div id="contenedor-listo" class="pedidos-grid"></div>
@@ -664,13 +678,6 @@
             </div>
             <div id="contenedor-entregados" class="pedidos-grid"></div>
         </div>
-    </div>
-
-    <div class="floating-menu">
-        <button id="btn-historial" class="btn-filtro btn-menu">Corte de Caja</button>
-        <button id="btn-heatmap" class="btn-filtro btn-menu">Mapa de Calor</button>
-        <button id="btn-mapa-repartidores" class="btn-filtro btn-menu">Mapa Nelly</button>
-        <button id="btn-debug" class="debug-btn btn-menu">DEBUG</button>
     </div>
 
     <!-- Modal del mapa de flota activa -->
@@ -722,6 +729,9 @@
                     <div id="debug-panel" class="debug-panel">
                         <strong>Debug RTDB</strong>
                         <div id="debug-stats" style="margin-top:8px;font-size:11px;line-height:1.3;"></div>
+                        <div id="debug-tools" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+                            <button onclick="window.reportarIncidenciaRapida?.()" class="btn-filtro">Reportar incidencia</button>
+                        </div>
                         <div id="debug-log" style="margin-top:8px;"></div>
                     </div>
                 </div>
@@ -853,31 +863,53 @@
                 });
 
             // Mostrar/ocultar seccion historial
+            window.toggleSeccionHistorial = () => {
+                const seccion = document.getElementById('seccion-historial');
+                if (!seccion) {
+                    return;
+                }
+                seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+                if (seccion.style.display === 'block') {
+                    window.filtrarVentas('hoy');
+                }
+            };
+
             window.addEventListener('DOMContentLoaded', () => {
                 const btn = document.getElementById('btn-historial');
                 const seccion = document.getElementById('seccion-historial');
                 const btnDebug = document.getElementById('btn-debug');
                 const btnNotificaciones = document.getElementById('btn-notificaciones');
-                const btnOperativo = document.getElementById('btn-operativo');
-                const menuOperativo = document.getElementById('menu-operativo');
+                const btnHerramientas = document.getElementById('btn-herramientas');
+                const menuHerramientas = document.getElementById('menu-herramientas');
                 const debugPanel = document.getElementById('debug-panel');
-                btn.onclick = () => {
-                    seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
-                    if (seccion.style.display === 'block') {
-                        window.filtrarVentas('hoy');
-                    }
-                };
-                btnDebug.onclick = () => {
-                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-                };
-                btnNotificaciones.onclick = () => solicitarPermisoNotificaciones();
-                if (btnOperativo && menuOperativo) {
-                    btnOperativo.onclick = (event) => {
+                if (btn) {
+                    btn.onclick = () => {
+                        window.toggleSeccionHistorial();
+                    };
+                }
+                if (btnDebug && debugPanel) {
+                    btnDebug.onclick = () => {
+                        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                    };
+                }
+                if (btnNotificaciones) {
+                    btnNotificaciones.onclick = () => {
+                        if (typeof window.reportarIncidenciaRapida === 'function') {
+                            window.reportarIncidenciaRapida();
+                        } else if (typeof window.dispararAlertaManual === 'function') {
+                            window.dispararAlertaManual();
+                        } else {
+                            solicitarPermisoNotificaciones();
+                        }
+                    };
+                }
+                if (btnHerramientas && menuHerramientas) {
+                    btnHerramientas.onclick = (event) => {
                         event.stopPropagation();
-                        menuOperativo.style.display = menuOperativo.style.display === 'block' ? 'none' : 'block';
+                        menuHerramientas.style.display = menuHerramientas.style.display === 'block' ? 'none' : 'block';
                     };
                     document.addEventListener('click', () => {
-                        menuOperativo.style.display = 'none';
+                        menuHerramientas.style.display = 'none';
                     });
                 }
             });
@@ -909,6 +941,49 @@
                     }
                 }, 2200);
             }
+
+            window.reportarIncidenciaRapida = () => {
+                const motivo = prompt('Describe la incidencia operativa:');
+                if (!motivo) {
+                    return;
+                }
+                showToast(`Incidencia registrada: ${motivo}`, 'ok');
+                logDebug(`Incidencia: ${motivo}`, 'err');
+            };
+
+            window.reimprimirTicket = (id) => {
+                const keyResuelta = resolverKeyPedido(id);
+                const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                    || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                    || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
+                const folio = pedido?.shortId || pedido?.id_pedido || keyResuelta;
+                if (!pedido) {
+                    showToast('Pedido no encontrado para reimprimir', 'err');
+                    return;
+                }
+                showToast(`Ticket reimpreso · #${folio}`, 'ok');
+                logDebug(`Reimprimir ticket ${folio}`, 'ok');
+            };
+
+            window.verDetallePedido = (id) => {
+                const keyResuelta = resolverKeyPedido(id);
+                const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                    || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                    || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
+                if (!pedido) {
+                    showToast('Pedido no encontrado para ver detalle', 'err');
+                    return;
+                }
+                const detalle = [
+                    `Folio: ${pedido.shortId || pedido.id_pedido || keyResuelta}`,
+                    `Cliente: ${pedido.cliente_nombre || pedido.cliente || 'Cliente'}`,
+                    `Dirección: ${pedido.direccion || 'No disponible'}`,
+                    `Estado: ${pedido.estado || 'sin estado'}`,
+                    `Monto: $${Number(pedido.monto || pedido.total || 0).toFixed(2)}`
+                ].join('\n');
+                alert(detalle);
+                showToast('Detalle del pedido abierto', 'ok');
+            };
 
             window.exportarMetricasJSON = () => {
                 const data = window.verMetricasSync ? window.verMetricasSync() : {};

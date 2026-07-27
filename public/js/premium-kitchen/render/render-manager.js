@@ -247,10 +247,10 @@ export function createRenderManager() {
         notasUbicacion ? `Notas: ${notasUbicacion}` : ''
       ].filter(Boolean).join(' · ');
       const config = esPendiente || fase === 'COCINA'
-        ? { texto: 'DESPACHAR', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
+        ? { texto: 'MARCAR LISTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
         : (esListo
           ? { texto: 'ESPERANDO REPARTIDOR', clase: 'btn-neutral', funcion: '', disabled: true }
-          : { texto: 'ENTREGA COMPLETADA', clase: 'btn-success', funcion: `window.finalizarPedido('${id}')`, disabled: false });
+          : { texto: 'ENTREGADO', clase: 'btn-success', funcion: `window.finalizarPedido('${id}')`, disabled: false });
       const botonAttrs = config.disabled
         ? 'disabled aria-disabled="true" title="Pedido listo para que lo acepte un repartidor"'
         : `onclick="${config.funcion}"`;
@@ -266,9 +266,17 @@ export function createRenderManager() {
                     ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${ubicacionHumanizada}</p>` : ''}
                     <p class="nelly-pattern-card__body">${pedido.descripcion || 'Sin descripcion'}</p>
                     <p class="nelly-pattern-card__amount">$${monto.toFixed(2)}</p>
-                    <button ${botonAttrs} class="nelly-btn ${config.clase}">
-                        ${config.texto}
-                    </button>
+                    <div class="nelly-card-actions">
+                        <button ${botonAttrs} class="nelly-btn ${config.clase}">
+                            ${config.texto}
+                        </button>
+                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost">
+                            Reimprimir ticket
+                        </button>
+                        <button onclick="window.verDetallePedido('${id}')" class="nelly-btn nelly-btn--ghost">
+                            Ver detalle
+                        </button>
+                    </div>
                 </div>
             `;
 

@@ -13,6 +13,24 @@ function parseTimestamp(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function normalizeAdminOrderItems(inputItems) {
+  const source = Array.isArray(inputItems) ? inputItems : [];
+  return source.map((item, index) => {
+    const nombre = String(item?.nombre || item?.name || item?.descripcion || '').trim();
+    const cantidad = Number(item?.cantidad ?? item?.quantity ?? 1);
+    const precio = Number(item?.precio ?? item?.precio_unitario ?? item?.price ?? item?.unitPrice);
+
+    return {
+      ...item,
+      id: item?.id || item?.producto_id || item?.sku || `item_${index + 1}`,
+      nombre,
+      cantidad: Number.isFinite(cantidad) && cantidad > 0 ? cantidad : 1,
+      precio: Number.isFinite(precio) ? roundMoney(precio) : 0,
+      precio_unitario: Number.isFinite(precio) ? roundMoney(precio) : 0
+    };
+  }).filter((item) => item.nombre && item.precio > 0);
+}
+
 function normalizeAdminOrderRequest(input = {}) {
   const cliente_nombre = String(input.cliente_nombre || '').trim();
   const telefono = String(input.telefono || '').trim();
@@ -28,7 +46,9 @@ function normalizeAdminOrderRequest(input = {}) {
     tiendaLat: Number(input.coordenadas?.tiendaLat),
     tiendaLng: Number(input.coordenadas?.tiendaLng)
   };
-  const normalizedItems = Array.isArray(input.normalizedItems) ? input.normalizedItems : [];
+  const normalizedItems = normalizeAdminOrderItems(
+    Array.isArray(input.normalizedItems) ? input.normalizedItems : input.items
+  );
   const subtotal = Number(input.subtotal);
   const costo_envio = Number(input.costo_envio);
   const propina = Number(input.propina);
@@ -125,7 +145,7 @@ function buildAdminOrderPayload({
     userId: String(cliente_nombre).trim(),
     items: normalizedItems,
     total,
-    estado: 'CREADO',
+    estado: 'PENDIENTE',
     createdAt: timestamp,
     updatedAt: timestamp,
     metadata: {
@@ -139,7 +159,7 @@ function buildAdminOrderPayload({
     id_pedido: pedidoId,
     shortId: null,
     cliente_nombre: String(cliente_nombre).trim(),
-    cliente: canonical.order.cliente,
+    cliente: String(cliente_nombre).trim(),
     telefono: String(telefono).trim(),
     direccion: String(direccion).trim(),
     tipo_ubicacion: String(tipo_ubicacion || 'otro').trim(),
@@ -163,8 +183,8 @@ function buildAdminOrderPayload({
       metodo: String(pago.metodo).trim(),
       estado: String(pago.estado).trim()
     },
-    estado: canonical.order.estado,
-    estado_pedido: canonical.order.estado,
+    estado: 'PENDIENTE',
+    estado_pedido: 'PENDIENTE',
     fase_panel: 'Pendiente',
     repartidor_id: null,
     conductorId: null,
