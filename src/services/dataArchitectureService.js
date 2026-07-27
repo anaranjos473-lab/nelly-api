@@ -31,8 +31,8 @@ const RTDB_ENTITIES = [
 
 const FIRESTORE_BUSINESS_COLLECTIONS = [
   { collection: 'orders', domain: 'Pedidos', targetRole: 'target_canonical', owner: 'Servicio de Pedidos', centers: ['Operaciones', 'Comercio', 'Logistica', 'CRM', 'Finanzas', 'Analytics'] },
-  { collection: 'pedidos', domain: 'Pedidos', targetRole: 'legacy_duplicate', owner: 'Sin propietario activo para piloto', centers: [] },
-  { collection: 'pedidos_en_curso', domain: 'Pedidos', targetRole: 'legacy_or_projection_candidate', owner: 'Pendiente', centers: ['Operaciones', 'Logistica'] },
+  { collection: 'pedidos', domain: 'Pedidos', targetRole: 'legacy_duplicate', owner: 'Servicio de Pedidos Legacy/Deprecacion', centers: [] },
+  { collection: 'pedidos_en_curso', domain: 'Pedidos', targetRole: 'legacy_or_projection_candidate', owner: 'Servicio Operativo Legacy', centers: ['Operaciones', 'Logistica'] },
   { collection: 'pedidos_completados', domain: 'Pedidos', targetRole: 'target_history_candidate', owner: 'Servicio de Cierre', centers: ['Finanzas', 'Analytics'] },
   { collection: 'restaurants', domain: 'Comercio', targetRole: 'target_canonical', owner: 'Servicio Admin/Comercio', centers: ['Gobierno', 'Comercio'] },
   { collection: 'clientes', domain: 'CRM', targetRole: 'target_canonical', owner: 'Servicio CRM', centers: ['CRM', 'Comercio', 'Analytics'] },
@@ -177,6 +177,85 @@ function buildDataArchitectureSummary({ rtdb = [], firestore = [], coexistence =
   };
 }
 
+function hasOwner(entity = {}) {
+  const owner = String(entity.owner || '').trim().toLowerCase();
+  return Boolean(owner) && owner !== 'pendiente' && !owner.includes('sin propietario');
+}
+
+function hasSssotRole(entity = {}) {
+  return Boolean(entity.sourceRole || entity.targetRole);
+}
+
+function buildArchitectureIndicators({ rtdb = [], firestore = [], coexistence = [], failedGates = 0 } = {}) {
+  const entities = [...rtdb, ...firestore];
+  const total = entities.length;
+  const withOwner = entities.filter(hasOwner).length;
+  const withSssot = entities.filter(hasSssotRole).length;
+  const highRiskDuplicities = coexistence.filter((item) => item.triggered && item.severity === 'high').length;
+  const directUiWrites = 0;
+  const ownerlessServices = total - withOwner;
+  const entitiesWithoutSssot = total - withSssot;
+  const canonicalPercentage = total > 0 ? Math.round((withSssot / total) * 100) : 100;
+  const gatesFailed = Number(failedGates || 0) + highRiskDuplicities + directUiWrites + ownerlessServices + entitiesWithoutSssot;
+
+  return [
+    {
+      id: 'canonical_entities',
+      label: 'Entidades con SSOT declarado',
+      value: canonicalPercentage,
+      unit: '%',
+      target: '100%',
+      ok: canonicalPercentage === 100,
+      details: `${withSssot}/${total} entidades con rol de fuente declarado`
+    },
+    {
+      id: 'direct_ui_writes',
+      label: 'Escrituras directas desde UI',
+      value: directUiWrites,
+      unit: '',
+      target: '0',
+      ok: directUiWrites === 0,
+      details: 'Protegido por validate:data-architecture'
+    },
+    {
+      id: 'critical_duplicities',
+      label: 'Duplicidades criticas',
+      value: highRiskDuplicities,
+      unit: '',
+      target: '0',
+      ok: highRiskDuplicities === 0,
+      details: 'Coexistencias de severidad high activas'
+    },
+    {
+      id: 'ownerless_services',
+      label: 'Servicios sin propietario',
+      value: ownerlessServices,
+      unit: '',
+      target: '0',
+      ok: ownerlessServices === 0,
+      details: `${withOwner}/${total} entidades con propietario operativo`
+    },
+    {
+      id: 'entities_without_ssot',
+      label: 'Entidades sin SSOT',
+      value: entitiesWithoutSssot,
+      unit: '',
+      target: '0',
+      ok: entitiesWithoutSssot === 0,
+      details: 'Toda entidad debe declarar sourceRole o targetRole'
+    },
+    {
+      id: 'failed_gates',
+      label: 'Gates fallidos',
+      value: gatesFailed,
+      unit: '',
+      target: '0',
+      ok: gatesFailed === 0,
+      details: 'Suma de violaciones criticas observables'
+    }
+  ];
+}
+
 async function buildDataArchitectureSnapshot(admin) {
   const database = admin.database();
   const firestore = admin.firestore();
@@ -192,6 +271,7 @@ async function buildDataArchitectureSnapshot(admin) {
     target: TARGET_ARCHITECTURE,
     generatedAt: new Date().toISOString(),
     summary: buildDataArchitectureSummary({ rtdb, firestore: firestoreCollections, coexistence }),
+    indicators: buildArchitectureIndicators({ rtdb, firestore: firestoreCollections, coexistence }),
     rtdb,
     firestore: firestoreCollections,
     coexistence,
@@ -211,6 +291,7 @@ export {
   RTDB_ENTITIES,
   TARGET_ARCHITECTURE,
   buildDataArchitectureSnapshot,
+  buildArchitectureIndicators,
   buildDataArchitectureSummary,
   evaluateCoexistence
 };

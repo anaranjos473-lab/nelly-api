@@ -25,6 +25,7 @@ const ui = {
   ssot: document.getElementById('gov-ssot'),
   securityGate: document.getElementById('gov-security-gate'),
   lastAudit: document.getElementById('gov-last-audit'),
+  indicatorsTable: document.getElementById('governance-indicators-table'),
   coexistenceTable: document.getElementById('governance-coexistence-table'),
   modePill: document.getElementById('gov-mode-pill'),
   runtime: document.getElementById('gov-runtime'),
@@ -84,9 +85,33 @@ function triggeredCoexistence(snapshot) {
 function resolveGate(snapshot) {
   const high = Number(snapshot?.summary?.highRiskDuplicities || 0);
   const failedReads = Number(snapshot?.summary?.failedReads || 0);
-  if (high > 0) return { label: 'FAIL', type: 'error' };
+  const failedIndicators = Array.isArray(snapshot?.indicators)
+    ? snapshot.indicators.filter((item) => item.ok === false).length
+    : 0;
+  if (high > 0 || failedIndicators > 0) return { label: 'FAIL', type: 'error' };
   if (failedReads > 0) return { label: 'WARN', type: 'pending' };
   return { label: 'PASS', type: 'active' };
+}
+
+function renderIndicators(snapshot) {
+  const indicators = Array.isArray(snapshot?.indicators) ? snapshot.indicators : [];
+  if (!ui.indicatorsTable) return;
+  if (!indicators.length) {
+    ui.indicatorsTable.innerHTML = '<tr><td colspan="4">Sin indicadores cargados.</td></tr>';
+    return;
+  }
+
+  ui.indicatorsTable.innerHTML = indicators.map((item) => {
+    const value = `${item.value ?? '--'}${item.unit || ''}`;
+    return `
+      <tr>
+        <td><strong>${escapeHtml(item.label)}</strong><br><small class="wc-muted">${escapeHtml(item.details || '')}</small></td>
+        <td>${escapeHtml(item.target || '--')}</td>
+        <td>${escapeHtml(value)}</td>
+        <td class="${item.ok ? 'pass' : 'fail'}">${item.ok ? 'PASS' : 'REVISAR'}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderCoexistence(snapshot) {
@@ -115,6 +140,9 @@ function renderSnapshot(snapshot) {
   const duplicities = triggeredCoexistence(snapshot);
   const high = Number(snapshot?.summary?.highRiskDuplicities || 0);
   const failedReads = Number(snapshot?.summary?.failedReads || 0);
+  const failedIndicators = Array.isArray(snapshot?.indicators)
+    ? snapshot.indicators.filter((item) => item.ok === false).length
+    : 0;
   const gate = resolveGate(snapshot);
 
   setText(ui.entities, totalGovernedEntities(snapshot));
@@ -133,9 +161,10 @@ function renderSnapshot(snapshot) {
   setState(ui.overallState, gate.label, gate.type);
   setState(ui.modePill, snapshot?.mode === 'pilot_rtdb_baseline' ? 'Piloto' : 'Objetivo', 'active');
 
+  renderIndicators(snapshot);
   renderCoexistence(snapshot);
 
-  const message = high > 0
+  const message = high > 0 || failedIndicators > 0
     ? 'La auditoria detecto violaciones SSOT de alto riesgo. No avanzar sin revisar.'
     : `Auditoria cargada. Duplicidades en vigilancia: ${duplicities.length}. Escrituras criticas desde public: 0.`;
   setText(ui.message, message);
@@ -154,6 +183,9 @@ function renderUnavailable(error) {
   setText(ui.failedReads, '--');
   setState(ui.statusPill, 'Requiere acceso', 'pending');
   setState(ui.overallState, 'Pendiente', 'pending');
+  if (ui.indicatorsTable) {
+    ui.indicatorsTable.innerHTML = '<tr><td colspan="4">Autentica una cuenta tecnica para cargar indicadores.</td></tr>';
+  }
   ui.coexistenceTable.innerHTML = '<tr><td colspan="3">Autentica una cuenta tecnica para cargar el diagnostico protegido.</td></tr>';
   setText(ui.message, `No se pudo cargar Gobierno de Datos: ${error.message}`);
 }

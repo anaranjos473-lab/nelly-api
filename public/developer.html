@@ -63,6 +63,16 @@
       text-transform: uppercase;
     }
 
+    .governance-table .pass {
+      color: #9ff4d3;
+      font-weight: 900;
+    }
+
+    .governance-table .fail {
+      color: #ffd1d7;
+      font-weight: 900;
+    }
+
     .governance-split {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
@@ -284,6 +294,29 @@
         </section>
 
         <div class="governance-split">
+          <article class="wc-card" style="box-shadow: none;">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Indicadores de Arquitectura</p>
+                <h2>Arquitectura observable</h2>
+              </div>
+              <span class="wc-state wc-state-active">Medible</span>
+            </div>
+            <table class="governance-table">
+              <thead>
+                <tr>
+                  <th>Indicador</th>
+                  <th>Objetivo</th>
+                  <th>Actual</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="governance-indicators-table">
+                <tr><td colspan="4">Cargando indicadores...</td></tr>
+              </tbody>
+            </table>
+          </article>
+
           <article class="wc-card" style="box-shadow: none;">
             <div class="wc-card-header">
               <div>

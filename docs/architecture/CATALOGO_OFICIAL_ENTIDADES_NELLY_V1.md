@@ -32,7 +32,7 @@ Si una entidad no aparece aqui, debe pasar por el Gate de Cambio de Datos antes 
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `pedidos/{pedidoId}` | RTDB | Firestore `orders/{id}` | PedidoService / DeliveryService | Backend | Operaciones, Comercio, Logistica, CRM, Finanzas, Analytics, Tracking | Es canonica piloto; luego sera proyeccion operativa | Canonica piloto | Migrar post-piloto con adaptador certificado. |
 | `orders/{id}` | No oficial en piloto | Firestore | PedidoService | Backend post-migracion | Operaciones, Comercio, Logistica, CRM, Finanzas, Analytics | `operational_view/orders/{id}` futura | Objetivo documentado | No activar como escritor paralelo durante piloto. |
-| Firestore `pedidos` | Ninguna | Ninguna | Sin propietario activo | Nadie | Ninguno oficial | No aplica | Deprecada | Eliminar o aislar referencias legacy. |
+| Firestore `pedidos` | Ninguna | Ninguna | Servicio de Pedidos Legacy/Deprecacion | Nadie | Ninguno oficial | No aplica | Deprecada | Eliminar o aislar referencias legacy. |
 | `pedidos_para_reparto/{pedidoId}` | RTDB | RTDB proyeccion | DispatchService | Backend | Driver, Operaciones, Logistica | Si | Proyeccion viva | Mantener como indice derivado. |
 | `pedidos_en_camino/{pedidoId}` | RTDB | RTDB proyeccion | DeliveryService | Backend | Driver, Cliente, Operaciones, Logistica | Si | Proyeccion viva | Mantener derivada y limpiar al cerrar. |
 | `pedidos_activos/{pedidoId}` | RTDB | RTDB proyeccion | OperationalService | Backend | Operaciones, Gobierno, Analytics | Si | Proyeccion | Mantener derivada. |

@@ -3,6 +3,7 @@ import {
   FIRESTORE_BUSINESS_COLLECTIONS,
   RTDB_ENTITIES,
   TARGET_ARCHITECTURE,
+  buildArchitectureIndicators,
   buildDataArchitectureSummary,
   evaluateCoexistence
 } from '../src/services/dataArchitectureService.js';
@@ -39,5 +40,26 @@ describe('dataArchitectureService', () => {
     });
     expect(summary.status).toBe('watch');
     expect(summary.warnings).toBe(1);
+  });
+
+  test('genera indicadores observables de gobierno de arquitectura', () => {
+    const indicators = buildArchitectureIndicators({
+      rtdb: [
+        { path: 'pedidos', sourceRole: 'pilot_canonical', owner: 'Servicio de Pedidos' },
+        { path: 'legacy', sourceRole: 'legacy_projection', owner: 'Pendiente' }
+      ],
+      firestore: [
+        { collection: 'orders', targetRole: 'target_canonical', owner: 'Servicio de Pedidos' }
+      ],
+      coexistence: [{ triggered: true, severity: 'high' }]
+    });
+
+    const critical = indicators.find((item) => item.id === 'critical_duplicities');
+    const ownerless = indicators.find((item) => item.id === 'ownerless_services');
+    const failedGates = indicators.find((item) => item.id === 'failed_gates');
+
+    expect(critical.value).toBe(1);
+    expect(ownerless.value).toBe(1);
+    expect(failedGates.value).toBeGreaterThanOrEqual(2);
   });
 });

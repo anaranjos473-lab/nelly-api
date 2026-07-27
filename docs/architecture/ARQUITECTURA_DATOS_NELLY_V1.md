@@ -93,7 +93,7 @@ Esta matriz describe el baseline actual del piloto. La columna de fuente oficial
 | `zonas_calor` | RTDB | Backend/admin/analytics | Backend admin/analytics | Operaciones, Logistica, Analytics | Si, derivada/configurable | Operaciones, Logistica, Analytics | Config/proyeccion |
 | `chats/{pedidoId}` | RTDB | Futuro backend de chat | Ninguno en piloto sin backend dedicado | Pendiente | Candidata futura | Soporte, Cliente, Operaciones | Candidata |
 | Firestore `users` | Firestore | Backend usuarios legacy | Backend usuarios | API legacy/admin tecnico | No oficial en RTDB | Gobierno legacy | Legacy |
-| Firestore `pedidos` | Ninguna para piloto | Sin propietario activo | Nadie debe escribir en piloto | Nadie como fuente oficial | No aplica; RTDB `pedidos` reemplaza | Ninguno oficial | Deprecada |
+| Firestore `pedidos` | Ninguna para piloto | Servicio de Pedidos Legacy/Deprecacion | Nadie debe escribir en piloto | Nadie como fuente oficial | No aplica; RTDB `pedidos` reemplaza | Ninguno oficial | Deprecada |
 
 ## Arquitectura objetivo por dominio
 

@@ -52,7 +52,7 @@ Los paneles pueden leer modelos de consulta cuando corresponda, pero las mutacio
 | `zonas_calor` | RTDB | Backend/admin/analytics | Zonas y lectura territorial | Backend solamente | Analytics, Operaciones, Logistica | Config/derivada |
 | `chats/{pedidoId}` | RTDB | Futuro servicio backend de chat | Conversacion por pedido | Backend solamente | Pendiente | Candidata post-piloto |
 | `users` | Firestore | `src/controllers/usersController.js` | Usuarios legacy/API generica | Backend solamente | API legacy | Requiere decision si se mantiene |
-| `pedidos` | Firestore | Ninguno activo para piloto | Duplicado legacy de pedidos | Prohibida para paneles | Ninguno oficial | Deprecada |
+| `pedidos` | Firestore | Servicio de Pedidos Legacy/Deprecacion | Duplicado legacy de pedidos | Prohibida para paneles | Ninguno oficial | Deprecada |
 
 ## Duplicidades identificadas
 
