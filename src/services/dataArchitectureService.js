@@ -256,6 +256,46 @@ function buildArchitectureIndicators({ rtdb = [], firestore = [], coexistence = 
   ];
 }
 
+function buildArchitectureHealthScore({ indicators = [], coexistence = [], summary = {} } = {}) {
+  const byId = new Map(indicators.map((item) => [item.id, item]));
+  const ssot = Number(byId.get('entities_without_ssot')?.value || 0) === 0 ? 25 : 0;
+  const securityGate = Number(byId.get('failed_gates')?.value || 0) === 0 ? 20 : 0;
+  const criticalDuplicities = Number(summary.highRiskDuplicities || 0);
+  const warningDuplicities = coexistence.filter((item) => item.triggered && item.severity === 'warning').length;
+  const duplicities = criticalDuplicities > 0 ? 0 : Math.max(0, 20 - (warningDuplicities * 2));
+  const governance = Number(byId.get('ownerless_services')?.value || 0) === 0 ? 15 : 0;
+  const coverage = Number(byId.get('canonical_entities')?.value || 0) === 100 ? 10 : 0;
+  const audit = Number(summary.failedReads || 0) === 0 ? 10 : 0;
+  const score = Math.max(0, Math.min(100, Math.round(ssot + securityGate + duplicities + governance + coverage + audit)));
+
+  let label = 'Atencion';
+  let state = 'error';
+  if (score >= 95) {
+    label = 'Excelente';
+    state = 'active';
+  } else if (score >= 85) {
+    label = 'Saludable';
+    state = 'active';
+  } else if (score >= 70) {
+    label = 'Vigilar';
+    state = 'pending';
+  }
+
+  return {
+    score,
+    label,
+    state,
+    components: [
+      { id: 'ssot', label: 'SSOT', weight: 25, value: ssot },
+      { id: 'security_gate', label: 'Security Gate', weight: 20, value: securityGate },
+      { id: 'duplicities', label: 'Duplicidades', weight: 20, value: duplicities },
+      { id: 'governance', label: 'Gobernanza', weight: 15, value: governance },
+      { id: 'coverage', label: 'Cobertura de entidades', weight: 10, value: coverage },
+      { id: 'audit', label: 'Auditoria', weight: 10, value: audit }
+    ]
+  };
+}
+
 async function buildDataArchitectureSnapshot(admin) {
   const database = admin.database();
   const firestore = admin.firestore();
@@ -264,14 +304,17 @@ async function buildDataArchitectureSnapshot(admin) {
     inspectFirestoreCollections(firestore, FIRESTORE_BUSINESS_COLLECTIONS)
   ]);
   const coexistence = evaluateCoexistence({ rtdb, firestore: firestoreCollections });
+  const summary = buildDataArchitectureSummary({ rtdb, firestore: firestoreCollections, coexistence });
+  const indicators = buildArchitectureIndicators({ rtdb, firestore: firestoreCollections, coexistence });
 
   return {
     ok: true,
     mode: DATA_ARCHITECTURE_MODE,
     target: TARGET_ARCHITECTURE,
     generatedAt: new Date().toISOString(),
-    summary: buildDataArchitectureSummary({ rtdb, firestore: firestoreCollections, coexistence }),
-    indicators: buildArchitectureIndicators({ rtdb, firestore: firestoreCollections, coexistence }),
+    summary,
+    indicators,
+    health: buildArchitectureHealthScore({ indicators, coexistence, summary }),
     rtdb,
     firestore: firestoreCollections,
     coexistence,
@@ -291,6 +334,7 @@ export {
   RTDB_ENTITIES,
   TARGET_ARCHITECTURE,
   buildDataArchitectureSnapshot,
+  buildArchitectureHealthScore,
   buildArchitectureIndicators,
   buildDataArchitectureSummary,
   evaluateCoexistence

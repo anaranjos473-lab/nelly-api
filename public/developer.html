@@ -96,8 +96,54 @@
       background: rgba(4, 14, 28, 0.72);
     }
 
+    .governance-health {
+      display: grid;
+      grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      margin-top: 14px;
+      border: 1px solid rgba(24, 215, 166, 0.28);
+      border-radius: 18px;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(24, 215, 166, 0.18), transparent 34%),
+        rgba(4, 14, 28, 0.78);
+    }
+
+    .governance-health-score strong {
+      display: block;
+      font-size: clamp(2.8rem, 8vw, 5rem);
+      line-height: 0.95;
+    }
+
+    .governance-health-components {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .governance-health-components div {
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(7, 22, 42, 0.72);
+    }
+
+    .governance-health-components span,
+    .governance-health-components small {
+      display: block;
+    }
+
+    .governance-health-components small {
+      color: var(--wc-muted);
+    }
+
     @media (max-width: 900px) {
       .governance-split {
+        grid-template-columns: 1fr;
+      }
+
+      .governance-health {
         grid-template-columns: 1fr;
       }
     }
@@ -259,6 +305,17 @@
           <button id="governance-refresh" class="wc-action-secondary" type="button">Refrescar sin login</button>
         </form>
         <p id="governance-message" class="wc-muted">Cargando diagnostico de arquitectura de datos...</p>
+
+        <section class="governance-health" aria-label="Architecture Health Score">
+          <div class="governance-health-score">
+            <p class="wc-eyebrow">Architecture Health</p>
+            <strong id="gov-health-score">--%</strong>
+            <span id="gov-health-label" class="wc-state wc-state-pending">Calculando</span>
+          </div>
+          <div id="gov-health-components" class="governance-health-components">
+            <div><span>Cargando score...</span><small>Esperando auditoria</small></div>
+          </div>
+        </section>
 
         <section class="wc-kpi-grid" style="margin-top: 14px;">
           <article class="wc-kpi">

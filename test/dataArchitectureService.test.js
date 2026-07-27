@@ -3,6 +3,7 @@ import {
   FIRESTORE_BUSINESS_COLLECTIONS,
   RTDB_ENTITIES,
   TARGET_ARCHITECTURE,
+  buildArchitectureHealthScore,
   buildArchitectureIndicators,
   buildDataArchitectureSummary,
   evaluateCoexistence
@@ -61,5 +62,27 @@ describe('dataArchitectureService', () => {
     expect(critical.value).toBe(1);
     expect(ownerless.value).toBe(1);
     expect(failedGates.value).toBeGreaterThanOrEqual(2);
+  });
+
+  test('calcula Architecture Health Score sin ocultar advertencias no criticas', () => {
+    const indicators = [
+      { id: 'entities_without_ssot', value: 0 },
+      { id: 'failed_gates', value: 0 },
+      { id: 'ownerless_services', value: 0 },
+      { id: 'canonical_entities', value: 100 }
+    ];
+    const health = buildArchitectureHealthScore({
+      indicators,
+      summary: { highRiskDuplicities: 0, failedReads: 0 },
+      coexistence: [
+        { triggered: true, severity: 'warning' },
+        { triggered: true, severity: 'warning' },
+        { triggered: false, severity: 'ok' }
+      ]
+    });
+
+    expect(health.score).toBe(96);
+    expect(health.label).toBe('Excelente');
+    expect(health.components.find((item) => item.id === 'duplicities').value).toBe(16);
   });
 });

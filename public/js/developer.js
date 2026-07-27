@@ -25,6 +25,9 @@ const ui = {
   ssot: document.getElementById('gov-ssot'),
   securityGate: document.getElementById('gov-security-gate'),
   lastAudit: document.getElementById('gov-last-audit'),
+  healthScore: document.getElementById('gov-health-score'),
+  healthLabel: document.getElementById('gov-health-label'),
+  healthComponents: document.getElementById('gov-health-components'),
   indicatorsTable: document.getElementById('governance-indicators-table'),
   coexistenceTable: document.getElementById('governance-coexistence-table'),
   modePill: document.getElementById('gov-mode-pill'),
@@ -114,6 +117,27 @@ function renderIndicators(snapshot) {
   }).join('');
 }
 
+function renderHealth(snapshot) {
+  const health = snapshot?.health || {};
+  const score = Number.isFinite(Number(health.score)) ? Number(health.score) : null;
+  setText(ui.healthScore, score === null ? '--%' : `${score}%`);
+  setState(ui.healthLabel, health.label || 'Pendiente', health.state || 'pending');
+
+  const components = Array.isArray(health.components) ? health.components : [];
+  if (!ui.healthComponents) return;
+  if (!components.length) {
+    ui.healthComponents.innerHTML = '<div><span>Sin componentes</span><small>Esperando auditoria</small></div>';
+    return;
+  }
+
+  ui.healthComponents.innerHTML = components.map((item) => `
+    <div>
+      <span><strong>${escapeHtml(item.label)}</strong></span>
+      <small>${escapeHtml(item.value)}/${escapeHtml(item.weight)} pts</small>
+    </div>
+  `).join('');
+}
+
 function renderCoexistence(snapshot) {
   const rows = Array.isArray(snapshot?.coexistence) ? snapshot.coexistence : [];
   if (!rows.length) {
@@ -161,6 +185,7 @@ function renderSnapshot(snapshot) {
   setState(ui.overallState, gate.label, gate.type);
   setState(ui.modePill, snapshot?.mode === 'pilot_rtdb_baseline' ? 'Piloto' : 'Objetivo', 'active');
 
+  renderHealth(snapshot);
   renderIndicators(snapshot);
   renderCoexistence(snapshot);
 
@@ -181,8 +206,13 @@ function renderUnavailable(error) {
   setText(ui.businessSource, '--');
   setText(ui.liveSource, '--');
   setText(ui.failedReads, '--');
+  setText(ui.healthScore, '--%');
   setState(ui.statusPill, 'Requiere acceso', 'pending');
   setState(ui.overallState, 'Pendiente', 'pending');
+  setState(ui.healthLabel, 'Pendiente', 'pending');
+  if (ui.healthComponents) {
+    ui.healthComponents.innerHTML = '<div><span>Sin score</span><small>Autentica o refresca la auditoria</small></div>';
+  }
   if (ui.indicatorsTable) {
     ui.indicatorsTable.innerHTML = '<tr><td colspan="4">Autentica una cuenta tecnica para cargar indicadores.</td></tr>';
   }
