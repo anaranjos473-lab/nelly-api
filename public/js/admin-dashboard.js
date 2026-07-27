@@ -389,8 +389,9 @@ function coordinatesToLocalMapPosition(lat, lng) {
 }
 
 function localMapPositionToCoordinates(clientX, clientY) {
-  if (!ui.orderMap) return null;
-  const rect = ui.orderMap.getBoundingClientRect();
+  const mapLayer = document.getElementById("order-map-layer") || ui.orderMap;
+  if (!mapLayer) return null;
+  const rect = mapLayer.getBoundingClientRect();
   if (!rect.width || !rect.height) return null;
   const xPercent = ((clientX - rect.left) / rect.width) * 100;
   const yPercent = ((clientY - rect.top) / rect.height) * 100;
@@ -407,6 +408,14 @@ function setLocalMapMarkerPosition(target, lat, lng) {
   const position = coordinatesToLocalMapPosition(lat, lng);
   marker.style.left = `${position.x}%`;
   marker.style.top = `${position.y}%`;
+}
+
+function updateMapFixCoords(lat, lng) {
+  const latEl = document.getElementById("location-map-lat");
+  const lngEl = document.getElementById("location-map-lng");
+  if (!latEl || !lngEl || !coordenadaValida(lat, lng)) return;
+  latEl.textContent = Number(lat).toFixed(6);
+  lngEl.textContent = Number(lng).toFixed(6);
 }
 
 function updateEmbeddedMap(lat, lng, zoom = 15) {
@@ -464,6 +473,7 @@ function updateMapMarker(lat, lng, zoom = 17) {
     marker.classList.toggle('active', marker.dataset.mapMarker === activeLocationTarget);
   });
   setLocalMapMarkerPosition(activeLocationTarget, lat, lng);
+  updateMapFixCoords(lat, lng);
   updateEmbeddedMap(lat, lng, Math.min(18, Math.max(14, Number(zoom) || 15)));
 }
 
@@ -541,31 +551,46 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
-    <iframe
-      id="order-map-frame"
-      class="map-embed"
-      title="Mapa real de Tuxtla Gutierrez"
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade"
-      src="https://maps.google.com/maps?ll=16.757111,-93.143493&z=14&t=m&output=embed">
-    </iframe>
-    <div class="local-map-tile-grid" aria-hidden="true">
-      <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
-      <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
-    </div>
-    <div id="order-map-layer" class="map-interaction-layer" aria-label="Seleccionar punto en el mapa">
-      <span class="local-map-route"></span>
-      <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
-      <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
-      <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
-      <span class="local-map-scale"></span>
+    <div class="map-fix-panel">
+      <div class="map-fix-header">
+        <strong>Fijar punto de entrega</strong>
+        <span>Mueve el mapa o toca el punto exacto para fijar la ubicacion.</span>
+      </div>
+      <div class="map-canvas-area">
+        <iframe
+          id="order-map-frame"
+          class="map-embed"
+          title="Mapa real de Tuxtla Gutierrez"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://maps.google.com/maps?ll=16.757111,-93.143493&z=14&t=m&output=embed">
+        </iframe>
+        <div class="local-map-tile-grid" aria-hidden="true">
+          <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
+          <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
+        </div>
+        <div id="order-map-layer" class="map-interaction-layer" aria-label="Seleccionar punto en el mapa">
+          <span class="local-map-route"></span>
+          <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;"><span class="pin-label">C</span></span>
+          <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;"><span class="pin-label">T</span></span>
+          <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
+          <span class="local-map-scale"></span>
+        </div>
+      </div>
+      <div class="map-fix-footer">
+        <span class="map-fix-coords">Lat: <span id="location-map-lat">16.750000</span> | Lng: <span id="location-map-lng">-93.120000</span></span>
+        <span class="map-fix-actions">
+          <button id="map-confirm-point" class="map-fix-confirm" type="button">Confirmar punto</button>
+          <button id="map-cancel-point" class="map-fix-cancel" type="button">Cancelar</button>
+        </span>
+      </div>
     </div>
   `;
 
@@ -592,7 +617,8 @@ function initOrderMap() {
       return this;
     }
   };
-  ui.orderMap.addEventListener("click", (event) => {
+  const mapLayer = document.getElementById("order-map-layer") || ui.orderMap;
+  mapLayer.addEventListener("click", (event) => {
     const point = localMapPositionToCoordinates(event.clientX, event.clientY);
     if (!point) return;
     setSelectedLocation({
@@ -605,8 +631,15 @@ function initOrderMap() {
     });
     setOrderFeedback("Punto seleccionado en el mapa real.", "ok");
   });
+  document.getElementById("map-confirm-point")?.addEventListener("click", () => {
+    ui.confirmLocation?.click();
+  });
+  document.getElementById("map-cancel-point")?.addEventListener("click", () => {
+    setOrderFeedback("Captura de punto cancelada. Puedes seleccionar otro punto.", "error");
+  });
   setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
   setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+  updateMapFixCoords(getActiveLocation().lat, getActiveLocation().lng);
   if (ui.orderStoreLat && !ui.orderStoreLat.value) {
     ui.orderStoreLat.value = String(locationState.store.lat);
   }
