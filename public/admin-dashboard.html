@@ -110,7 +110,7 @@
     #order-map {
       position: relative;
       overflow: hidden;
-      min-height: 100%;
+      height: 100%;
       width: 100%;
       background: #f7f8f6;
     }
@@ -128,6 +128,23 @@
         linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.08)),
         linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 34%, rgba(255, 255, 255, 0.1));
       pointer-events: none;
+    }
+
+    .map-embed {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #eef2f5;
+    }
+
+    .map-interaction-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      cursor: crosshair;
     }
 
     .local-map-tile-grid {
@@ -196,13 +213,12 @@
       border: 1px solid rgba(137, 175, 215, 0.22);
       border-radius: 999px;
       padding: 7px 10px;
-      color: #3e5567;
-      background: rgba(255, 255, 255, 0.82);
+      color: #1f3347;
+      background: rgba(255, 255, 255, 0.9);
       font-size: 0.76rem;
       font-weight: 900;
       pointer-events: none;
     }
-
 
     .local-map-scale {
       position: absolute;
@@ -954,24 +970,7 @@
                   </div>
                 </div>
                 <div class="gov-map-shell gov-section">
-                  <div id="order-map">
-                    <div class="local-map-tile-grid" aria-hidden="true">
-                      <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
-                      <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
-                    </div>
-                    <span class="local-map-route"></span>
-                    <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
-                    <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
-                    <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
-                    <span class="local-map-scale"></span>
-                  </div>
+                  <div id="order-map" aria-label="Mapa real de entrega con puntos movibles"></div>
                 </div>
               </div>
               <aside class="wc-stack gov-location-summary">
@@ -1018,6 +1017,6 @@
     </main>
   </section>
 
-  <script type="module" src="./js/admin-dashboard.js?v=20260727-osm-local-map"></script>
+  <script type="module" src="./js/admin-dashboard.js?v=20260727-streets-map"></script>
 </body>
 </html>

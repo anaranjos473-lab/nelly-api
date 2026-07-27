@@ -195,7 +195,6 @@ let dashboardSyncInFlight = false;
 let restaurantFilterState = 'all';
 let orderMapInstance = null;
 let orderMapReady = false;
-let orderMapMarker = null;
 let reverseLookupInFlight = false;
 let activeLocationTarget = "client";
 let locationState = {
@@ -410,6 +409,17 @@ function setLocalMapMarkerPosition(target, lat, lng) {
   marker.style.top = `${position.y}%`;
 }
 
+function updateEmbeddedMap(lat, lng, zoom = 15) {
+  const frame = document.getElementById("order-map-frame");
+  if (!frame || !coordenadaValida(lat, lng)) return;
+  const roundedLat = Number(lat).toFixed(6);
+  const roundedLng = Number(lng).toFixed(6);
+  const url = `https://maps.google.com/maps?ll=${roundedLat},${roundedLng}&z=${zoom}&t=m&output=embed`;
+  if (frame.getAttribute("src") !== url) {
+    frame.setAttribute("src", url);
+  }
+}
+
 function syncLocationFromMapCenter(labelConfirmado) {
   if (!orderMapInstance) return null;
   const center = orderMapInstance.getCenter();
@@ -450,13 +460,11 @@ function updateMapMarker(lat, lng, zoom = 17) {
   if (typeof orderMapInstance.setView === 'function') {
     orderMapInstance.setView([lat, lng], zoom, { animate: true });
   }
-  if (orderMapMarker && typeof orderMapMarker.setLatLng === 'function') {
-    orderMapMarker.setLatLng([lat, lng]);
-  }
   document.querySelectorAll('[data-map-marker]').forEach((marker) => {
     marker.classList.toggle('active', marker.dataset.mapMarker === activeLocationTarget);
   });
   setLocalMapMarkerPosition(activeLocationTarget, lat, lng);
+  updateEmbeddedMap(lat, lng, Math.min(18, Math.max(14, Number(zoom) || 15)));
 }
 
 async function geocodeAddress(query) {
@@ -533,6 +541,14 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
+    <iframe
+      id="order-map-frame"
+      class="map-embed"
+      title="Mapa real de Tuxtla Gutierrez"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      src="https://maps.google.com/maps?ll=16.757111,-93.143493&z=14&t=m&output=embed">
+    </iframe>
     <div class="local-map-tile-grid" aria-hidden="true">
       <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
       <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
@@ -544,11 +560,13 @@ function initOrderMap() {
       <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
       <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
     </div>
-    <span class="local-map-route"></span>
-    <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
-    <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
-    <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
-    <span class="local-map-scale"></span>
+    <div id="order-map-layer" class="map-interaction-layer" aria-label="Seleccionar punto en el mapa">
+      <span class="local-map-route"></span>
+      <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
+      <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
+      <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
+      <span class="local-map-scale"></span>
+    </div>
   `;
 
   orderMapInstance = {
@@ -585,7 +603,7 @@ function initOrderMap() {
         ? "Punto del cliente seleccionado"
         : "Punto de la tienda seleccionado"
     });
-    setOrderFeedback("Punto seleccionado en el mapa local.", "ok");
+    setOrderFeedback("Punto seleccionado en el mapa real.", "ok");
   });
   setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
   setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
@@ -595,6 +613,7 @@ function initOrderMap() {
   if (ui.orderStoreLng && !ui.orderStoreLng.value) {
     ui.orderStoreLng.value = String(locationState.store.lng);
   }
+  updateEmbeddedMap(getActiveLocation().lat, getActiveLocation().lng, 15);
   orderMapReady = true;
 }
 
