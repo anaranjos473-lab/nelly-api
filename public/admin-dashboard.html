@@ -115,19 +115,19 @@
       min-height: 100%;
       width: 100%;
       background:
-        radial-gradient(circle at 72% 26%, rgba(24, 215, 166, 0.18), transparent 18%),
-        radial-gradient(circle at 28% 78%, rgba(43, 130, 255, 0.18), transparent 20%),
-        linear-gradient(135deg, #102743, #071827 58%, #04101f);
+        radial-gradient(circle at 72% 26%, rgba(24, 215, 166, 0.2), transparent 19%),
+        radial-gradient(circle at 28% 78%, rgba(43, 130, 255, 0.18), transparent 22%),
+        linear-gradient(135deg, #123151, #071b2e 58%, #03101f);
     }
 
     #order-map::before {
       content: "";
       position: absolute;
       inset: -44px;
-      opacity: 0.34;
+      opacity: 0.5;
       background:
-        repeating-linear-gradient(11deg, transparent 0 34px, rgba(148, 184, 220, 0.22) 35px 37px),
-        repeating-linear-gradient(101deg, transparent 0 42px, rgba(148, 184, 220, 0.14) 43px 45px);
+        repeating-linear-gradient(11deg, transparent 0 34px, rgba(148, 184, 220, 0.3) 35px 37px),
+        repeating-linear-gradient(101deg, transparent 0 42px, rgba(148, 184, 220, 0.22) 43px 45px);
       pointer-events: none;
     }
 
@@ -141,27 +141,54 @@
       pointer-events: none;
     }
 
-    .local-map-road {
+    .local-map-block {
       position: absolute;
       z-index: 1;
-      height: 15px;
+      border: 1px solid rgba(79, 127, 174, 0.18);
+      border-radius: 10px;
+      background: rgba(8, 29, 48, 0.32);
+      pointer-events: none;
+    }
+
+    .local-map-street {
+      position: absolute;
+      z-index: 2;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(217, 229, 242, 0.1), rgba(238, 246, 255, 0.32), rgba(217, 229, 242, 0.1));
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+      background: rgba(174, 205, 231, 0.2);
+      box-shadow: 0 0 0 1px rgba(7, 17, 30, 0.4), 0 0 12px rgba(174, 205, 231, 0.08);
+      pointer-events: none;
+      transform-origin: center;
+    }
+
+    .local-map-street.h {
+      height: 5px;
+    }
+
+    .local-map-street.v {
+      width: 5px;
+    }
+
+    .local-map-road {
+      position: absolute;
+      z-index: 3;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(226, 238, 247, 0.18), rgba(238, 246, 255, 0.48), rgba(226, 238, 247, 0.18));
+      box-shadow: 0 0 0 2px rgba(7, 17, 30, 0.48), 0 12px 22px rgba(0, 0, 0, 0.2);
       transform-origin: center;
       pointer-events: none;
     }
 
     .local-map-road.main-a {
-      left: -8%;
-      top: 56%;
+      left: -10%;
+      top: 57%;
       width: 122%;
       transform: rotate(18deg);
     }
 
     .local-map-road.main-b {
       left: 18%;
-      top: 35%;
+      top: 37%;
       width: 92%;
       transform: rotate(118deg);
     }
@@ -174,17 +201,25 @@
       opacity: 0.72;
     }
 
+    .local-map-road.main-d {
+      left: 8%;
+      top: 72%;
+      width: 80%;
+      transform: rotate(-1deg);
+      opacity: 0.7;
+    }
+
     .local-map-route {
       position: absolute;
       left: 23%;
       top: 34%;
-      z-index: 3;
+      z-index: 4;
       width: 52%;
       height: 42%;
-      border-right: 4px solid rgba(24, 215, 166, 0.9);
-      border-bottom: 4px solid rgba(24, 215, 166, 0.9);
+      border-right: 5px solid rgba(24, 215, 166, 0.96);
+      border-bottom: 5px solid rgba(24, 215, 166, 0.96);
       border-radius: 0 0 44px 0;
-      filter: drop-shadow(0 0 12px rgba(24, 215, 166, 0.42));
+      filter: drop-shadow(0 0 12px rgba(24, 215, 166, 0.52));
       pointer-events: none;
     }
 
@@ -218,7 +253,7 @@
 
     .local-map-label {
       position: absolute;
-      z-index: 6;
+      z-index: 7;
       border: 1px solid rgba(137, 175, 215, 0.22);
       border-radius: 999px;
       padding: 7px 10px;
@@ -226,6 +261,17 @@
       background: rgba(4, 14, 26, 0.76);
       font-size: 0.76rem;
       font-weight: 900;
+      pointer-events: none;
+    }
+
+    .local-map-road-label {
+      position: absolute;
+      z-index: 6;
+      color: rgba(224, 240, 255, 0.78);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.03em;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
       pointer-events: none;
     }
 
@@ -980,10 +1026,26 @@
                 </div>
                 <div class="gov-map-shell gov-section">
                   <div id="order-map">
+                    <span class="local-map-block" style="left: 7%; top: 10%; width: 22%; height: 22%;"></span>
+                    <span class="local-map-block" style="left: 36%; top: 8%; width: 22%; height: 25%;"></span>
+                    <span class="local-map-block" style="left: 64%; top: 12%; width: 24%; height: 18%;"></span>
+                    <span class="local-map-block" style="left: 9%; top: 43%; width: 28%; height: 20%;"></span>
+                    <span class="local-map-block" style="left: 50%; top: 53%; width: 28%; height: 22%;"></span>
+                    <span class="local-map-street h" style="left: 4%; top: 28%; width: 86%; transform: rotate(-8deg);"></span>
+                    <span class="local-map-street h" style="left: 8%; top: 45%; width: 78%; transform: rotate(10deg);"></span>
+                    <span class="local-map-street h" style="left: 10%; top: 82%; width: 74%; transform: rotate(3deg);"></span>
+                    <span class="local-map-street v" style="left: 24%; top: 4%; height: 92%; transform: rotate(9deg);"></span>
+                    <span class="local-map-street v" style="left: 47%; top: -5%; height: 108%; transform: rotate(12deg);"></span>
+                    <span class="local-map-street v" style="left: 78%; top: 0%; height: 92%; transform: rotate(-8deg);"></span>
                     <span class="local-map-road main-a"></span>
                     <span class="local-map-road main-b"></span>
                     <span class="local-map-road main-c"></span>
+                    <span class="local-map-road main-d"></span>
                     <span class="local-map-route"></span>
+                    <span class="local-map-road-label" style="left: 10%; top: 20%; transform: rotate(-8deg);">Calle Central</span>
+                    <span class="local-map-road-label" style="left: 58%; top: 33%; transform: rotate(118deg);">Av. Oriente</span>
+                    <span class="local-map-road-label" style="left: 16%; top: 61%; transform: rotate(18deg);">Blvd. Sur</span>
+                    <span class="local-map-road-label" style="left: 52%; top: 78%;">Zona Benjaminas</span>
                     <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
                     <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
                     <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
@@ -1035,6 +1097,6 @@
     </main>
   </section>
 
-  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-functional-v2"></script>
+  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-streets"></script>
 </body>
 </html>

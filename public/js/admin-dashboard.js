@@ -533,10 +533,26 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
+    <span class="local-map-block" style="left: 7%; top: 10%; width: 22%; height: 22%;"></span>
+    <span class="local-map-block" style="left: 36%; top: 8%; width: 22%; height: 25%;"></span>
+    <span class="local-map-block" style="left: 64%; top: 12%; width: 24%; height: 18%;"></span>
+    <span class="local-map-block" style="left: 9%; top: 43%; width: 28%; height: 20%;"></span>
+    <span class="local-map-block" style="left: 50%; top: 53%; width: 28%; height: 22%;"></span>
+    <span class="local-map-street h" style="left: 4%; top: 28%; width: 86%; transform: rotate(-8deg);"></span>
+    <span class="local-map-street h" style="left: 8%; top: 45%; width: 78%; transform: rotate(10deg);"></span>
+    <span class="local-map-street h" style="left: 10%; top: 82%; width: 74%; transform: rotate(3deg);"></span>
+    <span class="local-map-street v" style="left: 24%; top: 4%; height: 92%; transform: rotate(9deg);"></span>
+    <span class="local-map-street v" style="left: 47%; top: -5%; height: 108%; transform: rotate(12deg);"></span>
+    <span class="local-map-street v" style="left: 78%; top: 0%; height: 92%; transform: rotate(-8deg);"></span>
     <span class="local-map-road main-a"></span>
     <span class="local-map-road main-b"></span>
     <span class="local-map-road main-c"></span>
+    <span class="local-map-road main-d"></span>
     <span class="local-map-route"></span>
+    <span class="local-map-road-label" style="left: 10%; top: 20%; transform: rotate(-8deg);">Calle Central</span>
+    <span class="local-map-road-label" style="left: 58%; top: 33%; transform: rotate(118deg);">Av. Oriente</span>
+    <span class="local-map-road-label" style="left: 16%; top: 61%; transform: rotate(18deg);">Blvd. Sur</span>
+    <span class="local-map-road-label" style="left: 52%; top: 78%;">Zona Benjaminas</span>
     <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
     <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
     <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
