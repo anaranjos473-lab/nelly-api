@@ -200,9 +200,19 @@ let reverseLookupInFlight = false;
 let activeLocationTarget = "client";
 let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
-  store: { lat: 16.7527, lng: -93.1134, address: "", label: "" }
+  store: { lat: 16.7599, lng: -93.18863, address: "Benjaminas, Tuxtla Gutierrez, Chiapas, Mexico", label: "" }
 };
 const GOV_DEFAULT_PAGE = "gov-overview";
+const LOCAL_MAP_CENTER = { lat: 16.7425, lng: -93.155 };
+const LOCAL_MAP_SPAN = { lat: 0.08, lng: 0.12 };
+const LOCAL_GEOCODE_RESULTS = [
+  {
+    terms: ["benjaminas", "benjamina", "tuxtla"],
+    lat: 16.759898,
+    lng: -93.188633,
+    address: "Benjaminas, Tuxtla Gutierrez, Chiapas, 29020, Mexico"
+  }
+];
 
 function getValidGovPage(pageId) {
   const normalized = String(pageId || "").replace(/^#/, "").trim();
@@ -232,6 +242,40 @@ function getActiveLocation() {
   return locationState[activeLocationTarget];
 }
 
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function findLocalGeocodeResult(query) {
+  const normalized = normalizeSearchText(query);
+  if (!normalized) return null;
+  const match = LOCAL_GEOCODE_RESULTS.find((candidate) =>
+    candidate.terms.some((term) => normalized.includes(term))
+  );
+  if (!match) return null;
+  return {
+    lat: match.lat,
+    lng: match.lng,
+    address: match.address
+  };
+}
+
+function getManualLocationFallback(query) {
+  const normalized = String(query || "").trim();
+  if (!normalized) return null;
+  const active = getActiveLocation();
+  return {
+    lat: active.lat || LOCAL_MAP_CENTER.lat,
+    lng: active.lng || LOCAL_MAP_CENTER.lng,
+    address: `${normalized}, Tuxtla Gutierrez, Chiapas, Mexico`,
+    manual: true
+  };
+}
+
 function updateTargetButtons() {
   if (ui.targetClient) {
     ui.targetClient.className = activeLocationTarget === "client"
@@ -251,11 +295,11 @@ function setActiveLocationTarget(target) {
   const active = getActiveLocation();
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = activeLocationTarget === "client"
-      ? "Capturando ubicaciÃ³n del cliente."
-      : "Capturando ubicaciÃ³n de la tienda.";
+      ? "Capturando ubicacion del cliente."
+      : "Capturando ubicacion de la tienda.";
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = active.address || "Sin ubicaciÃ³n aun";
+    ui.locationFoundAddress.textContent = active.address || "Sin ubicacion aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(active.lat, active.lng)
@@ -289,17 +333,20 @@ function setSelectedLocation(next = {}) {
   if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
 
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicacion aun";
   }
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
-      ? "Capturando ubicaciÃ³n del cliente."
+      ? "Capturando ubicacion del cliente."
       : "Capturando ubicacion de la tienda.");
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(updated.lat, updated.lng)
       ? `${updated.lat.toFixed(6)}, ${updated.lng.toFixed(6)}`
       : "Lat/Lng pendientes";
+  }
+  if (orderMapReady && coordenadaValida(updated.lat, updated.lng)) {
+    updateMapMarker(updated.lat, updated.lng, 17);
   }
   renderOrderPreview();
   updateOrderValidationState();
@@ -329,6 +376,40 @@ function updatePreviewActions(lat, lng, locationSummary) {
   return mapsUrl;
 }
 
+function clampMapPercent(value) {
+  return Math.min(92, Math.max(8, value));
+}
+
+function coordinatesToLocalMapPosition(lat, lng) {
+  const x = 50 + ((lng - LOCAL_MAP_CENTER.lng) / LOCAL_MAP_SPAN.lng) * 100;
+  const y = 50 - ((lat - LOCAL_MAP_CENTER.lat) / LOCAL_MAP_SPAN.lat) * 100;
+  return {
+    x: clampMapPercent(x),
+    y: clampMapPercent(y)
+  };
+}
+
+function localMapPositionToCoordinates(clientX, clientY) {
+  if (!ui.orderMap) return null;
+  const rect = ui.orderMap.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  const xPercent = ((clientX - rect.left) / rect.width) * 100;
+  const yPercent = ((clientY - rect.top) / rect.height) * 100;
+  return {
+    lat: LOCAL_MAP_CENTER.lat - ((yPercent - 50) / 100) * LOCAL_MAP_SPAN.lat,
+    lng: LOCAL_MAP_CENTER.lng + ((xPercent - 50) / 100) * LOCAL_MAP_SPAN.lng
+  };
+}
+
+function setLocalMapMarkerPosition(target, lat, lng) {
+  if (!ui.orderMap || !coordenadaValida(lat, lng)) return;
+  const marker = ui.orderMap.querySelector(`[data-map-marker="${target}"]`);
+  if (!marker) return;
+  const position = coordinatesToLocalMapPosition(lat, lng);
+  marker.style.left = `${position.x}%`;
+  marker.style.top = `${position.y}%`;
+}
+
 function syncLocationFromMapCenter(labelConfirmado) {
   if (!orderMapInstance) return null;
   const center = orderMapInstance.getCenter();
@@ -340,7 +421,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     lat,
     lng,
     address: active.address || String(ui.locationSearch?.value || "").trim(),
-    label: labelConfirmado || "UbicaciÃ³n actualizada"
+    label: labelConfirmado || "Ubicacion actualizada"
   };
   locationState[activeLocationTarget] = updated;
   if (activeLocationTarget === "client") {
@@ -351,7 +432,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     if (ui.orderStoreLng) ui.orderStoreLng.value = String(lng);
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicacion aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
@@ -375,27 +456,38 @@ function updateMapMarker(lat, lng, zoom = 17) {
   document.querySelectorAll('[data-map-marker]').forEach((marker) => {
     marker.classList.toggle('active', marker.dataset.mapMarker === activeLocationTarget);
   });
+  setLocalMapMarkerPosition(activeLocationTarget, lat, lng);
 }
 
 async function geocodeAddress(query) {
   const normalized = String(query || "").trim();
   if (!normalized) return null;
-  const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(normalized)}`, {
-    headers: {
-      "Accept": "application/json"
-    }
-  });
-  if (!response.ok) {
-    throw new Error(`Geocoding HTTP ${response.status}`);
+
+  const localResult = findLocalGeocodeResult(normalized);
+  if (localResult) {
+    return localResult;
   }
-  const results = await response.json();
-  const first = Array.isArray(results) ? results[0] : null;
-  if (!first) return null;
-  return {
-    lat: Number(first.lat),
-    lng: Number(first.lon),
-    address: first.display_name || normalized
-  };
+
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(normalized)}`, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Geocoding HTTP ${response.status}`);
+    }
+    const results = await response.json();
+    const first = Array.isArray(results) ? results[0] : null;
+    if (!first) return getManualLocationFallback(normalized);
+    return {
+      lat: Number(first.lat),
+      lng: Number(first.lon),
+      address: first.display_name || normalized
+    };
+  } catch (_error) {
+    return getManualLocationFallback(normalized);
+  }
 }
 
 async function reverseGeocode(lat, lng) {
@@ -424,13 +516,13 @@ async function refreshLocationFromCenter(trigger = "moved") {
       lat,
       lng,
       address: address || getActiveLocation().address,
-      label: trigger === "search" ? "DirecciÃ³n encontrada" : "UbicaciÃ³n actualizada"
+      label: trigger === "search" ? "Direccion encontrada" : "Ubicacion actualizada"
     });
   } catch (_error) {
     setSelectedLocation({
       lat,
       lng,
-      label: "UbicaciÃ³n tÃ©cnica actualizada"
+      label: "Ubicacion tecnica actualizada"
     });
   } finally {
     reverseLookupInFlight = false;
@@ -458,10 +550,43 @@ function initOrderMap() {
         lng: getActiveLocation().lng
       };
     },
-    setView() {
+    setView(position) {
+      if (Array.isArray(position) && position.length >= 2) {
+        const lat = Number(position[0]);
+        const lng = Number(position[1]);
+        if (coordenadaValida(lat, lng)) {
+          locationState[activeLocationTarget] = {
+            ...locationState[activeLocationTarget],
+            lat,
+            lng
+          };
+          setLocalMapMarkerPosition(activeLocationTarget, lat, lng);
+        }
+      }
       return this;
     }
   };
+  ui.orderMap.addEventListener("click", (event) => {
+    const point = localMapPositionToCoordinates(event.clientX, event.clientY);
+    if (!point) return;
+    setSelectedLocation({
+      lat: point.lat,
+      lng: point.lng,
+      address: getActiveLocation().address || String(ui.locationSearch?.value || "").trim(),
+      label: activeLocationTarget === "client"
+        ? "Punto del cliente seleccionado"
+        : "Punto de la tienda seleccionado"
+    });
+    setOrderFeedback("Punto seleccionado en el mapa local.", "ok");
+  });
+  setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
+  setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+  if (ui.orderStoreLat && !ui.orderStoreLat.value) {
+    ui.orderStoreLat.value = String(locationState.store.lat);
+  }
+  if (ui.orderStoreLng && !ui.orderStoreLng.value) {
+    ui.orderStoreLng.value = String(locationState.store.lng);
+  }
   orderMapReady = true;
 }
 
@@ -1294,7 +1419,7 @@ async function createManualOrder(event) {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' Â· ');
+  ].filter(Boolean).join(' - ');
 
   try {
     const user = auth.currentUser;
@@ -1580,11 +1705,13 @@ if (ui.locationSearchBtn) {
         lat: result.lat,
         lng: result.lng,
         address: result.address,
-        label: "Direccion encontrada"
+        label: result.manual ? "Direccion capturada; ajusta el punto en el mapa" : "Direccion encontrada"
       });
       updateMapMarker(result.lat, result.lng, 17);
       renderOrderPreview();
-      setOrderFeedback("Direccion localizada y centrada en el mapa.", "ok");
+      setOrderFeedback(result.manual
+        ? "Direccion capturada. Ajusta el punto en el mapa si hace falta."
+        : "Direccion localizada y centrada en el mapa.", "ok");
     } catch (error) {
       setOrderFeedback(`No fue posible buscar la direccion: ${error.message}`, "error");
     }
@@ -1647,14 +1774,14 @@ if (ui.useCurrentLocation) {
 if (ui.confirmLocation) {
   ui.confirmLocation.addEventListener("click", async () => {
     const labelConfirmado = activeLocationTarget === "client"
-      ? "UbicaciÃ³n del cliente confirmada"
-      : "UbicaciÃ³n de la tienda confirmada";
+      ? "Ubicacion del cliente confirmada"
+      : "Ubicacion de la tienda confirmada";
     const updated = syncLocationFromMapCenter(labelConfirmado);
     if (!updated && orderMapInstance) {
       await refreshLocationFromCenter("confirm");
       syncLocationFromMapCenter(labelConfirmado);
     }
-    setOrderFeedback("UbicaciÃ³n confirmada para el pedido.", "ok");
+    setOrderFeedback("Ubicacion confirmada para el pedido.", "ok");
   });
 }
 
@@ -1670,6 +1797,23 @@ if (ui.previewOpenMaps) {
     window.open(href, "_blank", "noopener,noreferrer");
   });
 }
+
+function initializeManualOrderLocation() {
+  initOrderMap();
+  setActiveLocationTarget("client");
+  if (ui.orderShipping && !ui.orderShipping.value) {
+    ui.orderShipping.value = "45.00";
+  }
+  setSelectedLocation({
+    lat: locationState.client.lat,
+    lng: locationState.client.lng,
+    address: locationState.client.address || ui.orderAddress.value || "",
+    label: "Listo para capturar ubicacion"
+  });
+  sincronizarMontosAutomaticos();
+}
+
+initializeManualOrderLocation();
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -1691,18 +1835,7 @@ onAuthStateChanged(auth, async (user) => {
 
   activeAdminUser = user;
   switchToDashboard(email);
-  initOrderMap();
-  setActiveLocationTarget("client");
-  if (ui.orderShipping && !ui.orderShipping.value) {
-    ui.orderShipping.value = "45.00";
-  }
-  setSelectedLocation({
-    lat: locationState.client.lat,
-    lng: locationState.client.lng,
-    address: locationState.client.address || ui.orderAddress.value || "",
-    label: "Listo para capturar ubicaciÃ³n"
-  });
-  sincronizarMontosAutomaticos();
+  initializeManualOrderLocation();
   if (!dashboardListenersAttached) {
     startDashboardPolling();
     dashboardListenersAttached = true;

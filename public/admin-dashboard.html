@@ -299,13 +299,31 @@
 
     .gov-location-tools {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr;
       gap: 10px;
-      align-items: center;
+      align-items: stretch;
     }
 
     .gov-location-tools .gov-field {
       min-width: 0;
+    }
+
+    .gov-location-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .gov-location-actions .gov-soft-button,
+    .gov-location-actions .wc-action {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      white-space: nowrap;
+    }
+
+    .gov-location-actions #confirm-location {
+      grid-column: 1 / -1;
     }
 
     .gov-location-summary .wc-row {
@@ -496,6 +514,16 @@
       padding-top: 10px;
     }
 
+    @media (min-width: 1280px) {
+      .gov-location-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .gov-location-actions #confirm-location {
+        grid-column: auto;
+      }
+    }
+
     .gov-command-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -543,6 +571,10 @@
       }
 
       .gov-location-tools {
+        grid-template-columns: 1fr;
+      }
+
+      .gov-location-actions {
         grid-template-columns: 1fr;
       }
 
@@ -940,11 +972,11 @@
               <div>
                 <div class="gov-location-tools">
                   <input id="location-search" class="gov-field" placeholder="Buscar direccion" />
-                  <button id="location-search-btn" type="button" class="gov-soft-button">Buscar</button>
-                  <button id="use-current-location" type="button" class="gov-soft-button">Usar mi ubicacion</button>
-                </div>
-                <div class="wc-top-actions gov-section">
-                  <button id="confirm-location" type="button" class="wc-action">Confirmar ubicacion</button>
+                  <div class="gov-location-actions">
+                    <button id="location-search-btn" type="button" class="gov-soft-button">Buscar</button>
+                    <button id="use-current-location" type="button" class="gov-soft-button">Usar mi ubicacion</button>
+                    <button id="confirm-location" type="button" class="wc-action">Confirmar ubicacion</button>
+                  </div>
                 </div>
                 <div class="gov-map-shell gov-section">
                   <div id="order-map">
@@ -1003,6 +1035,6 @@
     </main>
   </section>
 
-  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-refresh"></script>
+  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-functional-v2"></script>
 </body>
 </html>
