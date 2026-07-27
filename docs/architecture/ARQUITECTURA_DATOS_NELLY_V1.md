@@ -53,6 +53,8 @@ RTDB sera memoria operativa y capa de proyecciones vivas.
 Referencia:
 - `ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`
 - `MANIFIESTO_DEL_DATO_NELLY_V1.md`
+- `CATALOGO_OFICIAL_ENTIDADES_NELLY_V1.md`
+- `ROADMAP_ELIMINACION_DUPLICIDADES_DATOS_V1.md`
 
 ## Clasificacion de datos
 
@@ -189,6 +191,8 @@ Este documento es la referencia oficial de arquitectura de datos.
 
 Documentos relacionados:
 
+- `CATALOGO_OFICIAL_ENTIDADES_NELLY_V1.md`: tabla unica de referencia por entidad, fuente, propietario, lectura, escritura y Centro de Trabajo.
+- `ROADMAP_ELIMINACION_DUPLICIDADES_DATOS_V1.md`: objetivos de salida para advertencias conocidas.
 - `INVENTARIO_ENTIDADES_DATOS_V1.md`: auditoria previa y evidencia de hallazgos.
 - `ARQUITECTURA_NELLY_V1.md`: constitucion tecnica y de producto.
 - `MANIFIESTO_NES_V1.md`: regla superior de arquitectura operativa.
@@ -228,6 +232,20 @@ Uso:
 - confirma que la arquitectura objetivo es Firestore para negocio persistente y RTDB para memoria viva.
 
 Este endpoint no migra datos. Sirve como control operativo para decidir futuras migraciones con evidencia.
+
+La arquitectura tambien queda protegida por una auditoria automatica local/CI:
+
+`npm run validate:data-architecture`
+
+Esta auditoria:
+
+- verifica que las reglas de coexistencia obligatorias sigan declaradas;
+- falla si la regla financiera deja de ser de severidad alta;
+- detecta escrituras criticas directas desde `public/`;
+- detecta rutas financieras RTDB fuera de catalogo;
+- confirma que las entidades del servicio de diagnostico tengan propietario, rol y Centros declarados.
+
+El workflow `Security Gate` ejecuta esta auditoria antes de la auditoria de dependencias.
 
 Evidencia:
 - `VALIDACION_ARQUITECTURA_DATOS_ENDPOINT_V1.md`

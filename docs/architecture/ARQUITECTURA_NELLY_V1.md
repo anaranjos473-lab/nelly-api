@@ -93,6 +93,8 @@ Referencia:
 - [`AGENTS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/AGENTS.md)
 - [`MANIFIESTO_NES_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/MANIFIESTO_NES_V1.md)
 - [`ARQUITECTURA_DATOS_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ARQUITECTURA_DATOS_NELLY_V1.md)
+- [`CATALOGO_OFICIAL_ENTIDADES_NELLY_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CATALOGO_OFICIAL_ENTIDADES_NELLY_V1.md)
+- [`ROADMAP_ELIMINACION_DUPLICIDADES_DATOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/ROADMAP_ELIMINACION_DUPLICIDADES_DATOS_V1.md)
 - [`INVENTARIO_ENTIDADES_DATOS_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/INVENTARIO_ENTIDADES_DATOS_V1.md)
 - [`ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/adr/ADR-011-ESTRATEGIA-SSOT-FIRESTORE-RTDB.md)
 
@@ -194,6 +196,7 @@ Antes de integrar cualquier cambio nuevo, debe completarse esta lista:
 | Respeta la fuente oficial de datos? |  | Entidad verificada contra `ARQUITECTURA_DATOS_NELLY_V1.md`. |
 | Evita escrituras directas desde paneles sobre datos criticos? |  | Mutacion realizada por endpoint backend o justificacion tecnica aprobada. |
 | Respeta la separacion Firestore/RTDB? |  | Negocio persistente en Firestore objetivo; estado vivo/proyeccion en RTDB. |
+| Pasa auditoria automatica de arquitectura de datos? |  | `npm run validate:data-architecture` ejecutado sin errores. |
 | Tiene validacion minima ejecutada? |  | Sintaxis, ruta, consola o prueba funcional segun aplique. |
 
 ### Criterio de bloqueo
