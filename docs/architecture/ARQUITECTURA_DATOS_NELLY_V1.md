@@ -40,6 +40,23 @@ Durante el piloto, el runtime certificado permanece en RTDB para pedidos, repart
 
 No se migra una entidad critica a Firestore sin plan, adaptador backend, pruebas y certificacion.
 
+### Matriz de transicion por entidad critica
+Esta matriz evita una interpretacion peligrosa: la fuente oficial no cambia para todas las entidades al mismo tiempo.
+
+| Entidad / Dominio | Piloto controlado | Objetivo post-piloto | Nota de transicion |
+| --- | --- | --- | --- |
+| Pedidos | RTDB `pedidos/{pedidoId}` como canonica temporal certificada. | Firestore `orders/{id}` como fuente persistente de negocio. | RTDB quedara como proyeccion viva solo despues de migracion certificada. |
+| Indices de pedido | RTDB `pedidos_para_reparto`, `pedidos_en_camino`, `pedidos_activos`, `pedidos_completados`. | RTDB como proyeccion operativa derivada de Firestore `orders`. | Nunca deben convertirse en fuente oficial independiente. |
+| Finanzas operativas | RTDB `finanzas`, `historial_ventas`, `liquidaciones`, `liquidaciones_auditoria` dentro del alcance piloto. | Firestore `finance/*` para ledger, liquidaciones, pagos y auditoria persistente. | No activar Firestore financiero como escritor paralelo durante el piloto. |
+| Deuda y bloqueo de repartidores | RTDB `repartidores/{uid}` y espejos controlados por backend. | Perfil persistente en Firestore y estado/elegibilidad viva en RTDB si se migra. | Pagos, reinicios y bloqueos siempre pasan por backend financiero/admin. |
+| Conductores activos | RTDB `conductores_activos/{uid}`. | RTDB `conductores_activos/{uid}`. | `repartidores_activos` queda como legacy temporal a unificar. |
+| GPS, presencia y heartbeat | RTDB. | RTDB. | Es memoria viva; no requiere Firestore como fuente operacional. |
+| Restaurantes | RTDB `market_v1/restaurantes/{id}`. | Firestore `restaurants/{id}`. | Alta controlada permanece en RTDB hasta migracion posterior al piloto. |
+| Clientes / CRM | Lecturas derivadas de pedidos y colecciones CRM existentes. | Firestore `customers/{id}` / `clientes`. | CRM debe permanecer sin escrituras directas criticas desde paneles. |
+| Configuracion | RTDB `configuracion/sistema` para runtime piloto. | Firestore `configuration/*` con cache RTDB si se justifica. | No mover parametros operativos sin plan y certificacion. |
+| Metricas persistentes | Firestore `metricas` y proyecciones derivadas. | Firestore `metrics/*` con snapshots RTDB de lectura rapida si aplica. | Analytics debe ser lectura o proyeccion, no fuente de mutacion critica. |
+| Auditoria / eventos | RTDB `eventos_operativos` y Firestore `bitacora_forense` / `order_events` segun flujo existente. | Firestore `audit/*`, `forensics/*`, `order_events`; RTDB solo alertas vivas. | Mantener trazabilidad antes de migrar o limpiar eventos. |
+
 ### Arquitectura objetivo post-piloto
 Firestore sera la fuente oficial persistente de negocio.
 
