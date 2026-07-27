@@ -115,10 +115,8 @@
       min-height: 100%;
       width: 100%;
       background:
-        linear-gradient(33deg, transparent 0 45%, rgba(255, 255, 255, 0.18) 46% 48%, transparent 49%),
-        linear-gradient(122deg, transparent 0 42%, rgba(255, 255, 255, 0.14) 43% 45%, transparent 46%),
-        radial-gradient(circle at 26% 28%, rgba(43, 130, 255, 0.2), transparent 18%),
-        radial-gradient(circle at 68% 66%, rgba(24, 215, 166, 0.18), transparent 20%),
+        radial-gradient(circle at 72% 26%, rgba(24, 215, 166, 0.18), transparent 18%),
+        radial-gradient(circle at 28% 78%, rgba(43, 130, 255, 0.18), transparent 20%),
         linear-gradient(135deg, #102743, #071827 58%, #04101f);
     }
 
@@ -126,55 +124,121 @@
       content: "";
       position: absolute;
       inset: -44px;
-      opacity: 0.36;
+      opacity: 0.34;
       background:
-        repeating-linear-gradient(14deg, transparent 0 28px, rgba(255, 255, 255, 0.24) 29px 31px),
-        repeating-linear-gradient(104deg, transparent 0 36px, rgba(255, 255, 255, 0.16) 37px 39px);
+        repeating-linear-gradient(11deg, transparent 0 34px, rgba(148, 184, 220, 0.22) 35px 37px),
+        repeating-linear-gradient(101deg, transparent 0 42px, rgba(148, 184, 220, 0.14) 43px 45px);
       pointer-events: none;
     }
 
     #order-map::after {
-      content: "Mapa local Nelly - Tuxtla";
+      content: "";
       position: absolute;
-      left: 16px;
-      bottom: 14px;
-      border: 1px solid rgba(137, 175, 215, 0.26);
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(2, 8, 18, 0.34), transparent 24%, transparent 76%, rgba(2, 8, 18, 0.3)),
+        linear-gradient(180deg, rgba(2, 8, 18, 0.28), transparent 26%, rgba(2, 8, 18, 0.42));
+      pointer-events: none;
+    }
+
+    .local-map-road {
+      position: absolute;
+      z-index: 1;
+      height: 15px;
       border-radius: 999px;
-      padding: 8px 12px;
-      color: #b8d4ff;
-      background: rgba(4, 14, 26, 0.72);
+      background: linear-gradient(90deg, rgba(217, 229, 242, 0.1), rgba(238, 246, 255, 0.32), rgba(217, 229, 242, 0.1));
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+      transform-origin: center;
+      pointer-events: none;
+    }
+
+    .local-map-road.main-a {
+      left: -8%;
+      top: 56%;
+      width: 122%;
+      transform: rotate(18deg);
+    }
+
+    .local-map-road.main-b {
+      left: 18%;
+      top: 35%;
+      width: 92%;
+      transform: rotate(118deg);
+    }
+
+    .local-map-road.main-c {
+      left: 8%;
+      top: 18%;
+      width: 76%;
+      transform: rotate(-8deg);
+      opacity: 0.72;
+    }
+
+    .local-map-route {
+      position: absolute;
+      left: 23%;
+      top: 34%;
+      z-index: 3;
+      width: 52%;
+      height: 42%;
+      border-right: 4px solid rgba(24, 215, 166, 0.9);
+      border-bottom: 4px solid rgba(24, 215, 166, 0.9);
+      border-radius: 0 0 44px 0;
+      filter: drop-shadow(0 0 12px rgba(24, 215, 166, 0.42));
+      pointer-events: none;
+    }
+
+    .local-map-marker {
+      position: absolute;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 3px solid #07111e;
+      border-radius: 999px;
+      color: #041221;
+      background: linear-gradient(135deg, #18d7a6, #1ed1f2);
+      box-shadow: 0 0 0 9px rgba(24, 215, 166, 0.14), 0 14px 28px rgba(0, 0, 0, 0.34);
       font-size: 0.78rem;
+      font-weight: 950;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .local-map-marker.store {
+      background: linear-gradient(135deg, #f7bf37, #ff934d);
+      box-shadow: 0 0 0 9px rgba(247, 191, 55, 0.14), 0 14px 28px rgba(0, 0, 0, 0.34);
+    }
+
+    .local-map-marker.active {
+      outline: 2px solid rgba(255, 255, 255, 0.72);
+      outline-offset: 3px;
+    }
+
+    .local-map-label {
+      position: absolute;
+      z-index: 6;
+      border: 1px solid rgba(137, 175, 215, 0.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #dceafe;
+      background: rgba(4, 14, 26, 0.76);
+      font-size: 0.76rem;
       font-weight: 900;
       pointer-events: none;
     }
 
-    .map-pin {
+    .local-map-scale {
       position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 22px;
-      height: 22px;
-      transform: translate(-50%, -100%) rotate(-45deg);
-      border-radius: 9999px 9999px 9999px 0;
-      background: #18d7a6;
-      border: 3px solid #08111f;
-      box-shadow: 0 0 0 6px rgba(24, 215, 166, 0.12), 0 10px 24px rgba(0, 0, 0, 0.35);
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    .map-crosshair {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 92px;
-      height: 92px;
-      transform: translate(-50%, -50%);
-      border-radius: 9999px;
-      border: 1px solid rgba(110, 168, 254, 0.28);
-      background: radial-gradient(circle, rgba(24, 215, 166, 0.08), transparent 60%);
-      pointer-events: none;
-      z-index: 4;
+      right: 14px;
+      bottom: 14px;
+      z-index: 6;
+      width: 86px;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #18d7a6 0 50%, #e8f0ff 50% 100%);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
     }
 
     .gov-segment {
@@ -883,9 +947,16 @@
                   <button id="confirm-location" type="button" class="wc-action">Confirmar ubicacion</button>
                 </div>
                 <div class="gov-map-shell gov-section">
-                  <div id="order-map"></div>
-                  <div class="map-crosshair"></div>
-                  <div class="map-pin"></div>
+                  <div id="order-map">
+                    <span class="local-map-road main-a"></span>
+                    <span class="local-map-road main-b"></span>
+                    <span class="local-map-road main-c"></span>
+                    <span class="local-map-route"></span>
+                    <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
+                    <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
+                    <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
+                    <span class="local-map-scale"></span>
+                  </div>
                 </div>
               </div>
               <aside class="wc-stack gov-location-summary">

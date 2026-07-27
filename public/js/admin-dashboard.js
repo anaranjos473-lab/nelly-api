@@ -372,6 +372,9 @@ function updateMapMarker(lat, lng, zoom = 17) {
   if (orderMapMarker && typeof orderMapMarker.setLatLng === 'function') {
     orderMapMarker.setLatLng([lat, lng]);
   }
+  document.querySelectorAll('[data-map-marker]').forEach((marker) => {
+    marker.classList.toggle('active', marker.dataset.mapMarker === activeLocationTarget);
+  });
 }
 
 async function geocodeAddress(query) {
@@ -438,16 +441,14 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
-    <div class="flex h-full min-h-[320px] flex-col items-center justify-center gap-3 rounded-2xl border border-panel-line bg-slate-950/35 p-6 text-center">
-      <div class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-100">
-        Mapa local
-      </div>
-      <h4 class="text-base font-semibold text-slate-100">Mapa sin dependencias externas</h4>
-      <p class="max-w-md text-sm leading-6 text-slate-300">
-        La captura de ubicaci&oacute;n opera con coordenadas y b&uacute;squeda manual, sin depender de Leaflet ni de tiles remotos.
-      </p>
-      <p class="text-xs text-slate-400">Coordenadas activas: ${getActiveLocation().lat.toFixed(6)}, ${getActiveLocation().lng.toFixed(6)}</p>
-    </div>
+    <span class="local-map-road main-a"></span>
+    <span class="local-map-road main-b"></span>
+    <span class="local-map-road main-c"></span>
+    <span class="local-map-route"></span>
+    <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
+    <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
+    <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
+    <span class="local-map-scale"></span>
   `;
 
   orderMapInstance = {
