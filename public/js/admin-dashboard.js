@@ -533,11 +533,11 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
-    <span class="local-map-block" style="left: 7%; top: 10%; width: 22%; height: 22%;"></span>
-    <span class="local-map-block" style="left: 36%; top: 8%; width: 22%; height: 25%;"></span>
-    <span class="local-map-block" style="left: 64%; top: 12%; width: 24%; height: 18%;"></span>
-    <span class="local-map-block" style="left: 9%; top: 43%; width: 28%; height: 20%;"></span>
-    <span class="local-map-block" style="left: 50%; top: 53%; width: 28%; height: 22%;"></span>
+    <span class="local-map-block" style="left: 8%; top: 11%; width: 25%; height: 21%;"></span>
+    <span class="local-map-block" style="left: 39%; top: 8%; width: 19%; height: 25%;"></span>
+    <span class="local-map-block" style="left: 62%; top: 12%; width: 27%; height: 20%;"></span>
+    <span class="local-map-block" style="left: 8%; top: 48%; width: 27%; height: 17%;"></span>
+    <span class="local-map-block" style="left: 51%; top: 55%; width: 27%; height: 21%;"></span>
     <span class="local-map-street h" style="left: 4%; top: 28%; width: 86%; transform: rotate(-8deg);"></span>
     <span class="local-map-street h" style="left: 8%; top: 45%; width: 78%; transform: rotate(10deg);"></span>
     <span class="local-map-street h" style="left: 10%; top: 82%; width: 74%; transform: rotate(3deg);"></span>
@@ -549,10 +549,14 @@ function initOrderMap() {
     <span class="local-map-road main-c"></span>
     <span class="local-map-road main-d"></span>
     <span class="local-map-route"></span>
-    <span class="local-map-road-label" style="left: 10%; top: 20%; transform: rotate(-8deg);">Calle Central</span>
-    <span class="local-map-road-label" style="left: 58%; top: 33%; transform: rotate(118deg);">Av. Oriente</span>
-    <span class="local-map-road-label" style="left: 16%; top: 61%; transform: rotate(18deg);">Blvd. Sur</span>
-    <span class="local-map-road-label" style="left: 52%; top: 78%;">Zona Benjaminas</span>
+    <span class="local-map-road-label" style="left: 7%; top: 22%; transform: rotate(-8deg);">Jacarandas</span>
+    <span class="local-map-road-label" style="left: 34%; top: 16%; transform: rotate(10deg);">Los Tulipanes</span>
+    <span class="local-map-road-label" style="left: 58%; top: 32%; transform: rotate(118deg);">Cam. Rural A Pacu</span>
+    <span class="local-map-road-label" style="left: 16%; top: 59%; transform: rotate(18deg);">Brasil</span>
+    <span class="local-map-road-label" style="left: 52%; top: 76%;">Las Margaritas</span>
+    <span class="local-map-road-label" style="right: 7%; top: 38%;">CLIMASTER</span>
+    <span class="local-map-poi" style="left: 9%; top: 31%;">P</span>
+    <span class="local-map-poi" style="left: 88%; top: 48%; background: #7b8a95;">M</span>
     <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
     <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
     <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>

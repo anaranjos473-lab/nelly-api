@@ -104,9 +104,7 @@
       height: 336px;
       border: 1px solid var(--wc-line);
       border-radius: 18px;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(24, 215, 166, 0.16), transparent 18%),
-        linear-gradient(135deg, rgba(43, 130, 255, 0.1), rgba(4, 14, 26, 0.92));
+      background: #eef2f5;
     }
 
     #order-map {
@@ -115,19 +113,20 @@
       min-height: 100%;
       width: 100%;
       background:
-        radial-gradient(circle at 72% 26%, rgba(24, 215, 166, 0.2), transparent 19%),
-        radial-gradient(circle at 28% 78%, rgba(43, 130, 255, 0.18), transparent 22%),
-        linear-gradient(135deg, #123151, #071b2e 58%, #03101f);
+        radial-gradient(ellipse at 94% 62%, rgba(187, 235, 205, 0.88) 0 19%, transparent 19.4%),
+        radial-gradient(ellipse at 8% 83%, rgba(242, 238, 235, 0.96) 0 24%, transparent 24.4%),
+        linear-gradient(112deg, transparent 0 66%, rgba(244, 235, 219, 0.95) 66.2% 100%),
+        #f7f8f6;
     }
 
     #order-map::before {
       content: "";
       position: absolute;
       inset: -44px;
-      opacity: 0.5;
+      opacity: 0.9;
       background:
-        repeating-linear-gradient(11deg, transparent 0 34px, rgba(148, 184, 220, 0.3) 35px 37px),
-        repeating-linear-gradient(101deg, transparent 0 42px, rgba(148, 184, 220, 0.22) 43px 45px);
+        repeating-linear-gradient(15deg, transparent 0 35px, rgba(188, 205, 218, 0.68) 36px 38px, transparent 39px 78px),
+        repeating-linear-gradient(105deg, transparent 0 42px, rgba(198, 212, 224, 0.72) 43px 45px, transparent 46px 86px);
       pointer-events: none;
     }
 
@@ -136,17 +135,17 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(2, 8, 18, 0.34), transparent 24%, transparent 76%, rgba(2, 8, 18, 0.3)),
-        linear-gradient(180deg, rgba(2, 8, 18, 0.28), transparent 26%, rgba(2, 8, 18, 0.42));
+        linear-gradient(90deg, rgba(255, 255, 255, 0.26), transparent 22%, transparent 76%, rgba(235, 230, 219, 0.34)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.25), transparent 34%, rgba(229, 237, 241, 0.26));
       pointer-events: none;
     }
 
     .local-map-block {
       position: absolute;
       z-index: 1;
-      border: 1px solid rgba(79, 127, 174, 0.18);
-      border-radius: 10px;
-      background: rgba(8, 29, 48, 0.32);
+      border: 1px solid rgba(188, 205, 218, 0.58);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.42);
       pointer-events: none;
     }
 
@@ -154,8 +153,8 @@
       position: absolute;
       z-index: 2;
       border-radius: 999px;
-      background: rgba(174, 205, 231, 0.2);
-      box-shadow: 0 0 0 1px rgba(7, 17, 30, 0.4), 0 0 12px rgba(174, 205, 231, 0.08);
+      background: rgba(191, 207, 220, 0.92);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.74);
       pointer-events: none;
       transform-origin: center;
     }
@@ -173,8 +172,8 @@
       z-index: 3;
       height: 18px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(226, 238, 247, 0.18), rgba(238, 246, 255, 0.48), rgba(226, 238, 247, 0.18));
-      box-shadow: 0 0 0 2px rgba(7, 17, 30, 0.48), 0 12px 22px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(90deg, #d4dee7, #f8fafc 45%, #d4dee7);
+      box-shadow: 0 0 0 4px rgba(196, 211, 222, 0.8), 0 2px 5px rgba(110, 129, 145, 0.24);
       transform-origin: center;
       pointer-events: none;
     }
@@ -219,7 +218,7 @@
       border-right: 5px solid rgba(24, 215, 166, 0.96);
       border-bottom: 5px solid rgba(24, 215, 166, 0.96);
       border-radius: 0 0 44px 0;
-      filter: drop-shadow(0 0 12px rgba(24, 215, 166, 0.52));
+      filter: drop-shadow(0 1px 5px rgba(0, 128, 104, 0.38));
       pointer-events: none;
     }
 
@@ -234,7 +233,7 @@
       border-radius: 999px;
       color: #041221;
       background: linear-gradient(135deg, #18d7a6, #1ed1f2);
-      box-shadow: 0 0 0 9px rgba(24, 215, 166, 0.14), 0 14px 28px rgba(0, 0, 0, 0.34);
+      box-shadow: 0 0 0 7px rgba(24, 215, 166, 0.22), 0 8px 18px rgba(17, 30, 43, 0.3);
       font-size: 0.78rem;
       font-weight: 950;
       pointer-events: none;
@@ -243,7 +242,7 @@
 
     .local-map-marker.store {
       background: linear-gradient(135deg, #f7bf37, #ff934d);
-      box-shadow: 0 0 0 9px rgba(247, 191, 55, 0.14), 0 14px 28px rgba(0, 0, 0, 0.34);
+      box-shadow: 0 0 0 7px rgba(247, 191, 55, 0.24), 0 8px 18px rgba(17, 30, 43, 0.3);
     }
 
     .local-map-marker.active {
@@ -257,8 +256,8 @@
       border: 1px solid rgba(137, 175, 215, 0.22);
       border-radius: 999px;
       padding: 7px 10px;
-      color: #dceafe;
-      background: rgba(4, 14, 26, 0.76);
+      color: #3e5567;
+      background: rgba(255, 255, 255, 0.82);
       font-size: 0.76rem;
       font-weight: 900;
       pointer-events: none;
@@ -267,11 +266,28 @@
     .local-map-road-label {
       position: absolute;
       z-index: 6;
-      color: rgba(224, 240, 255, 0.78);
+      color: rgba(74, 91, 107, 0.86);
       font-size: 0.68rem;
       font-weight: 850;
       letter-spacing: 0.03em;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
+      pointer-events: none;
+    }
+
+    .local-map-poi {
+      position: absolute;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      color: #fff;
+      background: #9b6cf6;
+      box-shadow: 0 2px 6px rgba(87, 70, 120, 0.24);
+      font-size: 0.7rem;
+      font-weight: 950;
       pointer-events: none;
     }
 
@@ -1026,11 +1042,11 @@
                 </div>
                 <div class="gov-map-shell gov-section">
                   <div id="order-map">
-                    <span class="local-map-block" style="left: 7%; top: 10%; width: 22%; height: 22%;"></span>
-                    <span class="local-map-block" style="left: 36%; top: 8%; width: 22%; height: 25%;"></span>
-                    <span class="local-map-block" style="left: 64%; top: 12%; width: 24%; height: 18%;"></span>
-                    <span class="local-map-block" style="left: 9%; top: 43%; width: 28%; height: 20%;"></span>
-                    <span class="local-map-block" style="left: 50%; top: 53%; width: 28%; height: 22%;"></span>
+                    <span class="local-map-block" style="left: 8%; top: 11%; width: 25%; height: 21%;"></span>
+                    <span class="local-map-block" style="left: 39%; top: 8%; width: 19%; height: 25%;"></span>
+                    <span class="local-map-block" style="left: 62%; top: 12%; width: 27%; height: 20%;"></span>
+                    <span class="local-map-block" style="left: 8%; top: 48%; width: 27%; height: 17%;"></span>
+                    <span class="local-map-block" style="left: 51%; top: 55%; width: 27%; height: 21%;"></span>
                     <span class="local-map-street h" style="left: 4%; top: 28%; width: 86%; transform: rotate(-8deg);"></span>
                     <span class="local-map-street h" style="left: 8%; top: 45%; width: 78%; transform: rotate(10deg);"></span>
                     <span class="local-map-street h" style="left: 10%; top: 82%; width: 74%; transform: rotate(3deg);"></span>
@@ -1042,10 +1058,14 @@
                     <span class="local-map-road main-c"></span>
                     <span class="local-map-road main-d"></span>
                     <span class="local-map-route"></span>
-                    <span class="local-map-road-label" style="left: 10%; top: 20%; transform: rotate(-8deg);">Calle Central</span>
-                    <span class="local-map-road-label" style="left: 58%; top: 33%; transform: rotate(118deg);">Av. Oriente</span>
-                    <span class="local-map-road-label" style="left: 16%; top: 61%; transform: rotate(18deg);">Blvd. Sur</span>
-                    <span class="local-map-road-label" style="left: 52%; top: 78%;">Zona Benjaminas</span>
+                    <span class="local-map-road-label" style="left: 7%; top: 22%; transform: rotate(-8deg);">Jacarandas</span>
+                    <span class="local-map-road-label" style="left: 34%; top: 16%; transform: rotate(10deg);">Los Tulipanes</span>
+                    <span class="local-map-road-label" style="left: 58%; top: 32%; transform: rotate(118deg);">Cam. Rural A Pacu</span>
+                    <span class="local-map-road-label" style="left: 16%; top: 59%; transform: rotate(18deg);">Brasil</span>
+                    <span class="local-map-road-label" style="left: 52%; top: 76%;">Las Margaritas</span>
+                    <span class="local-map-road-label" style="right: 7%; top: 38%;">CLIMASTER</span>
+                    <span class="local-map-poi" style="left: 9%; top: 31%;">P</span>
+                    <span class="local-map-poi" style="left: 88%; top: 48%; background: #7b8a95;">M</span>
                     <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
                     <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
                     <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
@@ -1097,6 +1117,6 @@
     </main>
   </section>
 
-  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-streets"></script>
+  <script type="module" src="./js/admin-dashboard.js?v=20260727-local-map-light"></script>
 </body>
 </html>
