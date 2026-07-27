@@ -197,6 +197,7 @@ let orderMapInstance = null;
 let orderMapReady = false;
 let reverseLookupInFlight = false;
 let activeLocationTarget = "client";
+let localMapZoom = 1;
 let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
   store: { lat: 16.7599, lng: -93.18863, address: "Benjaminas, Tuxtla Gutierrez, Chiapas, Mexico", label: "" }
@@ -204,6 +205,9 @@ let locationState = {
 const GOV_DEFAULT_PAGE = "gov-overview";
 const LOCAL_MAP_CENTER = { lat: 16.7425, lng: -93.155 };
 const LOCAL_MAP_SPAN = { lat: 0.08, lng: 0.12 };
+const LOCAL_MAP_ZOOM_MIN = 1;
+const LOCAL_MAP_ZOOM_MAX = 2.4;
+const LOCAL_MAP_ZOOM_STEP = 0.35;
 const LOCAL_GEOCODE_RESULTS = [
   {
     terms: ["benjaminas", "benjamina", "tuxtla"],
@@ -380,8 +384,8 @@ function clampMapPercent(value) {
 }
 
 function coordinatesToLocalMapPosition(lat, lng) {
-  const x = 50 + ((lng - LOCAL_MAP_CENTER.lng) / LOCAL_MAP_SPAN.lng) * 100;
-  const y = 50 - ((lat - LOCAL_MAP_CENTER.lat) / LOCAL_MAP_SPAN.lat) * 100;
+  const x = 50 + ((lng - LOCAL_MAP_CENTER.lng) / LOCAL_MAP_SPAN.lng) * 100 * localMapZoom;
+  const y = 50 - ((lat - LOCAL_MAP_CENTER.lat) / LOCAL_MAP_SPAN.lat) * 100 * localMapZoom;
   return {
     x: clampMapPercent(x),
     y: clampMapPercent(y)
@@ -396,9 +400,31 @@ function localMapPositionToCoordinates(clientX, clientY) {
   const xPercent = ((clientX - rect.left) / rect.width) * 100;
   const yPercent = ((clientY - rect.top) / rect.height) * 100;
   return {
-    lat: LOCAL_MAP_CENTER.lat - ((yPercent - 50) / 100) * LOCAL_MAP_SPAN.lat,
-    lng: LOCAL_MAP_CENTER.lng + ((xPercent - 50) / 100) * LOCAL_MAP_SPAN.lng
+    lat: LOCAL_MAP_CENTER.lat - ((yPercent - 50) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lat,
+    lng: LOCAL_MAP_CENTER.lng + ((xPercent - 50) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lng
   };
+}
+
+function renderLocalMapZoom() {
+  if (!ui.orderMap) return;
+  const tileGrid = ui.orderMap.querySelector(".local-map-tile-grid");
+  const zoomLabel = document.getElementById("map-zoom-level");
+  const zoomIn = document.getElementById("map-zoom-in");
+  const zoomOut = document.getElementById("map-zoom-out");
+  if (tileGrid) tileGrid.style.setProperty("--map-local-zoom", String(localMapZoom));
+  if (zoomLabel) zoomLabel.textContent = `Zoom ${localMapZoom.toFixed(1)}x`;
+  if (zoomIn) zoomIn.disabled = localMapZoom >= LOCAL_MAP_ZOOM_MAX;
+  if (zoomOut) zoomOut.disabled = localMapZoom <= LOCAL_MAP_ZOOM_MIN;
+  setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
+  setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+}
+
+function setLocalMapZoom(nextZoom) {
+  const bounded = Math.min(LOCAL_MAP_ZOOM_MAX, Math.max(LOCAL_MAP_ZOOM_MIN, Number(nextZoom) || LOCAL_MAP_ZOOM_MIN));
+  localMapZoom = Number(bounded.toFixed(2));
+  renderLocalMapZoom();
+  const active = getActiveLocation();
+  updateEmbeddedMap(active.lat, active.lng, Math.round(14 + (localMapZoom - 1) * 3));
 }
 
 function setLocalMapMarkerPosition(target, lat, lng) {
@@ -582,6 +608,11 @@ function initOrderMap() {
           <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;"><span class="pin-label">T</span></span>
           <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
           <span class="local-map-scale"></span>
+          <span id="map-zoom-level" class="map-zoom-level">Zoom 1.0x</span>
+          <span class="map-zoom-controls">
+            <button id="map-zoom-in" class="map-zoom-button" type="button" aria-label="Acercar mapa">+</button>
+            <button id="map-zoom-out" class="map-zoom-button" type="button" aria-label="Alejar mapa">-</button>
+          </span>
         </div>
       </div>
       <div class="map-fix-footer">
@@ -637,8 +668,17 @@ function initOrderMap() {
   document.getElementById("map-cancel-point")?.addEventListener("click", () => {
     setOrderFeedback("Captura de punto cancelada. Puedes seleccionar otro punto.", "error");
   });
+  document.getElementById("map-zoom-in")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setLocalMapZoom(localMapZoom + LOCAL_MAP_ZOOM_STEP);
+  });
+  document.getElementById("map-zoom-out")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setLocalMapZoom(localMapZoom - LOCAL_MAP_ZOOM_STEP);
+  });
   setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
   setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+  renderLocalMapZoom();
   updateMapFixCoords(getActiveLocation().lat, getActiveLocation().lng);
   if (ui.orderStoreLat && !ui.orderStoreLat.value) {
     ui.orderStoreLat.value = String(locationState.store.lat);
