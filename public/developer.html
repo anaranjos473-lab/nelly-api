@@ -227,13 +227,35 @@
           </div>
         </article>
         <aside class="wc-action-aside">
+          <article class="wc-command-card">
+            <p class="wc-eyebrow">Mision tecnica</p>
+            <h3>Encontrar causa antes de tocar codigo</h3>
+            <p>La plataforma debe exponer salud, contratos, SSOT y evidencia para evitar cambios a ciegas.</p>
+          </article>
           <article class="wc-card">
             <p class="wc-eyebrow">Orden tecnico</p>
-            <ul class="wc-action-steps">
-              <li><strong>1</strong><span>Health y errores.</span></li>
-              <li><strong>2</strong><span>Contratos y logs.</span></li>
-              <li><strong>3</strong><span>Diagnostico antes de cambio.</span></li>
-            </ul>
+            <div class="wc-system-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+              <div class="wc-system-node">
+                <small>API</small>
+                <strong>Health</strong>
+                <div class="wc-spark-line"><span style="width:96%"></span></div>
+              </div>
+              <div class="wc-system-node">
+                <small>Firebase</small>
+                <strong>SSOT</strong>
+                <div class="wc-spark-line"><span style="width:92%"></span></div>
+              </div>
+              <div class="wc-system-node">
+                <small>Render</small>
+                <strong>Deploy</strong>
+                <div class="wc-spark-line"><span style="width:88%"></span></div>
+              </div>
+              <div class="wc-system-node">
+                <small>Logs</small>
+                <strong>Evidencia</strong>
+                <div class="wc-spark-line"><span style="width:90%"></span></div>
+              </div>
+            </div>
           </article>
         </aside>
       </section>
@@ -271,6 +293,28 @@
             <span id="governance-overall-state" class="wc-state wc-state-pending">Cargando</span>
           </div>
           <p class="wc-muted">Developer concentra la lectura tecnica: fuentes oficiales, duplicidades, SSOT, Security Gate y ultima auditoria sin abrir documentos.</p>
+          <div class="wc-system-grid" style="margin-top: 14px;">
+            <div class="wc-system-node">
+              <small>Firestore</small>
+              <strong>Negocio</strong>
+              <div class="wc-spark-line"><span style="width:95%"></span></div>
+            </div>
+            <div class="wc-system-node">
+              <small>RTDB</small>
+              <strong>Operativo</strong>
+              <div class="wc-spark-line"><span style="width:91%"></span></div>
+            </div>
+            <div class="wc-system-node">
+              <small>CI/CD</small>
+              <strong>Gate</strong>
+              <div class="wc-spark-line"><span style="width:98%"></span></div>
+            </div>
+            <div class="wc-system-node">
+              <small>SSOT</small>
+              <strong>Vigilado</strong>
+              <div class="wc-spark-line"><span style="width:96%"></span></div>
+            </div>
+          </div>
           <div class="wc-top-actions" style="margin-top: 14px;">
             <a class="wc-action-secondary" href="/api/data-architecture">/api/data-architecture</a>
             <a class="wc-action-secondary" href="/api/data-architecture/status">/status</a>

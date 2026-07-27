@@ -256,3 +256,65 @@ body.nelly-shell > * {
     box-shadow var(--nelly-transition-normal) ease,
     transform var(--nelly-transition-fast) ease;
 }
+
+.nelly-priority-grid {
+  display: grid;
+  gap: var(--nelly-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.nelly-priority-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 132px;
+  border: 1px solid var(--nelly-line-soft);
+  border-radius: var(--nelly-radius-sm);
+  padding: var(--nelly-space-4);
+  background:
+    radial-gradient(circle at 82% 18%, rgba(248, 185, 27, 0.16), transparent 32%),
+    rgba(3, 10, 20, 0.36);
+  box-shadow: var(--nelly-shadow-soft);
+}
+
+.nelly-priority-card::after {
+  content: "";
+  position: absolute;
+  right: -42px;
+  bottom: -58px;
+  width: 130px;
+  height: 130px;
+  border-radius: 999px;
+  background: rgba(46, 212, 191, 0.08);
+  pointer-events: none;
+}
+
+.nelly-priority-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  color: #08111f;
+  background: linear-gradient(135deg, var(--nelly-accent), #ffd15c);
+  font-weight: 950;
+}
+
+.nelly-priority-card h4,
+.nelly-priority-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.nelly-priority-card h4 {
+  color: var(--nelly-text);
+  font-size: 1rem;
+}
+
+.nelly-priority-card p {
+  margin-top: 8px;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}

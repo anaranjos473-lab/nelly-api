@@ -459,6 +459,7 @@
 .ops-panel {
   border-radius: var(--ops-radius);
   padding: 14px;
+  backdrop-filter: blur(14px);
 }
 
 .ops-panel-header {
@@ -498,11 +499,22 @@
 }
 
 .ops-order-card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(62, 113, 164, 0.3);
   border-radius: 14px;
   padding: 12px;
   background: rgba(5, 17, 31, 0.74);
   cursor: pointer;
+}
+
+.ops-order-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--ops-green), var(--ops-blue));
+  opacity: 0.86;
 }
 
 .ops-order-card:hover,
@@ -559,6 +571,21 @@
     linear-gradient(145deg, rgba(246, 190, 53, 0.11), transparent 50%),
     radial-gradient(circle at 55% 52%, rgba(22, 214, 158, 0.18), transparent 22%),
     #10273b;
+}
+
+.ops-map-canvas::after {
+  content: "Mapa local Nelly";
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #d9e9ff;
+  background: rgba(4, 14, 26, 0.62);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
 }
 
 .ops-map-grid {

@@ -448,6 +448,194 @@
   gap: 10px;
 }
 
+.wc-command-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(24, 215, 166, 0.28);
+  border-radius: 18px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(247, 191, 55, 0.16), transparent 28%),
+    linear-gradient(180deg, rgba(13, 31, 56, 0.98), rgba(4, 14, 26, 0.94));
+}
+
+.wc-command-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -52% 28%;
+  height: 120px;
+  border-radius: 999px;
+  background: rgba(24, 215, 166, 0.08);
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.wc-command-card h3 {
+  margin: 6px 0 0;
+  font-size: 1.08rem;
+}
+
+.wc-command-card p {
+  color: var(--wc-muted);
+  line-height: 1.5;
+}
+
+.wc-priority-list {
+  display: grid;
+  gap: 10px;
+}
+
+.wc-priority-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(87, 127, 176, 0.24);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(4, 14, 26, 0.64);
+}
+
+.wc-priority-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  color: #041221;
+  background: linear-gradient(135deg, var(--wc-yellow), #ff934d);
+  font-weight: 950;
+}
+
+.wc-priority-item h3,
+.wc-priority-item p {
+  margin: 0;
+}
+
+.wc-priority-item p {
+  margin-top: 4px;
+  color: var(--wc-muted);
+  font-size: 0.86rem;
+}
+
+.wc-mini-chart {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  min-height: 92px;
+  border: 1px solid rgba(87, 127, 176, 0.2);
+  border-radius: 16px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(43, 130, 255, 0.08), transparent),
+    rgba(4, 14, 26, 0.56);
+}
+
+.wc-mini-chart span {
+  flex: 1;
+  min-height: 18px;
+  border-radius: 999px 999px 6px 6px;
+  background: linear-gradient(180deg, var(--wc-blue), var(--wc-green));
+  box-shadow: 0 10px 24px rgba(43, 130, 255, 0.18);
+}
+
+.wc-product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wc-product-card {
+  min-height: 126px;
+  border: 1px solid rgba(87, 127, 176, 0.24);
+  border-radius: 16px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 74% 26%, rgba(247, 191, 55, 0.22), transparent 28%),
+    rgba(4, 14, 26, 0.62);
+}
+
+.wc-product-card strong,
+.wc-product-card span {
+  display: block;
+}
+
+.wc-product-card span {
+  margin-top: 8px;
+  color: var(--wc-muted);
+  font-size: 0.86rem;
+}
+
+.wc-product-card .wc-product-visual {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(247, 191, 55, 0.95), rgba(255, 147, 77, 0.95));
+  color: #041221;
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.wc-driver-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.wc-driver-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  color: #041221;
+  background: linear-gradient(135deg, var(--wc-yellow), var(--wc-orange));
+  font-size: 1.8rem;
+  font-weight: 950;
+}
+
+.wc-system-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.wc-system-node {
+  border: 1px solid rgba(87, 127, 176, 0.24);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(4, 14, 26, 0.62);
+}
+
+.wc-system-node small,
+.wc-system-node strong {
+  display: block;
+}
+
+.wc-system-node small {
+  color: var(--wc-muted);
+}
+
+.wc-spark-line {
+  height: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wc-spark-line span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--wc-green), var(--wc-blue));
+}
+
 .wc-kpi {
   min-height: 104px;
   padding: 16px;
@@ -573,7 +761,9 @@
   .wc-kpi-grid,
   .wc-module-grid,
   .wc-grid,
-  .wc-action-strip {
+  .wc-action-strip,
+  .wc-product-grid,
+  .wc-system-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -592,7 +782,10 @@
   .wc-kpi-grid,
   .wc-module-grid,
   .wc-grid,
-  .wc-action-strip {
+  .wc-action-strip,
+  .wc-product-grid,
+  .wc-system-grid,
+  .wc-driver-hero {
     grid-template-columns: 1fr;
   }
 
