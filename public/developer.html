@@ -19,6 +19,78 @@
       background: rgba(0, 0, 0, 0.22);
       overflow-wrap: anywhere;
     }
+
+    .governance-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      margin-top: 14px;
+    }
+
+    .governance-toolbar label {
+      display: grid;
+      gap: 6px;
+      min-width: min(100%, 220px);
+      color: var(--wc-muted);
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .governance-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 14px;
+    }
+
+    .governance-table th,
+    .governance-table td {
+      border-bottom: 1px solid var(--wc-line);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .governance-table th {
+      color: #b8d4ff;
+      background: rgba(43, 130, 255, 0.1);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .governance-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .governance-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .governance-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--wc-line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(4, 14, 28, 0.72);
+    }
+
+    @media (max-width: 900px) {
+      .governance-split {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body class="nelly-work-body">
@@ -36,6 +108,8 @@
 
       <nav class="wc-nav" aria-label="Navegacion tecnica">
         <a class="active" href="#developer-overview">Diagnostico</a>
+        <a href="#developer-architecture">Arquitectura</a>
+        <a href="#developer-data-governance">Gobierno de Datos</a>
         <a href="#developer-health">Health</a>
         <a href="#developer-contracts">Contratos</a>
         <a href="#developer-evidence">Evidencia</a>
@@ -71,6 +145,7 @@
           <p>Developer no necesita vender visualmente: debe mostrar API, Firebase, Render, errores, deploy y logs de forma util para diagnosticar.</p>
           <div class="wc-top-actions">
             <a class="wc-action-secondary" href="/api/health">Probar API</a>
+            <a class="wc-action-secondary" href="#developer-data-governance">Ver gobierno de datos</a>
             <a class="wc-action-secondary" href="#developer-evidence">Ver evidencia</a>
           </div>
         </article>
@@ -110,6 +185,21 @@
       </section>
 
       <section class="wc-grid">
+        <article id="developer-architecture" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Arquitectura</p>
+              <h2>Nelly Governance Dashboard</h2>
+            </div>
+            <span id="governance-overall-state" class="wc-state wc-state-pending">Cargando</span>
+          </div>
+          <p class="wc-muted">Developer concentra la lectura tecnica: fuentes oficiales, duplicidades, SSOT, Security Gate y ultima auditoria sin abrir documentos.</p>
+          <div class="wc-top-actions" style="margin-top: 14px;">
+            <a class="wc-action-secondary" href="/api/data-architecture">/api/data-architecture</a>
+            <a class="wc-action-secondary" href="/api/data-architecture/status">/status</a>
+          </div>
+        </article>
+
         <article id="developer-health" class="wc-card">
           <div class="wc-card-header">
             <div>
@@ -136,6 +226,104 @@
         </article>
       </section>
 
+      <section id="developer-data-governance" class="wc-card" style="margin-top: 12px;">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Developer / Arquitectura</p>
+            <h2>Gobierno de Datos</h2>
+          </div>
+          <span id="governance-status-pill" class="wc-state wc-state-pending">Pendiente</span>
+        </div>
+        <p class="wc-muted">Vista viva del Manifiesto del Dato: una sola fuente oficial por entidad, RTDB como memoria operativa y Firestore como objetivo persistente post-piloto.</p>
+
+        <form id="governance-auth-form" class="governance-toolbar" autocomplete="off">
+          <label>
+            Correo tecnico
+            <input id="governance-email" class="wc-input" type="email" value="admin@nellydelivery.com" />
+          </label>
+          <label>
+            Contrasena
+            <input id="governance-password" class="wc-input" type="password" placeholder="Contrasena tecnica" />
+          </label>
+          <button class="wc-action" type="submit">Actualizar auditoria</button>
+          <button id="governance-refresh" class="wc-action-secondary" type="button">Refrescar sin login</button>
+        </form>
+        <p id="governance-message" class="wc-muted">Cargando diagnostico de arquitectura de datos...</p>
+
+        <section class="wc-kpi-grid" style="margin-top: 14px;">
+          <article class="wc-kpi">
+            <small>Entidades gobernadas</small>
+            <strong id="gov-entities">--</strong>
+            <em>Catalogo + snapshot</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Duplicidades</small>
+            <strong id="gov-duplicities">--</strong>
+            <em>Advertencias activas</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Escrituras criticas</small>
+            <strong id="gov-public-writes">--</strong>
+            <em>Paneles directos</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Violaciones SSOT</small>
+            <strong id="gov-ssot">--</strong>
+            <em>Alto riesgo</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Security Gate</small>
+            <strong id="gov-security-gate">--</strong>
+            <em>CI/CD</em>
+          </article>
+          <article class="wc-kpi">
+            <small>Ultima auditoria</small>
+            <strong id="gov-last-audit">--</strong>
+            <em>Snapshot backend</em>
+          </article>
+        </section>
+
+        <div class="governance-split">
+          <article class="wc-card" style="box-shadow: none;">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Coexistencias</p>
+                <h2>Tablero SSOT</h2>
+              </div>
+              <span class="wc-state wc-state-processing">Vigilancia</span>
+            </div>
+            <table class="governance-table">
+              <thead>
+                <tr>
+                  <th>Duplicidad</th>
+                  <th>Estado</th>
+                  <th>Objetivo</th>
+                </tr>
+              </thead>
+              <tbody id="governance-coexistence-table">
+                <tr><td colspan="3">Cargando tablero...</td></tr>
+              </tbody>
+            </table>
+          </article>
+
+          <aside class="wc-card" style="box-shadow: none;">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Fuentes oficiales</p>
+                <h2>Modo actual</h2>
+              </div>
+              <span id="gov-mode-pill" class="wc-state wc-state-active">Piloto</span>
+            </div>
+            <div class="governance-list">
+              <div><span>Runtime</span><strong id="gov-runtime">--</strong></div>
+              <div><span>Negocio persistente</span><strong id="gov-business-source">--</strong></div>
+              <div><span>Estado vivo</span><strong id="gov-live-source">--</strong></div>
+              <div><span>Lecturas fallidas</span><strong id="gov-failed-reads">--</strong></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
       <article id="developer-evidence" class="wc-card" style="margin-top: 12px;">
         <div class="wc-card-header">
           <div>
@@ -148,5 +336,6 @@
       </article>
     </main>
   </section>
+  <script type="module" src="/js/developer.js"></script>
 </body>
 </html>
