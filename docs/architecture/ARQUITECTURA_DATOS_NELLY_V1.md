@@ -211,6 +211,27 @@ Antes de agregar o modificar una entidad, responder:
 | Pertenece a Firestore o RTDB? | Firestore para negocio persistente; RTDB para estado vivo/proyeccion. |
 | Puede existir como proyeccion? | Si, pero debe declarar su fuente canonica. |
 
+## Implementacion operativa inicial
+
+La arquitectura queda instrumentada con un endpoint backend de diagnostico:
+
+`GET /api/data-architecture/status`
+
+Uso:
+
+- en desarrollo puede consultarse para auditoria local;
+- en produccion requiere token autorizado;
+- no escribe datos;
+- revisa nodos RTDB y colecciones Firestore;
+- detecta coexistencias de riesgo;
+- mantiene visible que el modo runtime del piloto es `pilot_rtdb_baseline`;
+- confirma que la arquitectura objetivo es Firestore para negocio persistente y RTDB para memoria viva.
+
+Este endpoint no migra datos. Sirve como control operativo para decidir futuras migraciones con evidencia.
+
+Evidencia:
+- `VALIDACION_ARQUITECTURA_DATOS_ENDPOINT_V1.md`
+
 ## Decision
 ARQUITECTURA DE DATOS NELLY V1 queda adoptada como documento rector para el piloto controlado.
 
