@@ -533,33 +533,21 @@ function initOrderMap() {
   if (orderMapReady || !ui.orderMap) return;
 
   ui.orderMap.innerHTML = `
-    <span class="local-map-block" style="left: 8%; top: 11%; width: 25%; height: 21%;"></span>
-    <span class="local-map-block" style="left: 39%; top: 8%; width: 19%; height: 25%;"></span>
-    <span class="local-map-block" style="left: 62%; top: 12%; width: 27%; height: 20%;"></span>
-    <span class="local-map-block" style="left: 8%; top: 48%; width: 27%; height: 17%;"></span>
-    <span class="local-map-block" style="left: 51%; top: 55%; width: 27%; height: 21%;"></span>
-    <span class="local-map-street h" style="left: 4%; top: 28%; width: 86%; transform: rotate(-8deg);"></span>
-    <span class="local-map-street h" style="left: 8%; top: 45%; width: 78%; transform: rotate(10deg);"></span>
-    <span class="local-map-street h" style="left: 10%; top: 82%; width: 74%; transform: rotate(3deg);"></span>
-    <span class="local-map-street v" style="left: 24%; top: 4%; height: 92%; transform: rotate(9deg);"></span>
-    <span class="local-map-street v" style="left: 47%; top: -5%; height: 108%; transform: rotate(12deg);"></span>
-    <span class="local-map-street v" style="left: 78%; top: 0%; height: 92%; transform: rotate(-8deg);"></span>
-    <span class="local-map-road main-a"></span>
-    <span class="local-map-road main-b"></span>
-    <span class="local-map-road main-c"></span>
-    <span class="local-map-road main-d"></span>
+    <div class="local-map-tile-grid" aria-hidden="true">
+      <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
+      <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
+    </div>
     <span class="local-map-route"></span>
-    <span class="local-map-road-label" style="left: 7%; top: 22%; transform: rotate(-8deg);">Jacarandas</span>
-    <span class="local-map-road-label" style="left: 34%; top: 16%; transform: rotate(10deg);">Los Tulipanes</span>
-    <span class="local-map-road-label" style="left: 58%; top: 32%; transform: rotate(118deg);">Cam. Rural A Pacu</span>
-    <span class="local-map-road-label" style="left: 16%; top: 59%; transform: rotate(18deg);">Brasil</span>
-    <span class="local-map-road-label" style="left: 52%; top: 76%;">Las Margaritas</span>
-    <span class="local-map-road-label" style="right: 7%; top: 38%;">CLIMASTER</span>
-    <span class="local-map-poi" style="left: 9%; top: 31%;">P</span>
-    <span class="local-map-poi" style="left: 88%; top: 48%; background: #7b8a95;">M</span>
     <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;">C</span>
     <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;">T</span>
-    <span class="local-map-label" style="left: 18px; bottom: 16px;">Tuxtla local</span>
+    <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
     <span class="local-map-scale"></span>
   `;
 
