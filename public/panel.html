@@ -26,10 +26,6 @@
             let pedidosListenerRef = null;
             let pedidosListenerCallback = null;
 
-            const API_BASE_URL = window.location.hostname === 'nelly-delivery.web.app'
-                ? 'https://nelly-api-8lh1.onrender.com'
-                : 'http://127.0.0.1:3001';
-
             Promise.resolve().then(() => {
                 const db = window.nellyDb || localDb;
                 window.nellyDb = db;
@@ -802,6 +798,7 @@
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import { getKitchenConfig } from "./js/premium-kitchen/state/kitchen-config.js";
         import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
+        import { normalizarEstado, construirFilaEstadoVacio } from "./js/premium-kitchen/panel-state-utils.mjs";
         import {
             equalTo,
             onChildAdded,
@@ -1061,15 +1058,30 @@
                     const conteoProductos = {};
                     let totalSemanaActual = 0;
                     let totalSemanaAnterior = 0;
-                    snapshot.forEach((child) => {
-                        const pedido = child.val();
-                        const fechaPedido = new Date(pedido.fecha_finalizado || pedido.fecha_creacion).getTime();
+                    const pedidos = [];
+                    if (snapshot && typeof snapshot === 'object' && typeof snapshot.forEach === 'function') {
+                        snapshot.forEach((child) => {
+                            if (!child || typeof child.val !== 'function') {
+                                return;
+                            }
+                            const pedido = child.val();
+                            if (pedido && typeof pedido === 'object') {
+                                pedidos.push({
+                                    ...pedido,
+                                    __key: child.key
+                                });
+                            }
+                        });
+                    }
+
+                    pedidos.forEach((pedido) => {
+                        const fechaPedido = new Date(pedido.fecha_finalizado || pedido.fecha_creacion || pedido.createdAt || pedido.created_at || 0).getTime();
                         if (!Number.isFinite(fechaPedido)) {
                             return;
                         }
                         let incluir = false;
-                        if (pedido.estado === 'entregado') {
-                            const montoNumero = Number(pedido.monto || pedido.total || 0);
+                        if (normalizarEstado(pedido.estado_pedido || pedido.estado || pedido.logistica?.estado) === 'ENTREGADO') {
+                            const montoNumero = Number(pedido.monto || pedido.total || pedido.monto_total || 0);
                             if (fechaPedido >= inicioSemana.getTime()) {
                                 totalSemanaActual += montoNumero;
                             } else if (fechaPedido >= inicioSemanaAnterior && fechaPedido < finSemanaAnterior) {
@@ -1087,11 +1099,11 @@
                             }
                         }
                         if (incluir) {
-                            const montoNumero = Number(pedido.monto || pedido.total || 0);
+                            const montoNumero = Number(pedido.monto || pedido.total || pedido.monto_total || 0);
                             total += montoNumero;
                             count++;
 
-                            const descripcion = String(pedido.descripcion || pedido.productos || '');
+                            const descripcion = String(pedido.descripcion || pedido.productos || pedido.items || '');
                             const productos = descripcion
                                 .split(/,|\n|\+/)
                                 .map((p) => p.trim())
@@ -1103,8 +1115,8 @@
 
                             html += `
                                 <tr>
-                                    <td>${pedido.shortId || pedido.id_pedido || ''}</td>
-                                    <td>${pedido.cliente_nombre || pedido.cliente || ''}</td>
+                                    <td>${pedido.shortId || pedido.id_pedido || pedido.id || ''}</td>
+                                    <td>${pedido.cliente_nombre || pedido.cliente || pedido.userName || ''}</td>
                                     <td>$${montoNumero.toFixed(2)}</td>
                                     <td>${new Date(fechaPedido).toLocaleString('es-MX')}</td>
                                     <td><span class="badge-success">Entregado</span></td>
@@ -1117,6 +1129,10 @@
                         .sort((a, b) => b[1] - a[1])
                         .slice(0, 5);
 
+                    if (!html) {
+                        html = construirFilaEstadoVacio('Sin ventas en este rango');
+                    }
+
                     document.getElementById('body-historial').innerHTML = html;
                     document.getElementById('total-ventas').innerText = `$${total.toFixed(2)}`;
                     document.getElementById('total-comisiones').innerText = `$${(total * 0.15).toFixed(2)}`;
@@ -1128,11 +1144,22 @@
 
             // Exportar tabla a CSV
             window.descargarCSV = () => {
-                let csvContent = "data:text/csv;charset=utf-8,Folio,Cliente,Monto,Fecha\n";
                 const filas = document.querySelectorAll("#body-historial tr");
-                filas.forEach(fila => {
+                const hayRowsDeDatos = Array.from(filas).some((fila) => !fila.innerText.includes('Sin ventas en este rango'));
+                if (!hayRowsDeDatos) {
+                    showToast('No hay ventas finalizadas para exportar en este rango', 'err');
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,Folio,Cliente,Monto,Fecha,Estado\n";
+                filas.forEach((fila) => {
+                    if (fila.innerText.includes('Sin ventas en este rango')) {
+                        return;
+                    }
                     const cols = fila.querySelectorAll("td");
-                    const row = Array.from(cols).map(c => c.innerText).join(",");
+                    const row = Array.from(cols)
+                        .map((col) => `"${String(col.innerText || '').replace(/"/g, '""')}"`)
+                        .join(",");
                     csvContent += row + "\n";
                 });
                 const encodedUri = encodeURI(csvContent);
@@ -1385,17 +1412,6 @@
                 refrescarMetricasDebug();
                 actualizarPanel();
             }, RENDER_DEBOUNCE_MS);
-        }
-
-        function normalizarEstado(valor) {
-            const raw = String(valor || '').trim().toLowerCase();
-            if (!raw) return 'PENDIENTE';
-            if (raw === 'pendiente' || raw === 'preparando' || raw === 'cocina') return 'PENDIENTE';
-            if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
-            if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'llegue_a_tienda' || raw === 'pedido_abordo' || raw === 'llegue_a_cliente') return 'EN_CURSO';
-            if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
-            if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
-            return raw.toUpperCase();
         }
 
         function obtenerFasePanel(valorEstado) {
