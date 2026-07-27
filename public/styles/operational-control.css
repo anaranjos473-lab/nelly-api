@@ -30,16 +30,17 @@
 }
 
 .nelly-ops-body::before {
-  content: "Nelly";
+  content: "";
   position: fixed;
   right: clamp(18px, 5vw, 64px);
   top: clamp(18px, 4vw, 48px);
   z-index: 0;
-  color: rgba(255, 255, 255, 0.045);
-  font-size: clamp(4.8rem, 13vw, 12rem);
-  font-weight: 950;
-  letter-spacing: -0.08em;
-  line-height: 0.9;
+  width: clamp(150px, 22vw, 290px);
+  aspect-ratio: 1;
+  border-radius: 34px;
+  background: url("/assets/brand/nelly-corporate.jpeg") center / cover no-repeat;
+  opacity: 0.09;
+  filter: saturate(1.08);
   pointer-events: none;
   user-select: none;
 }

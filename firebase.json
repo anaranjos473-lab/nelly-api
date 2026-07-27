@@ -24,13 +24,23 @@
             "value": "no-cache, no-store, must-revalidate"
           }
         ]
+      },
+      {
+        "source": "/panel.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
       }
     ],
     "cleanUrls": true,
     "rewrites": [
       { "source": "/os", "destination": "/os.html" },
       { "source": "/nellydelivery", "destination": "/os.html" },
-      { "source": "/nellydelivery/panel", "destination": "/os.html" },
+      { "source": "/nellydelivery/panel", "destination": "/panel.html" },
+      { "source": "/nellydelivery/cocina", "destination": "/panel.html" },
       { "source": "/nellydelivery/admin", "destination": "/admin-dashboard.html" },
       { "source": "/nellydelivery/operativo", "destination": "/dashboard-operativo.html" },
       { "source": "/nellydelivery/comercial", "destination": "/dashboard-comercial.html" },
@@ -42,6 +52,8 @@
       { "source": "/operaciones", "destination": "/dashboard-operativo.html" },
       { "source": "/operar", "destination": "/dashboard-operativo.html" },
       { "source": "/control", "destination": "/dashboard-operativo.html" },
+      { "source": "/cocina", "destination": "/panel.html" },
+      { "source": "/kitchen", "destination": "/panel.html" },
       { "source": "/comercio", "destination": "/dashboard-comercial.html" },
       { "source": "/tienda", "destination": "/dashboard-comercial.html" },
       { "source": "/commerce", "destination": "/dashboard-comercial.html" },
@@ -55,7 +67,7 @@
       { "source": "/developer", "destination": "/developer.html" },
       { "source": "/tracking", "destination": "/seguimiento.html" },
       { "source": "/cliente", "destination": "/seguimiento.html" },
-      { "source": "/panel", "destination": "/os.html" },
+      { "source": "/panel", "destination": "/panel.html" },
       { "source": "/", "destination": "/os.html" },
       { "source": "**", "destination": "/index.html" }
     ]

@@ -122,12 +122,51 @@ export function onValue(_reference, callback) {
   return () => {};
 }
 
+export function off() {
+  return undefined;
+}
+
+export function onChildAdded(_reference, _callback) {
+  return () => {};
+}
+
+export function onChildChanged(_reference, _callback) {
+  return () => {};
+}
+
+export function onChildRemoved(_reference, _callback) {
+  return () => {};
+}
+
+export function query(reference) {
+  return reference;
+}
+
+export function orderByChild(path) {
+  return { type: 'orderByChild', path };
+}
+
+export function equalTo(value) {
+  return { type: 'equalTo', value };
+}
+
 export async function set(_reference, _value) {
   return undefined;
 }
 
 export async function update(_reference, _value) {
   return undefined;
+}
+
+export async function runTransaction(_reference, updater) {
+  const currentValue = null;
+  const nextValue = typeof updater === 'function' ? updater(currentValue) : currentValue;
+  return {
+    committed: nextValue !== undefined,
+    snapshot: {
+      val: () => nextValue
+    }
+  };
 }
 
 export function push(_reference) {

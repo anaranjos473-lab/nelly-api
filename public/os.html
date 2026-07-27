@@ -14,13 +14,30 @@
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
     body {
+      position: relative;
       margin: 0;
       min-height: 100vh;
       font-family: var(--nelly-font);
       background: #07111f;
       color: #e5eefb;
     }
+    body::before {
+      content: "";
+      position: fixed;
+      right: clamp(18px, 5vw, 64px);
+      top: clamp(18px, 4vw, 48px);
+      z-index: 0;
+      width: clamp(150px, 22vw, 290px);
+      aspect-ratio: 1;
+      border-radius: 34px;
+      background: url("/assets/brand/nelly-corporate.jpeg") center / cover no-repeat;
+      opacity: 0.09;
+      pointer-events: none;
+      user-select: none;
+    }
     .shell {
+      position: relative;
+      z-index: 1;
       width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 24px 0 40px;
@@ -113,7 +130,7 @@
     }
     .core-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
       gap: 12px;
     }
     .side-grid {
@@ -256,7 +273,7 @@
     }
     .role-grid {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
       gap: 8px;
     }
     .role-card {
@@ -332,7 +349,7 @@
     <section class="intro">
       <div>
         <h2>Centros de trabajo claros para operar sin mezclar responsabilidades.</h2>
-        <p>Administrador gobierna, Operaciones atiende el momento actual, Comercio impulsa ventas y Logistica mueve el pedido. CRM, Analytics y Developer quedan separados como modulos transversales.</p>
+        <p>Administrador gobierna, Operaciones atiende el momento actual, Cocina prepara y despacha, Comercio impulsa ventas y Logistica mueve el pedido. CRM, Analytics y Developer quedan separados como modulos transversales.</p>
       </div>
       <a class="nelly-btn nelly-btn--accent" href="/admin">Entrar a Administrar</a>
     </section>
@@ -363,15 +380,27 @@
                 <span class="tile__question">Que ocurre ahora?</span>
               </div>
               <h4>Centro de Operaciones</h4>
-              <p>Pedidos, cocina y monitoreo en tiempo real.</p>
+              <p>Pedidos, incidencias, asignaciones y monitoreo en tiempo real.</p>
             </div>
             <div class="tile__go"><span>Abrir operaciones</span><span>-></span></div>
+          </a>
+
+          <a class="tile" href="/cocina">
+            <div>
+              <div class="tile__top">
+                <span class="tile__code">03</span>
+                <span class="tile__question">Que tengo que preparar?</span>
+              </div>
+              <h4>Nelly Cocina</h4>
+              <p>Recibir pedidos, marcar listos y enviar al pool de reparto.</p>
+            </div>
+            <div class="tile__go"><span>Abrir cocina</span><span>-></span></div>
           </a>
 
           <a class="tile" href="/commerce">
             <div>
               <div class="tile__top">
-                <span class="tile__code">03</span>
+                <span class="tile__code">04</span>
                 <span class="tile__question">Como vendo mas?</span>
               </div>
               <h4>Centro Comercial</h4>
@@ -383,7 +412,7 @@
           <a class="tile" href="/driver">
             <div>
               <div class="tile__top">
-                <span class="tile__code">04</span>
+                <span class="tile__code">05</span>
                 <span class="tile__question">Como muevo el pedido?</span>
               </div>
               <h4>Centro Logistico</h4>
@@ -404,6 +433,7 @@
           <div class="access-map__grid">
             <div class="access-node"><strong>Gobierno</strong><small>Configurar, auditar y administrar.</small></div>
             <div class="access-node"><strong>Operaciones</strong><small>Resolver pedidos y monitorear el momento actual.</small></div>
+            <div class="access-node"><strong>Cocina</strong><small>Preparar pedidos y publicarlos para reparto.</small></div>
             <div class="access-node"><strong>Comercio</strong><small>Gestionar tienda, menu, ventas y productos.</small></div>
             <div class="access-node"><strong>Logistica</strong><small>Mover pedidos, asignar y entregar.</small></div>
             <div class="access-node"><strong>CRM</strong><small>Entender y fidelizar clientes.</small></div>
@@ -518,6 +548,11 @@
             <strong>Operador</strong>
             <small>Operaciones y logistica diaria.</small>
           </a>
+          <a class="role-card" href="/cocina">
+            <span>Cocina</span>
+            <strong>Restaurante Cocina</strong>
+            <small>Recibir, preparar y despachar pedidos.</small>
+          </a>
           <a class="role-card" href="/commerce">
             <span>Tienda</span>
             <strong>Restaurante</strong>
@@ -553,9 +588,9 @@
         </div>
         <div class="flow" aria-label="Flujo natural del negocio">
           <span>Comercio recibe pedido</span>
-          <span>Operaciones prepara</span>
+          <span>Cocina prepara</span>
+          <span>Operaciones coordina</span>
           <span>Logistica asigna</span>
-          <span>Cliente recibe</span>
           <span>CRM fideliza</span>
         </div>
       </section>

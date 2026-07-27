@@ -50,6 +50,37 @@ const PAGES = [
     ]
   },
   {
+    id: 'kitchen',
+    label: 'Nelly Cocina',
+    path: '/cocina',
+    auth: { type: 'standard', appSelector: 'body' },
+    requiredText: [
+      'Nelly Cocina',
+      'Mapa operativo de cocina',
+      'EN COCINA',
+      'ESPERANDO REPARTIDOR',
+      'EN REPARTO'
+    ],
+    requiredSelectors: [
+      '#badge-estado',
+      '#count-pendientes',
+      '#count-listo',
+      '#count-reparto',
+      '#kitchen-map-preview',
+      '#contenedor-pendientes',
+      '#contenedor-listo'
+    ],
+    sectionChecks: [
+      {
+        id: 'kitchen-heatmap',
+        navSelector: '#btn-heatmap',
+        closeSelector: '#btn-cerrar-heatmap',
+        requiredText: ['Mapa de calor local'],
+        requiredSelectors: ['#seccion-heatmap', '#mapa-heatmap']
+      }
+    ]
+  },
+  {
     id: 'admin',
     label: 'Gobierno del Ecosistema',
     path: '/admin-dashboard.html',
@@ -305,6 +336,11 @@ async function validateSectionChecks(page, checks = []) {
       invisibleSelectors: selectorCheck.invisibleSelectors,
       selectorValues: selectorCheck.selectorValues
     });
+
+    if (check.closeSelector) {
+      await page.locator(check.closeSelector).click({ timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(250);
+    }
   }
   return results;
 }

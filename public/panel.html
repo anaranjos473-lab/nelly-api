@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Nelly OS - Nelly Control</title>
+   <title>Nelly OS - Nelly Cocina</title>
    <link rel="stylesheet" href="/css/tokens.css" />
    <link rel="stylesheet" href="/css/themes.css" />
    <link rel="stylesheet" href="/styles/nelly-design.css" />
@@ -16,8 +16,7 @@
    <link rel="stylesheet" href="/styles/components/forms.css" />
         <script type="module">
             // Inicializacion segura de Firebase: config se obtiene via endpoint seguro
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-            import { getDatabase, ref, onValue, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            import { rtdb as localDb, ref, onValue, off } from "./js/local-auth.js";
             // --- Documentacion: Flujo de sincronia ---
             // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
             // 2. Todos los listeners se limpian automaticamente al recargar o cerrar el panel.
@@ -31,14 +30,8 @@
                 ? 'https://nelly-api-8lh1.onrender.com'
                 : 'http://127.0.0.1:3001';
 
-            async function fetchFirebaseConfig() {
-                const resp = await fetch(`${API_BASE_URL}/api/public/firebase-config`);
-                if (!resp.ok) throw new Error('No se pudo obtener configuracion segura');
-                return await resp.json();
-            }
-            fetchFirebaseConfig().then(cfg => {
-                const app = initializeApp(cfg);
-                const db = getDatabase(app);
+            Promise.resolve().then(() => {
+                const db = window.nellyDb || localDb;
                 window.nellyDb = db;
                 window.dispatchEvent(new Event('firebase-ready'));
 
@@ -79,7 +72,7 @@
                     }
                 });
             }).catch(e => {
-                alert('Error de inicializacion Firebase: ' + e.message);
+                console.warn('Cocina operando con fallback local:', e.message);
             });
         </script>
         <style>
@@ -88,15 +81,19 @@
                                             flex-direction: column;
                                             gap: 10px;
                                             position: fixed;
-                                            top: 20px;
-                                            right: 20px;
+                                            right: 18px;
+                                            bottom: 18px;
                                             z-index: 9999;
+                                            width: min(260px, calc(100vw - 36px));
                                         }
                                         .btn-menu {
-                                            padding: 10px 20px;
-                                            border-radius: 8px;
-                                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                            padding: 12px 16px;
+                                            border-radius: 12px;
+                                            box-shadow: 0 16px 32px rgba(0,0,0,0.24);
                                             white-space: nowrap;
+                                            background: rgba(3, 10, 20, 0.86) !important;
+                                            color: #f8fafc !important;
+                                            border: 1px solid rgba(34, 211, 238, 0.22) !important;
                                         }
                                 /* Efecto de pulso para el indicador SISTEMA ONLINE */
                                 .status-online {
@@ -149,18 +146,19 @@
             display: flex;
             gap: 28px;
             min-height: calc(100vh - 220px);
-            background: var(--bg);
+            background: transparent;
             flex-wrap: wrap;
         }
         .column {
             flex: 1;
-            background: #f8fafc;
+            background: rgba(3, 10, 20, 0.72);
             border-radius: var(--card-radius);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             min-width: 320px;
-            box-shadow: 0 2px 12px rgba(24,119,242,0.06);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
         }
         .column-header {
             padding: 18px 18px 14px 18px;
@@ -172,12 +170,27 @@
             font-weight: 600;
             letter-spacing: 0.01em;
         }
-        .pendientes { background: linear-gradient(90deg, #e74c3c 0%, #ff7675 100%); }
-        .reparto { background: linear-gradient(90deg, #2ecc71 0%, #00b894 100%); }
+        .pendientes { background: linear-gradient(90deg, #ef4444 0%, #fb7185 100%); }
+        .listo { background: linear-gradient(90deg, #f59e0b 0%, #facc15 100%); color: #08111f; }
+        .reparto { background: linear-gradient(90deg, #14b8a6 0%, #22c55e 100%); }
+        .entregados { background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%) !important; }
         .pedidos-grid {
             padding: 14px 10px 10px 10px;
             overflow-y: auto;
             flex-grow: 1;
+            background: rgba(8, 17, 31, 0.58);
+        }
+        .pedidos-grid .nelly-empty-state {
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px dashed rgba(34, 211, 238, 0.26);
+            color: #dbeafe;
+            box-shadow: none;
+        }
+        .pedidos-grid .nelly-empty-state__title {
+            color: #f8fafc;
+        }
+        .pedidos-grid .nelly-empty-state__body {
+            color: #9fb4d2;
         }
         .badge {
             background: rgba(255,255,255,0.35);
@@ -188,12 +201,13 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
         .card-pedido {
-            background: #ffffff;
+            background: rgba(15, 23, 42, 0.92);
             border-radius: var(--card-radius);
             padding: 18px 16px 14px 16px;
             margin-bottom: 18px;
-            box-shadow: 0 6px 24px rgba(24,119,242,0.08);
-            border-left: 7px solid #3498db;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+            border-left: 7px solid #22d3ee;
+            color: #e5f2ff;
             transition: transform 0.2s cubic-bezier(.4,1.4,.6,1);
         }
         .card-pedido:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 32px rgba(24,119,242,0.13); }
@@ -210,7 +224,7 @@
             padding-bottom: 8px;
             margin-bottom: 10px;
         }
-        .monto { font-weight: bold; color: #2c3e50; font-size: 1.1em; }
+        .monto { font-weight: bold; color: #f8fafc; font-size: 1.1em; }
         .btn-action {
             width: 100%;
             border: none;
@@ -408,6 +422,98 @@
         }
         .toast.ok { background: #166534; }
         .toast.err { background: #991b1b; }
+        .kitchen-map-local {
+            position: relative;
+            min-height: 100%;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid rgba(37, 99, 235, 0.28);
+            background:
+                linear-gradient(35deg, rgba(34, 211, 238, 0.12), transparent 45%),
+                linear-gradient(145deg, rgba(248, 185, 27, 0.12), transparent 50%),
+                radial-gradient(circle at 52% 52%, rgba(22, 214, 158, 0.18), transparent 24%),
+                #10273b;
+        }
+        .kitchen-map-local::before {
+            content: "";
+            position: absolute;
+            inset: -40px;
+            opacity: 0.34;
+            background:
+                repeating-linear-gradient(16deg, transparent 0 28px, rgba(255, 255, 255, 0.28) 29px 31px),
+                repeating-linear-gradient(106deg, transparent 0 36px, rgba(255, 255, 255, 0.2) 37px 39px);
+        }
+        .kitchen-map-badge,
+        .kitchen-map-zone,
+        .kitchen-map-pin,
+        .kitchen-map-route {
+            position: absolute;
+            z-index: 1;
+        }
+        .kitchen-map-badge {
+            left: 16px;
+            bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            padding: 8px 10px;
+            color: #dbeafe;
+            background: rgba(4, 14, 26, 0.68);
+            font-size: 0.75rem;
+            font-weight: 900;
+        }
+        .kitchen-map-zone {
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: #fff;
+            background: rgba(37, 99, 235, 0.72);
+            font-size: 0.75rem;
+            font-weight: 800;
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
+        }
+        .kitchen-map-zone.north { left: 34%; top: 13%; }
+        .kitchen-map-zone.center { left: 46%; top: 48%; background: rgba(14, 165, 233, 0.76); }
+        .kitchen-map-zone.south { left: 42%; bottom: 12%; background: rgba(244, 63, 94, 0.7); }
+        .kitchen-map-pin {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            color: #06101c;
+            background: #22d3ee;
+            border: 3px solid #f8fafc;
+            font-weight: 950;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+        }
+        .kitchen-map-pin.store { left: 51%; top: 39%; background: #f8b91b; }
+        .kitchen-map-pin.driver-a { left: 25%; top: 36%; background: #16d69e; }
+        .kitchen-map-pin.driver-b { right: 22%; top: 48%; background: #16d69e; }
+        .kitchen-map-route {
+            height: 4px;
+            width: 36%;
+            left: 29%;
+            top: 50%;
+            border-radius: 999px;
+            background: #1b7dff;
+            transform: rotate(-24deg);
+            box-shadow: 0 0 20px rgba(27, 125, 255, 0.42);
+        }
+        .kitchen-map-preview {
+            margin: 16px 0 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 16px;
+            background: rgba(3, 10, 20, 0.34);
+        }
+        .kitchen-map-preview h2 {
+            margin: 0 0 10px;
+            color: #f8fafc;
+            font-size: 1.25rem;
+        }
+        .kitchen-map-preview .kitchen-map-local {
+            height: 230px;
+        }
         @media (max-width: 900px) {
             body { padding: 0; }
             .stats, .stats-grid, .dashboard-container { flex-direction: column; gap: 16px; }
@@ -429,7 +535,7 @@
         }
     </style>
     <script type="module">
-        import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+        import { ref, onValue } from "./js/local-auth.js";
 
         function initPanelFirebaseConnection() {
             const db = window.nellyDb;
@@ -465,7 +571,7 @@
         initPanelFirebaseConnection();
     </script>
 </head>
-<body>
+<body class="nelly-shell">
 
     <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -476,12 +582,13 @@
                     <span class="nelly-chip nelly-chip--accent">Despacho</span>
                 </div>
                 <div>
-                    <p class="nelly-section-label text-panel-accent">Nelly OS · Control</p>
-                    <h1 class="nelly-hero-title mt-2">Nelly Control</h1>
-                    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Vista operativa para controlar pedidos, alertas y acciones de despacho con la misma gramática visual del resto de la plataforma.</p>
+                    <p class="nelly-section-label text-panel-accent">Nelly OS · Cocina</p>
+                    <h1 class="nelly-hero-title mt-2">Nelly Cocina</h1>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Entrada independiente para recibir pedidos, prepararlos y marcarlos listos para que Logistica pueda tomarlos.</p>
                 </div>
                 <div class="nelly-divider"></div>
                 <div class="flex flex-wrap gap-2">
+                    <a href="/control" class="nelly-btn nelly-btn--ghost">Operaciones</a>
                     <a href="/driver" class="nelly-btn nelly-btn--ghost">Nelly Driver</a>
                     <a href="/crm" class="nelly-btn nelly-btn--ghost">Nelly CRM</a>
                     <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Alertas</button>
@@ -495,7 +602,7 @@
                 </div>
                 <div class="nelly-kpi p-4">
                     <p class="text-xs uppercase tracking-wide text-slate-400">Acciones</p>
-                    <p class="mt-2 text-sm text-slate-300">Exportacion, rescate y alertas manuales.</p>
+                    <p class="mt-2 text-sm text-slate-300">Despacho, corte, mapa local y alertas manuales.</p>
                 </div>
             </div>
         </div>
@@ -520,6 +627,20 @@
             <div id="contador" class="card-value">0</div>
         </div>
     </div>
+
+    <section id="kitchen-map-preview" class="kitchen-map-preview" aria-label="Mapa operativo de cocina visible">
+        <h2>Mapa operativo de cocina</h2>
+        <div class="kitchen-map-local" aria-label="Mapa local visible de cocina, tienda y repartidores">
+            <span class="kitchen-map-zone north">Zona Norte<br>Pedidos</span>
+            <span class="kitchen-map-zone center">Zona Centro<br>Cocina</span>
+            <span class="kitchen-map-zone south">Zona Sur<br>Ruta</span>
+            <span class="kitchen-map-route"></span>
+            <span class="kitchen-map-pin store">T</span>
+            <span class="kitchen-map-pin driver-a">R</span>
+            <span class="kitchen-map-pin driver-b">R</span>
+            <span class="kitchen-map-badge">Mapa local Nelly - visible para cocina</span>
+        </div>
+    </section>
 
     <div class="dashboard-container">
         <div class="column">
@@ -562,9 +683,18 @@
     <!-- Modal del mapa de flota activa -->
     <div id="modal-mapa-repartidores" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:2000;background:rgba(0,0,0,0.25);">
         <div style="position:absolute;top:40px;left:50%;transform:translateX(-50%);background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:20px;max-width:900px;width:90%;height:600px;">
-            <h3 style="margin-top:0;">Flota Nelly en Tiempo Real</h3>
+            <h3 style="margin-top:0;">Mapa Nelly Cocina y Flota</h3>
             <div class="toggle-switch"><input type="checkbox" id="toggle-repartidores" checked><label for="toggle-repartidores">Mostrar flota</label></div>
-            <div id="map" style="height:500px;width:100%;border-radius:8px;"></div>
+            <div id="map" class="kitchen-map-local" style="height:500px;width:100%;border-radius:8px;" aria-label="Mapa local de cocina, tienda y repartidores">
+                <span class="kitchen-map-zone north">Zona Norte<br>Pedidos</span>
+                <span class="kitchen-map-zone center">Zona Centro<br>Cocina</span>
+                <span class="kitchen-map-zone south">Zona Sur<br>Ruta</span>
+                <span class="kitchen-map-route"></span>
+                <span class="kitchen-map-pin store">T</span>
+                <span class="kitchen-map-pin driver-a">R</span>
+                <span class="kitchen-map-pin driver-b">R</span>
+                <span class="kitchen-map-badge">Mapa local Nelly - sin CDN</span>
+            </div>
             <button id="btn-cerrar-mapa-repartidores" class="btn-filtro" style="position:absolute;top:10px;right:10px;z-index:1002;">Cerrar</button>
         </div>
     </div>
@@ -572,7 +702,13 @@
     <!-- Seccion oculta de Heatmap -->
     <div id="seccion-heatmap" style="display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:1000;background:#f4f7f6;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:auto;">
         <div style="width:100%;height:100%;position:relative;">
-            <div id="mapa-heatmap" style="width:100%;height:100%;min-height:400px;"></div>
+            <div id="mapa-heatmap" class="kitchen-map-local" style="width:100%;height:100%;min-height:400px;">
+                <span class="kitchen-map-zone north">Zona Norte<br>Demanda</span>
+                <span class="kitchen-map-zone center">Zona Centro<br>Alta actividad</span>
+                <span class="kitchen-map-zone south">Zona Sur<br>Observacion</span>
+                <span class="kitchen-map-pin store">T</span>
+                <span class="kitchen-map-badge">Mapa de calor local - piloto</span>
+            </div>
             <button id="btn-cerrar-heatmap" class="btn-filtro" style="position:absolute;top:10px;right:10px;z-index:1002;">Cerrar</button>
         </div>
     </div>
@@ -664,23 +800,11 @@
     <!-- Bloque compat de Firebase eliminado. Usar solo inicializacion modular con type=module. -->
     <script type="module" src="js/logistica-maps.js"></script>
 
-    <!-- Bloque de Firebase antiguo eliminado: ahora solo se usa js/config.js para inicializacion -->
-                markersRepartidores.push(marker);
-            });
-        });
-    }
-    window.initMapRepartidores = initMapRepartidores;
-    </script>
-
     <script type="module">
         import { auth, rtdb } from "./firebase.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import { getKitchenConfig } from "./js/premium-kitchen/state/kitchen-config.js";
         import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
-        import {
-            onAuthStateChanged,
-            signInWithCustomToken
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
         import {
             equalTo,
             onChildAdded,
@@ -691,13 +815,16 @@
             query,
             ref,
             runTransaction,
-            set
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+            set,
+            onAuthStateChanged,
+            signInWithCustomToken
+        } from "./js/local-auth.js";
 
         const API_BASE_URL =
             window.location.hostname === 'nelly-delivery.web.app'
                 ? 'https://nelly-api-8lh1.onrender.com'
-                : '';
+                : window.location.origin;
+        const IS_LOCAL_PANEL = ['127.0.0.1', 'localhost', '::1'].includes(window.location.hostname);
         const renderManager = getRenderManager();
 
             // Mostrar/ocultar modal del mapa de repartidores activos
@@ -713,20 +840,7 @@
 
                 // --- Cargar Leaflet y Heatmap.js dinamicamente ---
                 function cargarLeafletYHeatmap(cb) {
-                    if (window.L && window.L.heatLayer) return cb();
-                    const leafletCss = document.createElement('link');
-                    leafletCss.rel = 'stylesheet';
-                    leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                    document.head.appendChild(leafletCss);
-                    const leafletJs = document.createElement('script');
-                    leafletJs.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                    leafletJs.onload = () => {
-                        const heatmapJs = document.createElement('script');
-                        heatmapJs.src = 'https://unpkg.com/leaflet.heat/dist/leaflet-heat.js';
-                        heatmapJs.onload = cb;
-                        document.body.appendChild(heatmapJs);
-                    };
-                    document.body.appendChild(leafletJs);
+                    if (typeof cb === 'function') cb();
                 }
 
                 // --- Mostrar/ocultar Heatmap ---
@@ -737,7 +851,7 @@
                     let mapa = null;
                     let capaHeat = null;
                     btnHeatmap.onclick = () => {
-                        alert('Heatmap temporalmente deshabilitado');
+                        seccionHeatmap.style.display = 'block';
                     };
                     btnCerrarHeatmap.onclick = () => {
                         seccionHeatmap.style.display = 'none';
@@ -1496,7 +1610,7 @@
             if (user) {
                 renderManager.renderSystemHealth({
                     text: 'SISTEMA ONLINE',
-                    className: 'status-badge status-online online',
+                    className: 'nelly-state nelly-state--success mt-2',
                     addClass: 'online',
                     removeClasses: ['status-error']
                 });
@@ -1549,6 +1663,16 @@
                 }
 
                 if (!response) {
+                    if (IS_LOCAL_PANEL) {
+                        await signInWithCustomToken(auth, 'local-panel-cocina-token');
+                        renderManager.renderSystemHealth({
+                            text: 'SISTEMA LOCAL',
+                            className: 'nelly-state nelly-state--success mt-2',
+                            addClass: 'online',
+                            removeClasses: ['status-error']
+                        });
+                        return;
+                    }
                     throw new Error("token_request_failed_all_endpoints");
                 }
 
@@ -1561,11 +1685,13 @@
             } catch (error) {
                 renderManager.renderSystemHealth({
                     text: 'ERROR DE ACCESO',
-                    className: 'status-badge status-error',
+                    className: 'nelly-state nelly-state--danger mt-2',
                     removeClasses: ['online']
                 });
                 console.error("Error en validacion segura:", error.message);
-                document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
+                if (!IS_LOCAL_PANEL) {
+                    document.body.innerHTML = "<h1>ERROR DE ACCESO: Token invalido</h1>";
+                }
             } finally {
                 kitchenState.auth.authRequestInFlight = false;
             }
