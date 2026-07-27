@@ -198,6 +198,8 @@ let orderMapReady = false;
 let reverseLookupInFlight = false;
 let activeLocationTarget = "client";
 let localMapZoom = 1;
+let localMapPan = { x: 0, y: 0 };
+let localMapDrag = null;
 let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
   store: { lat: 16.7599, lng: -93.18863, address: "Benjaminas, Tuxtla Gutierrez, Chiapas, Mexico", label: "" }
@@ -384,8 +386,12 @@ function clampMapPercent(value) {
 }
 
 function coordinatesToLocalMapPosition(lat, lng) {
-  const x = 50 + ((lng - LOCAL_MAP_CENTER.lng) / LOCAL_MAP_SPAN.lng) * 100 * localMapZoom;
-  const y = 50 - ((lat - LOCAL_MAP_CENTER.lat) / LOCAL_MAP_SPAN.lat) * 100 * localMapZoom;
+  const mapLayer = document.getElementById("order-map-layer") || ui.orderMap;
+  const rect = mapLayer?.getBoundingClientRect?.();
+  const panXPercent = rect?.width ? (localMapPan.x / rect.width) * 100 : 0;
+  const panYPercent = rect?.height ? (localMapPan.y / rect.height) * 100 : 0;
+  const x = 50 + panXPercent + ((lng - LOCAL_MAP_CENTER.lng) / LOCAL_MAP_SPAN.lng) * 100 * localMapZoom;
+  const y = 50 + panYPercent - ((lat - LOCAL_MAP_CENTER.lat) / LOCAL_MAP_SPAN.lat) * 100 * localMapZoom;
   return {
     x: clampMapPercent(x),
     y: clampMapPercent(y)
@@ -399,10 +405,33 @@ function localMapPositionToCoordinates(clientX, clientY) {
   if (!rect.width || !rect.height) return null;
   const xPercent = ((clientX - rect.left) / rect.width) * 100;
   const yPercent = ((clientY - rect.top) / rect.height) * 100;
+  const panXPercent = (localMapPan.x / rect.width) * 100;
+  const panYPercent = (localMapPan.y / rect.height) * 100;
   return {
-    lat: LOCAL_MAP_CENTER.lat - ((yPercent - 50) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lat,
-    lng: LOCAL_MAP_CENTER.lng + ((xPercent - 50) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lng
+    lat: LOCAL_MAP_CENTER.lat - ((yPercent - 50 - panYPercent) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lat,
+    lng: LOCAL_MAP_CENTER.lng + ((xPercent - 50 - panXPercent) / (100 * localMapZoom)) * LOCAL_MAP_SPAN.lng
   };
+}
+
+function renderLocalMapPan() {
+  const panLayer = document.getElementById("local-map-pan-layer");
+  if (!panLayer) return;
+  panLayer.style.setProperty("--map-pan-x", `${localMapPan.x}px`);
+  panLayer.style.setProperty("--map-pan-y", `${localMapPan.y}px`);
+}
+
+function setLocalMapPan(x, y) {
+  localMapPan = {
+    x: Math.min(170, Math.max(-170, Number(x) || 0)),
+    y: Math.min(130, Math.max(-130, Number(y) || 0))
+  };
+  renderLocalMapPan();
+  setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
+  setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+}
+
+function nudgeLocalMapPan(dx, dy) {
+  setLocalMapPan(localMapPan.x + dx, localMapPan.y + dy);
 }
 
 function renderLocalMapZoom() {
@@ -415,6 +444,7 @@ function renderLocalMapZoom() {
   if (zoomLabel) zoomLabel.textContent = `Zoom ${localMapZoom.toFixed(1)}x`;
   if (zoomIn) zoomIn.disabled = localMapZoom >= LOCAL_MAP_ZOOM_MAX;
   if (zoomOut) zoomOut.disabled = localMapZoom <= LOCAL_MAP_ZOOM_MIN;
+  renderLocalMapPan();
   setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
   setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
 }
@@ -591,24 +621,37 @@ function initOrderMap() {
           referrerpolicy="no-referrer-when-downgrade"
           src="https://maps.google.com/maps?ll=16.757111,-93.143493&z=14&t=m&output=embed">
         </iframe>
-        <div class="local-map-tile-grid" aria-hidden="true">
-          <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
-          <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
-        </div>
         <div id="order-map-layer" class="map-interaction-layer" aria-label="Seleccionar punto en el mapa">
-          <span class="local-map-route"></span>
-          <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;"><span class="pin-label">C</span></span>
-          <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;"><span class="pin-label">T</span></span>
+          <span id="local-map-pan-layer" class="local-map-pan-layer">
+            <span class="local-map-tile-grid" aria-hidden="true">
+              <img src="/assets/maps/tuxtla-osm/z16-15802-29671.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15803-29671.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15804-29671.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15802-29672.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15803-29672.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15804-29672.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15802-29673.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15803-29673.png" alt="" />
+              <img src="/assets/maps/tuxtla-osm/z16-15804-29673.png" alt="" />
+            </span>
+            <span class="local-map-route"></span>
+            <span class="local-map-marker client active" data-map-marker="client" style="left: 34%; top: 68%;"><span class="pin-label">C</span></span>
+            <span class="local-map-marker store" data-map-marker="store" style="left: 72%; top: 32%;"><span class="pin-label">T</span></span>
+          </span>
           <span class="local-map-label" style="left: 18px; bottom: 16px;">OpenStreetMap - Tuxtla</span>
           <span class="local-map-scale"></span>
           <span id="map-zoom-level" class="map-zoom-level">Zoom 1.0x</span>
+          <span class="map-pan-controls" aria-label="Mover mapa">
+            <span></span>
+            <button id="map-pan-up" class="map-pan-button" type="button" aria-label="Mover arriba">▲</button>
+            <span></span>
+            <button id="map-pan-left" class="map-pan-button" type="button" aria-label="Mover izquierda">◀</button>
+            <span class="map-pan-button" aria-hidden="true" style="visibility:hidden;">•</span>
+            <button id="map-pan-right" class="map-pan-button" type="button" aria-label="Mover derecha">▶</button>
+            <span></span>
+            <button id="map-pan-down" class="map-pan-button" type="button" aria-label="Mover abajo">▼</button>
+            <span></span>
+          </span>
           <span class="map-zoom-controls">
             <button id="map-zoom-in" class="map-zoom-button" type="button" aria-label="Acercar mapa">+</button>
             <button id="map-zoom-out" class="map-zoom-button" type="button" aria-label="Alejar mapa">-</button>
@@ -649,7 +692,38 @@ function initOrderMap() {
     }
   };
   const mapLayer = document.getElementById("order-map-layer") || ui.orderMap;
-  mapLayer.addEventListener("click", (event) => {
+
+  function startLocalMapDrag(event) {
+    if (event.target.closest?.("button")) return;
+    localMapDrag = {
+      startX: event.clientX,
+      startY: event.clientY,
+      panX: localMapPan.x,
+      panY: localMapPan.y,
+      moved: false
+    };
+    mapLayer.classList.add("is-dragging");
+    if (event.pointerId !== undefined) mapLayer.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveLocalMapDrag(event) {
+    if (!localMapDrag) return;
+    const dx = event.clientX - localMapDrag.startX;
+    const dy = event.clientY - localMapDrag.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) localMapDrag.moved = true;
+    setLocalMapPan(localMapDrag.panX + dx, localMapDrag.panY + dy);
+  }
+
+  function finishLocalMapDrag(event) {
+    if (!localMapDrag) return;
+    const wasDrag = localMapDrag.moved;
+    localMapDrag = null;
+    mapLayer.classList.remove("is-dragging");
+    if (event.pointerId !== undefined) mapLayer.releasePointerCapture?.(event.pointerId);
+    if (wasDrag) {
+      setOrderFeedback("Mapa movido. Toca el punto exacto para fijar la ubicacion.", "ok");
+      return;
+    }
     const point = localMapPositionToCoordinates(event.clientX, event.clientY);
     if (!point) return;
     setSelectedLocation({
@@ -658,10 +732,23 @@ function initOrderMap() {
       address: getActiveLocation().address || String(ui.locationSearch?.value || "").trim(),
       label: activeLocationTarget === "client"
         ? "Punto del cliente seleccionado"
-        : "Punto de la tienda seleccionado"
+      : "Punto de la tienda seleccionado"
     });
     setOrderFeedback("Punto seleccionado en el mapa real.", "ok");
-  });
+  }
+
+  function cancelLocalMapDrag() {
+    localMapDrag = null;
+    mapLayer.classList.remove("is-dragging");
+  }
+
+  mapLayer.addEventListener("pointerdown", startLocalMapDrag);
+  mapLayer.addEventListener("pointermove", moveLocalMapDrag);
+  mapLayer.addEventListener("pointerup", finishLocalMapDrag);
+  mapLayer.addEventListener("pointercancel", cancelLocalMapDrag);
+  mapLayer.addEventListener("mousedown", startLocalMapDrag);
+  window.addEventListener("mousemove", moveLocalMapDrag);
+  window.addEventListener("mouseup", finishLocalMapDrag);
   document.getElementById("map-confirm-point")?.addEventListener("click", () => {
     ui.confirmLocation?.click();
   });
@@ -676,8 +763,25 @@ function initOrderMap() {
     event.stopPropagation();
     setLocalMapZoom(localMapZoom - LOCAL_MAP_ZOOM_STEP);
   });
+  document.getElementById("map-pan-up")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    nudgeLocalMapPan(0, 26);
+  });
+  document.getElementById("map-pan-down")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    nudgeLocalMapPan(0, -26);
+  });
+  document.getElementById("map-pan-left")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    nudgeLocalMapPan(26, 0);
+  });
+  document.getElementById("map-pan-right")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    nudgeLocalMapPan(-26, 0);
+  });
   setLocalMapMarkerPosition("client", locationState.client.lat, locationState.client.lng);
   setLocalMapMarkerPosition("store", locationState.store.lat, locationState.store.lng);
+  renderLocalMapPan();
   renderLocalMapZoom();
   updateMapFixCoords(getActiveLocation().lat, getActiveLocation().lng);
   if (ui.orderStoreLat && !ui.orderStoreLat.value) {
