@@ -1,4 +1,4 @@
-// --- METRICAS DE RENTABILIDAD DIARIA ---
+﻿// --- METRICAS DE RENTABILIDAD DIARIA ---
 async function refreshRentabilidadMetrics() {
   try {
     const payload = await fetchAdminApi("/api/admin/metricas/rentabilidad");
@@ -251,11 +251,11 @@ function setActiveLocationTarget(target) {
   const active = getActiveLocation();
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = activeLocationTarget === "client"
-      ? "Capturando ubicación del cliente."
-      : "Capturando ubicación de la tienda.";
+      ? "Capturando ubicaciÃ³n del cliente."
+      : "Capturando ubicaciÃ³n de la tienda.";
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = active.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = active.address || "Sin ubicaciÃ³n aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = coordenadaValida(active.lat, active.lng)
@@ -289,11 +289,11 @@ function setSelectedLocation(next = {}) {
   if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
 
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
   }
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
-      ? "Capturando ubicación del cliente."
+      ? "Capturando ubicaciÃ³n del cliente."
       : "Capturando ubicacion de la tienda.");
   }
   if (ui.locationCoordsPreview) {
@@ -340,7 +340,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     lat,
     lng,
     address: active.address || String(ui.locationSearch?.value || "").trim(),
-    label: labelConfirmado || "Ubicación actualizada"
+    label: labelConfirmado || "UbicaciÃ³n actualizada"
   };
   locationState[activeLocationTarget] = updated;
   if (activeLocationTarget === "client") {
@@ -351,7 +351,7 @@ function syncLocationFromMapCenter(labelConfirmado) {
     if (ui.orderStoreLng) ui.orderStoreLng.value = String(lng);
   }
   if (ui.locationFoundAddress) {
-    ui.locationFoundAddress.textContent = updated.address || "Sin ubicación aun";
+    ui.locationFoundAddress.textContent = updated.address || "Sin ubicaciÃ³n aun";
   }
   if (ui.locationCoordsPreview) {
     ui.locationCoordsPreview.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
@@ -421,13 +421,13 @@ async function refreshLocationFromCenter(trigger = "moved") {
       lat,
       lng,
       address: address || getActiveLocation().address,
-      label: trigger === "search" ? "Dirección encontrada" : "Ubicación actualizada"
+      label: trigger === "search" ? "DirecciÃ³n encontrada" : "UbicaciÃ³n actualizada"
     });
   } catch (_error) {
     setSelectedLocation({
       lat,
       lng,
-      label: "Ubicación técnica actualizada"
+      label: "UbicaciÃ³n tÃ©cnica actualizada"
     });
   } finally {
     reverseLookupInFlight = false;
@@ -913,6 +913,7 @@ function renderOrderPreview() {
   }
 
   const client = String(ui.orderClient.value || '').trim();
+  const phone = String(ui.orderPhone.value || '').trim();
   const address = String(ui.orderAddress.value || '').trim();
   const placeType = String(ui.orderPlaceType.value || 'otro').trim();
   const deliveryMethod = String(ui.orderDeliveryMethod.value || 'puerta').trim();
@@ -926,39 +927,84 @@ function renderOrderPreview() {
   const storeLat = Number(ui.orderStoreLat.value);
   const storeLng = Number(ui.orderStoreLng.value);
   const mapsUrl = buildMapsUrl(clientLat, clientLng);
+  const clientGpsReady = coordenadaValida(clientLat, clientLng);
+  const storeGpsReady = coordenadaValida(storeLat, storeLng);
+  const totalNumber = Number(total || 0);
+  let parsedItems = [];
+  if (itemsText) {
+    try {
+      parsedItems = parseOrderItems(itemsText);
+    } catch (_error) {
+      parsedItems = [];
+    }
+  }
   const locationSummary = [
     address,
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' · ');
+  ].filter(Boolean).join(' | ');
 
-  const lines = [
-    ['Cliente', client || 'Pendiente'],
-    ['Dirección', address || 'Pendiente'],
-    ['Tipo', placeType || 'Pendiente'],
-    ['Entrega', deliveryMethod || 'Pendiente'],
-    ['Referencia', reference || 'Sin referencia'],
-    ['Notas', locationNotes || 'Sin notas'],
-    ['Items', itemsText ? 'Capturados' : 'Pendientes'],
-    ['Pago', paymentMethod || 'Pendiente'],
-    ['Cliente GPS', coordenadaValida(clientLat, clientLng) ? `${clientLat.toFixed(5)}, ${clientLng.toFixed(5)}` : 'Pendiente'],
-    ['Tienda GPS', coordenadaValida(storeLat, storeLng) ? `${storeLat.toFixed(5)}, ${storeLng.toFixed(5)}` : 'Pendiente'],
-    ['Total', total ? `$${Number(total).toFixed(2)}` : 'Pendiente']
-  ];
+  const itemsHtml = parsedItems.length > 0
+    ? parsedItems.map((item) => `<b>${escapeHtml(`${item.cantidad}x ${item.nombre} $${Number(item.precio).toFixed(2)}`)}</b>`).join('')
+    : `<b>${itemsText ? 'Revisa formato de items' : 'Items pendientes'}</b>`;
+  const routeStatus = clientGpsReady && storeGpsReady ? 'Ruta lista' : 'Faltan coordenadas';
+  const previewReady = client && address && parsedItems.length > 0 && totalNumber > 0 && clientGpsReady && storeGpsReady;
 
-  ui.orderPreview.innerHTML = lines
-    .map(([label, value], index) => `
-      <div class="rounded-xl border ${index % 2 === 0 ? 'border-emerald-400/20 bg-slate-950/40' : 'border-slate-700/70 bg-slate-950/20'} px-3 py-2 shadow-sm">
-        <p class="text-[11px] uppercase tracking-wide text-slate-400">${label}</p>
-        <p class="mt-1 font-semibold text-slate-100">${escapeHtml(value)}</p>
+  ui.orderPreview.innerHTML = `
+    <div class="gov-preview-header">
+      <div>
+        <p class="wc-eyebrow" data-preview-head>${previewReady ? 'Pedido listo para crear' : 'Completa los campos requeridos'}</p>
+        <h3>Pedido asistido</h3>
       </div>
-    `)
-    .join('');
-
-  if (ui.previewLocation) {
-    ui.previewLocation.textContent = locationSummary || 'Sin ubicación aun';
-  }
+      <span class="gov-preview-status">${routeStatus}</span>
+    </div>
+    <div class="gov-preview-route">
+      <div>
+        <span>Entrega</span>
+        <strong data-preview-location>${escapeHtml(address || 'Direccion pendiente')}</strong>
+      </div>
+      <div>
+        <span>Metodo</span>
+        <strong>${escapeHtml(deliveryMethod || 'puerta')}</strong>
+      </div>
+    </div>
+    <div class="gov-preview-grid">
+      <div class="gov-preview-tile">
+        <span>Cliente</span>
+        <strong>${escapeHtml(client || 'Pendiente')}</strong>
+        <small>${escapeHtml(phone || 'Telefono pendiente')}</small>
+      </div>
+      <div class="gov-preview-tile">
+        <span>Ubicacion</span>
+        <strong>${escapeHtml(placeType || 'otro')}</strong>
+        <small>${escapeHtml(reference || 'Sin referencia')}</small>
+      </div>
+      <div class="gov-preview-tile">
+        <span>Cliente GPS</span>
+        <strong>${clientGpsReady ? `${clientLat.toFixed(5)}, ${clientLng.toFixed(5)}` : 'Pendiente'}</strong>
+      </div>
+      <div class="gov-preview-tile">
+        <span>Tienda GPS</span>
+        <strong>${storeGpsReady ? `${storeLat.toFixed(5)}, ${storeLng.toFixed(5)}` : 'Pendiente'}</strong>
+      </div>
+    </div>
+    <div class="gov-preview-items">
+      <span>Items</span>
+      <div class="gov-preview-items-list">${itemsHtml}</div>
+    </div>
+    <div class="gov-preview-total">
+      <div>
+        <span>Pago</span>
+        <strong>${escapeHtml(paymentMethod || 'Pendiente')}</strong>
+        <small>${escapeHtml(locationNotes || 'Sin notas de entrega')}</small>
+      </div>
+      <div>
+        <span>Total</span>
+        <strong>${Number.isFinite(totalNumber) && totalNumber > 0 ? `$${totalNumber.toFixed(2)}` : 'Pendiente'}</strong>
+      </div>
+    </div>
+  `;
 
   if (ui.previewOpenMaps) {
     ui.previewOpenMaps.href = mapsUrl || "#";
@@ -974,9 +1020,9 @@ function renderOrderPreview() {
       const text = `${locationSummary}${mapsUrl ? ` | ${mapsUrl}` : ''}`;
       try {
         await navigator.clipboard.writeText(text);
-        setOrderFeedback('Ubicación copiada al portapapeles.', 'ok');
+        setOrderFeedback('Ubicacion copiada al portapapeles.', 'ok');
       } catch (_error) {
-        setOrderFeedback('No se pudo copiar la ubicación.', 'error');
+        setOrderFeedback('No se pudo copiar la ubicacion.', 'error');
       }
     };
   }
@@ -985,7 +1031,6 @@ function renderOrderPreview() {
     getActiveLocation().address = ui.locationSearch.value.trim();
   }
 }
-
 function setFieldState(input, isValid) {
   if (!input) return;
   if (isValid) {
@@ -1248,7 +1293,7 @@ async function createManualOrder(event) {
     placeType ? `tipo ${placeType}` : '',
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
-  ].filter(Boolean).join(' · ');
+  ].filter(Boolean).join(' Â· ');
 
   try {
     const user = auth.currentUser;
@@ -1601,14 +1646,14 @@ if (ui.useCurrentLocation) {
 if (ui.confirmLocation) {
   ui.confirmLocation.addEventListener("click", async () => {
     const labelConfirmado = activeLocationTarget === "client"
-      ? "Ubicación del cliente confirmada"
-      : "Ubicación de la tienda confirmada";
+      ? "UbicaciÃ³n del cliente confirmada"
+      : "UbicaciÃ³n de la tienda confirmada";
     const updated = syncLocationFromMapCenter(labelConfirmado);
     if (!updated && orderMapInstance) {
       await refreshLocationFromCenter("confirm");
       syncLocationFromMapCenter(labelConfirmado);
     }
-    setOrderFeedback("Ubicación confirmada para el pedido.", "ok");
+    setOrderFeedback("UbicaciÃ³n confirmada para el pedido.", "ok");
   });
 }
 
@@ -1654,7 +1699,7 @@ onAuthStateChanged(auth, async (user) => {
     lat: locationState.client.lat,
     lng: locationState.client.lng,
     address: locationState.client.address || ui.orderAddress.value || "",
-    label: "Listo para capturar ubicación"
+    label: "Listo para capturar ubicaciÃ³n"
   });
   sincronizarMontosAutomaticos();
   if (!dashboardListenersAttached) {

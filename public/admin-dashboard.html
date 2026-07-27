@@ -37,6 +37,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
+      align-items: start;
     }
 
     .gov-field,
@@ -100,7 +101,7 @@
     .gov-map-shell {
       position: relative;
       overflow: hidden;
-      min-height: 320px;
+      height: 336px;
       border: 1px solid var(--wc-line);
       border-radius: 18px;
       background:
@@ -111,7 +112,7 @@
     #order-map {
       position: relative;
       overflow: hidden;
-      min-height: 320px;
+      min-height: 100%;
       width: 100%;
       background:
         linear-gradient(33deg, transparent 0 45%, rgba(255, 255, 255, 0.18) 46% 48%, transparent 49%),
@@ -213,8 +214,222 @@
       font-size: 0.84rem;
     }
 
-    #order-preview {
-      min-height: 170px;
+    .gov-location-panel,
+    .gov-order-preview {
+      border: 1px solid var(--wc-line);
+      border-radius: var(--wc-radius);
+      background: linear-gradient(180deg, rgba(9, 23, 42, 0.94), rgba(4, 12, 24, 0.98));
+      box-shadow: var(--wc-shadow);
+    }
+
+    .gov-location-panel {
+      padding: 16px;
+    }
+
+    .gov-location-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(300px, 1.05fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .gov-location-tools {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .gov-location-tools .gov-field {
+      min-width: 0;
+    }
+
+    .gov-location-summary .wc-row {
+      min-height: 70px;
+      align-items: flex-start;
+    }
+
+    .gov-location-summary .wc-row span {
+      color: var(--wc-muted);
+      font-size: 0.74rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .gov-location-summary .wc-row strong {
+      max-width: 62%;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    .gov-order-preview {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .gov-order-entry {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(400px, 0.46fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .gov-order-lines {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .gov-preview-header,
+    .gov-preview-total,
+    .gov-preview-route {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .gov-preview-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .gov-preview-status {
+      border: 1px solid rgba(24, 215, 166, 0.34);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: var(--wc-green);
+      background: rgba(24, 215, 166, 0.1);
+      font-size: 0.78rem;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .gov-preview-route {
+      border: 1px solid rgba(87, 127, 176, 0.22);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(3, 10, 20, 0.62);
+    }
+
+    .gov-preview-route strong,
+    .gov-preview-total strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 1rem;
+    }
+
+    .gov-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .gov-preview-tile {
+      min-height: 78px;
+      border: 1px solid rgba(87, 127, 176, 0.2);
+      border-radius: 14px;
+      padding: 11px;
+      background: rgba(4, 14, 26, 0.66);
+    }
+
+    .gov-preview-tile span,
+    .gov-preview-route span,
+    .gov-preview-total span,
+    .gov-preview-items span {
+      display: block;
+      color: var(--wc-muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .gov-preview-tile strong {
+      display: block;
+      margin-top: 6px;
+      overflow-wrap: anywhere;
+      line-height: 1.35;
+    }
+
+    .gov-preview-tile small {
+      display: block;
+      margin-top: 5px;
+      color: var(--wc-muted);
+    }
+
+    .gov-preview-items {
+      border: 1px solid rgba(87, 127, 176, 0.2);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(4, 14, 26, 0.52);
+    }
+
+    .gov-preview-items-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .gov-preview-items-list b {
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: #dff8ff;
+      background: rgba(43, 130, 255, 0.16);
+      font-size: 0.8rem;
+    }
+
+    .gov-preview-total {
+      border-top: 1px solid rgba(87, 127, 176, 0.22);
+      padding-top: 12px;
+    }
+
+    .gov-preview-total strong {
+      color: #bdfef1;
+      font-size: 1.45rem;
+    }
+
+    .gov-order-entry .gov-preview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gov-order-entry .gov-order-preview {
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .gov-order-entry .gov-preview-route,
+    .gov-order-entry .gov-preview-total {
+      align-items: flex-start;
+    }
+
+    .gov-order-entry .gov-preview-route {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .gov-order-entry .gov-preview-route strong {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+
+    .gov-order-entry .gov-preview-tile {
+      min-height: 0;
+      padding: 9px;
+    }
+
+    .gov-order-entry .gov-preview-items {
+      padding: 10px;
+    }
+
+    .gov-order-entry .gov-preview-total {
+      padding-top: 10px;
     }
 
     .gov-command-grid {
@@ -256,9 +471,28 @@
 
     @media (max-width: 980px) {
       .gov-form-grid,
+      .gov-location-grid,
+      .gov-order-entry,
       .gov-mini-grid,
       .gov-command-grid {
         grid-template-columns: 1fr;
+      }
+
+      .gov-location-tools {
+        grid-template-columns: 1fr;
+      }
+
+      .gov-preview-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .gov-order-lines {
+        grid-template-columns: 1fr;
+      }
+
+      .gov-location-summary .wc-row strong {
+        max-width: none;
+        text-align: left;
       }
 
       .gov-span-2 {
@@ -627,7 +861,7 @@
           <input id="order-reference" class="gov-field" placeholder="Referencia de ubicacion" />
           <textarea id="order-location-notes" rows="2" class="gov-textarea" placeholder="Notas para la entrega"></textarea>
 
-          <section class="gov-span-2 wc-card">
+          <section class="gov-location-panel gov-span-2">
             <div class="wc-card-header">
               <div>
                 <p class="wc-eyebrow">Ubicacion de entrega</p>
@@ -638,12 +872,14 @@
                 <button id="target-store" type="button">Tienda</button>
               </div>
             </div>
-            <div class="gov-form-grid">
+            <div class="gov-location-grid">
               <div>
-                <input id="location-search" class="gov-field" placeholder="Buscar direccion" />
-                <div class="wc-top-actions gov-section">
+                <div class="gov-location-tools">
+                  <input id="location-search" class="gov-field" placeholder="Buscar direccion" />
                   <button id="location-search-btn" type="button" class="gov-soft-button">Buscar</button>
                   <button id="use-current-location" type="button" class="gov-soft-button">Usar mi ubicacion</button>
+                </div>
+                <div class="wc-top-actions gov-section">
                   <button id="confirm-location" type="button" class="wc-action">Confirmar ubicacion</button>
                 </div>
                 <div class="gov-map-shell gov-section">
@@ -652,7 +888,7 @@
                   <div class="map-pin"></div>
                 </div>
               </div>
-              <aside class="wc-stack">
+              <aside class="wc-stack gov-location-summary">
                 <div class="wc-row"><span>Direccion encontrada</span><strong id="location-found-address">Sin ubicacion aun</strong></div>
                 <div class="wc-row"><span>Estado</span><strong id="location-found-status">El operador solo ve direccion legible.</strong></div>
                 <div class="wc-row"><span>Coordenadas</span><strong id="location-coords-preview">Lat/Lng pendientes</strong></div>
@@ -669,22 +905,26 @@
             </div>
           </section>
 
-          <textarea id="order-items" required rows="3" class="gov-textarea gov-span-2" placeholder="Items del pedido (ejemplo: 2x Pizza $120)"></textarea>
-          <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="gov-field" placeholder="Subtotal MXN" />
-          <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="gov-field" placeholder="Costo de envio MXN" />
-          <input id="order-tip" required type="number" min="0" step="0.01" class="gov-field" placeholder="Propina MXN" />
-          <select id="order-payment-method" required class="gov-select">
-            <option value="efectivo">Efectivo</option>
-            <option value="tarjeta">Tarjeta</option>
-            <option value="transferencia">Transferencia</option>
-          </select>
-          <input id="order-total" readonly type="number" class="gov-field" placeholder="Total calculado MXN" />
-          <textarea id="order-notes" rows="3" class="gov-textarea" placeholder="Notas del pedido"></textarea>
-          <aside id="order-preview" class="wc-card gov-span-2">
-            <p class="wc-eyebrow" data-preview-head>Vista previa</p>
-            <h3>Pedido asistido</h3>
-            <p class="wc-muted" data-preview-location>Sin ubicacion aun</p>
-          </aside>
+          <section class="gov-order-entry gov-span-2">
+            <div class="gov-order-lines">
+              <textarea id="order-items" required rows="3" class="gov-textarea gov-span-2" placeholder="Items del pedido (ejemplo: 2x Pizza $120)"></textarea>
+              <input id="order-subtotal" readonly required type="number" min="0.01" step="0.01" class="gov-field" placeholder="Subtotal MXN" />
+              <input id="order-shipping" readonly required type="number" min="45" step="0.01" class="gov-field" placeholder="Costo de envio MXN" />
+              <input id="order-tip" required type="number" min="0" step="0.01" class="gov-field" placeholder="Propina MXN" />
+              <select id="order-payment-method" required class="gov-select">
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="transferencia">Transferencia</option>
+              </select>
+              <input id="order-total" readonly type="number" class="gov-field" placeholder="Total calculado MXN" />
+              <textarea id="order-notes" rows="3" class="gov-textarea" placeholder="Notas del pedido"></textarea>
+            </div>
+            <aside id="order-preview" class="gov-order-preview">
+              <p class="wc-eyebrow" data-preview-head>Vista previa</p>
+              <h3>Pedido asistido</h3>
+              <p class="wc-muted" data-preview-location>Sin ubicacion aun</p>
+            </aside>
+          </section>
           <button id="order-submit" type="submit" class="wc-action gov-span-2">Crear Pedido</button>
         </form>
         <p id="order-feedback" class="gov-feedback hidden"></p>

@@ -187,6 +187,7 @@ function buildDriverCompletionContext({
     isPanel: Boolean(isPanel),
     completionType,
     decision,
+    alreadyCompleted: decision.alreadyCompleted === true,
     montoPedido,
     comision,
     tarifaEntrega

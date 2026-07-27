@@ -1,10 +1,12 @@
 export const ORDER_STATE_GRAPH = Object.freeze({
+  PENDIENTE: Object.freeze(['LISTO', 'CANCELADO']),
   CREADO: Object.freeze(['PAGADO', 'CANCELADO']),
   PAGADO: Object.freeze(['VALIDADO', 'CANCELADO']),
   VALIDADO: Object.freeze(['EN_PROCESO', 'CANCELADO']),
   EN_PROCESO: Object.freeze(['LISTO', 'CANCELADO']),
   PARCIAL: Object.freeze(['EN_PROCESO', 'LISTO', 'ASIGNADO']),
   LISTO: Object.freeze(['ASIGNADO', 'CANCELADO']),
+  EN_CURSO: Object.freeze(['ENTREGADO', 'CANCELADO']),
   ASIGNADO: Object.freeze(['EN_TRANSITO', 'CANCELADO']),
   EN_TRANSITO: Object.freeze(['ENTREGADO', 'CANCELADO']),
   ENTREGADO: Object.freeze(['CERRADO', 'REEMBOLSADO', 'DEVUELTO']),
@@ -15,6 +17,7 @@ export const ORDER_STATE_GRAPH = Object.freeze({
 });
 
 export const STATE_EVENTS = Object.freeze({
+  PENDIENTE: 'pedido.pendiente',
   CREADO: 'pedido.creado',
   PAGADO: 'pedido.pagado',
   VALIDADO: 'pedido.validado',

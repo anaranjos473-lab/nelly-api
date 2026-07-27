@@ -1,9 +1,22 @@
 import { readFileSync, existsSync } from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 
-dotenv.config();
+function loadEnvFile(fileName = '.env') {
+  const envPath = path.join(process.cwd(), fileName);
+  if (!existsSync(envPath)) return;
+  const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || !line.includes('=')) continue;
+    const [key, ...rest] = line.split('=');
+    if (!process.env[key]) {
+      process.env[key] = rest.join('=').trim().replace(/^["']|["']$/g, '');
+    }
+  }
+}
+
+loadEnvFile();
 
 const BASE_URL = process.env.RENDER_URL || process.env.RENDER_BASE_URL || 'http://localhost:3001';
 const DRIVER_UID = process.env.DRIVER_UID || 'bmKUeqDqHgbaaBmc8MUQXuyssLv2';

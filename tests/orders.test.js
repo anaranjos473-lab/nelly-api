@@ -19,7 +19,14 @@ jest.unstable_mockModule('firebase-admin', () => {
       initializeApp: jest.fn(),
       apps: { length: 1 },
       database: () => ({
-        ref: () => ({ once: mockFn })
+        ref: () => ({
+          once: mockFn,
+          get: mockFn,
+          push: jest.fn(() => ({
+            key: 'orden_simulada_456',
+            set: jest.fn(async (data) => data)
+          }))
+        })
       }),
       __setMockOnce: (fn) => { mockFn.mockImplementationOnce(fn); },
       firestore: () => ({
