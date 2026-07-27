@@ -267,4 +267,12 @@ ui.refresh?.addEventListener('click', async () => {
   }
 });
 
+window.addEventListener('nelly:work-center-authenticated', async () => {
+  try {
+    await fetchGovernance();
+  } catch (error) {
+    renderUnavailable(error);
+  }
+});
+
 fetchGovernance().catch((error) => renderUnavailable(error));

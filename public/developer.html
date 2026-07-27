@@ -149,10 +149,30 @@
     }
   </style>
 </head>
-<body class="nelly-work-body">
+<body class="nelly-work-body" data-work-center-access="panel" data-center="developer">
   <span class="sr-only">Nelly Delivery - Nelly Developer</span>
 
-  <section class="wc-shell">
+  <section id="work-center-login-section" class="wc-login-shell">
+    <article class="wc-login-card">
+      <p class="wc-eyebrow">Acceso Nelly Developer</p>
+      <h1>Diagnostico tecnico de la plataforma</h1>
+      <p>Herramientas para API, Firebase, Render, contratos, logs y Gobierno de Datos. No pertenece a la operacion diaria.</p>
+      <form id="work-center-login-form" class="wc-login-form">
+        <label>
+          Correo autorizado
+          <input id="work-center-email" type="email" value="admin@nellydelivery.com" autocomplete="username" />
+        </label>
+        <label>
+          Contrasena
+          <input id="work-center-password" type="password" placeholder="Contrasena tecnica" autocomplete="current-password" />
+        </label>
+        <button type="submit">Entrar a Nelly Developer</button>
+        <p id="work-center-login-error" class="wc-error hidden" role="alert"></p>
+      </form>
+    </article>
+  </section>
+
+  <section id="work-center-app-section" class="wc-shell hidden">
     <aside class="wc-sidebar">
       <a class="wc-brand" href="/os">
         <span class="wc-brand-mark">N</span>
@@ -191,6 +211,7 @@
         <div class="wc-top-actions">
           <span class="wc-state wc-state-active">Disponible</span>
           <a class="wc-action-secondary" href="/api/health">Abrir health</a>
+          <button id="work-center-logout" type="button" class="wc-action-secondary">Cerrar sesion</button>
         </div>
       </header>
 
@@ -426,6 +447,7 @@
       </article>
     </main>
   </section>
+  <script type="module" src="/js/work-center-access.js"></script>
   <script type="module" src="/js/developer.js"></script>
 </body>
 </html>

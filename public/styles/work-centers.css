@@ -15,6 +15,7 @@
 }
 
 .nelly-work-body {
+  position: relative;
   min-height: 100vh;
   margin: 0;
   color: var(--wc-text);
@@ -23,6 +24,36 @@
     radial-gradient(circle at 88% 8%, rgba(43, 130, 255, 0.16), transparent 24%),
     linear-gradient(135deg, #050b16, #071427 58%, #020711);
   font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+}
+
+.nelly-work-body::before {
+  content: "Nelly";
+  position: fixed;
+  right: clamp(18px, 5vw, 64px);
+  top: clamp(18px, 4vw, 48px);
+  z-index: 0;
+  color: rgba(255, 255, 255, 0.045);
+  font-size: clamp(4.8rem, 13vw, 12rem);
+  font-weight: 950;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+  pointer-events: none;
+  user-select: none;
+}
+
+.nelly-work-body::after {
+  content: "conectando con personas";
+  position: fixed;
+  right: clamp(22px, 5.2vw, 72px);
+  top: clamp(98px, 15vw, 186px);
+  z-index: 0;
+  color: rgba(247, 191, 55, 0.11);
+  font-size: clamp(0.75rem, 1.6vw, 1.08rem);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
 }
 
 .wc-hidden,
@@ -43,6 +74,8 @@
 }
 
 .wc-login-shell {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -60,8 +93,37 @@
 }
 
 .wc-login-card {
+  position: relative;
+  overflow: hidden;
   width: min(460px, 100%);
   padding: 28px;
+}
+
+.wc-login-card::before {
+  content: "N";
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  border-radius: 18px;
+  color: #041221;
+  background: linear-gradient(135deg, var(--wc-green), var(--wc-yellow));
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+  font-size: 1.55rem;
+  font-weight: 950;
+}
+
+.wc-login-card::after {
+  content: "NELLY";
+  position: absolute;
+  right: -10px;
+  bottom: -18px;
+  color: rgba(255, 255, 255, 0.035);
+  font-size: 5rem;
+  font-weight: 950;
+  letter-spacing: -0.08em;
+  pointer-events: none;
 }
 
 .wc-login-card h1,
@@ -80,6 +142,16 @@
   display: grid;
   gap: 15px;
   margin-top: 22px;
+}
+
+.wc-login-form label {
+  display: grid;
+  gap: 8px;
+  color: #cfe2ff;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .wc-login-form input,
@@ -133,6 +205,8 @@
 }
 
 .wc-shell {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
   min-height: 100vh;

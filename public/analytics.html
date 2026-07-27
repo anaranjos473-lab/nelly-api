@@ -10,10 +10,30 @@
   <link rel="stylesheet" href="/styles/states.css" />
   <link rel="stylesheet" href="/styles/work-centers.css" />
 </head>
-<body class="nelly-work-body">
+<body class="nelly-work-body" data-work-center-access="panel" data-center="analytics">
   <span class="sr-only">Nelly Delivery - Nelly Analytics</span>
 
-  <section class="wc-shell">
+  <section id="work-center-login-section" class="wc-login-shell">
+    <article class="wc-login-card">
+      <p class="wc-eyebrow">Acceso Nelly Analytics</p>
+      <h1>Lectura ejecutiva y operativa</h1>
+      <p>Este centro es solo lectura: reportes, tendencias y evidencia del piloto sin modificar informacion critica.</p>
+      <form id="work-center-login-form" class="wc-login-form">
+        <label>
+          Correo autorizado
+          <input id="work-center-email" type="email" value="admin@nellydelivery.com" autocomplete="username" />
+        </label>
+        <label>
+          Contrasena
+          <input id="work-center-password" type="password" placeholder="Contrasena de acceso" autocomplete="current-password" />
+        </label>
+        <button type="submit">Entrar a Nelly Analytics</button>
+        <p id="work-center-login-error" class="wc-error hidden" role="alert"></p>
+      </form>
+    </article>
+  </section>
+
+  <section id="work-center-app-section" class="wc-shell hidden">
     <aside class="wc-sidebar">
       <a class="wc-brand" href="/os">
         <span class="wc-brand-mark">N</span>
@@ -50,6 +70,7 @@
         <div class="wc-top-actions">
           <span class="wc-state wc-state-active">Disponible</span>
           <a class="wc-action-secondary" href="/os">Volver a Nelly OS</a>
+          <button id="work-center-logout" type="button" class="wc-action-secondary">Cerrar sesion</button>
         </div>
       </header>
 
@@ -120,5 +141,6 @@
       </article>
     </main>
   </section>
+  <script type="module" src="/js/work-center-access.js"></script>
 </body>
 </html>

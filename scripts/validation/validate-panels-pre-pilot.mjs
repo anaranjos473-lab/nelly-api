@@ -10,16 +10,20 @@ const OUTPUT_DIR = process.env.PANEL_VALIDATION_OUTPUT_DIR || '.codex-tmp/panel-
 const PAGES = [
   {
     id: 'commercial',
-    label: 'Panel Comercial',
+    label: 'Centro Comercial',
     path: '/dashboard-comercial.html',
+    auth: { type: 'standard', appSelector: '#dashboard-section' },
     requiredText: [
-      'Nelly Delivery - Dashboard Comercial',
-      'KPIs clave',
-      'Inteligencia Comercial',
-      'Promociones Ligeras'
+      'Centro Comercial',
+      'Que tengo que cocinar ahora?',
+      'Oportunidades y acciones',
+      'Promociones ligeras'
     ],
     requiredSelectors: [
       '#dashboard-status',
+      '#overview-ventas-dia',
+      '#overview-pedidos-activos',
+      '#finance-signal',
       '#c4-oportunities-total',
       '#c4-actions-total',
       '#c5-promotions-total',
@@ -29,38 +33,133 @@ const PAGES = [
   },
   {
     id: 'operational',
-    label: 'Panel Operativo',
+    label: 'Centro de Operaciones',
     path: '/dashboard-operativo.html',
+    auth: { type: 'standard', appSelector: '#dashboard-section' },
     requiredText: [
-      'Nelly Delivery - Dashboard Operativo',
-      'ESTADO GENERAL',
-      'Proyecciones S3'
+      'Centro de Operaciones',
+      'Pedido esperando asignacion',
+      'Mapa de operaciones'
     ],
     requiredSelectors: [
       '#dashboard-status',
       '#overview-pedidos-activos',
       '#overview-ventas-brutas',
-      '#finance-signal',
-      '#health-signal',
-      '#marketplace-signal'
+      '#ops-live-map',
+      '.ops-map-canvas'
     ]
   },
   {
     id: 'admin',
-    label: 'Panel Administrativo',
+    label: 'Gobierno del Ecosistema',
     path: '/admin-dashboard.html',
+    auth: { type: 'standard', appSelector: '#dashboard-section' },
     requiredText: [
-      'Panel de Administracion',
+      'Gobierno del Ecosistema',
       'Rentabilidad',
-      'Gestor de Repartidores',
-      'Generador de Pedidos Manuales'
+      'Centro de gobierno'
     ],
     requiredSelectors: [
       '#metric-ventas-brutas',
       '#metric-comisiones-nelly',
-      '#metric-conteo-entregas',
-      '#drivers-table-body',
-      '#manual-order-form'
+      '#metric-conteo-entregas'
+    ],
+    sectionChecks: [
+      {
+        id: 'admin-fleet',
+        navSelector: '[data-gov-nav="fleet-governance"]',
+        requiredText: ['Flota y bloqueos'],
+        requiredSelectors: ['#drivers-table-body']
+      },
+      {
+        id: 'admin-manual-order',
+        navSelector: '[data-gov-nav="manual-order-section"]',
+        requiredText: ['Generador de pedidos manuales', 'Buscar, confirmar y ocultar coordenadas'],
+        requiredSelectors: ['#manual-order-form', '#order-map']
+      }
+    ]
+  },
+  {
+    id: 'crm',
+    label: 'Nelly CRM',
+    path: '/crm-basico.html',
+    auth: { type: 'standard', appSelector: '#crm-section' },
+    requiredText: [
+      'Nelly CRM',
+      'Que cliente requiere seguimiento ahora?',
+      'Estado CRM'
+    ],
+    requiredSelectors: [
+      '#crm-status',
+      '#overview-clientes-totales',
+      '#customer-select',
+      '#commerce-select'
+    ],
+    forbiddenSelectorText: [
+      { selector: '#crm-status', text: 'ERROR' }
+    ]
+  },
+  {
+    id: 'finance',
+    label: 'Centro Financiero',
+    path: '/finanzas.html',
+    auth: { type: 'standard', appSelector: '#app-section' },
+    requiredText: [
+      'Centro Financiero',
+      'Liquidar deuda de conductor'
+    ],
+    requiredSelectors: [
+      '#metric-total-debt',
+      '#metric-drivers-debt',
+      '#metric-drivers-blocked',
+      '#drivers-table-body'
+    ]
+  },
+  {
+    id: 'analytics',
+    label: 'Nelly Analytics',
+    path: '/analytics',
+    auth: { type: 'work-center', appSelector: '#work-center-app-section' },
+    requiredText: [
+      'Nelly Analytics',
+      'Lectura de KPIs'
+    ],
+    requiredSelectors: [
+      '#analytics-overview',
+      '#analytics-operativo',
+      '#analytics-comercial'
+    ]
+  },
+  {
+    id: 'developer',
+    label: 'Nelly Developer',
+    path: '/developer',
+    auth: { type: 'work-center', appSelector: '#work-center-app-section' },
+    requiredText: [
+      'Nelly Developer',
+      'Gobierno de Datos',
+      'Architecture Health'
+    ],
+    requiredSelectors: [
+      '#developer-overview',
+      '#developer-data-governance',
+      '#gov-health-score'
+    ]
+  },
+  {
+    id: 'logistics',
+    label: 'Centro Logistico',
+    path: '/driver',
+    auth: { type: 'logistics', appSelector: '#logistics-app-section' },
+    requiredText: [
+      'Centro Logistico',
+      'Nueva entrega asignada',
+      'Pedidos disponibles'
+    ],
+    requiredSelectors: [
+      '#status',
+      '#count-disponibles',
+      '#lista-disponibles'
     ]
   }
 ];
@@ -77,7 +176,7 @@ function isBlockingRequest(url) {
   return false;
 }
 
-async function loginIfNeeded(page) {
+async function loginStandard(page, appSelector = '#dashboard-section') {
   await page.locator('#login-email').waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
   const loginEmail = page.locator('#login-email');
   if (await loginEmail.count() === 0) {
@@ -90,11 +189,11 @@ async function loginIfNeeded(page) {
   await loginEmail.fill(PANEL_EMAIL);
   await page.locator('#login-password').fill(PANEL_PASSWORD);
   await page.locator('#login-form button[type="submit"]').click();
-  const authenticated = await page.locator('#dashboard-section').waitFor({ state: 'visible', timeout: 30000 })
+  const authenticated = await page.locator(appSelector).waitFor({ state: 'visible', timeout: 30000 })
     .then(() => true)
     .catch(() => false);
   const loginError = await page.locator('#login-error').innerText({ timeout: 1000 }).catch(() => '');
-  const dashboardClass = await page.locator('#dashboard-section').getAttribute('class').catch(() => '');
+  const dashboardClass = await page.locator(appSelector).getAttribute('class').catch(() => '');
   return {
     attempted: true,
     authenticated,
@@ -104,9 +203,133 @@ async function loginIfNeeded(page) {
   };
 }
 
+async function loginWorkCenter(page, appSelector = '#work-center-app-section') {
+  await page.locator('#work-center-email').waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
+  const loginEmail = page.locator('#work-center-email');
+  if (await loginEmail.count() === 0) {
+    return { attempted: false, authenticated: true, reason: 'work-center login form not present' };
+  }
+  if (!(await loginEmail.isVisible({ timeout: 3000 }).catch(() => false))) {
+    return { attempted: false, authenticated: true, reason: 'work-center login form not visible' };
+  }
+
+  await loginEmail.fill(PANEL_EMAIL);
+  await page.locator('#work-center-password').fill(PANEL_PASSWORD);
+  await page.locator('#work-center-login-form button[type="submit"]').click();
+  const authenticated = await page.locator(appSelector).waitFor({ state: 'visible', timeout: 30000 })
+    .then(() => true)
+    .catch(() => false);
+  const loginError = await page.locator('#work-center-login-error').innerText({ timeout: 1000 }).catch(() => '');
+  const dashboardClass = await page.locator(appSelector).getAttribute('class').catch(() => '');
+  return {
+    attempted: true,
+    authenticated,
+    loginError,
+    dashboardClass,
+    url: page.url()
+  };
+}
+
+async function loginLogistics(page, appSelector = '#logistics-app-section') {
+  await page.evaluate(() => localStorage.removeItem('nelly_repartidor_uid')).catch(() => {});
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('#logistics-access-uid').waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
+  const uidInput = page.locator('#logistics-access-uid');
+  if (await uidInput.count() === 0) {
+    return { attempted: false, authenticated: true, reason: 'logistics login form not present' };
+  }
+
+  await uidInput.fill('driver_piloto');
+  await page.locator('#logistics-login-form button[type="submit"]').click();
+  const authenticated = await page.locator(appSelector).waitFor({ state: 'visible', timeout: 30000 })
+    .then(() => true)
+    .catch(() => false);
+  const loginError = await page.locator('#logistics-login-error').innerText({ timeout: 1000 }).catch(() => '');
+  const dashboardClass = await page.locator(appSelector).getAttribute('class').catch(() => '');
+  return {
+    attempted: true,
+    authenticated,
+    loginError,
+    dashboardClass,
+    url: page.url()
+  };
+}
+
+async function loginIfNeeded(page, pageConfig) {
+  const auth = pageConfig.auth || { type: 'standard', appSelector: '#dashboard-section' };
+  if (auth.type === 'work-center') return loginWorkCenter(page, auth.appSelector);
+  if (auth.type === 'logistics') return loginLogistics(page, auth.appSelector);
+  return loginStandard(page, auth.appSelector);
+}
+
+async function validateVisibleSelectors(page, selectors) {
+  const missingSelectors = [];
+  const invisibleSelectors = [];
+  const selectorValues = {};
+  for (const selector of selectors) {
+    const locator = page.locator(selector);
+    const count = await locator.count();
+    if (count === 0) {
+      missingSelectors.push(selector);
+      continue;
+    }
+    const visible = await locator.first().isVisible({ timeout: 3000 }).catch(() => false);
+    if (!visible) invisibleSelectors.push(selector);
+    selectorValues[selector] = await locator.first().innerText({ timeout: 3000 }).catch(() => '');
+  }
+  return { missingSelectors, invisibleSelectors, selectorValues };
+}
+
+async function validateSectionChecks(page, checks = []) {
+  const results = [];
+  for (const check of checks) {
+    if (check.navSelector) {
+      await page.locator(check.navSelector).click({ timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(500);
+    }
+
+    const missingText = [];
+    for (const text of check.requiredText || []) {
+      const count = await page.getByText(text, { exact: false }).count();
+      if (count === 0) missingText.push(text);
+    }
+
+    const selectorCheck = await validateVisibleSelectors(page, check.requiredSelectors || []);
+    results.push({
+      id: check.id,
+      ok: missingText.length === 0
+        && selectorCheck.missingSelectors.length === 0
+        && selectorCheck.invisibleSelectors.length === 0,
+      missingText,
+      missingSelectors: selectorCheck.missingSelectors,
+      invisibleSelectors: selectorCheck.invisibleSelectors,
+      selectorValues: selectorCheck.selectorValues
+    });
+  }
+  return results;
+}
+
+async function validateForbiddenSelectorText(page, rules = []) {
+  const violations = [];
+  for (const rule of rules) {
+    const locator = page.locator(rule.selector);
+    if (await locator.count() === 0) continue;
+    const value = await locator.first().innerText({ timeout: 3000 }).catch(() => '');
+    if (value.includes(rule.text)) {
+      violations.push({
+        selector: rule.selector,
+        text: rule.text,
+        value
+      });
+    }
+  }
+  return violations;
+}
+
 async function validatePage(browser, pageConfig, viewport) {
   const page = await browser.newPage({ viewport });
   const consoleErrors = [];
+  const pageErrors = [];
   const failedRequests = [];
   const badResponses = [];
 
@@ -114,6 +337,10 @@ async function validatePage(browser, pageConfig, viewport) {
     if (message.type() === 'error') {
       consoleErrors.push(message.text());
     }
+  });
+
+  page.on('pageerror', (error) => {
+    pageErrors.push(error.message);
   });
 
   page.on('requestfailed', (request) => {
@@ -134,7 +361,7 @@ async function validatePage(browser, pageConfig, viewport) {
 
   const url = `${BASE_URL}${pageConfig.path}`;
   await page.goto(url, { waitUntil: 'commit', timeout: 30000 });
-  const authState = await loginIfNeeded(page);
+  const authState = await loginIfNeeded(page, pageConfig);
   await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});
   await page.waitForTimeout(1500);
 
@@ -144,20 +371,9 @@ async function validatePage(browser, pageConfig, viewport) {
     if (count === 0) missingText.push(text);
   }
 
-  const missingSelectors = [];
-  const invisibleSelectors = [];
-  const selectorValues = {};
-  for (const selector of pageConfig.requiredSelectors) {
-    const locator = page.locator(selector);
-    const count = await locator.count();
-    if (count === 0) {
-      missingSelectors.push(selector);
-      continue;
-    }
-    const visible = await locator.first().isVisible({ timeout: 3000 }).catch(() => false);
-    if (!visible) invisibleSelectors.push(selector);
-    selectorValues[selector] = await locator.first().innerText({ timeout: 3000 }).catch(() => '');
-  }
+  const selectorCheck = await validateVisibleSelectors(page, pageConfig.requiredSelectors);
+  const sectionChecks = await validateSectionChecks(page, pageConfig.sectionChecks);
+  const forbiddenSelectorText = await validateForbiddenSelectorText(page, pageConfig.forbiddenSelectorText);
 
   const screenshotPath = path.join(
     OUTPUT_DIR,
@@ -168,9 +384,12 @@ async function validatePage(browser, pageConfig, viewport) {
   await page.close();
 
   const ok = missingText.length === 0
-    && missingSelectors.length === 0
-    && invisibleSelectors.length === 0
+    && selectorCheck.missingSelectors.length === 0
+    && selectorCheck.invisibleSelectors.length === 0
+    && sectionChecks.every((item) => item.ok)
+    && forbiddenSelectorText.length === 0
     && consoleErrors.length === 0
+    && pageErrors.length === 0
     && failedRequests.length === 0
     && badResponses.length === 0;
 
@@ -180,13 +399,16 @@ async function validatePage(browser, pageConfig, viewport) {
     viewport: viewport.id,
     ok,
     missingText,
-    missingSelectors,
-    invisibleSelectors,
+    missingSelectors: selectorCheck.missingSelectors,
+    invisibleSelectors: selectorCheck.invisibleSelectors,
     consoleErrors,
+    pageErrors,
     failedRequests,
     badResponses,
     authState,
-    selectorValues,
+    selectorValues: selectorCheck.selectorValues,
+    sectionChecks,
+    forbiddenSelectorText,
     screenshotPath
   };
 }

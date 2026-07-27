@@ -44,7 +44,23 @@
   </style>
 </head>
 <body class="nelly-work-body">
-  <section class="wc-shell">
+  <section id="logistics-login-section" class="wc-login-shell">
+    <article class="wc-login-card">
+      <p class="wc-eyebrow">Acceso Centro Logistico</p>
+      <h1>Entrar como repartidor o coordinador</h1>
+      <p>Este centro se abre con el UID operativo para ver pedidos disponibles, tomar entregas y monitorear elegibilidad.</p>
+      <form id="logistics-login-form" class="wc-login-form">
+        <label>
+          UID operativo
+          <input id="logistics-access-uid" type="text" placeholder="driver_piloto" autocomplete="username" />
+        </label>
+        <button type="submit">Entrar a Logistica</button>
+        <p id="logistics-login-error" class="wc-error hidden" role="alert"></p>
+      </form>
+    </article>
+  </section>
+
+  <section id="logistics-app-section" class="wc-shell hidden">
     <aside class="wc-sidebar">
       <a class="wc-brand" href="/os">
         <span class="wc-brand-mark">N</span>
@@ -78,6 +94,7 @@
         <div class="wc-top-actions">
           <a href="/control">Centro de Operaciones</a>
           <a href="/os">Nelly OS</a>
+          <button id="logistics-logout" type="button" class="wc-action-secondary">Cerrar acceso</button>
         </div>
       </header>
 
@@ -205,6 +222,12 @@
     const listaMios = document.getElementById('lista-mios');
     const countDisponibles = document.getElementById('count-disponibles');
     const countMios = document.getElementById('count-mios');
+    const loginSection = document.getElementById('logistics-login-section');
+    const appSection = document.getElementById('logistics-app-section');
+    const loginForm = document.getElementById('logistics-login-form');
+    const accessUidInput = document.getElementById('logistics-access-uid');
+    const loginError = document.getElementById('logistics-login-error');
+    const logoutButton = document.getElementById('logistics-logout');
 
     const API_ORIGIN = (() => {
       const host = String(window.location?.hostname || '').toLowerCase();
@@ -220,6 +243,46 @@
     let authRequestInFlight = false;
     let repartidorUid = localStorage.getItem('nelly_repartidor_uid') || '';
     nombreInput.value = repartidorUid;
+    accessUidInput.value = repartidorUid;
+
+    function setLoginError(message = '') {
+      loginError.textContent = message;
+      loginError.classList.toggle('hidden', !message);
+    }
+
+    function showLogisticsApp() {
+      loginSection.classList.add('hidden');
+      appSection.classList.remove('hidden');
+    }
+
+    function showLogisticsLogin() {
+      loginSection.classList.remove('hidden');
+      appSection.classList.add('hidden');
+    }
+
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const uid = String(accessUidInput.value || '').trim();
+      if (!uid) {
+        setLoginError('Escribe el UID operativo para entrar.');
+        return;
+      }
+      setLoginError('');
+      repartidorUid = uid;
+      localStorage.setItem('nelly_repartidor_uid', repartidorUid);
+      nombreInput.value = repartidorUid;
+      showLogisticsApp();
+      autenticar();
+    });
+
+    logoutButton.addEventListener('click', () => {
+      localStorage.removeItem('nelly_repartidor_uid');
+      repartidorUid = '';
+      nombreInput.value = '';
+      accessUidInput.value = '';
+      statusEl.textContent = 'Acceso cerrado.';
+      showLogisticsLogin();
+    });
 
     btnGuardar.onclick = () => {
       repartidorUid = String(nombreInput.value || '').trim();
@@ -414,6 +477,7 @@
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        if (!repartidorUid) return;
         statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
         onValue(ref(rtdb, 'pedidos'), (snapshot) => {
           renderListas(snapshot.val());
@@ -421,9 +485,18 @@
           statusEl.textContent = `Error de datos: ${error.message}`;
         });
       } else {
-        autenticar();
+        if (repartidorUid && !appSection.classList.contains('hidden')) {
+          autenticar();
+        }
       }
     });
+
+    if (repartidorUid) {
+      showLogisticsApp();
+      autenticar();
+    } else {
+      showLogisticsLogin();
+    }
   </script>
 </body>
 </html>

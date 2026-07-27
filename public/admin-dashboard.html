@@ -109,8 +109,42 @@
     }
 
     #order-map {
+      position: relative;
+      overflow: hidden;
       min-height: 320px;
       width: 100%;
+      background:
+        linear-gradient(33deg, transparent 0 45%, rgba(255, 255, 255, 0.18) 46% 48%, transparent 49%),
+        linear-gradient(122deg, transparent 0 42%, rgba(255, 255, 255, 0.14) 43% 45%, transparent 46%),
+        radial-gradient(circle at 26% 28%, rgba(43, 130, 255, 0.2), transparent 18%),
+        radial-gradient(circle at 68% 66%, rgba(24, 215, 166, 0.18), transparent 20%),
+        linear-gradient(135deg, #102743, #071827 58%, #04101f);
+    }
+
+    #order-map::before {
+      content: "";
+      position: absolute;
+      inset: -44px;
+      opacity: 0.36;
+      background:
+        repeating-linear-gradient(14deg, transparent 0 28px, rgba(255, 255, 255, 0.24) 29px 31px),
+        repeating-linear-gradient(104deg, transparent 0 36px, rgba(255, 255, 255, 0.16) 37px 39px);
+      pointer-events: none;
+    }
+
+    #order-map::after {
+      content: "Mapa local Nelly - Tuxtla";
+      position: absolute;
+      left: 16px;
+      bottom: 14px;
+      border: 1px solid rgba(137, 175, 215, 0.26);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: #b8d4ff;
+      background: rgba(4, 14, 26, 0.72);
+      font-size: 0.78rem;
+      font-weight: 900;
+      pointer-events: none;
     }
 
     .map-pin {
