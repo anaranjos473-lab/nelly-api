@@ -485,13 +485,11 @@ function updateEmbeddedMap(lat, lng, zoom = 15) {
   }
 }
 
-function syncLocationFromMapCenter(labelConfirmado) {
-  if (!orderMapInstance) return null;
-  const center = orderMapInstance.getCenter();
-  const lat = Number(center.lat);
-  const lng = Number(center.lng);
-  if (!coordenadaValida(lat, lng)) return null;
+function syncLocationFromActivePoint(labelConfirmado) {
   const active = getActiveLocation();
+  const lat = Number(active.lat);
+  const lng = Number(active.lng);
+  if (!coordenadaValida(lat, lng)) return null;
   const updated = {
     lat,
     lng,
@@ -1965,7 +1963,19 @@ if (ui.useCurrentLocation) {
         setSelectedLocation({ lat, lng, label: "Ubicacion actual" });
       }
       setOrderFeedback("Ubicacion actual aplicada al mapa.", "ok");
-    }, () => {
+    }, async () => {
+      const fallback = getManualLocationFallback(String(ui.locationSearch?.value || "Ubicacion actual"));
+      if (fallback) {
+        setSelectedLocation({
+          lat: fallback.lat,
+          lng: fallback.lng,
+          address: fallback.address,
+          label: "Ubicacion actual aproximada"
+        });
+        updateMapMarker(fallback.lat, fallback.lng, 16);
+        setOrderFeedback("No se pudo leer el GPS; se uso una ubicacion aproximada.", "error");
+        return;
+      }
       setOrderFeedback("No se pudo obtener la ubicacion actual.", "error");
     }, {
       enableHighAccuracy: true,
@@ -1975,15 +1985,15 @@ if (ui.useCurrentLocation) {
   });
 }
 
-if (ui.confirmLocation) {
+  if (ui.confirmLocation) {
   ui.confirmLocation.addEventListener("click", async () => {
     const labelConfirmado = activeLocationTarget === "client"
       ? "Ubicacion del cliente confirmada"
       : "Ubicacion de la tienda confirmada";
-    const updated = syncLocationFromMapCenter(labelConfirmado);
+    const updated = syncLocationFromActivePoint(labelConfirmado);
     if (!updated && orderMapInstance) {
       await refreshLocationFromCenter("confirm");
-      syncLocationFromMapCenter(labelConfirmado);
+      syncLocationFromActivePoint(labelConfirmado);
     }
     setOrderFeedback("Ubicacion confirmada para el pedido.", "ok");
   });
