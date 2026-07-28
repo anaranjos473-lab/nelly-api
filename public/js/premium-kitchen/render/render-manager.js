@@ -422,7 +422,7 @@ export function createRenderManager() {
         metodoEntrega ? `Entrega: ${metodoEntrega}` : '',
         referenciaUbicacion ? `Referencia: ${referenciaUbicacion}` : '',
         notasUbicacion ? `Notas: ${notasUbicacion}` : ''
-      ].filter(Boolean).join(' · ');
+      ].filter(Boolean).join(' � ');
       const transcurridoMin = Math.max(0, Math.round((Date.now() - getPedidoTimestamp(pedido)) / 60000));
       const reloj = `${String(transcurridoMin).padStart(2, '0')}:00`;
       const bucket = bucketForMinutes(transcurridoMin);
@@ -436,7 +436,7 @@ export function createRenderManager() {
         ''
       ).trim();
       const repartidorTexto = repartidorNombre
-        ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` · Llegada estimada ${etaRepartidor} min` : ''}`
+        ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` � Llegada estimada ${etaRepartidor} min` : ''}`
         : 'Buscando repartidor...';
       const esperaLogisticaMin = esListo
         ? Math.max(1, Math.round(etaRepartidor ?? 2))
@@ -451,14 +451,14 @@ export function createRenderManager() {
         : 'Cuando Cocina marque Listo';
       const logisticaResult = esListo
         ? (etaRepartidor !== null && esperaLogisticaMin <= 2
-          ? 'Llegará un repartidor justo al terminar'
+          ? 'Llegara un repartidor justo al terminar'
           : `Repartidor estimado en ${esperaLogisticaMin} min`)
-        : 'La salida se activa en cuanto Cocina cierre la preparación';
+        : 'La salida se activa en cuanto Cocina cierre la preparacion';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;
       const tiempoObjetivoMin = toNumberSafe(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8, 8);
       const estadoCocina = transcurridoMin <= tiempoObjetivoMin ? 'En tiempo' : 'Retraso';
-      const senalCocina = transcurridoMin <= tiempoObjetivoMin ? '✓ En tiempo' : '⚠ Retraso';
+      const senalCocina = transcurridoMin <= tiempoObjetivoMin ? '? En tiempo' : '? Retraso';
       const avanceCocina = transcurridoMin <= tiempoObjetivoMin
         ? `Vas en ${transcurridoMin} min.`
         : `Llevas ${transcurridoMin} min.`;
@@ -466,10 +466,13 @@ export function createRenderManager() {
         ? pedido.historico_acciones.slice(0, 4)
         : [
             { label: 'Pedido recibido', time: pedido.createdAt || pedido.created_at || pedido.fecha_creacion || null },
-            { label: 'Preparación iniciada', time: pedido.timestampActualizacion || pedido.updatedAt || null },
+            { label: 'Preparacion iniciada', time: pedido.timestampActualizacion || pedido.updatedAt || null },
             { label: estadoNormalizado === 'LISTO' ? 'Marcado listo' : 'En cocina', time: pedido.fecha_despacho || null },
             { label: estadoNormalizado === 'EN_CURSO' ? 'En reparto' : 'Esperando repartidor', time: pedido.eta_repartidor || pedido.repartidor_eta || null }
           ];
+      const resumenProductos = String(pedido.descripcion || 'Sin descripcion').replace(/\s+/g, ' ').trim();
+      const resumenProductosCorto = resumenProductos.length > 58 ? `${resumenProductos.slice(0, 55).trim()}...` : resumenProductos;
+      const detallesId = `details-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
       const config = esPendiente || fase === 'COCINA'
         ? { texto: 'MARCAR LISTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
         : (esListo
@@ -485,9 +488,19 @@ export function createRenderManager() {
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
                         <span class="nelly-state nelly-state--empty">${estadoLabel}</span>
                     </div>
-                    <div class="card-clock card-clock--${bucket.tone}">
-                        <span class="card-clock__time">${reloj}</span>
-                        <span class="card-clock__tag">${bucket.label}</span>
+                    <div class="card-summary">
+                        <div class="card-summary__row">
+                            <span class="card-summary__time">${reloj}</span>
+                            <span class="card-summary__objective">Objetivo ${tiempoObjetivoMin} min</span>
+                        </div>
+                        <div class="card-summary__row">
+                            <span class="card-summary__name">${escapeHtml(pedido.cliente_nombre || pedido.cliente || 'Cliente')}</span>
+                            <span class="card-summary__item">${escapeHtml(resumenProductosCorto)}</span>
+                        </div>
+                        <div class="card-summary__row">
+                            <span class="card-summary__driver">${escapeHtml(repartidorNombre || 'Buscando repartidor...')}</span>
+                            <span class="card-summary__objective">${escapeHtml(esListo ? 'Listo' : bucket.label)}</span>
+                        </div>
                     </div>
                     <div class="card-intelligence ${transcurridoMin > tiempoObjetivoMin ? 'card-intelligence--late' : 'card-intelligence--on-time'}">
                         <span class="card-intelligence__label">Tiempo objetivo</span>
@@ -496,23 +509,27 @@ export function createRenderManager() {
                         <span class="card-intelligence__signal">${senalCocina}</span>
                     </div>
                     <div class="card-logistics ${esListo ? 'card-logistics--ready' : 'card-logistics--waiting'}">
-                        <span class="card-logistics__label">Inteligencia logística</span>
+                        <span class="card-logistics__label">Inteligencia logistica</span>
                         <strong class="card-logistics__headline">${escapeHtml(logisticaHeadline)}</strong>
                         <span class="card-logistics__wait">${escapeHtml(logisticaWait)}</span>
                         <span class="card-logistics__result">${escapeHtml(logisticaResult)}</span>
                     </div>
-                    <p class="nelly-pattern-card__title">${escapeHtml(pedido.cliente_nombre || pedido.cliente || 'Cliente')}</p>
-                    <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
-                    ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
-                    <p class="nelly-pattern-card__body">${pedido.descripcion || 'Sin descripcion'}</p>
-                    <p class="nelly-pattern-card__body">${repartidorTexto}</p>
-                    <div class="card-history">
-                        <span class="card-history__label">Historial de acciones</span>
-                        <div class="card-history__items">
-                            ${historialAcciones.map((item) => {
-                              const fecha = item?.time ? new Date(item.time).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '—';
-                              return `<div class="card-history__item"><span>${escapeHtml(item.label || 'Evento')}</span><span class="card-history__time">${fecha}</span></div>`;
-                            }).join('')}
+                    <button class="card-details-toggle" type="button" aria-expanded="false" aria-controls="${detallesId}" onclick="const card=this.closest('.nelly-pattern-card'); const details=document.getElementById('${detallesId}'); const open=!card.classList.contains('is-expanded'); card.classList.toggle('is-expanded', open); this.setAttribute('aria-expanded', open ? 'true' : 'false'); if(details){ details.hidden=!open; }">
+                        <span class="card-details-toggle__label">Ver mas</span>
+                    </button>
+                    <div id="${detallesId}" class="card-details" hidden>
+                        <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
+                        ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
+                        <p class="nelly-pattern-card__body">${escapeHtml(pedido.descripcion || 'Sin descripcion')}</p>
+                        <p class="nelly-pattern-card__body">${escapeHtml(repartidorTexto)}</p>
+                        <div class="card-history">
+                            <span class="card-history__label">Historial de acciones</span>
+                            <div class="card-history__items">
+                                ${historialAcciones.map((item) => {
+                                  const fecha = item?.time ? new Date(item.time).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '�';
+                                  return `<div class="card-history__item"><span>${escapeHtml(item.label || 'Evento')}</span><span class="card-history__time">${fecha}</span></div>`;
+                                }).join('')}
+                            </div>
                         </div>
                     </div>
                     <p class="nelly-pattern-card__amount">${monto.toFixed(2)}</p>
@@ -593,3 +610,4 @@ const renderManager = createRenderManager();
 export function getRenderManager() {
   return renderManager;
 }
+
