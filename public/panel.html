@@ -2491,14 +2491,14 @@
                     const objetivo = Number(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8);
                     const activo = String(pedidoId) === String(id) || (!id && index === 0);
                     return `
-                        <button type="button" class="operation-focus__queue-item${activo ? ' is-active' : ''}" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
+                        <div class="operation-focus__queue-item${activo ? ' is-active' : ''}" role="button" tabindex="0" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
                             <div class="operation-focus__queue-item-top"><strong>#${escapeHtml(String(pedidoId || '----'))}</strong><span>${escapeHtml(String(objetivo))} min</span></div>
                             <div class="operation-focus__queue-item-meta"><span>${escapeHtml(String(label))}</span><span>${escapeHtml(String(pedido.estado || 'Pendiente'))}</span></div>
-                        </button>
+                        </div>
                     `;
                 }).join('');
 
-                const pedido = id ? pedidoDesdeEstado(id) : pedidosFinales[0] || null;
+                const pedido = (id && pedidoDesdeEstado(id)) || pedidosFinales[0] || null;
                 if (!pedido) {
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
