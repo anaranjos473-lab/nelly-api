@@ -1526,28 +1526,28 @@
                 </div>
                 <div class="nelly-divider"></div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Reportar incidencia</button>
+                    <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Incidencia</button>
                 </div>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
-                <div class="nelly-kpi p-4">
+            <div class="grid gap-3 sm:grid-cols-2 lg:w-[20rem]">
+                <div class="nelly-kpi p-3">
                     <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
-                    <div id="badge-estado" class="nelly-state nelly-state--loading mt-2">CONECTANDO...</div>
+                    <div id="badge-estado" class="nelly-state nelly-state--loading mt-2">ONLINE</div>
                 </div>
-                <div class="nelly-kpi p-4">
-                    <p class="text-xs uppercase tracking-wide text-slate-400">Acciones</p>
-                    <p class="mt-2 text-sm text-slate-300">Pedidos entrantes, preparación, reparto y soporte operativo para la cocina.</p>
+                <div class="nelly-kpi p-3">
+                    <p class="text-xs uppercase tracking-wide text-slate-400">Centro</p>
+                    <p class="mt-2 text-sm text-slate-300">Operación de cocina</p>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="stats">
-        <div class="stat-card metric-card">
+    <div class="stats" style="margin-top: 0;">
+        <div class="stat-card metric-card" style="padding: 14px 16px;">
             <div class="card-title">GANANCIAS HOY</div>
             <div id="ganancias" class="card-value">$0.00</div>
         </div>
-        <div class="stat-card metric-card" style="border-left-color: var(--primary);">
+        <div class="stat-card metric-card" style="border-left-color: var(--primary); padding: 14px 16px;">
             <div class="card-title">PEDIDOS EN COLA</div>
             <div id="contador" class="card-value">0</div>
         </div>
