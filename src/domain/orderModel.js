@@ -7,7 +7,7 @@ function buildOrderLine(item, index = 0) {
   }
 
   const quantity = Number(item.cantidad ?? item.quantity ?? 1);
-  const unitPrice = Number(item.precio_unitario ?? item.price ?? item.unitPrice ?? 0);
+  const unitPrice = Number(item.precio_unitario ?? item.precio ?? item.price ?? item.unitPrice ?? 0);
 
   return {
     id: item.id || item.producto_id || item.sku || `line_${index + 1}`,
