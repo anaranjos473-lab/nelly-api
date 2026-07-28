@@ -733,6 +733,18 @@
             flex-wrap: wrap;
             gap: 8px;
         }
+        .chat-sheet__quick-group {
+            width: 100%;
+            display: grid;
+            gap: 6px;
+        }
+        .chat-sheet__quick-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            font-weight: 800;
+        }
         .chat-quick-reply {
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(15, 23, 42, 0.96);
@@ -3122,20 +3134,70 @@
                 ? saved.map((msg) => `<div class="chat-message chat-message--${msg.role === 'client' ? 'client' : 'ops'}"><strong>${msg.role === 'client' ? 'Cliente' : 'Operación'}:</strong> ${msg.text}</div>`).join('')
                 : '<div class="chat-message">Sin mensajes. Puedes proponer un cambio antes de cancelar.</div>';
             if (quickReplies) {
-                const quickOptions = [
-                    'Hola, estamos revisando tu pedido.',
-                    'Tu pedido sigue en preparación.',
-                    'Faltan aproximadamente 5 minutos.',
-                    '¿Aceptas una sustitución equivalente si hiciera falta?',
-                    'Gracias por tu paciencia, seguimos contigo.'
+                const quickGroups = [
+                    {
+                        label: 'Estado',
+                        items: [
+                            'Estamos preparando tu pedido.',
+                            'Tu pedido ya casi esta listo.',
+                            'Estamos verificando un detalle.',
+                            'Gracias por tu paciencia.'
+                        ]
+                    },
+                    {
+                        label: 'Confirmacion',
+                        items: [
+                            '¿Aceptas una sustitucion equivalente?',
+                            '¿Podemos cambiar un ingrediente?',
+                            '¿Prefieres otra bebida equivalente?'
+                        ]
+                    },
+                    {
+                        label: 'Logistica',
+                        items: [
+                            'Ya encontramos repartidor.',
+                            'El repartidor va en camino.',
+                            'Esta llegando al restaurante.',
+                            'Tu pedido salio.'
+                        ]
+                    },
+                    {
+                        label: 'Cierre',
+                        items: [
+                            'Gracias por tu compra.',
+                            'Esperamos verte pronto.',
+                            'Si necesitas ayuda seguimos disponibles.'
+                        ]
+                    }
                 ];
-                quickReplies.innerHTML = quickOptions.map((text) => `<button type="button" class="chat-quick-reply" data-chat-quick="${text.replace(/"/g, '&quot;')}">${text}</button>`).join('');
-                quickReplies.querySelectorAll('[data-chat-quick]').forEach((button) => {
+                quickReplies.innerHTML = quickGroups.map((group) => `
+                    <div class="chat-sheet__quick-group">
+                        <span class="chat-sheet__quick-label">${group.label}</span>
+                        <div class="chat-sheet__quick-replies">
+                            ${group.items.map((text) => `<button type="button" class="chat-quick-reply" data-chat-send="${text.replace(/"/g, '&quot;')}">${text}</button>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+                quickReplies.querySelectorAll('[data-chat-send]').forEach((button) => {
                     button.addEventListener('click', () => {
                         const input = document.getElementById('chat-sheet-input');
+                        const texto = button.getAttribute('data-chat-send') || '';
                         if (input) {
-                            input.value = button.getAttribute('data-chat-quick') || '';
-                            input.focus();
+                            input.value = texto;
+                        }
+                        if (texto) {
+                            const key = window.__chatKeyActual;
+                            if (!key) {
+                                showToast('Abre un pedido para iniciar el chat', 'err');
+                                return;
+                            }
+                            const savedFast = (() => {
+                                try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+                            })();
+                            savedFast.push({ role: 'ops', text: texto, at: new Date().toISOString() });
+                            localStorage.setItem(key, JSON.stringify(savedFast.slice(-20)));
+                            renderChatCliente(window.__chatPedidoActual, '');
+                            showToast('Mensaje enviado al cliente', 'ok');
                         }
                     });
                 });
