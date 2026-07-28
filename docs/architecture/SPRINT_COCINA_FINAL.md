@@ -1,5 +1,10 @@
 # Sprint Cocina Final
 
+## Regla de producto
+
+Cada elemento nuevo debe ahorrar tiempo al usuario.
+Si una funcion no reduce tiempo, errores o cancelaciones, no debe entrar al panel principal.
+
 ## Backlog
 
 - [x] Cronometro visible.
