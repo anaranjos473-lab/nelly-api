@@ -858,12 +858,16 @@
                     const btnCerrarHeatmap = document.getElementById('btn-cerrar-heatmap');
                     let mapa = null;
                     let capaHeat = null;
-                    btnHeatmap.onclick = () => {
-                        seccionHeatmap.style.display = 'block';
-                    };
-                    btnCerrarHeatmap.onclick = () => {
-                        seccionHeatmap.style.display = 'none';
-                    };
+                    if (btnHeatmap && seccionHeatmap) {
+                        btnHeatmap.onclick = () => {
+                            seccionHeatmap.style.display = 'block';
+                        };
+                    }
+                    if (btnCerrarHeatmap && seccionHeatmap) {
+                        btnCerrarHeatmap.onclick = () => {
+                            seccionHeatmap.style.display = 'none';
+                        };
+                    }
                 });
 
             // Mostrar/ocultar seccion historial
