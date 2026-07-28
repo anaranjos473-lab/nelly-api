@@ -340,6 +340,29 @@
             align-items: center;
             margin: 0 0 16px 0;
         }
+        .workspace-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0 0 16px 0;
+        }
+        .workspace-tabs__button {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.82);
+            color: #e2e8f0;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .workspace-tabs__button.is-active {
+            background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%);
+            color: #08111f;
+            border-color: transparent;
+        }
+        .workspace-panel[hidden] {
+            display: none !important;
+        }
         .kitchen-search,
         .kitchen-select {
             border: 1px solid rgba(148, 163, 184, 0.2);
@@ -1493,7 +1516,13 @@
         </div>
     </div>
 
-    <section class="ops-summary" aria-label="Cockpit operativo">
+    <nav class="workspace-tabs" aria-label="Centros de cocina">
+        <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🍳 Operación</button>
+        <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia</button>
+        <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario</button>
+    </nav>
+
+    <section class="ops-summary" aria-label="Cockpit operativo" data-workspace="operation">
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Pedidos activos</span>
             <span id="kpi-activos-cocina" class="ops-summary-card__value">22</span>
@@ -1521,7 +1550,7 @@
         </div>
     </section>
 
-    <section class="ops-summary" aria-label="Inteligencia de cocina">
+    <section class="ops-summary" aria-label="Inteligencia de cocina" data-workspace="intelligence">
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Pedidos activos</span>
             <span id="kpi-activos-cocina" class="ops-summary-card__value">22</span>
@@ -1550,7 +1579,7 @@
         </div>
     </section>
 
-    <aside class="learning-summary learning-summary--side" aria-label="Inteligencia de cocina">
+    <aside class="learning-summary learning-summary--side" aria-label="Inteligencia de cocina" data-workspace="intelligence">
         <div class="learning-summary__main">
             <div class="ops-summary-card learning-summary__card">
                 <span class="ops-summary-card__label">🤖 Inteligencia</span>
@@ -1572,7 +1601,7 @@
         </div>
     </aside>
 
-    <section class="ops-summary-toggle" aria-label="Más indicadores">
+    <section class="ops-summary-toggle" aria-label="Más indicadores" data-workspace="intelligence">
         <button id="btn-toggle-inteligencia-cocina" class="ops-summary-toggle__button" type="button" aria-expanded="false">
             <span>Más indicadores</span>
             <strong>Mostrar más</strong>
@@ -1606,7 +1635,7 @@
         </div>
     </section>
 
-    <section class="incoming-control" aria-label="Control de pedidos entrantes">
+    <section class="incoming-control" aria-label="Control de pedidos entrantes" data-workspace="operation">
         <div class="incoming-control__copy">
             <span class="incoming-control__label">Predicción</span>
             <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min antes de aceptar nuevos pedidos</strong>
@@ -1625,7 +1654,7 @@
         </div>
     </section>
 
-    <section id="inventory-panel" class="inventory-panel is-collapsed" aria-label="Productos agotados">
+    <section id="inventory-panel" class="inventory-panel is-collapsed" aria-label="Productos agotados" data-workspace="inventory">
         <button id="btn-toggle-inventory" class="inventory-panel__toggle" type="button" aria-expanded="false">
             🔵 Inventario <strong>▼</strong>
         </button>
@@ -1641,7 +1670,7 @@
         </div>
     </section>
 
-    <div class="kitchen-toolbar" aria-label="Filtros de cocina">
+    <div class="kitchen-toolbar" aria-label="Filtros de cocina" data-workspace="operation">
         <input id="filtro-busqueda-cocina" class="kitchen-search" type="search" placeholder="Buscar folio, cliente o dirección">
         <select id="filtro-prioridad-cocina" class="kitchen-select">
             <option value="todas">Todas las prioridades</option>
@@ -1651,14 +1680,14 @@
         </select>
     </div>
 
-    <div class="column-filters" aria-label="Personalizacion de columnas">
+    <div class="column-filters" aria-label="Personalizacion de columnas" data-workspace="operation">
         <label class="column-toggle"><input type="checkbox" data-column-toggle="pendientes" checked> Entrantes</label>
         <label class="column-toggle"><input type="checkbox" data-column-toggle="listo" checked> Preparación</label>
         <label class="column-toggle"><input type="checkbox" data-column-toggle="reparto" checked> Reparto</label>
         <label class="column-toggle"><input type="checkbox" data-column-toggle="entregados" checked> Entregados</label>
     </div>
 
-    <section id="kitchen-map-preview" class="kitchen-map-preview is-collapsed" aria-label="Mapa operativo de cocina visible">
+    <section id="kitchen-map-preview" class="kitchen-map-preview is-collapsed" aria-label="Mapa operativo de cocina visible" data-workspace="inventory">
         <button id="btn-toggle-kitchen-map" class="kitchen-map-preview__toggle" type="button" aria-expanded="false">
             <span>🗺</span> Mostrar mapa <strong>▼</strong>
         </button>
@@ -1675,7 +1704,7 @@
         </div>
     </section>
 
-    <div class="dashboard-container">
+    <div class="dashboard-container" data-workspace="operation">
         <div class="column" data-column="pendientes">
             <div class="column-header pendientes">
                 <h3>PEDIDOS ENTRANTES</h3>
@@ -1940,6 +1969,19 @@
                 const kitchenMapPreview = document.getElementById('kitchen-map-preview');
                 const btnToggleInventory = document.getElementById('btn-toggle-inventory');
                 const inventoryPanel = document.getElementById('inventory-panel');
+                const workspaceTabs = Array.from(document.querySelectorAll('[data-workspace-tab]'));
+                const workspacePanels = Array.from(document.querySelectorAll('[data-workspace]'));
+
+                const setWorkspace = (active) => {
+                    workspaceTabs.forEach((tab) => {
+                        const isActive = tab.getAttribute('data-workspace-tab') === active;
+                        tab.classList.toggle('is-active', isActive);
+                        tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                    });
+                    workspacePanels.forEach((panel) => {
+                        panel.hidden = panel.getAttribute('data-workspace') !== active;
+                    });
+                };
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -2013,6 +2055,12 @@
                             : '🔵 Inventario <strong>▲</strong>';
                     });
                 }
+                workspaceTabs.forEach((tab) => {
+                    tab.addEventListener('click', () => {
+                        setWorkspace(tab.getAttribute('data-workspace-tab'));
+                    });
+                });
+                setWorkspace('operation');
                 aplicarColumnasGuardadas();
                 aplicarEstadoJornadaCocina();
                 aplicarEstadoRecepcionEntrantes();
