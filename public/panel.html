@@ -1552,6 +1552,7 @@
             }
 
             const estado = normalizarEstado(data.estado_pedido || data.estado);
+            const fase = obtenerFasePanel(estado);
             if (estado !== 'PENDIENTE') {
                 return false;
             }
@@ -1560,6 +1561,8 @@
             kitchenState.orders.pedidosPendientes.set(key, {
                 ...data,
                 id: pedidoId,
+                estado,
+                fase,
                 _rtdbKey: key,
                 __source: 'rtdb'
             });
@@ -1627,22 +1630,24 @@
                     }
 
                     const estado = normalizarEstado(value.estado_pedido || value.estado);
+                    const fase = obtenerFasePanel(estado);
                     const pedidoId = value.id || value.id_pedido || key;
                     const pedido = {
                         ...value,
                         estado,
+                        fase,
                         id: pedidoId,
                         _rtdbKey: key,
                         __source: "rtdb_pedidos"
                     };
 
-                    if (estado === "PENDIENTE") {
+                    if (fase === "COCINA") {
                         kitchenState.orders.pedidosPendientes.set(key, pedido);
                         idsVisibles.push(pedido.id);
-                    } else if (estado === "LISTO") {
+                    } else if (fase === "DESPACHO") {
                         kitchenState.orders.pedidosReparto.set(key, pedido);
                         idsVisibles.push(pedido.id);
-                    } else if (estado === "EN_CURSO" || estado === "ENTREGADO") {
+                    } else if (fase === "EN_REPARTO" || estado === "ENTREGADO") {
                         kitchenState.orders.pedidosEnCamino.set(key, pedido);
                         idsVisibles.push(pedido.id);
                     }

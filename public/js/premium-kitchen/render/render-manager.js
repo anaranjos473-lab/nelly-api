@@ -19,6 +19,15 @@ function updateRenderState(partial = {}) {
 }
 
 export function createRenderManager() {
+  const resolvePhase = (pedido = {}) => {
+    const estado = String(pedido?.fase || pedido?.fase_panel || pedido?.estado || '').trim().toUpperCase();
+    if (estado === 'PENDIENTE' || estado === 'COCINA' || estado === 'CREADO' || estado === 'NUEVO') return 'COCINA';
+    if (estado === 'LISTO' || estado === 'DESPACHO' || estado === 'PENDIENTE_ACEPTACION' || estado === 'LISTO_PARA_REPARTO' || estado === 'ESPERANDO_REPARTIDOR') return 'DESPACHO';
+    if (estado === 'EN_CURSO' || estado === 'EN_REPARTO' || estado === 'EN_CAMINO' || estado === 'REPARTO' || estado === 'ASIGNADO') return 'EN_REPARTO';
+    if (estado === 'ENTREGADO') return 'ENTREGADO';
+    return estado || 'COCINA';
+  };
+
   return {
     getState() {
       return renderState;
@@ -119,7 +128,7 @@ export function createRenderManager() {
       };
 
       pedidosPendientes.forEach((pedido, id) => {
-        const fase = String(pedido?.fase || pedido?.estado || '').trim().toUpperCase();
+        const fase = resolvePhase(pedido);
         const tarjeta = typeof renderTarjeta === 'function'
           ? renderTarjeta(pedido, id, true)
           : '';
@@ -151,7 +160,7 @@ export function createRenderManager() {
           return;
         }
         if (contenedorListo && typeof renderTarjeta === 'function') {
-          const tarjeta = renderTarjeta({ ...pedido, estado: 'LISTO' }, id, false);
+          const tarjeta = renderTarjeta({ ...pedido, estado: 'LISTO', fase: 'DESPACHO' }, id, false);
           if (!tarjeta) {
             return;
           }
@@ -167,7 +176,7 @@ export function createRenderManager() {
         const estado = String(pedido?.estado || '').trim().toUpperCase();
         if (estado === 'ENTREGADO') {
           if (contenedorEntregados && typeof renderTarjeta === 'function') {
-            const tarjeta = renderTarjeta({ ...pedido, estado }, id, false);
+            const tarjeta = renderTarjeta({ ...pedido, estado, fase: 'ENTREGADO' }, id, false);
             if (!tarjeta) {
               return;
             }
@@ -178,7 +187,7 @@ export function createRenderManager() {
         }
 
         if (contenedorReparto && typeof renderTarjeta === 'function') {
-          const tarjeta = renderTarjeta({ ...pedido, estado }, id, false);
+          const tarjeta = renderTarjeta({ ...pedido, estado, fase: 'EN_REPARTO' }, id, false);
           if (!tarjeta) {
             return;
           }
@@ -337,4 +346,3 @@ const renderManager = createRenderManager();
 export function getRenderManager() {
   return renderManager;
 }
-
