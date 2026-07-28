@@ -138,6 +138,44 @@
             box-shadow: var(--shadow);
             min-width: 220px;
         }
+        .nelly-kpi-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e9efff;
+            font-weight: 700;
+            line-height: 1;
+            min-height: 30px;
+        }
+        .nelly-kpi-pill__icon {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+        .nelly-kpi-pill__value {
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+        .nelly-kpi-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            color: #e9efff;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .nelly-kpi-inline__icon {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+        .nelly-kpi-inline__value {
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
         .dashboard-container {
             display: flex;
             gap: 28px;
@@ -1534,26 +1572,10 @@
         <div class="flex flex-wrap items-center gap-3">
             <span class="nelly-chip nelly-chip--success">🍳 Nelly Cocina</span>
             <span id="badge-estado" class="nelly-state nelly-state--loading">🟢 Online</span>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
             <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
             <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
-            <div class="flex flex-wrap items-stretch gap-2">
-                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
-                    <div class="card-title">💰 Hoy</div>
-                    <div id="ganancias" class="card-value">$0.00</div>
-                </div>
-                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
-                    <div class="card-title">📦 Cola</div>
-                    <div id="contador" class="card-value">0</div>
-                </div>
-                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
-                    <div class="card-title">⏱ Objetivo</div>
-                    <div id="kpi-objetivo-cocina" class="card-value">8m</div>
-                </div>
-                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
-                    <div class="card-title">⚠ Riesgo</div>
-                    <div id="kpi-riesgo" class="card-value">0</div>
-                </div>
-            </div>
         </div>
         <div class="mt-4">
             <nav class="workspace-tabs workspace-tabs--compact" aria-label="Centros de cocina">
