@@ -1036,6 +1036,43 @@
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 17, 31, 0.96));
         }
+        .incoming-control--inline {
+            margin: 0;
+            padding: 8px 12px;
+            gap: 10px;
+            flex: 1 1 520px;
+            min-width: 0;
+        }
+        .incoming-control--inline .incoming-control__copy {
+            min-width: 0;
+            gap: 2px;
+        }
+        .incoming-control--inline .incoming-control__title {
+            font-size: 0.92rem;
+            line-height: 1.05;
+        }
+        .incoming-control--inline .incoming-control__hint {
+            font-size: 0.76rem;
+        }
+        .incoming-control--inline .incoming-control__actions {
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+        .incoming-control--inline .incoming-control__action {
+            min-height: 34px;
+            min-width: 118px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 0.84rem;
+        }
+        .incoming-control--inline .incoming-control__button {
+            min-height: 34px;
+            min-width: 168px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.86rem;
+            box-shadow: 0 10px 18px rgba(34, 211, 238, 0.18);
+        }
         .incoming-control__copy {
             display: grid;
             gap: 4px;
@@ -1576,6 +1613,24 @@
         <div class="mt-3 flex flex-wrap items-center gap-3">
             <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
             <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
+            <div class="incoming-control incoming-control--inline" aria-label="Control de pedidos entrantes">
+                <div class="incoming-control__copy">
+                    <span class="incoming-control__label">Predicción</span>
+                    <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min</strong>
+                    <span id="incoming-control-hint" class="incoming-control__hint">La recepción sigue activa.</span>
+                </div>
+                <div class="incoming-control__actions">
+                    <button id="btn-iniciar-jornada-cocina" class="incoming-control__action is-active" type="button">
+                        Iniciar jornada
+                    </button>
+                    <button id="btn-cerrar-jornada-cocina" class="incoming-control__action is-closed" type="button">
+                        Cerrar jornada
+                    </button>
+                    <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
+                        Detener pedidos entrantes
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="mt-4">
             <nav class="workspace-tabs workspace-tabs--compact" aria-label="Centros de cocina">
@@ -1700,25 +1755,6 @@
                 <span id="kpi-visibles" class="ops-summary-card__value">0</span>
                 <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
             </div>
-        </div>
-    </section>
-
-    <section class="incoming-control" aria-label="Control de pedidos entrantes" data-workspace="operation">
-        <div class="incoming-control__copy">
-            <span class="incoming-control__label">Predicción</span>
-            <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min antes de aceptar nuevos pedidos</strong>
-            <span id="incoming-control-hint" class="incoming-control__hint">La recepción sigue activa.</span>
-        </div>
-        <div class="incoming-control__actions">
-            <button id="btn-iniciar-jornada-cocina" class="incoming-control__action is-active" type="button">
-                Iniciar jornada
-            </button>
-            <button id="btn-cerrar-jornada-cocina" class="incoming-control__action is-closed" type="button">
-                Cerrar jornada
-            </button>
-            <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
-                Detener pedidos entrantes
-            </button>
         </div>
     </section>
 
