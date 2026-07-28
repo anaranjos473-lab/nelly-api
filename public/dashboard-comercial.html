@@ -212,6 +212,48 @@
         </aside>
       </section>
 
+      <section id="commerce-inventory" class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Inventario del comercio</p>
+              <h2>Catálogo y agotados</h2>
+            </div>
+            <span class="wc-pill green">Auto ocultar</span>
+          </div>
+          <p class="wc-muted">Cada comercio ajusta su inventario aqui para que el cliente solo vea lo disponible y cocina reciba la misma lectura.</p>
+          <div class="wc-kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0">
+            <article class="wc-kpi"><small>Disponibles</small><strong id="commerce-inventory-available">0</strong><em>Visible al cliente</em></article>
+            <article class="wc-kpi"><small>Agotados</small><strong id="commerce-inventory-out">0</strong><em>Ocultos</em></article>
+            <article class="wc-kpi"><small>Bajo stock</small><strong id="commerce-inventory-low">0</strong><em>En vigilancia</em></article>
+          </div>
+          <div class="wc-module-grid" style="grid-template-columns: 1.15fr 0.85fr; gap: 12px">
+            <div class="wc-module">
+              <p class="wc-eyebrow">Editor rapido</p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <input id="inventory-name" type="text" placeholder="Producto" />
+                <input id="inventory-stock" type="number" min="0" step="1" placeholder="Stock" />
+                <input id="inventory-min" type="number" min="0" step="1" placeholder="Minimo" />
+                <input id="inventory-suggestion" type="text" placeholder="Sustitucion sugerida" />
+              </div>
+              <label class="mt-3 flex items-center gap-2 text-sm text-slate-200">
+                <input id="inventory-hide" type="checkbox" checked />
+                Ocultar automaticamente al agotarse
+              </label>
+              <div class="wc-top-actions" style="margin-top:12px">
+                <button id="btn-add-inventory" type="button">Guardar producto</button>
+                <button id="btn-reset-inventory" type="button" class="wc-pill yellow">Restablecer base</button>
+              </div>
+            </div>
+            <div class="wc-module">
+              <p class="wc-eyebrow">Estado sincronizado</p>
+              <p id="inventory-sync-status" class="wc-muted">Esperando inventario del comercio.</p>
+              <div id="inventory-commerce-list" class="wc-list" style="margin-top:12px"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
       <section class="wc-kpi-grid" style="margin-top:12px">
         <article class="wc-kpi">
           <small>Ventas del mes</small>
@@ -291,5 +333,113 @@
   </section>
 
   <script type="module" src="./js/dashboard-comercial.js?v=20260726-work-center"></script>
+  <script type="module">
+    const RESTAURANT_KEY = 'Lidos Pizza';
+    const STORAGE_KEY = `nelly-restaurant-inventory-${RESTAURANT_KEY}`;
+    const LEGACY_KEY = 'nelly-kitchen-inventario';
+    const baseInventory = [
+      { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
+      { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
+      { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
+      { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna', ocultarCliente: false }
+    ];
+
+    const ui = {
+      name: document.getElementById('inventory-name'),
+      stock: document.getElementById('inventory-stock'),
+      min: document.getElementById('inventory-min'),
+      suggestion: document.getElementById('inventory-suggestion'),
+      hide: document.getElementById('inventory-hide'),
+      add: document.getElementById('btn-add-inventory'),
+      reset: document.getElementById('btn-reset-inventory'),
+      list: document.getElementById('inventory-commerce-list'),
+      available: document.getElementById('commerce-inventory-available'),
+      out: document.getElementById('commerce-inventory-out'),
+      low: document.getElementById('commerce-inventory-low'),
+      sync: document.getElementById('inventory-sync-status')
+    };
+
+    function readInventory() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        if (Array.isArray(saved) && saved.length) {
+          return saved;
+        }
+      } catch {}
+      try {
+        const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
+        if (Array.isArray(legacy) && legacy.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(legacy));
+          return legacy;
+        }
+      } catch {}
+      return baseInventory;
+    }
+
+    function saveInventory(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(LEGACY_KEY, JSON.stringify(items));
+      renderInventory();
+      window.dispatchEvent(new CustomEvent('nelly-inventory-updated', { detail: { restaurant: RESTAURANT_KEY, items } }));
+    }
+
+    function renderInventory() {
+      const items = readInventory();
+      const available = items.filter((item) => Number(item.stock) > 0).length;
+      const out = items.filter((item) => Number(item.stock) <= 0).length;
+      const low = items.filter((item) => Number(item.stock) > 0 && Number(item.stock) <= Number(item.minimo || 10)).length;
+      if (ui.available) ui.available.textContent = String(available);
+      if (ui.out) ui.out.textContent = String(out);
+      if (ui.low) ui.low.textContent = String(low);
+      if (ui.sync) ui.sync.textContent = `${items.length} productos sincronizados para ${RESTAURANT_KEY}.`;
+      if (ui.list) {
+        ui.list.innerHTML = items.map((item, index) => {
+          const stock = Number(item.stock || 0);
+          const min = Number(item.minimo || 0);
+          const hidden = item.ocultarCliente !== false && stock <= 0;
+          const state = stock <= 0 ? 'Agotado' : stock <= min ? 'Bajo stock' : 'Disponible';
+          return `
+            <article class="wc-priority-item">
+              <span class="wc-priority-icon">${stock <= 0 ? '!' : stock}</span>
+              <div>
+                <h3>${item.nombre}</h3>
+                <p>Stock: ${stock} · Minimo: ${min} · ${hidden ? 'Oculto automaticamente' : 'Visible al cliente'}</p>
+                <p>${item.sugerencia || 'Sin sustitucion sugerida'}</p>
+              </div>
+              <span class="wc-pill ${stock <= 0 ? 'yellow' : 'blue'}">${state}</span>
+            </article>
+          `;
+        }).join('');
+      }
+    }
+
+    function addOrUpdateInventory() {
+      const nombre = String(ui.name?.value || '').trim();
+      const stock = Math.max(0, Number(ui.stock?.value || 0));
+      const minimo = Math.max(0, Number(ui.min?.value || 0));
+      const sugerencia = String(ui.suggestion?.value || '').trim() || 'Sin sustitucion sugerida';
+      const ocultarCliente = Boolean(ui.hide?.checked);
+      if (!nombre) return;
+      const items = readInventory();
+      const idx = items.findIndex((item) => item.nombre.toLowerCase() === nombre.toLowerCase());
+      const next = { nombre, stock, minimo, sugerencia, ocultarCliente };
+      if (idx >= 0) items[idx] = next;
+      else items.unshift(next);
+      saveInventory(items);
+      if (ui.name) ui.name.value = '';
+      if (ui.stock) ui.stock.value = '';
+      if (ui.min) ui.min.value = '';
+      if (ui.suggestion) ui.suggestion.value = '';
+      if (ui.hide) ui.hide.checked = true;
+    }
+
+    function resetInventory() {
+      saveInventory(baseInventory);
+    }
+
+    ui.add?.addEventListener('click', addOrUpdateInventory);
+    ui.reset?.addEventListener('click', resetInventory);
+    renderInventory();
+  </script>
 </body>
 </html>

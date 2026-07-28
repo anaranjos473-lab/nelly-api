@@ -2926,21 +2926,31 @@
 
         function obtenerInventarioCocina() {
             const base = [
-                { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla' },
-                { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno' },
-                { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni' },
-                { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna' }
+                { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
+                { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
+                { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
+                { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna', ocultarCliente: false }
             ];
+            const restaurantKey = `nelly-restaurant-inventory-${RESTAURANT_NAME}`;
             try {
-                const saved = JSON.parse(localStorage.getItem('nelly-kitchen-inventario') || 'null');
+                const saved = JSON.parse(localStorage.getItem(restaurantKey) || 'null');
                 if (Array.isArray(saved) && saved.length) {
                     return saved;
+                }
+            } catch (_err) {}
+            try {
+                const legacy = JSON.parse(localStorage.getItem('nelly-kitchen-inventario') || 'null');
+                if (Array.isArray(legacy) && legacy.length) {
+                    localStorage.setItem(restaurantKey, JSON.stringify(legacy));
+                    return legacy;
                 }
             } catch (_err) {}
             return base;
         }
 
         function guardarInventarioCocina(items) {
+            const restaurantKey = `nelly-restaurant-inventory-${RESTAURANT_NAME}`;
+            localStorage.setItem(restaurantKey, JSON.stringify(items));
             localStorage.setItem('nelly-kitchen-inventario', JSON.stringify(items));
             renderInventarioCocina();
         }
@@ -2959,14 +2969,15 @@
                 const stock = Number(item.stock || 0);
                 const minimo = Number(item.minimo || 10);
                 const critical = stock <= 0 || stock <= Math.max(1, Math.ceil(minimo * 0.2));
-                const label = stock <= 0 ? 'Agotado' : `${stock}%`;
+                const label = stock <= 0 ? 'Agotado' : `${stock} und`;
+                const hiddenLabel = item.ocultarCliente || stock <= 0 ? 'Ocultar automáticamente' : 'Visible al cliente';
                 return `
                     <article class="inventory-item ${critical ? 'inventory-item--critical' : ''}">
                         <div class="inventory-item__top">
                             <strong class="inventory-item__name">${item.nombre}</strong>
                             <span class="inventory-item__stock">${label}</span>
                         </div>
-                        <div class="inventory-item__hint">${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
+                        <div class="inventory-item__hint">${hiddenLabel} · ${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
                         <div class="inventory-item__actions">
                             <button class="inventory-item__button is-primary" type="button" onclick="window.sugerirCambioInventario('${item.nombre}')">Sugerir cambio</button>
                             <button class="inventory-item__button" type="button" onclick="window.marcarInventario('${item.nombre}', ${Math.max(0, stock - 1)})">Consumir</button>
@@ -2975,6 +2986,15 @@
                 `;
             }).join('');
         }
+
+        window.addEventListener('nelly-inventory-updated', () => {
+            renderInventarioCocina();
+        });
+        window.addEventListener('storage', (event) => {
+            if (event.key === `nelly-restaurant-inventory-${RESTAURANT_NAME}` || event.key === 'nelly-kitchen-inventario') {
+                renderInventarioCocina();
+            }
+        });
 
         function renderChatCliente(pedido = null, mensajeInicial = '') {
             const sheet = document.getElementById('chat-sheet');
