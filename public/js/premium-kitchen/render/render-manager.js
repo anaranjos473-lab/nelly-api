@@ -94,6 +94,10 @@ export function createRenderManager() {
       setText('count-reparto', counters.reparto ?? 0);
       setText('count-entregados', counters.entregados ?? 0);
       setText('contador', counters.total ?? 0);
+      setText('kpi-nuevos', counters.nuevos ?? counters.pendientes ?? 0);
+      setText('kpi-preparando', counters.listo ?? 0);
+      setText('kpi-esperando', counters.reparto ?? 0);
+      setText('kpi-tiempo-promedio', `${Number(counters.tiempoPromedio ?? 0).toFixed(0)} min`);
 
       return renderState.lastCounters;
     },

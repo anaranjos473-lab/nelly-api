@@ -356,6 +356,42 @@
             gap: 12px;
         }
         .top-productos-item:last-child { border-bottom: none; }
+        .ops-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin: 0 0 20px 0;
+        }
+        .ops-summary-card {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(8, 17, 31, 0.96));
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 14px;
+            padding: 16px 18px;
+            color: #e2e8f0;
+            min-height: 96px;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+        }
+        .ops-summary-card__label {
+            display: block;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ea3c2;
+            margin-bottom: 10px;
+        }
+        .ops-summary-card__value {
+            display: block;
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+        .ops-summary-card__hint {
+            display: block;
+            margin-top: 8px;
+            color: #9fb4d2;
+            font-size: 0.9rem;
+        }
         .producto-nombre {
             display: flex;
             align-items: center;
@@ -525,6 +561,7 @@
         @media (max-width: 900px) {
             body { padding: 0; }
             .stats, .stats-grid, .dashboard-container { flex-direction: column; gap: 16px; }
+            .ops-summary { grid-template-columns: 1fr 1fr; }
             .header { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px 10px 12px 10px; border-radius: 0 0 18px 18px; }
             #seccion-historial { top: 90px !important; }
             .debug-panel { width: calc(100% - 20px); }
@@ -540,6 +577,8 @@
             .header { font-size: 1.1rem; }
             .stat-card { min-width: 140px; padding: 12px 8px; }
             .column-header { padding: 12px 8px; font-size: 1rem; }
+            .ops-summary { grid-template-columns: 1fr; }
+            .ops-summary-card__value { font-size: 1.7rem; }
         }
     </style>
     <script type="module">
@@ -625,6 +664,29 @@
             <div id="contador" class="card-value">0</div>
         </div>
     </div>
+
+    <section class="ops-summary" aria-label="Resumen operativo de cocina">
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Pedidos nuevos</span>
+            <span id="kpi-nuevos" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Lo primero que cocina debe atacar.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Preparando</span>
+            <span id="kpi-preparando" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Pedidos en proceso ahora mismo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Esperando repartidor</span>
+            <span id="kpi-esperando" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Ya listos para salir sin retraso.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Tiempo promedio</span>
+            <span id="kpi-tiempo-promedio" class="ops-summary-card__value">0 min</span>
+            <span class="ops-summary-card__hint">Indicador de carga operativa.</span>
+        </div>
+    </section>
 
     <section id="kitchen-map-preview" class="kitchen-map-preview" aria-label="Mapa operativo de cocina visible">
         <h2>Mapa operativo de cocina</h2>
