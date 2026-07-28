@@ -471,6 +471,47 @@
         .ops-summary-card__value--pulse {
             animation: pulseValue 1.8s ease-in-out infinite;
         }
+        .ops-summary-toggle {
+            margin: 0 0 20px 0;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(8, 17, 31, 0.92);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.14);
+        }
+        .ops-summary-toggle__button {
+            width: 100%;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), rgba(34, 211, 238, 0.14));
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .ops-summary-toggle__button strong {
+            color: #93c5fd;
+        }
+        .ops-summary-toggle__panel {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+        @media (max-width: 1200px) {
+            .ops-summary-toggle__panel {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 720px) {
+            .ops-summary-toggle__panel {
+                grid-template-columns: 1fr;
+            }
+        }
         @keyframes pulseValue {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
@@ -1288,49 +1329,101 @@
         </div>
     </div>
 
-    <section class="ops-summary" aria-label="Resumen operativo de cocina">
+    <section class="ops-summary" aria-label="Cockpit operativo">
         <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Pedidos nuevos</span>
-            <span id="kpi-nuevos" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Lo primero que cocina debe atacar.</span>
+            <span class="ops-summary-card__label">Pedidos activos</span>
+            <span id="kpi-activos-cocina" class="ops-summary-card__value">22</span>
+            <span class="ops-summary-card__hint">Pedidos en operación ahora mismo.</span>
         </div>
         <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Preparando</span>
-            <span id="kpi-preparando" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Pedidos en proceso ahora mismo.</span>
+            <span class="ops-summary-card__label">Carga</span>
+            <span id="kpi-carga-cocina" class="ops-summary-card__value">73 %</span>
+            <span id="kpi-carga-hint" class="ops-summary-card__hint">Uso actual sobre la capacidad.</span>
         </div>
         <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Esperando repartidor</span>
-            <span id="kpi-esperando" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Ya listos para salir sin retraso.</span>
+            <span class="ops-summary-card__label">Riesgo</span>
+            <span id="kpi-riesgo" class="ops-summary-card__value ops-summary-card__value--pulse">0</span>
+            <span class="ops-summary-card__hint">Pedidos cerca del límite de SLA.</span>
         </div>
         <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Tiempo promedio</span>
+            <span class="ops-summary-card__label">ETA</span>
+            <span id="kpi-eta" class="ops-summary-card__value">0 min</span>
+            <span class="ops-summary-card__hint">Llegada estimada del driver activo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Tiempo medio</span>
             <span id="kpi-tiempo-promedio" class="ops-summary-card__value">0 min</span>
             <span class="ops-summary-card__hint">Indicador de carga operativa.</span>
         </div>
     </section>
 
-    <section class="ops-summary" aria-label="Estadisticas avanzadas de cocina">
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">En riesgo</span>
-            <span id="kpi-riesgo" class="ops-summary-card__value ops-summary-card__value--pulse">0</span>
-            <span class="ops-summary-card__hint">Pedidos cerca del límite de SLA.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Pendientes por antigüedad</span>
-            <span id="kpi-antiguedad" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Ordenados desde el más viejo.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Repartidor ETA</span>
-            <span id="kpi-eta" class="ops-summary-card__value">0 min</span>
-            <span class="ops-summary-card__hint">Llegada estimada del driver activo.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Pedidos visibles</span>
-            <span id="kpi-visibles" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
+    <section class="ops-summary-toggle" aria-label="Inteligencia de cocina">
+        <button id="btn-toggle-inteligencia-cocina" class="ops-summary-toggle__button" type="button" aria-expanded="false">
+            <span>Inteligencia</span>
+            <strong>Mostrar más</strong>
+        </button>
+        <div id="inteligencia-cocina-panel" class="ops-summary-toggle__panel" hidden>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pedidos nuevos</span>
+                <span id="kpi-nuevos" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Lo primero que cocina debe atacar.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Preparando</span>
+                <span id="kpi-preparando" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Pedidos en proceso ahora mismo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Esperando repartidor</span>
+                <span id="kpi-esperando" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Ya listos para salir sin retraso.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pendientes por antigüedad</span>
+                <span id="kpi-antiguedad" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Ordenados desde el más viejo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pedidos visibles</span>
+                <span id="kpi-visibles" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Capacidad de sede</span>
+                <span id="kpi-restaurante-cocina" class="ops-summary-card__hint">Lidos Pizza</span>
+                <span id="kpi-capacidad-cocina" class="ops-summary-card__value">30</span>
+                <span class="ops-summary-card__hint">Capacidad operativa configurada por restaurante.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Inteligencia de cocina</span>
+                <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
+                <span id="kpi-estado-cocina" class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Inteligencia logística</span>
+                <span id="kpi-logistica-cocina" class="ops-summary-card__value">2 min</span>
+                <span id="kpi-logistica-hint" class="ops-summary-card__hint">Cuando Cocina marca listo, Logística sincroniza la salida.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Aprendizaje</span>
+                <span id="kpi-aprendizaje-cocina" class="ops-summary-card__value">Pendiente</span>
+                <span id="kpi-aprendizaje-hint" class="ops-summary-card__hint">Todavía no hay suficiente histórico entregado.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Tiempo sugerido</span>
+                <span id="kpi-aprendizaje-tiempo" class="ops-summary-card__value">8 min</span>
+                <span class="ops-summary-card__hint">Se ajusta con el histórico de pedidos cerrados.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Productos aprendidos</span>
+                <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Promedios por producto con evidencia.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Mejor ajuste</span>
+                <span id="kpi-aprendizaje-mejor" class="ops-summary-card__value">N/A</span>
+                <span class="ops-summary-card__hint">Propuesta automática del tiempo objetivo.</span>
+            </div>
         </div>
     </section>
 
@@ -1704,6 +1797,8 @@
                 const btnIniciarJornada = document.getElementById('btn-iniciar-jornada-cocina');
                 const btnCerrarJornada = document.getElementById('btn-cerrar-jornada-cocina');
                 const btnTogglePedidosEntrantes = document.getElementById('btn-toggle-pedidos-entrantes');
+                const btnToggleInteligencia = document.getElementById('btn-toggle-inteligencia-cocina');
+                const panelInteligencia = document.getElementById('inteligencia-cocina-panel');
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -1742,6 +1837,14 @@
                 }
                 if (btnTogglePedidosEntrantes) {
                     btnTogglePedidosEntrantes.addEventListener('click', alternarRecepcionPedidosEntrantes);
+                }
+                if (btnToggleInteligencia && panelInteligencia) {
+                    btnToggleInteligencia.addEventListener('click', () => {
+                        const open = panelInteligencia.hidden;
+                        panelInteligencia.hidden = !open;
+                        btnToggleInteligencia.setAttribute('aria-expanded', open ? 'true' : 'false');
+                        btnToggleInteligencia.querySelector('strong').textContent = open ? 'Ocultar' : 'Mostrar más';
+                    });
                 }
                 aplicarColumnasGuardadas();
                 aplicarEstadoJornadaCocina();
