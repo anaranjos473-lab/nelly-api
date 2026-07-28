@@ -2469,6 +2469,26 @@
                 return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
             }
 
+            function pedidosDesdeDOM() {
+                const nodos = Array.from(document.querySelectorAll('#contenedor-pendientes .nelly-pattern-card, #contenedor-listo .nelly-pattern-card, #contenedor-reparto .nelly-pattern-card, #contenedor-entregados .nelly-pattern-card'));
+                return nodos.map((node) => {
+                    const pedidoId = node?.dataset?.pedidoId || node?.dataset?.id || node?.id || '';
+                    const titulo = node.querySelector('.card-summary__name, .card-title, h4, h3')?.textContent?.trim() || 'Cliente';
+                    const estado = node.querySelector('.card-summary__status, .nelly-state, [data-state]')?.textContent?.trim() || 'Pendiente';
+                    const direccion = node.querySelector('.card-summary__address, .card-location, .card-details p')?.textContent?.trim() || '';
+                    const productos = Array.from(node.querySelectorAll('.card-summary__item, .card-items li, .card-details li')).map((el) => el.textContent.trim()).filter(Boolean);
+                    return {
+                        id_pedido: pedidoId,
+                        shortId: pedidoId,
+                        cliente_nombre: titulo,
+                        estado,
+                        direccion,
+                        descripcion: productos.join(', '),
+                        tiempo_objetivo: node.querySelector('.card-summary__eta, .card-sla, .card-objective')?.textContent?.replace(/\D+/g, '') || 8
+                    };
+                }).filter((pedido) => pedido.shortId || pedido.cliente_nombre);
+            }
+
             function renderOperacionEnfoque(id) {
                 const sidebar = document.getElementById('operation-focus-queue');
                 const title = document.getElementById('operation-focus-title');
@@ -2479,9 +2499,10 @@
                 if (!sidebar || !title || !subtitle || !badge || !body || !count) return;
 
                 const pedidos = todosLosPedidosCocina();
-                count.textContent = String(pedidos.length);
+                const pedidosFinales = pedidos.length ? pedidos : pedidosDesdeDOM();
+                count.textContent = String(pedidosFinales.length);
 
-                sidebar.innerHTML = pedidos.slice(0, 12).map((pedido, index) => {
+                sidebar.innerHTML = pedidosFinales.slice(0, 12).map((pedido, index) => {
                     const pedidoId = pedido.shortId || pedido.id_pedido || pedido.id || '';
                     const label = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                     const objetivo = Number(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8);
@@ -2494,7 +2515,7 @@
                     `;
                 }).join('');
 
-                const pedido = id ? pedidoDesdeEstado(id) : pedidos[0] || null;
+                const pedido = id ? pedidoDesdeEstado(id) : pedidosFinales[0] || null;
                 if (!pedido) {
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
