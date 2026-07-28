@@ -2449,28 +2449,31 @@
             }
 
             function todosLosPedidosCocina() {
-                const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
-                if (renderizados.length) {
-                    return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
-                }
-                const vistos = new Set();
-                const lista = [];
                 const fuentes = [
                     kitchenState.orders.pedidosPendientes,
                     kitchenState.orders.pedidosReparto,
                     kitchenState.orders.pedidosEnCamino,
                     kitchenState.orders.pedidosEntregados
                 ];
+                const vistos = new Set();
+                const lista = [];
+
                 for (const fuente of fuentes) {
                     if (!(fuente instanceof Map)) continue;
                     for (const [key, pedido] of fuente.entries()) {
-                        const firma = String(pedido?.id_pedido || pedido?.id || key);
-                        if (vistos.has(firma)) continue;
+                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || key);
+                        if (!firma || vistos.has(firma)) continue;
                         vistos.add(firma);
                         lista.push({ id: key, ...pedido });
                     }
                 }
-                return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+
+                if (lista.length) {
+                    return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                }
+
+                const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
+                return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
             }
 
             function renderOperacionEnfoque(id) {
