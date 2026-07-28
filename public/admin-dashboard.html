@@ -171,6 +171,39 @@
       background: #eef2f5;
     }
 
+    .map-center-pin {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 3;
+      width: 26px;
+      height: 26px;
+      transform: translate(-50%, -100%);
+      pointer-events: none;
+    }
+
+    .map-center-pin::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50% 50% 50% 0;
+      background: #ef4444;
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+      transform: rotate(-45deg);
+    }
+
+    .map-center-pin::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      transform: translate(-50%, -50%);
+    }
+
     .map-interaction-layer {
       position: absolute;
       inset: 0;
