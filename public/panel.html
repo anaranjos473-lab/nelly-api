@@ -2605,6 +2605,7 @@
                 `;
             }
 
+            window.renderOperacionEnfoque = renderOperacionEnfoque;
             window.mostrarPedidoEnPanel = (id) => {
                 window.__nellyPedidoEnfoque = String(id || '');
                 renderOperacionEnfoque(id);
@@ -3974,6 +3975,10 @@
                 normalizarEstado,
                 obtenerFasePanel
             }));
+            if (typeof window.renderOperacionEnfoque === 'function') {
+                const actual = window.__nellyPedidoEnfoque || (todosLosPedidosCocina()[0]?.shortId || todosLosPedidosCocina()[0]?.id_pedido || todosLosPedidosCocina()[0]?.id || null);
+                window.renderOperacionEnfoque(actual);
+            }
             renderManager.renderCounters({
                 ganancias: Number(document.getElementById('ganancias')?.innerText?.replace('$', '') || 0),
                 pendientes: conteos.pendientes,
