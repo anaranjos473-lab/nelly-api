@@ -512,6 +512,106 @@
                 grid-template-columns: 1fr;
             }
         }
+        .learning-summary {
+            margin: 0 0 18px 0;
+            display: grid;
+            gap: 12px;
+        }
+        .learning-summary__main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .learning-summary__card {
+            min-height: 128px;
+        }
+        .learning-summary__goal {
+            display: block;
+            margin-top: 4px;
+            color: #f8fafc;
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 800;
+        }
+        .learning-summary__toggle {
+            align-self: stretch;
+            min-width: 150px;
+            border: 1px solid rgba(84, 202, 255, 0.25);
+            border-radius: 16px;
+            background: rgba(10, 20, 40, 0.72);
+            color: #f8fafc;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 16px 18px;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .learning-summary__toggle:hover {
+            transform: translateY(-1px);
+            border-color: rgba(84, 202, 255, 0.45);
+            background: rgba(12, 28, 52, 0.9);
+        }
+        .learning-summary__panel {
+            border: 1px solid rgba(84, 202, 255, 0.18);
+            border-radius: 18px;
+            background: rgba(8, 18, 34, 0.92);
+            padding: 14px 16px;
+        }
+        .learning-summary__panel-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .learning-summary__panel-title {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #9fb2d8;
+            font-weight: 800;
+        }
+        .learning-summary__panel-hint {
+            color: #c8d7f4;
+            font-size: 0.95rem;
+        }
+        .learning-summary__list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .learning-summary__item {
+            border: 1px solid rgba(84, 202, 255, 0.12);
+            border-radius: 14px;
+            background: rgba(13, 25, 48, 0.9);
+            padding: 12px 14px;
+            display: grid;
+            gap: 6px;
+        }
+        .learning-summary__item-name {
+            color: #f8fafc;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        .learning-summary__item-time {
+            color: #8bdcff;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        @media (max-width: 1100px) {
+            .learning-summary__main {
+                grid-template-columns: 1fr;
+            }
+            .learning-summary__toggle {
+                width: 100%;
+            }
+        }
+        @media (max-width: 720px) {
+            .learning-summary__list {
+                grid-template-columns: 1fr;
+            }
+        }
         @keyframes pulseValue {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
@@ -1456,26 +1556,25 @@
         </div>
     </section>
 
-    <section class="ops-summary" aria-label="Aprendizaje de cocina">
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Aprendizaje</span>
-            <span id="kpi-aprendizaje-cocina" class="ops-summary-card__value">Pendiente</span>
-            <span id="kpi-aprendizaje-hint" class="ops-summary-card__hint">Todavía no hay suficiente histórico entregado.</span>
+    <section class="learning-summary" aria-label="Aprendizaje de cocina">
+        <div class="learning-summary__main">
+            <div class="ops-summary-card learning-summary__card">
+                <span class="ops-summary-card__label">IA</span>
+                <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">12 productos</span>
+                <span id="kpi-aprendizaje-cocina" class="ops-summary-card__hint">Objetivo sugerido</span>
+                <strong id="kpi-aprendizaje-tiempo" class="learning-summary__goal">8 min</strong>
+                <span id="kpi-aprendizaje-mejor" class="ops-summary-card__hint">Aprendizaje aplicado por producto con evidencia real.</span>
+            </div>
+            <button id="btn-toggle-aprendizaje-cocina" class="learning-summary__toggle" type="button" aria-expanded="false">
+                Ver productos
+            </button>
         </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Tiempo sugerido</span>
-            <span id="kpi-aprendizaje-tiempo" class="ops-summary-card__value">8 min</span>
-            <span class="ops-summary-card__hint">Se ajusta con el histórico de pedidos cerrados.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Productos aprendidos</span>
-            <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">0</span>
-            <span class="ops-summary-card__hint">Promedios por producto con evidencia.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Mejor ajuste</span>
-            <span id="kpi-aprendizaje-mejor" class="ops-summary-card__value">N/A</span>
-            <span class="ops-summary-card__hint">Propuesta automática del tiempo objetivo.</span>
+        <div id="aprendizaje-cocina-panel" class="learning-summary__panel" hidden>
+            <div class="learning-summary__panel-head">
+                <span class="learning-summary__panel-title">Productos aprendidos</span>
+                <span id="kpi-aprendizaje-hint" class="learning-summary__panel-hint">Todavía no hay suficiente histórico entregado.</span>
+            </div>
+            <div id="kpi-aprendizaje-lista" class="learning-summary__list"></div>
         </div>
     </section>
 
@@ -1799,6 +1898,8 @@
                 const btnTogglePedidosEntrantes = document.getElementById('btn-toggle-pedidos-entrantes');
                 const btnToggleInteligencia = document.getElementById('btn-toggle-inteligencia-cocina');
                 const panelInteligencia = document.getElementById('inteligencia-cocina-panel');
+                const btnToggleAprendizaje = document.getElementById('btn-toggle-aprendizaje-cocina');
+                const panelAprendizaje = document.getElementById('aprendizaje-cocina-panel');
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -1844,6 +1945,14 @@
                         panelInteligencia.hidden = !open;
                         btnToggleInteligencia.setAttribute('aria-expanded', open ? 'true' : 'false');
                         btnToggleInteligencia.querySelector('strong').textContent = open ? 'Ocultar' : 'Mostrar más';
+                    });
+                }
+                if (btnToggleAprendizaje && panelAprendizaje) {
+                    btnToggleAprendizaje.addEventListener('click', () => {
+                        const open = panelAprendizaje.hidden;
+                        panelAprendizaje.hidden = !open;
+                        btnToggleAprendizaje.textContent = open ? 'Ocultar productos' : 'Ver productos';
+                        btnToggleAprendizaje.setAttribute('aria-expanded', open ? 'true' : 'false');
                     });
                 }
                 aplicarColumnasGuardadas();
@@ -2659,6 +2768,27 @@
             return ranking;
         }
 
+        function renderizarAprendizajeCocina(ranking = []) {
+            const contenedor = document.getElementById('kpi-aprendizaje-lista');
+            if (!contenedor) {
+                return;
+            }
+            contenedor.innerHTML = '';
+            if (!ranking.length) {
+                const vacio = document.createElement('div');
+                vacio.className = 'learning-summary__item';
+                vacio.innerHTML = '<span class="learning-summary__item-name">Sin datos todavía</span><span class="learning-summary__item-time">8 min</span>';
+                contenedor.appendChild(vacio);
+                return;
+            }
+            ranking.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'learning-summary__item';
+                row.innerHTML = `<span class="learning-summary__item-name">${item.nombre}</span><span class="learning-summary__item-time">${item.promedio} min</span>`;
+                contenedor.appendChild(row);
+            });
+        }
+
         function aplicarColumnasGuardadas() {
             const saved = JSON.parse(localStorage.getItem('nelly-kitchen-columns') || '{}');
             document.querySelectorAll('[data-column-toggle]').forEach((input) => {
@@ -3170,6 +3300,8 @@
                 ...(() => {
                     const aprendizaje = resumirAprendizajeCocina();
                     const mejor = aprendizaje[0] || null;
+                    window.__aprendizajeCocinaRanking = aprendizaje;
+                    renderizarAprendizajeCocina(aprendizaje);
                     return {
                         aprendizajeCocina: mejor ? `${mejor.nombre} · ${mejor.promedio} min` : 'Aprendizaje pendiente',
                         aprendizajeHint: aprendizaje.length
