@@ -1125,6 +1125,29 @@
         </div>
     </section>
 
+    <section class="ops-summary" aria-label="Aprendizaje de cocina">
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Aprendizaje</span>
+            <span id="kpi-aprendizaje-cocina" class="ops-summary-card__value">Pendiente</span>
+            <span id="kpi-aprendizaje-hint" class="ops-summary-card__hint">Todavía no hay suficiente histórico entregado.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Tiempo sugerido</span>
+            <span id="kpi-aprendizaje-tiempo" class="ops-summary-card__value">8 min</span>
+            <span class="ops-summary-card__hint">Se ajusta con el histórico de pedidos cerrados.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Productos aprendidos</span>
+            <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Promedios por producto con evidencia.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Mejor ajuste</span>
+            <span id="kpi-aprendizaje-mejor" class="ops-summary-card__value">N/A</span>
+            <span class="ops-summary-card__hint">Propuesta automática del tiempo objetivo.</span>
+        </div>
+    </section>
+
     <section class="incoming-control" aria-label="Control de pedidos entrantes">
         <div class="incoming-control__copy">
             <span class="incoming-control__label">Predicción</span>
@@ -2203,6 +2226,73 @@
             };
         }
 
+        function normalizarNombreProducto(nombre) {
+            return String(nombre || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function getPedidoTimestampLocal(pedido = {}) {
+            const candidate = pedido.createdAt
+                || pedido.created_at
+                || pedido.fecha_creacion
+                || pedido.fecha_creado
+                || pedido.timestamp
+                || pedido.timestampCreacion
+                || pedido.timestamp_creacion
+                || pedido.fecha;
+            const value = new Date(candidate || 0).getTime();
+            return Number.isFinite(value) && value > 0 ? value : Date.now();
+        }
+
+        function extraerProductosPedido(pedido = {}) {
+            const raw = [
+                pedido.descripcion,
+                pedido.productos,
+                pedido.items,
+                pedido.detalle
+            ].filter(Boolean).join(' | ');
+            if (!raw) {
+                return [];
+            }
+            return raw
+                .split(/[|,\n;]/g)
+                .map((part) => part.replace(/^\d+\s*x?\s*/i, '').trim())
+                .filter(Boolean)
+                .slice(0, 8);
+        }
+
+        function resumirAprendizajeCocina() {
+            const entregados = Array.from(kitchenState.orders.pedidosEntregados.values());
+            const muestras = new Map();
+            entregados.forEach((pedido) => {
+                const minutos = Math.max(1, Math.round((Date.now() - getPedidoTimestampLocal(pedido)) / 60000));
+                extraerProductosPedido(pedido).forEach((producto) => {
+                    const key = normalizarNombreProducto(producto);
+                    if (!key) return;
+                    const current = muestras.get(key) || { nombre: producto, total: 0, count: 0 };
+                    current.nombre = producto;
+                    current.total += minutos;
+                    current.count += 1;
+                    muestras.set(key, current);
+                });
+            });
+            const ranking = Array.from(muestras.values())
+                .map((item) => ({
+                    nombre: item.nombre,
+                    promedio: item.count > 0 ? Math.round(item.total / item.count) : 0,
+                    count: item.count
+                }))
+                .filter((item) => item.count > 0)
+                .sort((a, b) => b.count - a.count || a.promedio - b.promedio)
+                .slice(0, 4);
+            return ranking;
+        }
+
         function aplicarColumnasGuardadas() {
             const saved = JSON.parse(localStorage.getItem('nelly-kitchen-columns') || '{}');
             document.querySelectorAll('[data-column-toggle]').forEach((input) => {
@@ -2711,6 +2801,19 @@
                     kitchenState.orders.pedidosEnCamino,
                     kitchenState.orders.pedidosEntregados
                 ]),
+                ...(() => {
+                    const aprendizaje = resumirAprendizajeCocina();
+                    const mejor = aprendizaje[0] || null;
+                    return {
+                        aprendizajeCocina: mejor ? `${mejor.nombre} · ${mejor.promedio} min` : 'Aprendizaje pendiente',
+                        aprendizajeHint: aprendizaje.length
+                            ? aprendizaje.map((item) => `${item.nombre}: ${item.promedio} min`).join(' · ')
+                            : 'Todavía no hay suficiente histórico entregado.',
+                        aprendizajeTiempo: mejor ? `${mejor.promedio} min` : '8 min',
+                        aprendizajeProductos: String(aprendizaje.length),
+                        aprendizajeMejor: mejor ? `${mejor.nombre} · ${mejor.promedio} min` : 'N/A'
+                    };
+                })(),
                 ...resumirInteligenciaCocina({
                     pendientes: conteos.pendientes,
                     listo: conteos.listo,

@@ -60,6 +60,70 @@ function getPedidoTimestamp(pedido = {}) {
   return Number.isFinite(value) && value > 0 ? value : Date.now();
 }
 
+function normalizeProductName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractOrderProducts(pedido = {}) {
+  const raw = [
+    pedido.descripcion,
+    pedido.productos,
+    pedido.items,
+    pedido.detalle
+  ].filter(Boolean).join(' | ');
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(/[|,\n;]/g)
+    .map((part) => part.replace(/^\d+\s*x?\s*/i, '').trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function buildLearningModel(kitchenState) {
+  const entregados = kitchenState?.orders?.pedidosEntregados instanceof Map
+    ? Array.from(kitchenState.orders.pedidosEntregados.values())
+    : [];
+  const samples = new Map();
+
+  entregados.forEach((pedido) => {
+    const durationMin = Math.max(1, Math.round((Date.now() - getPedidoTimestamp(pedido)) / 60000));
+    extractOrderProducts(pedido).forEach((producto) => {
+      const key = normalizeProductName(producto);
+      if (!key) {
+        return;
+      }
+      const current = samples.get(key) || { name: producto, total: 0, count: 0 };
+      current.name = producto;
+      current.total += durationMin;
+      current.count += 1;
+      samples.set(key, current);
+    });
+  });
+
+  const items = Array.from(samples.values())
+    .map((item) => ({
+      name: item.name,
+      avg: item.count > 0 ? Math.round(item.total / item.count) : 0,
+      count: item.count
+    }))
+    .filter((item) => item.count > 0)
+    .sort((a, b) => b.count - a.count || a.avg - b.avg)
+    .slice(0, 4);
+
+  return {
+    hasData: items.length > 0,
+    items
+  };
+}
+
 export function createRenderManager() {
   const resolvePhase = (pedido = {}) => {
     const estado = String(pedido?.fase || pedido?.fase_panel || pedido?.estado || '').trim().toUpperCase();
@@ -151,6 +215,11 @@ export function createRenderManager() {
       setText('kpi-activos-cocina', counters.activosCocina || '0');
       setText('kpi-carga-cocina', counters.cargaCocina || '0 %');
       setText('kpi-prediccion-cocina', counters.prediccionCocina || 'Tiempo estimado 18 min antes de aceptar nuevos pedidos');
+      setText('kpi-aprendizaje-cocina', counters.aprendizajeCocina || 'Aprendizaje pendiente');
+      setText('kpi-aprendizaje-hint', counters.aprendizajeHint || 'Todavía no hay suficiente histórico entregado.');
+      setText('kpi-aprendizaje-tiempo', counters.aprendizajeTiempo || '8 min');
+      setText('kpi-aprendizaje-productos', counters.aprendizajeProductos || '0');
+      setText('kpi-aprendizaje-mejor', counters.aprendizajeMejor || 'N/A');
       const prediccionDetalle = [
         counters.siguientePedidoCocina,
         counters.aceptarOtroPedidoCocina
