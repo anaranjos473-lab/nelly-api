@@ -486,6 +486,44 @@
             white-space: nowrap;
             font-weight: 700;
         }
+        .card-intelligence {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.9);
+            display: grid;
+            gap: 4px;
+        }
+        .card-intelligence--on-time {
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.16);
+        }
+        .card-intelligence--late {
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.28), 0 14px 24px rgba(239, 68, 68, 0.08);
+        }
+        .card-intelligence__label {
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ea3c2;
+            font-weight: 800;
+        }
+        .card-intelligence__target {
+            font-size: 1.35rem;
+            color: #f8fafc;
+        }
+        .card-intelligence__state {
+            font-size: 0.95rem;
+            color: #dbeafe;
+            font-weight: 700;
+        }
+        .card-intelligence__signal {
+            font-size: 0.82rem;
+            color: #93c5fd;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
         .column.is-hidden {
             display: none !important;
         }
@@ -823,6 +861,29 @@
             <span class="ops-summary-card__label">Pedidos visibles</span>
             <span id="kpi-visibles" class="ops-summary-card__value">0</span>
             <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
+        </div>
+    </section>
+
+    <section class="ops-summary" aria-label="Inteligencia de cocina">
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Inteligencia de cocina</span>
+            <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
+            <span class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Cocina en tiempo</span>
+            <span id="kpi-estado-cocina" class="ops-summary-card__value ops-summary-card__value--pulse">En tiempo</span>
+            <span id="kpi-avance-cocina" class="ops-summary-card__hint">Vas en 6 min.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Capacidad de cocina</span>
+            <span id="kpi-capacidad-cocina" class="ops-summary-card__value">0 / 0</span>
+            <span class="ops-summary-card__hint">Carga actual frente al objetivo de trabajo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Señal operativa</span>
+            <span id="kpi-senal-cocina" class="ops-summary-card__value">✓</span>
+            <span id="kpi-senal-hint" class="ops-summary-card__hint">Sin retraso detectado.</span>
         </div>
     </section>
 
@@ -1810,6 +1871,22 @@
             };
         }
 
+        function resumirInteligenciaCocina(conteos = {}, metricas = {}) {
+            const objetivoMin = 8;
+            const transcurridoMin = Number(metricas.antiguedad || 0);
+            const enTiempo = transcurridoMin <= objetivoMin;
+            const capacidadActual = Number(conteos.pendientes || 0) + Number(conteos.listo || 0) + Number(conteos.reparto || 0);
+            const capacidadObjetivo = Math.max(8, capacidadActual);
+            return {
+                tiempoObjetivo: objetivoMin,
+                estadoCocina: enTiempo ? 'En tiempo' : 'Retraso',
+                avanceCocina: enTiempo ? `Vas en ${transcurridoMin} min.` : `Llevas ${transcurridoMin} min.`,
+                capacidadCocina: `${capacidadActual} / ${capacidadObjetivo}`,
+                senalCocina: enTiempo ? '✓ En tiempo' : '⚠ Retraso',
+                senalHint: enTiempo ? 'Sin retraso detectado.' : 'Pedido fuera del objetivo de cocina.'
+            };
+        }
+
         function aplicarColumnasGuardadas() {
             const saved = JSON.parse(localStorage.getItem('nelly-kitchen-columns') || '{}');
             document.querySelectorAll('[data-column-toggle]').forEach((input) => {
@@ -2104,13 +2181,26 @@
 
             listeners.push(onValue(gananciasRef, (snap) => {
                 const total = snap.exists() ? Number(snap.val().total || 0) : 0;
+                const metricas = sumarMetricasPedidos([
+                    kitchenState.orders.pedidosPendientes,
+                    kitchenState.orders.pedidosReparto,
+                    kitchenState.orders.pedidosEnCamino,
+                    kitchenState.orders.pedidosEntregados
+                ]);
+                const inteligencia = resumirInteligenciaCocina({
+                    pendientes: kitchenState.orders.pedidosPendientes.size,
+                    listo: kitchenState.orders.pedidosReparto.size,
+                    reparto: kitchenState.orders.pedidosEnCamino.size
+                }, metricas);
                 renderManager.renderCounters({
                     ganancias: total,
                     pendientes: kitchenState.orders.pedidosPendientes.size,
                     listo: kitchenState.orders.pedidosReparto.size,
                     reparto: kitchenState.orders.pedidosEnCamino.size,
                     entregados: 0,
-                    total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
+                    total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size,
+                    ...metricas,
+                    ...inteligencia
                 });
             }));
 
@@ -2221,7 +2311,17 @@
                     kitchenState.orders.pedidosReparto,
                     kitchenState.orders.pedidosEnCamino,
                     kitchenState.orders.pedidosEntregados
-                ])
+                ]),
+                ...resumirInteligenciaCocina({
+                    pendientes: conteos.pendientes,
+                    listo: conteos.listo,
+                    reparto: conteos.reparto
+                }, sumarMetricasPedidos([
+                    kitchenState.orders.pedidosPendientes,
+                    kitchenState.orders.pedidosReparto,
+                    kitchenState.orders.pedidosEnCamino,
+                    kitchenState.orders.pedidosEntregados
+                ]))
             });
         }
 

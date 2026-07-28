@@ -144,6 +144,12 @@ export function createRenderManager() {
       setText('kpi-antiguedad', counters.antiguedad ?? 0);
       setText('kpi-eta', `${Number(counters.eta ?? 0).toFixed(0)} min`);
       setText('kpi-visibles', counters.visibles ?? counters.total ?? 0);
+      setText('kpi-objetivo-cocina', `${Number(counters.tiempoObjetivo ?? 8).toFixed(0)} min`);
+      setText('kpi-estado-cocina', counters.estadoCocina || 'En tiempo');
+      setText('kpi-avance-cocina', counters.avanceCocina || 'Vas en 0 min.');
+      setText('kpi-capacidad-cocina', counters.capacidadCocina || '0 / 0');
+      setText('kpi-senal-cocina', counters.senalCocina || '✓');
+      setText('kpi-senal-hint', counters.senalHint || 'Sin retraso detectado.');
 
       return renderState.lastCounters;
     },
@@ -354,6 +360,12 @@ export function createRenderManager() {
         : 'Buscando repartidor...';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;
+      const tiempoObjetivoMin = toNumberSafe(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8, 8);
+      const estadoCocina = transcurridoMin <= tiempoObjetivoMin ? 'En tiempo' : 'Retraso';
+      const senalCocina = transcurridoMin <= tiempoObjetivoMin ? '✓ En tiempo' : '⚠ Retraso';
+      const avanceCocina = transcurridoMin <= tiempoObjetivoMin
+        ? `Vas en ${transcurridoMin} min.`
+        : `Llevas ${transcurridoMin} min.`;
       const historialAcciones = Array.isArray(pedido.historico_acciones) && pedido.historico_acciones.length
         ? pedido.historico_acciones.slice(0, 4)
         : [
@@ -380,6 +392,12 @@ export function createRenderManager() {
                     <div class="card-clock card-clock--${bucket.tone}">
                         <span class="card-clock__time">${reloj}</span>
                         <span class="card-clock__tag">${bucket.label}</span>
+                    </div>
+                    <div class="card-intelligence ${transcurridoMin > tiempoObjetivoMin ? 'card-intelligence--late' : 'card-intelligence--on-time'}">
+                        <span class="card-intelligence__label">Tiempo objetivo</span>
+                        <strong class="card-intelligence__target">${tiempoObjetivoMin} min</strong>
+                        <span class="card-intelligence__state">${avanceCocina}</span>
+                        <span class="card-intelligence__signal">${senalCocina}</span>
                     </div>
                     <p class="nelly-pattern-card__title">${escapeHtml(pedido.cliente_nombre || pedido.cliente || 'Cliente')}</p>
                     <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
