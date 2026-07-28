@@ -820,9 +820,9 @@
         }
         .operation-focus {
             display: grid;
-            grid-template-columns: 220px minmax(0, 1fr);
-            gap: 12px;
-            margin: 0 0 14px 0;
+            grid-template-columns: 215px minmax(0, 1fr);
+            gap: 10px;
+            margin: 0 0 12px 0;
             align-items: start;
         }
         .operation-focus__sidebar,
@@ -833,7 +833,8 @@
             box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
         }
         .operation-focus__sidebar {
-            padding: 12px;
+            padding: 10px;
+            min-height: 420px;
         }
         .operation-focus__sidebar-head {
             display: flex;
@@ -852,7 +853,7 @@
         .operation-focus__queue {
             display: grid;
             gap: 8px;
-            max-height: 360px;
+            max-height: 520px;
             overflow: auto;
             padding-right: 4px;
         }
@@ -862,7 +863,7 @@
             background: rgba(15, 23, 42, 0.86);
             color: #e2e8f0;
             border-radius: 12px;
-            padding: 10px 12px;
+            padding: 11px 12px;
             text-align: left;
             cursor: pointer;
             display: grid;
@@ -888,8 +889,8 @@
             color: #9fb4d2;
         }
         .operation-focus__detail {
-            padding: 16px;
-            min-height: 420px;
+            padding: 14px;
+            min-height: 520px;
         }
         .operation-focus__detail-head {
             display: flex;
@@ -904,6 +905,17 @@
             color: #f8fafc;
         }
         .operation-focus__detail-body {
+            display: grid;
+            gap: 10px;
+        }
+        .operation-focus__detail-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+        }
+        .operation-focus__detail-main,
+        .operation-focus__detail-aside {
             display: grid;
             gap: 10px;
         }
@@ -949,39 +961,7 @@
             padding: 18px 0;
         }
         .dashboard-container[data-workspace="operation"] {
-            display: block;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] {
-            width: 100%;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="listo"],
-        .dashboard-container[data-workspace="operation"] .column[data-column="reparto"],
-        .dashboard-container[data-workspace="operation"] .column[data-column="entregados"] {
             display: none;
-        }
-        .dashboard-container[data-workspace="operation"] #contenedor-pendientes {
-            display: grid;
-            gap: 10px;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-pedido {
-            margin-bottom: 0;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-intelligence,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-logistics,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-timeline,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-details,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card__amount {
-            display: none;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-intelligence,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-logistics,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-timeline,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-details,
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .nelly-pattern-card__amount {
-            display: block;
-        }
-        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-timeline {
-            display: flex;
         }
         .card-timeline {
             margin-top: 6px;
@@ -2540,37 +2520,43 @@
                 subtitle.textContent = nombre;
                 badge.textContent = String(pedido.estado || 'Pendiente').toUpperCase();
                 body.innerHTML = `
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Cliente</span>
-                        <div class="operation-focus__section-value">${escapeHtml(nombre)}</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Productos</span>
-                        <div class="operation-focus__section-value">${productos.map((p) => `<div>${escapeHtml(p)}</div>`).join('')}</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Cronómetro</span>
-                        <div class="operation-focus__section-value">${escapeHtml(String(cronometro))}</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Objetivo</span>
-                        <div class="operation-focus__section-value">${escapeHtml(String(objetivo))} min</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Línea de tiempo</span>
-                        <div class="operation-focus__timeline">${timelineHtml}</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Notas</span>
-                        <div class="operation-focus__section-value">${escapeHtml(String(notas))}</div>
-                    </div>
-                    <div class="operation-focus__section">
-                        <span class="operation-focus__section-label">Dirección</span>
-                        <div class="operation-focus__section-value">${escapeHtml(direccion)}</div>
-                    </div>
-                    <div class="operation-focus__actions">
-                        <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
-                        <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">Más opciones</button>
+                    <div class="operation-focus__detail-shell">
+                        <div class="operation-focus__detail-main">
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Cliente</span>
+                                <div class="operation-focus__section-value">${escapeHtml(nombre)}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Productos</span>
+                                <div class="operation-focus__section-value">${productos.map((p) => `<div>${escapeHtml(p)}</div>`).join('')}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Cronómetro</span>
+                                <div class="operation-focus__section-value" style="font-size:1.9rem; line-height:1.05;">${escapeHtml(String(cronometro))}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Objetivo</span>
+                                <div class="operation-focus__section-value">${escapeHtml(String(objetivo))} min</div>
+                            </div>
+                            <div class="operation-focus__actions">
+                                <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
+                                <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">Más opciones</button>
+                            </div>
+                        </div>
+                        <div class="operation-focus__detail-aside">
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Línea de tiempo</span>
+                                <div class="operation-focus__timeline">${timelineHtml}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Notas</span>
+                                <div class="operation-focus__section-value">${escapeHtml(String(notas))}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Dirección</span>
+                                <div class="operation-focus__section-value">${escapeHtml(direccion)}</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             }
