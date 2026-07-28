@@ -2449,6 +2449,27 @@
             }
 
             function todosLosPedidosCocina() {
+                const renderizados = window.__nellyPedidosCocinaRenderizados || {};
+                const fuentesRender = [
+                    renderizados.pedidosPendientes,
+                    renderizados.pedidosReparto,
+                    renderizados.pedidosEnCamino,
+                    renderizados.pedidosEntregados
+                ];
+                const fromRender = [];
+                const vistosRender = new Set();
+                for (const fuente of fuentesRender) {
+                    if (!Array.isArray(fuente)) continue;
+                    for (const pedido of fuente) {
+                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || '');
+                        if (!firma || vistosRender.has(firma)) continue;
+                        vistosRender.add(firma);
+                        fromRender.push(pedido);
+                    }
+                }
+                if (fromRender.length) {
+                    return fromRender.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                }
                 const vistos = new Set();
                 const lista = [];
                 const fuentes = [

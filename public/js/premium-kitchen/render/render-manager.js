@@ -376,6 +376,17 @@ export function createRenderManager() {
         ...counts,
         at: Date.now()
       };
+      try {
+        if (typeof window !== 'undefined') {
+          window.__nellyPedidosCocinaRenderizados = {
+            pedidosPendientes: Array.from(pedidosPendientes.entries()).map(([id, pedido]) => ({ id, ...pedido })),
+            pedidosReparto: Array.from(pedidosReparto.entries()).map(([id, pedido]) => ({ id, ...pedido })),
+            pedidosEnCamino: Array.from(pedidosEnCamino.entries()).map(([id, pedido]) => ({ id, ...pedido })),
+            pedidosEntregados: Array.from(pedidosEntregados.entries()).map(([id, pedido]) => ({ id, ...pedido })),
+            at: Date.now()
+          };
+        }
+      } catch {}
 
       if (contenedorPendientes && counts.pendientes === 0) {
         contenedorPendientes.innerHTML = emptyStateHTML(
