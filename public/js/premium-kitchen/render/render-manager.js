@@ -150,6 +150,7 @@ export function createRenderManager() {
       setText('kpi-capacidad-cocina', counters.capacidadCocina || '0 / 0');
       setText('kpi-activos-cocina', counters.activosCocina || '0');
       setText('kpi-carga-cocina', counters.cargaCocina || '0 %');
+      setText('kpi-prediccion-cocina', counters.prediccionCocina || 'Tiempo estimado 18 min antes de aceptar nuevos pedidos');
       setText('kpi-senal-cocina', counters.senalCocina || '✓');
       setText('kpi-senal-hint', counters.senalHint || 'Sin retraso detectado.');
 

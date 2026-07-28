@@ -3,7 +3,8 @@ function createSyncState() {
     sincronizacionIniciada: false,
     pedidosListenerRef: null,
     pedidosListenerCallback: null,
-    primeraCargaPendientes: true
+    primeraCargaPendientes: true,
+    recepcionPausada: false
   };
 }
 
