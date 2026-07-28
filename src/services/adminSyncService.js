@@ -14,7 +14,25 @@ function parseTimestamp(value) {
 }
 
 function normalizeAdminOrderItems(inputItems) {
-  const source = Array.isArray(inputItems) ? inputItems : [];
+  let source = [];
+  if (Array.isArray(inputItems)) {
+    source = inputItems;
+  } else if (typeof inputItems === 'string') {
+    try {
+      const parsed = JSON.parse(inputItems);
+      if (Array.isArray(parsed)) {
+        source = parsed;
+      }
+    } catch {
+      source = [];
+    }
+  } else if (inputItems && typeof inputItems === 'object') {
+    if (Array.isArray(inputItems.normalizedItems)) {
+      source = inputItems.normalizedItems;
+    } else if (Array.isArray(inputItems.items)) {
+      source = inputItems.items;
+    }
+  }
   return source.map((item, index) => {
     const nombre = String(item?.nombre || item?.name || item?.descripcion || '').trim();
     const cantidad = Number(item?.cantidad ?? item?.quantity ?? 1);

@@ -1542,6 +1542,7 @@ async function createManualOrder(event) {
         tienda_lng: storeLng,
         descripcion: notes || 'Pedido telefonico',
         items,
+        normalizedItems: items,
         subtotal: Number(subtotal.toFixed(2)),
         costo_envio: Number(shipping.toFixed(2)),
         propina: Number(tip.toFixed(2)),
