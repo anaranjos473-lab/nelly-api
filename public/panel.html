@@ -1084,9 +1084,10 @@
             <span class="ops-summary-card__hint">Pedidos en operación ahora mismo.</span>
         </div>
         <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Capacidad</span>
+            <span class="ops-summary-card__label">Capacidad de sede</span>
+            <span id="kpi-restaurante-cocina" class="ops-summary-card__hint">Lidos Pizza</span>
             <span id="kpi-capacidad-cocina" class="ops-summary-card__value">30</span>
-            <span class="ops-summary-card__hint">Capacidad operativa objetivo.</span>
+            <span class="ops-summary-card__hint">Capacidad operativa configurada por restaurante.</span>
         </div>
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Carga</span>
@@ -1333,7 +1334,7 @@
     <script type="module">
         import { auth, rtdb } from "./firebase.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
-        import { getKitchenConfig } from "./js/premium-kitchen/state/kitchen-config.js";
+        import { getKitchenConfig, getRestaurantConfig } from "./js/premium-kitchen/state/kitchen-config.js";
         import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
         import { normalizarEstado, construirFilaEstadoVacio } from "./js/premium-kitchen/panel-state-utils.mjs";
         import {
@@ -1795,6 +1796,7 @@
 
         const kitchenState = getKitchenState();
         const kitchenConfig = getKitchenConfig();
+        const restaurantConfig = getRestaurantConfig();
         const RENDER_DEBOUNCE_MS = kitchenConfig.render.debounceMs;
         const METRICAS_REFRESH_MS = kitchenConfig.metrics.refreshMs;
         let eficienciaMinimaPct = kitchenConfig.metrics.eficienciaMinimaPct;
@@ -1809,6 +1811,12 @@
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/dispatch-order'));
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
+        const RESTAURANT_CAPACITY_PRESETS = {
+            'Lidos Pizza': 18,
+            Sushi: 40,
+            Café: 12
+        };
+        const RESTAURANT_NAME = restaurantConfig.name || 'Restaurante';
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -2148,17 +2156,19 @@
             const transcurridoMin = Number(metricas.antiguedad || 0);
             const enTiempo = transcurridoMin <= objetivoMin;
             const capacidadActual = Number(conteos.pendientes || 0) + Number(conteos.listo || 0) + Number(conteos.reparto || 0);
-            const capacidadObjetivo = Math.max(30, capacidadActual);
-            const cargaPorcentaje = capacidadObjetivo > 0 ? Math.round((capacidadActual / capacidadObjetivo) * 100) : 0;
+            const capacidadObjetivo = Number(localStorage.getItem('nelly-kitchen-capacity-' + RESTAURANT_NAME) || RESTAURANT_CAPACITY_PRESETS[RESTAURANT_NAME] || restaurantConfig.capacity || 30);
+            const capacidadSegura = Math.max(capacidadObjetivo, capacidadActual);
+            const cargaPorcentaje = capacidadSegura > 0 ? Math.round((capacidadActual / capacidadSegura) * 100) : 0;
             const prediccionMin = cargaPorcentaje >= 80 ? 18 : (cargaPorcentaje >= 60 ? 12 : 8);
             return {
                 tiempoObjetivo: objetivoMin,
                 estadoCocina: enTiempo ? 'En tiempo' : 'Retraso',
                 avanceCocina: enTiempo ? `Vas en ${transcurridoMin} min.` : `Llevas ${transcurridoMin} min.`,
-                capacidadCocina: String(capacidadObjetivo),
+                capacidadCocina: String(capacidadSegura),
                 activosCocina: String(capacidadActual),
                 cargaCocina: `${cargaPorcentaje} %`,
                 prediccionCocina: `Tiempo estimado ${prediccionMin} min antes de aceptar nuevos pedidos`,
+                restauranteCocina: RESTAURANT_NAME,
                 senalCocina: enTiempo ? '✓ En tiempo' : '⚠ Retraso',
                 senalHint: enTiempo ? 'Sin retraso detectado.' : 'Pedido fuera del objetivo de cocina.'
             };

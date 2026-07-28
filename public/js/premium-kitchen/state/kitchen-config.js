@@ -1,4 +1,8 @@
 const kitchenConfig = Object.freeze({
+  restaurant: Object.freeze({
+    name: 'Lidos Pizza',
+    capacity: 18
+  }),
   render: Object.freeze({
     debounceMs: 90
   }),
@@ -33,4 +37,8 @@ export function getAlertsConfig() {
 
 export function getAuthConfig() {
   return kitchenConfig.auth;
+}
+
+export function getRestaurantConfig() {
+  return kitchenConfig.restaurant;
 }
