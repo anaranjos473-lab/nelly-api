@@ -399,28 +399,35 @@
             flex: 1 1 auto;
             grid-auto-flow: column;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
+            gap: 6px;
+            padding: 4px;
+            background: rgba(8, 17, 31, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 16px;
         }
         .workspace-tabs__button {
             width: 100%;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(8, 17, 31, 0.82);
             color: #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 14px;
-            font-weight: 900;
+            border-radius: 12px;
+            padding: 8px 10px;
+            font-weight: 800;
             cursor: pointer;
             text-align: left;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 8px;
+            min-height: 34px;
         }
         .workspace-tabs__rail--compact .workspace-tabs__button {
             justify-content: center;
             text-align: center;
-            padding: 10px 12px;
-            font-size: 0.95rem;
+            padding: 6px 10px;
+            font-size: 0.82rem;
+            min-height: 30px;
+            line-height: 1;
         }
         .workspace-tabs__rail--compact .workspace-tabs__button span {
             display: none;
@@ -432,8 +439,8 @@
         }
         .workspace-tabs__button span {
             color: #94a3b8;
-            font-size: 0.82rem;
-            font-weight: 800;
+            font-size: 0.75rem;
+            font-weight: 700;
         }
         .workspace-tabs__button.is-active span {
             color: rgba(8, 17, 31, 0.75);
