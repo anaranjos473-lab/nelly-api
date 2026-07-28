@@ -342,23 +342,57 @@
         }
         .workspace-tabs {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 12px;
             margin: 0 0 16px 0;
+            align-items: stretch;
+        }
+        .workspace-tabs__rail {
+            width: 240px;
+            flex: 0 0 240px;
+            display: grid;
+            gap: 10px;
+            align-content: start;
         }
         .workspace-tabs__button {
+            width: 100%;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: rgba(8, 17, 31, 0.82);
             color: #e2e8f0;
-            border-radius: 999px;
-            padding: 10px 14px;
+            border-radius: 14px;
+            padding: 12px 14px;
             font-weight: 900;
             cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
         }
         .workspace-tabs__button.is-active {
             background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%);
             color: #08111f;
             border-color: transparent;
+        }
+        .workspace-tabs__button span {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+        .workspace-tabs__button.is-active span {
+            color: rgba(8, 17, 31, 0.75);
+        }
+        .workspace-shell {
+            display: grid;
+            grid-template-columns: 240px minmax(0, 1fr);
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+        .workspace-panels {
+            min-width: 0;
+        }
+        .workspace-panel {
+            margin-bottom: 18px;
         }
         .workspace-panel[hidden] {
             display: none !important;
@@ -1516,11 +1550,18 @@
         </div>
     </div>
 
+    <div class="workspace-shell">
     <nav class="workspace-tabs" aria-label="Centros de cocina">
-        <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🍳 Operación</button>
-        <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia</button>
-        <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario</button>
+        <div class="workspace-tabs__rail">
+            <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🍳 Operación <span>trabajo diario</span></button>
+            <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia <span>decisiones</span></button>
+            <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario <span>stock y mapa</span></button>
+            <button class="workspace-tabs__button" type="button" data-workspace-tab="logistics">🗺 Logística <span>ETA y ruta</span></button>
+            <button class="workspace-tabs__button" type="button" data-workspace-tab="reports">📊 Reportes <span>indicadores</span></button>
+            <button class="workspace-tabs__button" type="button" data-workspace-tab="config">⚙ Configuración <span>ajustes</span></button>
+        </div>
     </nav>
+    <div class="workspace-panels">
 
     <section class="ops-summary" aria-label="Cockpit operativo" data-workspace="operation">
         <div class="ops-summary-card">
@@ -1733,6 +1774,64 @@
             </div>
             <div id="contenedor-entregados" class="pedidos-grid"></div>
         </div>
+    </div>
+
+    <section class="workspace-panel workspace-panel--logistics" data-workspace="logistics" hidden>
+        <section class="ops-summary" aria-label="Logistica">
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">ETA</span>
+                <span id="kpi-eta-logistica" class="ops-summary-card__value">0 min</span>
+                <span class="ops-summary-card__hint">Llegada estimada del repartidor.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Repartidores</span>
+                <span id="kpi-repartidores-logistica" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Unidades activas en campo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Ruta</span>
+                <span id="kpi-ruta-logistica" class="ops-summary-card__value">Activa</span>
+                <span class="ops-summary-card__hint">Coordinación operativa de entrega.</span>
+            </div>
+        </section>
+    </section>
+
+    <section class="workspace-panel workspace-panel--reports" data-workspace="reports" hidden>
+        <section class="ops-summary" aria-label="Reportes">
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pedidos visibles</span>
+                <span id="kpi-reportes-visibles" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Resumen ejecutivo de visibilidad.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">SLA</span>
+                <span id="kpi-reportes-sla" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Pedidos fuera del objetivo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Tiempo medio</span>
+                <span id="kpi-reportes-tiempo" class="ops-summary-card__value">0 min</span>
+                <span class="ops-summary-card__hint">Promedio operativo del turno.</span>
+            </div>
+        </section>
+    </section>
+
+    <section class="workspace-panel workspace-panel--config" data-workspace="config" hidden>
+        <section class="ops-summary" aria-label="Configuracion">
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Centro activo</span>
+                <span class="ops-summary-card__value">Cocina</span>
+                <span class="ops-summary-card__hint">Ajustes por restaurante y sede.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Modo</span>
+                <span class="ops-summary-card__value">Operativo</span>
+                <span class="ops-summary-card__hint">Sin recarga, solo navegación interna.</span>
+            </div>
+        </section>
+    </section>
+
+    </div>
     </div>
 
     <!-- Modal del mapa de flota activa -->
