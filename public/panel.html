@@ -866,24 +866,24 @@
 
     <section class="ops-summary" aria-label="Inteligencia de cocina">
         <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Pedidos activos</span>
+            <span id="kpi-activos-cocina" class="ops-summary-card__value">22</span>
+            <span class="ops-summary-card__hint">Pedidos en operación ahora mismo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Capacidad</span>
+            <span id="kpi-capacidad-cocina" class="ops-summary-card__value">30</span>
+            <span class="ops-summary-card__hint">Capacidad operativa objetivo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Carga</span>
+            <span id="kpi-carga-cocina" class="ops-summary-card__value">73 %</span>
+            <span id="kpi-carga-hint" class="ops-summary-card__hint">Uso actual sobre la capacidad.</span>
+        </div>
+        <div class="ops-summary-card">
             <span class="ops-summary-card__label">Inteligencia de cocina</span>
             <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
-            <span class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Cocina en tiempo</span>
-            <span id="kpi-estado-cocina" class="ops-summary-card__value ops-summary-card__value--pulse">En tiempo</span>
-            <span id="kpi-avance-cocina" class="ops-summary-card__hint">Vas en 6 min.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Capacidad de cocina</span>
-            <span id="kpi-capacidad-cocina" class="ops-summary-card__value">0 / 0</span>
-            <span class="ops-summary-card__hint">Carga actual frente al objetivo de trabajo.</span>
-        </div>
-        <div class="ops-summary-card">
-            <span class="ops-summary-card__label">Señal operativa</span>
-            <span id="kpi-senal-cocina" class="ops-summary-card__value">✓</span>
-            <span id="kpi-senal-hint" class="ops-summary-card__hint">Sin retraso detectado.</span>
+            <span id="kpi-estado-cocina" class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
         </div>
     </section>
 
@@ -1876,12 +1876,15 @@
             const transcurridoMin = Number(metricas.antiguedad || 0);
             const enTiempo = transcurridoMin <= objetivoMin;
             const capacidadActual = Number(conteos.pendientes || 0) + Number(conteos.listo || 0) + Number(conteos.reparto || 0);
-            const capacidadObjetivo = Math.max(8, capacidadActual);
+            const capacidadObjetivo = Math.max(30, capacidadActual);
+            const cargaPorcentaje = capacidadObjetivo > 0 ? Math.round((capacidadActual / capacidadObjetivo) * 100) : 0;
             return {
                 tiempoObjetivo: objetivoMin,
                 estadoCocina: enTiempo ? 'En tiempo' : 'Retraso',
                 avanceCocina: enTiempo ? `Vas en ${transcurridoMin} min.` : `Llevas ${transcurridoMin} min.`,
-                capacidadCocina: `${capacidadActual} / ${capacidadObjetivo}`,
+                capacidadCocina: String(capacidadObjetivo),
+                activosCocina: String(capacidadActual),
+                cargaCocina: `${cargaPorcentaje} %`,
                 senalCocina: enTiempo ? '✓ En tiempo' : '⚠ Retraso',
                 senalHint: enTiempo ? 'Sin retraso detectado.' : 'Pedido fuera del objetivo de cocina.'
             };

@@ -148,6 +148,8 @@ export function createRenderManager() {
       setText('kpi-estado-cocina', counters.estadoCocina || 'En tiempo');
       setText('kpi-avance-cocina', counters.avanceCocina || 'Vas en 0 min.');
       setText('kpi-capacidad-cocina', counters.capacidadCocina || '0 / 0');
+      setText('kpi-activos-cocina', counters.activosCocina || '0');
+      setText('kpi-carga-cocina', counters.cargaCocina || '0 %');
       setText('kpi-senal-cocina', counters.senalCocina || '✓');
       setText('kpi-senal-hint', counters.senalHint || 'Sin retraso detectado.');
 
@@ -344,7 +346,7 @@ export function createRenderManager() {
         notasUbicacion ? `Notas: ${notasUbicacion}` : ''
       ].filter(Boolean).join(' · ');
       const transcurridoMin = Math.max(0, Math.round((Date.now() - getPedidoTimestamp(pedido)) / 60000));
-      const reloj = formatClockMinutes(transcurridoMin * 60);
+      const reloj = `${String(transcurridoMin).padStart(2, '0')}:00`;
       const bucket = bucketForMinutes(transcurridoMin);
       const etaRepartidor = parseMinutes(pedido.eta_repartidor || pedido.repartidor_eta || pedido.driver_eta || pedido.tiempo_eta);
       const repartidorNombre = String(
