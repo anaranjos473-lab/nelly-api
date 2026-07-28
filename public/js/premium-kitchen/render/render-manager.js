@@ -475,6 +475,12 @@ export function createRenderManager() {
       const resumenProductos = String(pedido.descripcion || 'Sin descripcion').replace(/\s+/g, ' ').trim();
       const resumenProductosCorto = resumenProductos.length > 58 ? `${resumenProductos.slice(0, 55).trim()}...` : resumenProductos;
       const detallesId = `details-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+      const timelineSteps = [
+        { label: 'Recibido', done: true },
+        { label: 'Preparando', done: transcurridoMin >= 2 },
+        { label: 'Cocina', done: transcurridoMin >= 5 },
+        { label: 'Repartidor', done: estadoNormalizado === 'EN_CURSO' || estadoNormalizado === 'ENTREGADO', current: estadoNormalizado === 'LISTO' }
+      ];
       const config = esPendiente || fase === 'COCINA'
         ? { texto: 'MARCAR LISTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
         : (esListo
@@ -516,6 +522,9 @@ export function createRenderManager() {
                         <span class="card-logistics__wait">${escapeHtml(logisticaWait)}</span>
                         <span class="card-logistics__result">${escapeHtml(logisticaResult)}</span>
                     </div>
+                    <div class="card-timeline" aria-label="Linea de tiempo del pedido">
+                        ${timelineSteps.map((step) => `<span class="card-timeline__step ${step.done ? 'is-done' : (step.current ? 'is-current' : '')}"><span class="card-timeline__dot"></span>${escapeHtml(step.label)}</span>`).join('')}
+                    </div>
                     <button class="card-details-toggle" type="button" aria-expanded="false" aria-controls="${detallesId}" onclick="const card=this.closest('.nelly-pattern-card'); const details=document.getElementById('${detallesId}'); const open=!card.classList.contains('is-expanded'); card.classList.toggle('is-expanded', open); this.setAttribute('aria-expanded', open ? 'true' : 'false'); if(details){ details.hidden=!open; }">
                         <span class="card-details-toggle__label">Ver mas</span>
                     </button>
@@ -524,7 +533,7 @@ export function createRenderManager() {
                         ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
                         <p class="nelly-pattern-card__body">${escapeHtml(pedido.descripcion || 'Sin descripcion')}</p>
                         <p class="nelly-pattern-card__body">${escapeHtml(repartidorTexto)}</p>
-                        <div class="card-history">
+                        <div class="card-history card-history--expanded">
                             <span class="card-history__label">Historial de acciones</span>
                             <div class="card-history__items">
                                 ${historialAcciones.map((item) => {

@@ -492,6 +492,45 @@
             color: #93c5fd;
             font-weight: 700;
         }
+        .card-timeline {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+        .card-timeline__step {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #cbd5e1;
+            white-space: nowrap;
+        }
+        .card-timeline__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #475569;
+            box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+            flex: 0 0 auto;
+        }
+        .card-timeline__step.is-done {
+            color: #dbeafe;
+        }
+        .card-timeline__step.is-done .card-timeline__dot {
+            background: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+        }
+        .card-timeline__step.is-current {
+            color: #f8fafc;
+        }
+        .card-timeline__step.is-current .card-timeline__dot {
+            background: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+        }
         .card-details-toggle {
             width: 100%;
             margin-top: 8px;
@@ -537,6 +576,9 @@
             flex-direction: column;
             gap: 6px;
         }
+        .card-history--expanded .card-history__items {
+            display: grid;
+        }
         .card-history__label {
             font-size: 0.72rem;
             text-transform: uppercase;
@@ -545,20 +587,32 @@
             font-weight: 800;
         }
         .card-history__items {
-            display: grid;
-            gap: 4px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            overflow: hidden;
             font-size: 0.82rem;
             color: #cbd5e1;
         }
         .card-history__item {
             display: flex;
-            justify-content: space-between;
-            gap: 8px;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            min-width: 0;
         }
         .card-history__time {
             color: #93c5fd;
             white-space: nowrap;
             font-weight: 700;
+        }
+        .card-history__item::after {
+            content: "→";
+            color: rgba(148, 163, 184, 0.65);
+            font-weight: 800;
+        }
+        .card-history__item:last-child::after {
+            content: "";
         }
         .card-intelligence {
             margin-top: 8px;
