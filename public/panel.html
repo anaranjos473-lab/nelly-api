@@ -346,12 +346,22 @@
             margin: 0 0 16px 0;
             align-items: stretch;
         }
+        .workspace-tabs--compact {
+            margin: 0;
+        }
         .workspace-tabs__rail {
             width: 240px;
             flex: 0 0 240px;
             display: grid;
             gap: 10px;
             align-content: start;
+        }
+        .workspace-tabs__rail--compact {
+            width: 100%;
+            flex: 1 1 auto;
+            grid-auto-flow: column;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
         }
         .workspace-tabs__button {
             width: 100%;
@@ -367,6 +377,15 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+        }
+        .workspace-tabs__rail--compact .workspace-tabs__button {
+            justify-content: center;
+            text-align: center;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+        }
+        .workspace-tabs__rail--compact .workspace-tabs__button span {
+            display: none;
         }
         .workspace-tabs__button.is-active {
             background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%);
@@ -1511,59 +1530,47 @@
 </head>
 <body class="nelly-shell">
 
-    <header class="nelly-panel mb-6 overflow-hidden p-5 sm:p-6">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div class="max-w-3xl space-y-4">
+    <header class="nelly-panel mb-4 overflow-hidden p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="nelly-chip nelly-chip--success">Cocina</span>
-                    <span class="nelly-chip nelly-chip--info">Tiempo real</span>
-                    <span class="nelly-chip nelly-chip--accent">Despacho</span>
-                </div>
-                <div>
-                    <p class="nelly-section-label text-panel-accent">Nelly OS · Cocina</p>
-                    <h1 class="nelly-hero-title mt-2">Nelly Cocina</h1>
-                    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">App usada en cocina y restaurante para recibir pedidos, preparar, cambiar estados y coordinar entregas sin salir del centro de trabajo.</p>
-                </div>
-                <div class="nelly-divider"></div>
-                <div class="flex flex-wrap gap-2">
-                    <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Incidencia</button>
+                    <span class="nelly-chip nelly-chip--success">🍳 Nelly Cocina</span>
+                    <span id="badge-estado" class="nelly-state nelly-state--loading">ONLINE</span>
+                    <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
                 </div>
             </div>
-            <div class="grid gap-3 sm:grid-cols-2 lg:w-[20rem]">
-                <div class="nelly-kpi p-3">
-                    <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
-                    <div id="badge-estado" class="nelly-state nelly-state--loading mt-2">ONLINE</div>
+            <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
+        </div>
+        <div class="mt-4">
+            <nav class="workspace-tabs workspace-tabs--compact" aria-label="Centros de cocina">
+                <div class="workspace-tabs__rail workspace-tabs__rail--compact">
+                    <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🍳 Operación</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="logistics">🚴 Despacho</button>
                 </div>
-                <div class="nelly-kpi p-3">
-                    <p class="text-xs uppercase tracking-wide text-slate-400">Centro</p>
-                    <p class="mt-2 text-sm text-slate-300">Operación de cocina</p>
-                </div>
+            </nav>
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-4">
+            <div class="stat-card metric-card" style="padding: 12px 14px;">
+                <div class="card-title">💰 Hoy</div>
+                <div id="ganancias" class="card-value">$0.00</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 12px 14px;">
+                <div class="card-title">📦 Cola</div>
+                <div id="contador" class="card-value">0</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 12px 14px;">
+                <div class="card-title">⏱ Objetivo</div>
+                <div id="kpi-objetivo-cocina" class="card-value">8m</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 12px 14px;">
+                <div class="card-title">⚠ Riesgo</div>
+                <div id="kpi-riesgo" class="card-value">0</div>
             </div>
         </div>
     </header>
 
-    <div class="stats" style="margin-top: 0;">
-        <div class="stat-card metric-card" style="padding: 14px 16px;">
-            <div class="card-title">GANANCIAS HOY</div>
-            <div id="ganancias" class="card-value">$0.00</div>
-        </div>
-        <div class="stat-card metric-card" style="border-left-color: var(--primary); padding: 14px 16px;">
-            <div class="card-title">PEDIDOS EN COLA</div>
-            <div id="contador" class="card-value">0</div>
-        </div>
-    </div>
-
-    <div class="workspace-shell">
-    <nav class="workspace-tabs" aria-label="Centros de cocina">
-        <div class="workspace-tabs__rail">
-            <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🍳 Operación <span>trabajo diario</span></button>
-            <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia <span>decisiones</span></button>
-            <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario <span>stock y mapa</span></button>
-            <button class="workspace-tabs__button" type="button" data-workspace-tab="logistics">🗺 Logística <span>ETA y ruta</span></button>
-            <button class="workspace-tabs__button" type="button" data-workspace-tab="reports">📊 Reportes <span>indicadores</span></button>
-            <button class="workspace-tabs__button" type="button" data-workspace-tab="config">⚙ Configuración <span>ajustes</span></button>
-        </div>
-    </nav>
     <div class="workspace-panels">
 
     <section class="ops-summary" aria-label="Cockpit operativo" data-workspace="operation">
