@@ -3067,7 +3067,7 @@
             const stock = Math.max(0, Number(item.stock || 0));
             const consumoPromedio = Math.max(0.1, Number(item.consumoPromedio || item.consumo_promedio || 1));
             if (stock <= 0) {
-                return { texto: 'Agotado', instante: null };
+                return { texto: 'Agotado', instante: null, riesgo: true };
             }
             const horasRestantes = stock / consumoPromedio;
             const fecha = new Date(Date.now() + horasRestantes * 60 * 60 * 1000);
@@ -3077,9 +3077,11 @@
                 fecha.getMonth() === hoy.getMonth() &&
                 fecha.getDate() === hoy.getDate();
             const etiqueta = mismoDia ? 'hoy' : fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+            const riesgo = horasRestantes <= 2.5 || mismoDia;
             return {
                 texto: `Se terminará ${etiqueta} ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
-                instante: fecha
+                instante: fecha,
+                riesgo
             };
         }
 
@@ -3108,12 +3110,12 @@
                 const hiddenLabel = item.ocultarCliente || stock <= 0 ? 'Ocultar automáticamente' : 'Visible al cliente';
                 const agotamiento = estimarAgotamientoInventario(item);
                 return `
-                    <article class="inventory-item ${critical ? 'inventory-item--critical' : ''}">
+                    <article class="inventory-item ${critical || agotamiento.riesgo ? 'inventory-item--critical' : ''}">
                         <div class="inventory-item__top">
                             <strong class="inventory-item__name">${item.nombre}</strong>
                             <span class="inventory-item__stock">${label}</span>
                         </div>
-                        <div class="inventory-item__hint">${hiddenLabel} · ${agotamiento.texto} · ${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
+                        <div class="inventory-item__hint">${hiddenLabel} · ${agotamiento.texto} · ${agotamiento.riesgo ? 'Alerta de agotamiento' : 'Vigilar antes de seguir vendiendo'} · ${critical ? 'No aceptar sin sustitución' : 'Revisar en el turno'}</div>
                         <div class="inventory-item__actions">
                             <button class="inventory-item__button is-primary" type="button" onclick="window.sugerirCambioInventario('${item.nombre}')">Sugerir cambio</button>
                             <button class="inventory-item__button" type="button" onclick="window.marcarInventario('${item.nombre}', ${Math.max(0, stock - 1)})">Consumir</button>

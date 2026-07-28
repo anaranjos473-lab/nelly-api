@@ -387,7 +387,7 @@
       const stock = Math.max(0, Number(item.stock || 0));
       const avg = Math.max(0.1, Number(item.consumoPromedio || item.consumo_promedio || 1));
       if (stock <= 0) {
-        return 'Agotado';
+        return { text: 'Agotado', risk: true };
       }
       const finish = new Date(Date.now() + (stock / avg) * 60 * 60 * 1000);
       const today = new Date();
@@ -396,7 +396,10 @@
         finish.getMonth() === today.getMonth() &&
         finish.getDate() === today.getDate();
       const dayLabel = sameDay ? 'hoy' : finish.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
-      return `Se terminará ${dayLabel} ${finish.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+      return {
+        text: `Se terminará ${dayLabel} ${finish.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
+        risk: sameDay || (stock / avg) <= 2.5
+      };
     }
 
     function renderInventory() {
@@ -415,11 +418,11 @@
           const hidden = item.ocultarCliente !== false && stock <= 0;
           const state = stock <= 0 ? 'Agotado' : stock <= min ? 'Bajo stock' : 'Disponible';
           return `
-            <article class="wc-priority-item">
+            <article class="wc-priority-item ${estimateDepletion(item).risk ? 'is-danger' : ''}">
               <span class="wc-priority-icon">${stock <= 0 ? '!' : stock}</span>
               <div>
                 <h3>${item.nombre}</h3>
-                <p>Stock: ${stock} · Minimo: ${min} · ${estimateDepletion(item)} · ${hidden ? 'Oculto automaticamente' : 'Visible al cliente'}</p>
+                <p>Stock: ${stock} · Minimo: ${min} · ${estimateDepletion(item).text} · ${estimateDepletion(item).risk ? 'Alerta de agotamiento' : 'Vigilar antes de seguir vendiendo'} · ${hidden ? 'Oculto automaticamente' : 'Visible al cliente'}</p>
                 <p>${item.sugerencia || 'Sin sustitucion sugerida'}</p>
               </div>
               <span class="wc-pill ${stock <= 0 ? 'yellow' : 'blue'}">${state}</span>
