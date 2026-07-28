@@ -860,14 +860,15 @@
         .operation-focus__queue-item {
             width: 100%;
             border: 1px solid rgba(148, 163, 184, 0.14);
-            background: rgba(15, 23, 42, 0.86);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(8, 17, 31, 0.98) 100%);
             color: #e2e8f0;
             border-radius: 12px;
-            padding: 11px 12px;
+            padding: 9px 10px;
             text-align: left;
             cursor: pointer;
             display: grid;
             gap: 4px;
+            min-height: 56px;
         }
         .operation-focus__queue-item.is-active {
             border-color: rgba(34, 211, 238, 0.35);
@@ -879,6 +880,7 @@
             justify-content: space-between;
             gap: 8px;
             font-weight: 900;
+            font-size: 0.92rem;
         }
         .operation-focus__queue-item-meta {
             display: flex;
@@ -2582,6 +2584,15 @@
                 });
                 observer.observe(contenedorPendientes, { childList: true, subtree: true });
             }
+
+            window.setTimeout(() => {
+                if (!window.__nellyPedidoEnfoque) {
+                    const primero = todosLosPedidosCocina()[0];
+                    if (primero) {
+                        renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
+                    }
+                }
+            }, 900);
             window.addEventListener('load', () => {
                 const primero = todosLosPedidosCocina()[0];
                 if (primero) {
