@@ -34,7 +34,10 @@ const ui = {
   runtime: document.getElementById('gov-runtime'),
   businessSource: document.getElementById('gov-business-source'),
   liveSource: document.getElementById('gov-live-source'),
-  failedReads: document.getElementById('gov-failed-reads')
+  failedReads: document.getElementById('gov-failed-reads'),
+  exportJson: document.getElementById('developer-export-json'),
+  exportCsv: document.getElementById('developer-export-csv'),
+  snapshotDiscord: document.getElementById('developer-snapshot-discord')
 };
 
 const GOALS = {
@@ -248,6 +251,61 @@ async function fetchGovernance({ withLogin = false } = {}) {
   }
 
   renderSnapshot(payload);
+  return payload;
+}
+
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function snapshotToCsv(payload = {}) {
+  const summary = payload?.summary || {};
+  const health = payload?.health || {};
+  const rows = [
+    ['campo', 'valor'],
+    ['mode', payload?.mode || ''],
+    ['status', summary.status || ''],
+    ['highRiskDuplicities', summary.highRiskDuplicities ?? ''],
+    ['warnings', summary.warnings ?? ''],
+    ['failedReads', summary.failedReads ?? ''],
+    ['healthScore', health.score ?? ''],
+    ['healthLabel', health.label || '']
+  ];
+  return rows.map((row) => row.map((cell) => String(cell).replaceAll('"', '""')).join(',')).join('\n');
+}
+
+async function exportGovernanceJson() {
+  const payload = await fetchGovernance();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  downloadFile(`auditoria_nelly_${stamp}.json`, JSON.stringify(payload, null, 2), 'application/json');
+}
+
+async function exportGovernanceCsv() {
+  const payload = await fetchGovernance();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  downloadFile(`auditoria_nelly_${stamp}.csv`, snapshotToCsv(payload), 'text/csv');
+}
+
+async function sendSnapshotDiscord() {
+  const payload = await fetchGovernance();
+  const response = await fetch(`${API_ORIGIN}/api/monitoreo/discord`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content: `Snapshot Developer (${location.pathname}):\n\n${'```json\n' + JSON.stringify(payload, null, 2) + '\n```'}`
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
 }
 
 ui.authForm?.addEventListener('submit', async (event) => {
@@ -266,6 +324,10 @@ ui.refresh?.addEventListener('click', async () => {
     renderUnavailable(error);
   }
 });
+
+ui.exportJson?.addEventListener('click', () => exportGovernanceJson().catch((error) => renderUnavailable(error)));
+ui.exportCsv?.addEventListener('click', () => exportGovernanceCsv().catch((error) => renderUnavailable(error)));
+ui.snapshotDiscord?.addEventListener('click', () => sendSnapshotDiscord().catch((error) => renderUnavailable(error)));
 
 window.addEventListener('nelly:work-center-authenticated', async () => {
   try {

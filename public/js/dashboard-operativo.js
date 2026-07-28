@@ -368,6 +368,9 @@ ui.loginForm.addEventListener('submit', async (event) => {
 });
 
 ui.btnRefresh.addEventListener('click', refreshDashboard);
+ui.recoverOrder?.addEventListener('click', () => {
+  window.location.href = '/cocina';
+});
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
