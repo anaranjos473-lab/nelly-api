@@ -3041,10 +3041,10 @@
 
         function obtenerInventarioCocina() {
             const base = [
-                { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
-                { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
-                { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
-                { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna', ocultarCliente: false }
+                { nombre: 'Queso', stock: 5, minimo: 10, consumoPromedio: 2, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
+                { nombre: 'Coca', stock: 0, minimo: 8, consumoPromedio: 3, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
+                { nombre: 'Jamón', stock: 12, minimo: 10, consumoPromedio: 4, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
+                { nombre: 'Tortilla', stock: 18, minimo: 12, consumoPromedio: 6, sugerencia: 'Pan / base alterna', ocultarCliente: false }
             ];
             const restaurantKey = `nelly-restaurant-inventory-${RESTAURANT_NAME}`;
             try {
@@ -3061,6 +3061,26 @@
                 }
             } catch (_err) {}
             return base;
+        }
+
+        function estimarAgotamientoInventario(item = {}) {
+            const stock = Math.max(0, Number(item.stock || 0));
+            const consumoPromedio = Math.max(0.1, Number(item.consumoPromedio || item.consumo_promedio || 1));
+            if (stock <= 0) {
+                return { texto: 'Agotado', instante: null };
+            }
+            const horasRestantes = stock / consumoPromedio;
+            const fecha = new Date(Date.now() + horasRestantes * 60 * 60 * 1000);
+            const hoy = new Date();
+            const mismoDia =
+                fecha.getFullYear() === hoy.getFullYear() &&
+                fecha.getMonth() === hoy.getMonth() &&
+                fecha.getDate() === hoy.getDate();
+            const etiqueta = mismoDia ? 'hoy' : fecha.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+            return {
+                texto: `Se terminará ${etiqueta} ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
+                instante: fecha
+            };
         }
 
         function guardarInventarioCocina(items) {
@@ -3086,13 +3106,14 @@
                 const critical = stock <= 0 || stock <= Math.max(1, Math.ceil(minimo * 0.2));
                 const label = stock <= 0 ? 'Agotado' : `${stock} und`;
                 const hiddenLabel = item.ocultarCliente || stock <= 0 ? 'Ocultar automáticamente' : 'Visible al cliente';
+                const agotamiento = estimarAgotamientoInventario(item);
                 return `
                     <article class="inventory-item ${critical ? 'inventory-item--critical' : ''}">
                         <div class="inventory-item__top">
                             <strong class="inventory-item__name">${item.nombre}</strong>
                             <span class="inventory-item__stock">${label}</span>
                         </div>
-                        <div class="inventory-item__hint">${hiddenLabel} · ${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
+                        <div class="inventory-item__hint">${hiddenLabel} · ${agotamiento.texto} · ${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
                         <div class="inventory-item__actions">
                             <button class="inventory-item__button is-primary" type="button" onclick="window.sugerirCambioInventario('${item.nombre}')">Sugerir cambio</button>
                             <button class="inventory-item__button" type="button" onclick="window.marcarInventario('${item.nombre}', ${Math.max(0, stock - 1)})">Consumir</button>

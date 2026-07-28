@@ -338,10 +338,10 @@
     const STORAGE_KEY = `nelly-restaurant-inventory-${RESTAURANT_KEY}`;
     const LEGACY_KEY = 'nelly-kitchen-inventario';
     const baseInventory = [
-      { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
-      { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
-      { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
-      { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna', ocultarCliente: false }
+      { nombre: 'Coca', stock: 0, minimo: 8, consumoPromedio: 3, sugerencia: 'Agua / refresco alterno', ocultarCliente: true },
+      { nombre: 'Queso', stock: 5, minimo: 10, consumoPromedio: 2, sugerencia: 'Queso extra / mezcla', ocultarCliente: false },
+      { nombre: 'Jamón', stock: 12, minimo: 10, consumoPromedio: 4, sugerencia: 'Pollo / peperoni', ocultarCliente: false },
+      { nombre: 'Tortilla', stock: 18, minimo: 12, consumoPromedio: 6, sugerencia: 'Pan / base alterna', ocultarCliente: false }
     ];
 
     const ui = {
@@ -383,6 +383,22 @@
       window.dispatchEvent(new CustomEvent('nelly-inventory-updated', { detail: { restaurant: RESTAURANT_KEY, items } }));
     }
 
+    function estimateDepletion(item) {
+      const stock = Math.max(0, Number(item.stock || 0));
+      const avg = Math.max(0.1, Number(item.consumoPromedio || item.consumo_promedio || 1));
+      if (stock <= 0) {
+        return 'Agotado';
+      }
+      const finish = new Date(Date.now() + (stock / avg) * 60 * 60 * 1000);
+      const today = new Date();
+      const sameDay =
+        finish.getFullYear() === today.getFullYear() &&
+        finish.getMonth() === today.getMonth() &&
+        finish.getDate() === today.getDate();
+      const dayLabel = sameDay ? 'hoy' : finish.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+      return `Se terminará ${dayLabel} ${finish.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
     function renderInventory() {
       const items = readInventory();
       const available = items.filter((item) => Number(item.stock) > 0).length;
@@ -403,7 +419,7 @@
               <span class="wc-priority-icon">${stock <= 0 ? '!' : stock}</span>
               <div>
                 <h3>${item.nombre}</h3>
-                <p>Stock: ${stock} · Minimo: ${min} · ${hidden ? 'Oculto automaticamente' : 'Visible al cliente'}</p>
+                <p>Stock: ${stock} · Minimo: ${min} · ${estimateDepletion(item)} · ${hidden ? 'Oculto automaticamente' : 'Visible al cliente'}</p>
                 <p>${item.sugerencia || 'Sin sustitucion sugerida'}</p>
               </div>
               <span class="wc-pill ${stock <= 0 ? 'yellow' : 'blue'}">${state}</span>
@@ -422,7 +438,8 @@
       if (!nombre) return;
       const items = readInventory();
       const idx = items.findIndex((item) => item.nombre.toLowerCase() === nombre.toLowerCase());
-      const next = { nombre, stock, minimo, sugerencia, ocultarCliente };
+      const consumoPromedio = Math.max(0.1, Number(items.find((item) => item.nombre.toLowerCase() === nombre.toLowerCase())?.consumoPromedio || Math.max(1, Math.round(stock / 4)) || 1));
+      const next = { nombre, stock, minimo, sugerencia, ocultarCliente, consumoPromedio };
       if (idx >= 0) items[idx] = next;
       else items.unshift(next);
       saveInventory(items);
