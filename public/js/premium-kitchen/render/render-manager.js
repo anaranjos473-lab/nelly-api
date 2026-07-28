@@ -424,6 +424,12 @@ export function createRenderManager() {
                         <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost">
                             Reimprimir ticket
                         </button>
+                        <button onclick="window.sugerirCambioPedido('${id}')" class="nelly-btn nelly-btn--ghost">
+                            Sugerir cambio
+                        </button>
+                        <button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost">
+                            Chat cliente
+                        </button>
                         <button onclick="window.verDetallePedido('${id}')" class="nelly-btn nelly-btn--ghost">
                             Ver detalle
                         </button>

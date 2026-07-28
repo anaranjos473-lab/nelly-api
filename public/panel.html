@@ -626,6 +626,138 @@
             background: linear-gradient(90deg, #ef4444 0%, #fb7185 100%);
             box-shadow: 0 18px 30px rgba(239, 68, 68, 0.22);
         }
+        .inventory-panel {
+            display: grid;
+            gap: 12px;
+            margin: 0 0 16px 0;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 17, 31, 0.96));
+        }
+        .inventory-panel__header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        .inventory-panel__title {
+            font-size: 1.05rem;
+            color: #f8fafc;
+            font-weight: 900;
+        }
+        .inventory-panel__hint {
+            color: #9fb4d2;
+            font-size: 0.9rem;
+        }
+        .inventory-panel__list {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .inventory-item {
+            display: grid;
+            gap: 6px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(8, 17, 31, 0.82);
+        }
+        .inventory-item__top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+        }
+        .inventory-item__name {
+            font-weight: 900;
+            color: #f8fafc;
+        }
+        .inventory-item__stock {
+            font-weight: 900;
+            color: #93c5fd;
+        }
+        .inventory-item--critical .inventory-item__stock {
+            color: #fca5a5;
+        }
+        .inventory-item__actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .inventory-item__button {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.92);
+            color: #e2e8f0;
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .inventory-item__button.is-primary {
+            background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%);
+            color: #08111f;
+            border: none;
+        }
+        .chat-sheet {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            width: min(420px, calc(100vw - 32px));
+            max-height: 70vh;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 17, 31, 0.99));
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            z-index: 3000;
+            display: none;
+            overflow: hidden;
+        }
+        .chat-sheet.is-open { display: grid; grid-template-rows: auto 1fr auto; }
+        .chat-sheet__header,
+        .chat-sheet__composer {
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-sheet__body {
+            padding: 0 14px 12px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+        .chat-message {
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(8, 17, 31, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+        }
+        .chat-message--client { background: rgba(37, 99, 235, 0.15); }
+        .chat-message--ops { background: rgba(34, 197, 94, 0.12); }
+        .chat-sheet textarea {
+            width: 100%;
+            min-height: 72px;
+            resize: vertical;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.94);
+            color: #f8fafc;
+            padding: 10px 12px;
+        }
+        .chat-sheet__close,
+        .chat-sheet__send {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .chat-sheet__close { background: rgba(148, 163, 184, 0.16); color: #f8fafc; }
+        .chat-sheet__send { background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%); color: #08111f; }
         .producto-nombre {
             display: flex;
             align-items: center;
@@ -987,6 +1119,17 @@
         </div>
     </section>
 
+    <section class="inventory-panel" aria-label="Productos agotados">
+        <div class="inventory-panel__header">
+            <div>
+                <div class="inventory-panel__title">Productos agotados</div>
+                <div class="inventory-panel__hint">Ingredientes con riesgo de frenar pedidos o provocar cancelaciones.</div>
+            </div>
+            <div class="inventory-panel__hint" id="inventory-summary">Cargando inventario...</div>
+        </div>
+        <div id="inventory-list" class="inventory-panel__list"></div>
+    </section>
+
     <div class="kitchen-toolbar" aria-label="Filtros de cocina">
         <input id="filtro-busqueda-cocina" class="kitchen-search" type="search" placeholder="Buscar folio, cliente o dirección">
         <select id="filtro-prioridad-cocina" class="kitchen-select">
@@ -1164,8 +1307,23 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
+    </div>
+
+    <aside id="chat-sheet" class="chat-sheet" aria-label="Chat con cliente">
+        <div class="chat-sheet__header">
+            <div>
+                <div class="incoming-control__label">Chat operativo</div>
+                <div id="chat-sheet-title" class="inventory-panel__title">Selecciona un pedido</div>
+            </div>
+            <button type="button" class="chat-sheet__close" onclick="window.cerrarChatCliente()">Cerrar</button>
+        </div>
+        <div id="chat-sheet-body" class="chat-sheet__body"></div>
+        <div class="chat-sheet__composer">
+            <textarea id="chat-sheet-input" placeholder="Escribe una sugerencia, por ejemplo: ¿Aceptas cambiar Coca por agua?"></textarea>
+            <button type="button" class="chat-sheet__send" onclick="window.enviarMensajeChatCliente()">Enviar</button>
+        </div>
+    </aside>
 
     <audio id="audio-notificacion" src="/sounds/notificacion_pedido.mp3" preload="auto"></audio>
 
@@ -2525,6 +2683,7 @@
                     kitchenState.orders.pedidosEntregados
                 ]))
             });
+            renderInventarioCocina();
         }
 
         window.moverAReparto = async function(id) {
@@ -2725,6 +2884,148 @@
                 return { total: Number((totalActual + Number(monto || 0)).toFixed(2)) };
             });
         }
+
+        function obtenerInventarioCocina() {
+            const base = [
+                { nombre: 'Queso', stock: 5, minimo: 10, sugerencia: 'Queso extra / mezcla' },
+                { nombre: 'Coca', stock: 0, minimo: 8, sugerencia: 'Agua / refresco alterno' },
+                { nombre: 'Jamón', stock: 12, minimo: 10, sugerencia: 'Pollo / peperoni' },
+                { nombre: 'Tortilla', stock: 18, minimo: 12, sugerencia: 'Pan / base alterna' }
+            ];
+            try {
+                const saved = JSON.parse(localStorage.getItem('nelly-kitchen-inventario') || 'null');
+                if (Array.isArray(saved) && saved.length) {
+                    return saved;
+                }
+            } catch (_err) {}
+            return base;
+        }
+
+        function guardarInventarioCocina(items) {
+            localStorage.setItem('nelly-kitchen-inventario', JSON.stringify(items));
+            renderInventarioCocina();
+        }
+
+        function renderInventarioCocina() {
+            const list = document.getElementById('inventory-list');
+            const summary = document.getElementById('inventory-summary');
+            if (!list || !summary) {
+                return;
+            }
+            const items = obtenerInventarioCocina();
+            const criticos = items.filter((item) => Number(item.stock) <= 0);
+            const bajos = items.filter((item) => Number(item.stock) > 0 && Number(item.stock) <= Number(item.minimo || 10));
+            summary.textContent = `${criticos.length} agotados · ${bajos.length} en bajo stock`;
+            list.innerHTML = items.map((item) => {
+                const stock = Number(item.stock || 0);
+                const minimo = Number(item.minimo || 10);
+                const critical = stock <= 0 || stock <= Math.max(1, Math.ceil(minimo * 0.2));
+                const label = stock <= 0 ? 'Agotado' : `${stock}%`;
+                return `
+                    <article class="inventory-item ${critical ? 'inventory-item--critical' : ''}">
+                        <div class="inventory-item__top">
+                            <strong class="inventory-item__name">${item.nombre}</strong>
+                            <span class="inventory-item__stock">${label}</span>
+                        </div>
+                        <div class="inventory-item__hint">${critical ? 'No aceptar sin sustitución' : 'Vigilar antes de seguir vendiendo'}</div>
+                        <div class="inventory-item__actions">
+                            <button class="inventory-item__button is-primary" type="button" onclick="window.sugerirCambioInventario('${item.nombre}')">Sugerir cambio</button>
+                            <button class="inventory-item__button" type="button" onclick="window.marcarInventario('${item.nombre}', ${Math.max(0, stock - 1)})">Consumir</button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function renderChatCliente(pedido = null, mensajeInicial = '') {
+            const sheet = document.getElementById('chat-sheet');
+            const title = document.getElementById('chat-sheet-title');
+            const body = document.getElementById('chat-sheet-body');
+            if (!sheet || !title || !body) {
+                return;
+            }
+            const chatId = pedido?._rtdbKey || pedido?.id_pedido || pedido?.id || 'sin-pedido';
+            const cliente = pedido?.cliente_nombre || pedido?.cliente || 'Cliente';
+            title.textContent = `#${chatId} · ${cliente}`;
+            const key = `nelly-chat-${chatId}`;
+            const saved = (() => {
+                try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+            })();
+            if (mensajeInicial) {
+                saved.push({ role: 'ops', text: mensajeInicial, at: new Date().toISOString() });
+                localStorage.setItem(key, JSON.stringify(saved.slice(-20)));
+            }
+            body.innerHTML = saved.length
+                ? saved.map((msg) => `<div class="chat-message chat-message--${msg.role === 'client' ? 'client' : 'ops'}"><strong>${msg.role === 'client' ? 'Cliente' : 'Operación'}:</strong> ${msg.text}</div>`).join('')
+                : '<div class="chat-message">Sin mensajes. Puedes proponer un cambio antes de cancelar.</div>';
+            sheet.classList.add('is-open');
+            const input = document.getElementById('chat-sheet-input');
+            if (input) input.value = '';
+            window.__chatPedidoActual = pedido || null;
+            window.__chatKeyActual = key;
+        }
+
+        window.abrirChatCliente = (id) => {
+            const keyResuelta = resolverKeyPedido(id);
+            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                || kitchenState.orders.pedidosEnCamino.get(keyResuelta)
+                || kitchenState.orders.pedidosEntregados.get(keyResuelta);
+            renderChatCliente(pedido, 'Hola, tenemos una sugerencia para evitar una cancelación.');
+        };
+
+        window.cerrarChatCliente = () => {
+            const sheet = document.getElementById('chat-sheet');
+            if (sheet) sheet.classList.remove('is-open');
+            window.__chatPedidoActual = null;
+            window.__chatKeyActual = null;
+        };
+
+        window.enviarMensajeChatCliente = () => {
+            const input = document.getElementById('chat-sheet-input');
+            const texto = String(input?.value || '').trim();
+            if (!texto) {
+                return;
+            }
+            if (!window.__chatKeyActual) {
+                showToast('Abre un pedido para iniciar el chat', 'err');
+                return;
+            }
+            const key = window.__chatKeyActual;
+            const saved = (() => {
+                try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+            })();
+            saved.push({ role: 'ops', text: texto, at: new Date().toISOString() });
+            localStorage.setItem(key, JSON.stringify(saved.slice(-20)));
+            renderChatCliente(window.__chatPedidoActual, '');
+            showToast('Mensaje sugerido al cliente', 'ok');
+        };
+
+        window.sugerirCambioPedido = (id) => {
+            const keyResuelta = resolverKeyPedido(id);
+            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
+            const ingredientes = obtenerInventarioCocina();
+            const sugeridos = ingredientes.filter((item) => Number(item.stock) <= Number(item.minimo || 10) || Number(item.stock) <= 0);
+            const sugerencia = sugeridos.length
+                ? `Sugerencia para ${pedido?.cliente_nombre || 'cliente'}: ${sugeridos.map((item) => `${item.nombre} → ${item.sugerencia}`).join(' · ')}`
+                : 'No hay sustituciones urgentes en inventario.';
+            renderChatCliente(pedido, sugerencia);
+        };
+
+        window.sugerirCambioInventario = (nombre) => {
+            const pedido = window.__chatPedidoActual || null;
+            renderChatCliente(pedido, `Sugerir cambio por ${nombre}: validar sustitución con el cliente.`);
+        };
+
+        window.marcarInventario = (nombre, nuevoStock) => {
+            const items = obtenerInventarioCocina().map((item) => item.nombre === nombre ? { ...item, stock: Math.max(0, Number(nuevoStock) || 0) } : item);
+            guardarInventarioCocina(items);
+            showToast(`${nombre} actualizado`, 'ok');
+        };
+
+        renderInventarioCocina();
 
 
     </script>
