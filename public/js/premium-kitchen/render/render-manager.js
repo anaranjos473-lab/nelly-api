@@ -100,7 +100,8 @@ export function createRenderManager() {
     renderOrderLists({
       pedidosPendientes = new Map(),
       pedidosReparto = new Map(),
-      pedidosEnCamino = new Map()
+      pedidosEnCamino = new Map(),
+      pedidosEntregados = new Map()
     } = {}, renderTarjeta) {
       const contenedorPendientes = document.getElementById('contenedor-pendientes');
       const contenedorListo = document.getElementById('contenedor-listo');
@@ -193,6 +194,20 @@ export function createRenderManager() {
           }
           contenedorReparto.insertAdjacentHTML('beforeend', tarjeta);
           counts.reparto += 1;
+        }
+      });
+
+      pedidosEntregados.forEach((pedido, id) => {
+        if (pedidosPendientes.has(id) || pedidosReparto.has(id) || pedidosEnCamino.has(id)) {
+          return;
+        }
+        if (contenedorEntregados && typeof renderTarjeta === 'function') {
+          const tarjeta = renderTarjeta({ ...pedido, estado: 'ENTREGADO', fase: 'ENTREGADO' }, id, false);
+          if (!tarjeta) {
+            return;
+          }
+          contenedorEntregados.insertAdjacentHTML('beforeend', tarjeta);
+          counts.entregados += 1;
         }
       });
 

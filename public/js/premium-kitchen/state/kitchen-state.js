@@ -17,7 +17,8 @@ function createOrdersState() {
   return {
     pedidosPendientes: new Map(),
     pedidosReparto: new Map(),
-    pedidosEnCamino: new Map()
+    pedidosEnCamino: new Map(),
+    pedidosEntregados: new Map()
   };
 }
 

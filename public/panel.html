@@ -1807,6 +1807,7 @@
             const listeners = [];
             const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
             const dbRef = ref(rtdb, "pedidos");
+            const completadosRef = ref(rtdb, "pedidos_completados");
             iniciarMonitorMetricas();
             refrescarMetricasDebug();
 
@@ -1829,6 +1830,28 @@
                 }
             }, (error) => {
                 reportarErrorListener('onValue(pedidos)', error);
+            }));
+
+            listeners.push(onValue(completadosRef, (snapshot) => {
+                kitchenState.orders.pedidosEntregados.clear();
+                const raiz = snapshot.val();
+                if (raiz && typeof raiz === 'object') {
+                    Object.entries(raiz).forEach(([key, value]) => {
+                        if (!value || typeof value !== 'object') {
+                            return;
+                        }
+                        kitchenState.orders.pedidosEntregados.set(key, {
+                            ...value,
+                            estado: normalizarEstado(value.estado_pedido || value.estado || 'ENTREGADO'),
+                            fase: 'ENTREGADO',
+                            _rtdbKey: key,
+                            __source: 'rtdb_completados'
+                        });
+                    });
+                }
+                solicitarRenderPanel('snapshot-completados');
+            }, (error) => {
+                reportarErrorListener('onValue(pedidos_completados)', error);
             }));
 
             listeners.push(onValue(ref(rtdb, "liquidaciones_auditoria"), (snapshot) => {
@@ -1879,14 +1902,17 @@
                 pendientes: kitchenState.orders.pedidosPendientes.size,
                 reparto: kitchenState.orders.pedidosReparto.size,
                 enCamino: kitchenState.orders.pedidosEnCamino.size,
+                entregados: kitchenState.orders.pedidosEntregados.size,
                 idsPendientes: Array.from(kitchenState.orders.pedidosPendientes.keys()),
                 idsReparto: Array.from(kitchenState.orders.pedidosReparto.keys()),
-                idsEnCamino: Array.from(kitchenState.orders.pedidosEnCamino.keys())
+                idsEnCamino: Array.from(kitchenState.orders.pedidosEnCamino.keys()),
+                idsEntregados: Array.from(kitchenState.orders.pedidosEntregados.keys())
             });
             const conteos = renderManager.renderOrderLists({
                 pedidosPendientes: kitchenState.orders.pedidosPendientes,
                 pedidosReparto: kitchenState.orders.pedidosReparto,
-                pedidosEnCamino: kitchenState.orders.pedidosEnCamino
+                pedidosEnCamino: kitchenState.orders.pedidosEnCamino,
+                pedidosEntregados: kitchenState.orders.pedidosEntregados
             }, (pedido, id, esPendiente) => renderManager.renderOrderCard(pedido, id, esPendiente, {
                 normalizarEstado,
                 obtenerFasePanel

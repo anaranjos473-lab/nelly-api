@@ -84,6 +84,7 @@ function buildDriverOnlineSyncWrites(uid, activePedidoId, timestamp = Date.now()
 function buildCompleteSyncWrites(pedidoId, order, driverUid, completedPayload) {
   const updates = {
     [`pedidos/${pedidoId}`]: { ...order, ...completedPayload },
+    [`pedidos_completados/${pedidoId}`]: { ...order, ...completedPayload },
     [`pedidos_en_camino/${pedidoId}`]: null,
     [`pedidos_para_reparto/${pedidoId}`]: null
   };
