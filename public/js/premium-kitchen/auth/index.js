@@ -7,6 +7,5 @@ export function requirePanelAccess() {
 }
 
 export async function getBackendToken() {
-  throw new Error('premium_kitchen_stage_a_placeholder');
+  return null;
 }
-

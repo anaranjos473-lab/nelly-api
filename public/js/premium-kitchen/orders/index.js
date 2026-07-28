@@ -15,10 +15,9 @@ export function buildOrderViewModel(order = {}) {
 }
 
 export async function dispatchOrderAction() {
-  throw new Error('premium_kitchen_stage_a_placeholder');
+  return null;
 }
 
 export async function completeOrderAction() {
-  throw new Error('premium_kitchen_stage_a_placeholder');
+  return null;
 }
-
