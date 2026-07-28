@@ -2481,6 +2481,15 @@
                 return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
             }
 
+            function escapeHtmlOperacion(valor = '') {
+                return String(valor)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
             function renderOperacionEnfoque(id) {
                 const sidebar = document.getElementById('operation-focus-queue');
                 const title = document.getElementById('operation-focus-title');
@@ -2500,8 +2509,8 @@
                     const activo = String(pedidoId) === String(id) || (!id && index === 0);
                     return `
                         <div class="operation-focus__queue-item${activo ? ' is-active' : ''}" role="button" tabindex="0" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
-                            <div class="operation-focus__queue-item-top"><strong>#${escapeHtml(String(pedidoId || '----'))}</strong><span>${escapeHtml(String(objetivo))} min</span></div>
-                            <div class="operation-focus__queue-item-meta"><span>${escapeHtml(String(label))}</span><span>${escapeHtml(String(pedido.estado || 'Pendiente'))}</span></div>
+                            <div class="operation-focus__queue-item-top"><strong>#${escapeHtmlOperacion(String(pedidoId || '----'))}</strong><span>${escapeHtmlOperacion(String(objetivo))} min</span></div>
+                            <div class="operation-focus__queue-item-meta"><span>${escapeHtmlOperacion(String(label))}</span><span>${escapeHtmlOperacion(String(pedido.estado || 'Pendiente'))}</span></div>
                         </div>
                     `;
                 }).join('');
@@ -2511,7 +2520,7 @@
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
                     badge.textContent = 'Cola';
-                    body.innerHTML = '<div class="operation-focus__empty">Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.</div>';
+                    body.innerHTML = `<div class="operation-focus__empty">${escapeHtmlOperacion('Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.')}</div>`;
                     return;
                 }
 
@@ -2538,19 +2547,19 @@
                         <div class="operation-focus__detail-main">
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Cliente</span>
-                                <div class="operation-focus__section-value">${escapeHtml(nombre)}</div>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(nombre)}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Productos</span>
-                                <div class="operation-focus__section-value">${productos.map((p) => `<div>${escapeHtml(p)}</div>`).join('')}</div>
+                                <div class="operation-focus__section-value">${productos.map((p) => `<div>${escapeHtmlOperacion(p)}</div>`).join('')}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Cronómetro</span>
-                                <div class="operation-focus__section-value" style="font-size:1.9rem; line-height:1.05;">${escapeHtml(String(cronometro))}</div>
+                                <div class="operation-focus__section-value" style="font-size:1.9rem; line-height:1.05;">${escapeHtmlOperacion(String(cronometro))}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Objetivo</span>
-                                <div class="operation-focus__section-value">${escapeHtml(String(objetivo))} min</div>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(objetivo))} min</div>
                             </div>
                             <div class="operation-focus__actions">
                                 <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
@@ -2564,11 +2573,11 @@
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Notas</span>
-                                <div class="operation-focus__section-value">${escapeHtml(String(notas))}</div>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Dirección</span>
-                                <div class="operation-focus__section-value">${escapeHtml(direccion)}</div>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
                             </div>
                         </div>
                     </div>
