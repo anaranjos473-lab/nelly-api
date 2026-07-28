@@ -1,2 +1,2 @@
-export { auth, rtdb } from "./js/local-auth.js";
+export { auth, rtdb } from "./js/config.js";
 export const storage = {};
