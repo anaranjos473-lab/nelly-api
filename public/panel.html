@@ -524,6 +524,45 @@
             text-transform: uppercase;
             letter-spacing: 0.06em;
         }
+        .card-logistics {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.22);
+            background: linear-gradient(180deg, rgba(13, 27, 47, 0.98) 0%, rgba(8, 17, 31, 0.98) 100%);
+            display: grid;
+            gap: 4px;
+        }
+        .card-logistics--ready {
+            box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.18), 0 12px 24px rgba(34, 197, 94, 0.08);
+        }
+        .card-logistics--waiting {
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16);
+        }
+        .card-logistics__label {
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ea3c2;
+            font-weight: 800;
+        }
+        .card-logistics__headline {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+        .card-logistics__wait {
+            font-size: 0.92rem;
+            color: #dbeafe;
+            font-weight: 700;
+        }
+        .card-logistics__result {
+            font-size: 0.82rem;
+            color: #93c5fd;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
         .column.is-hidden {
             display: none !important;
         }
@@ -1134,6 +1173,11 @@
             <span class="ops-summary-card__label">Inteligencia de cocina</span>
             <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
             <span id="kpi-estado-cocina" class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Inteligencia logística</span>
+            <span id="kpi-logistica-cocina" class="ops-summary-card__value">2 min</span>
+            <span id="kpi-logistica-hint" class="ops-summary-card__hint">Cuando Cocina marca listo, Logística sincroniza la salida.</span>
         </div>
     </section>
 

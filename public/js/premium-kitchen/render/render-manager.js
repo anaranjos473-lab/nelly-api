@@ -214,6 +214,8 @@ export function createRenderManager() {
       setText('kpi-capacidad-cocina', counters.capacidadCocina || '0 / 0');
       setText('kpi-activos-cocina', counters.activosCocina || '0');
       setText('kpi-carga-cocina', counters.cargaCocina || '0 %');
+      setText('kpi-logistica-cocina', counters.logisticaCocina || '2 min');
+      setText('kpi-logistica-hint', counters.logisticaHint || 'Cuando Cocina marca listo, Logística sincroniza la salida.');
       setText('kpi-prediccion-cocina', counters.prediccionCocina || 'Tiempo estimado 18 min antes de aceptar nuevos pedidos');
       setText('kpi-aprendizaje-cocina', counters.aprendizajeCocina || 'Aprendizaje pendiente');
       setText('kpi-aprendizaje-hint', counters.aprendizajeHint || 'Todavía no hay suficiente histórico entregado.');
@@ -436,6 +438,18 @@ export function createRenderManager() {
       const repartidorTexto = repartidorNombre
         ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` · Llegada estimada ${etaRepartidor} min` : ''}`
         : 'Buscando repartidor...';
+      const esperaLogisticaMin = esListo
+        ? Math.max(1, Math.min(2, etaRepartidor ?? 2))
+        : Math.max(2, Math.min(5, etaRepartidor ?? 2));
+      const logisticaHeadline = esListo
+        ? 'Listo para sincronizar salida'
+        : 'Esperando estado listo';
+      const logisticaWait = esListo
+        ? `Si esperas ${esperaLogisticaMin} min`
+        : 'Cuando Cocina marque Listo';
+      const logisticaResult = esListo
+        ? 'Llegará un repartidor justo al terminar'
+        : 'La salida se activa en cuanto Cocina cierre la preparación';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;
       const tiempoObjetivoMin = toNumberSafe(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8, 8);
@@ -476,6 +490,12 @@ export function createRenderManager() {
                         <strong class="card-intelligence__target">${tiempoObjetivoMin} min</strong>
                         <span class="card-intelligence__state">${avanceCocina}</span>
                         <span class="card-intelligence__signal">${senalCocina}</span>
+                    </div>
+                    <div class="card-logistics ${esListo ? 'card-logistics--ready' : 'card-logistics--waiting'}">
+                        <span class="card-logistics__label">Inteligencia logística</span>
+                        <strong class="card-logistics__headline">${escapeHtml(logisticaHeadline)}</strong>
+                        <span class="card-logistics__wait">${escapeHtml(logisticaWait)}</span>
+                        <span class="card-logistics__result">${escapeHtml(logisticaResult)}</span>
                     </div>
                     <p class="nelly-pattern-card__title">${escapeHtml(pedido.cliente_nombre || pedido.cliente || 'Cliente')}</p>
                     <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
