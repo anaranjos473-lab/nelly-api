@@ -724,6 +724,30 @@
             align-items: center;
             justify-content: space-between;
         }
+        .chat-sheet__composer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .chat-sheet__quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chat-quick-reply {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.96);
+            color: #dbeafe;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .chat-quick-reply:hover {
+            background: rgba(37, 99, 235, 0.18);
+            border-color: rgba(45, 212, 191, 0.42);
+            color: #f8fafc;
+        }
         .chat-sheet__body {
             padding: 0 14px 12px;
             overflow: auto;
@@ -1321,6 +1345,7 @@
         </div>
         <div id="chat-sheet-body" class="chat-sheet__body"></div>
         <div class="chat-sheet__composer">
+            <div id="chat-sheet-quick-replies" class="chat-sheet__quick-replies" aria-label="Respuestas rápidas"></div>
             <textarea id="chat-sheet-input" placeholder="Escribe una sugerencia, por ejemplo: ¿Aceptas cambiar Coca por agua?"></textarea>
             <button type="button" class="chat-sheet__send" onclick="window.enviarMensajeChatCliente()">Enviar</button>
         </div>
@@ -2955,6 +2980,7 @@
             const sheet = document.getElementById('chat-sheet');
             const title = document.getElementById('chat-sheet-title');
             const body = document.getElementById('chat-sheet-body');
+            const quickReplies = document.getElementById('chat-sheet-quick-replies');
             if (!sheet || !title || !body) {
                 return;
             }
@@ -2972,6 +2998,25 @@
             body.innerHTML = saved.length
                 ? saved.map((msg) => `<div class="chat-message chat-message--${msg.role === 'client' ? 'client' : 'ops'}"><strong>${msg.role === 'client' ? 'Cliente' : 'Operación'}:</strong> ${msg.text}</div>`).join('')
                 : '<div class="chat-message">Sin mensajes. Puedes proponer un cambio antes de cancelar.</div>';
+            if (quickReplies) {
+                const quickOptions = [
+                    'Hola, estamos revisando tu pedido.',
+                    'Tu pedido sigue en preparación.',
+                    'Faltan aproximadamente 5 minutos.',
+                    '¿Aceptas una sustitución equivalente si hiciera falta?',
+                    'Gracias por tu paciencia, seguimos contigo.'
+                ];
+                quickReplies.innerHTML = quickOptions.map((text) => `<button type="button" class="chat-quick-reply" data-chat-quick="${text.replace(/"/g, '&quot;')}">${text}</button>`).join('');
+                quickReplies.querySelectorAll('[data-chat-quick]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const input = document.getElementById('chat-sheet-input');
+                        if (input) {
+                            input.value = button.getAttribute('data-chat-quick') || '';
+                            input.focus();
+                        }
+                    });
+                });
+            }
             sheet.classList.add('is-open');
             const input = document.getElementById('chat-sheet-input');
             if (input) input.value = '';
