@@ -26,6 +26,15 @@ const ui = {
   overviewVentasBrutas: document.getElementById('overview-ventas-brutas'),
   overviewComisiones: document.getElementById('overview-comisiones'),
   overviewFinance: document.getElementById('overview-finance'),
+  receptionTitle: document.getElementById('ops-reception-title'),
+  receptionCopy: document.getElementById('ops-reception-copy'),
+  receptionLoad: document.getElementById('ops-reception-load'),
+  receptionAction: document.getElementById('ops-reception-action'),
+  directorCapacidadPromedio: document.getElementById('director-capacidad-promedio'),
+  directorRetrasos: document.getElementById('director-retrasos'),
+  directorTiempoMedio: document.getElementById('director-tiempo-medio'),
+  directorAgotados: document.getElementById('director-agotados'),
+  directorCambios: document.getElementById('director-cambios'),
   kpiOrdersDelta: document.getElementById('kpi-orders-delta'),
   kpiDriversDelta: document.getElementById('kpi-drivers-delta'),
   tabActiveCount: document.getElementById('tab-active-count'),
@@ -297,6 +306,14 @@ function renderSnapshot(snapshot, latency = null) {
   const activeDrivers = Number(center.active_drivers ?? overview.repartidores ?? 0);
   const grossSales = Number(center.gross_sales ?? overview.ventas_brutas ?? 0);
   const commission = Number(center.nelly_commission ?? overview.comisiones_nelly ?? 0);
+  const capacity = Number(center.capacity ?? center.kitchen_capacity ?? overview.capacidad ?? 30);
+  const capacityLoad = Number(center.capacity_load ?? center.load ?? overview.carga ?? 0);
+  const derivedLoad = capacity > 0 ? Math.round((activeOrders / capacity) * 100) : 0;
+  const loadPercent = Number.isFinite(capacityLoad) && capacityLoad > 0 ? Math.round(capacityLoad) : derivedLoad;
+  const avgMinutes = Number(center.average_kitchen_minutes ?? center.avg_kitchen_minutes ?? overview.tiempo_medio ?? center.average_delivery_minutes ?? 0);
+  const delayRate = Number(center.delay_rate ?? overview.retrasos_porcentaje ?? 0);
+  const inventoryShortages = Number(center.out_of_stock ?? overview.productos_agotados ?? 0);
+  const changeAcceptance = Number(center.change_acceptance_rate ?? overview.cambios_aceptados ?? 0);
 
   ui.dashboardStatus.textContent = snapshot.ok ? 'Tiempo real' : 'Con alertas';
   ui.controlStatus.textContent = snapshot.ok ? 'Operando normalmente' : 'Revisar alertas';
@@ -315,6 +332,25 @@ function renderSnapshot(snapshot, latency = null) {
   ui.overviewFinance.textContent = `Ventas: ${money(grossSales)} / Comisiones: ${money(commission)}`;
   ui.kpiOrdersDelta.textContent = activeOrders > 0 ? 'Operacion en curso' : 'Listo para recibir pedidos';
   ui.kpiDriversDelta.textContent = totalDrivers > 0 ? `${Math.round((activeDrivers / totalDrivers) * 100)}% conectado` : 'Sin flota activa';
+  ui.receptionLoad.textContent = `${Math.min(100, Math.max(0, loadPercent))}%`;
+  if (loadPercent >= 95) {
+    ui.receptionTitle.textContent = 'Umbral operativo comprometido';
+    ui.receptionCopy.textContent = 'Se recomienda pausar nuevos pedidos para proteger cocina y reparto.';
+    ui.receptionAction.textContent = 'Pausar recepción';
+  } else if (loadPercent >= 80) {
+    ui.receptionTitle.textContent = 'Recepción bajo presión';
+    ui.receptionCopy.textContent = 'La cocina se acerca a saturación. Operaciones debe vigilar de cerca.';
+    ui.receptionAction.textContent = 'Monitorear capacidad';
+  } else {
+    ui.receptionTitle.textContent = 'Recepción estable';
+    ui.receptionCopy.textContent = 'La cocina mantiene espacio para seguir recibiendo pedidos.';
+    ui.receptionAction.textContent = 'Sin pausa requerida';
+  }
+  ui.directorCapacidadPromedio.textContent = `${Math.min(100, Math.max(0, loadPercent))}%`;
+  ui.directorRetrasos.textContent = `${Math.max(0, Math.round(delayRate))}%`;
+  ui.directorTiempoMedio.textContent = `${Math.max(0, Math.round(avgMinutes))} min`;
+  ui.directorAgotados.textContent = String(Math.max(0, Math.round(inventoryShortages)));
+  ui.directorCambios.textContent = `${Math.max(0, Math.min(100, Math.round(changeAcceptance)))}%`;
   ui.tabActiveCount.textContent = String(activeOrders);
   ui.tabTransitCount.textContent = String(center.in_transit ?? 0);
   ui.tabUnassignedCount.textContent = String(center.unassigned ?? 0);
