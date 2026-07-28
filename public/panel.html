@@ -1020,8 +1020,8 @@
         }
         .inventory-item {
             display: grid;
-            gap: 6px;
-            padding: 12px 14px;
+            gap: 8px;
+            padding: 14px;
             border-radius: 14px;
             border: 1px solid rgba(148, 163, 184, 0.14);
             background: rgba(8, 17, 31, 0.82);
@@ -1032,6 +1032,11 @@
             gap: 10px;
             align-items: center;
         }
+        .inventory-item__chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
         .inventory-item__name {
             font-weight: 900;
             color: #f8fafc;
@@ -1039,9 +1044,29 @@
         .inventory-item__stock {
             font-weight: 900;
             color: #93c5fd;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 999px;
+            padding: 6px 10px;
         }
         .inventory-item--critical .inventory-item__stock {
             color: #fca5a5;
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.22);
+        }
+        .inventory-item__status {
+            font-size: 0.78rem;
+            font-weight: 900;
+            border-radius: 999px;
+            padding: 6px 10px;
+            color: #cbd5e1;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+        }
+        .inventory-item--critical .inventory-item__status {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.22);
         }
         .inventory-item__actions {
             display: flex;
@@ -3601,7 +3626,12 @@
                             <strong class="inventory-item__name">${item.nombre}</strong>
                             <span class="inventory-item__stock">${label}</span>
                         </div>
-                        <div class="inventory-item__hint">${hiddenLabel} · ${agotamiento.texto} · ${agotamiento.riesgo ? 'Alerta de agotamiento' : 'Vigilar antes de seguir vendiendo'} · ${critical ? 'No aceptar sin sustitución' : 'Revisar en el turno'}</div>
+                        <div class="inventory-item__chips">
+                            <span class="inventory-item__status">${hiddenLabel}</span>
+                            <span class="inventory-item__status">${agotamiento.riesgo ? 'Alerta de agotamiento' : 'Vigilar stock'}</span>
+                            <span class="inventory-item__status">${critical ? 'No aceptar sin sustitución' : 'Revisar en el turno'}</span>
+                        </div>
+                        <div class="inventory-item__hint">${agotamiento.texto}</div>
                         <div class="inventory-item__actions">
                             <button class="inventory-item__button is-primary" type="button" onclick="window.sugerirCambioInventario('${item.nombre}')">Sugerir cambio</button>
                             <button class="inventory-item__button" type="button" onclick="window.marcarInventario('${item.nombre}', ${Math.max(0, stock - 1)})">Consumir</button>
@@ -3717,6 +3747,17 @@
             window.__chatPedidoActual = pedido || null;
             window.__chatKeyActual = key;
         }
+
+        window.contarMensajesChatCliente = (id) => {
+            const keyResuelta = resolverKeyPedido(id);
+            const key = `nelly-chat-${keyResuelta}`;
+            try {
+                const saved = JSON.parse(localStorage.getItem(key) || '[]');
+                return Array.isArray(saved) ? saved.length : 0;
+            } catch (_err) {
+                return 0;
+            }
+        };
 
         window.abrirChatCliente = (id) => {
             const keyResuelta = resolverKeyPedido(id);

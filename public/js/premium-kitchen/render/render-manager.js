@@ -422,7 +422,7 @@ export function createRenderManager() {
         metodoEntrega ? `Entrega: ${metodoEntrega}` : '',
         referenciaUbicacion ? `Referencia: ${referenciaUbicacion}` : '',
         notasUbicacion ? `Notas: ${notasUbicacion}` : ''
-      ].filter(Boolean).join(' · ');
+      ].filter(Boolean).join(' ï¿½ ');
       const transcurridoMin = Math.max(0, Math.round((Date.now() - getPedidoTimestamp(pedido)) / 60000));
       const reloj = `${String(transcurridoMin).padStart(2, '0')}:00`;
       const bucket = bucketForMinutes(transcurridoMin);
@@ -436,7 +436,7 @@ export function createRenderManager() {
         ''
       ).trim();
       const repartidorTexto = repartidorNombre
-        ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` · Llegada estimada ${etaRepartidor} min` : ''}`
+        ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` ï¿½ Llegada estimada ${etaRepartidor} min` : ''}`
         : 'Buscando repartidor...';
       const esperaLogisticaMin = esListo
         ? Math.max(1, Math.round(etaRepartidor ?? 2))
@@ -537,7 +537,7 @@ export function createRenderManager() {
                             <span class="card-history__label">Historial de acciones</span>
                             <div class="card-history__items">
                                 ${historialAcciones.map((item) => {
-                                  const fecha = item?.time ? new Date(item.time).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '—';
+                                  const fecha = item?.time ? new Date(item.time).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : 'ï¿½';
                                   return `<div class="card-history__item"><span>${escapeHtml(item.label || 'Evento')}</span><span class="card-history__time">${fecha}</span></div>`;
                                 }).join('')}
                             </div>
@@ -548,9 +548,12 @@ export function createRenderManager() {
                         <button ${botonAttrs} class="nelly-btn ${config.clase} nelly-card-actions__primary">
                             ${config.texto}
                         </button>
-                        <button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Chat cliente">
-                            ??
-                        </button>
+                        ${(() => {
+                          const chatCount = (typeof window !== 'undefined' && typeof window.contarMensajesChatCliente === 'function') ? window.contarMensajesChatCliente(id) : 0;
+                          return chatCount > 0
+                            ? `<button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Chat cliente con ${chatCount} mensajes">ðŸ’¬ <span class="nelly-card-actions__badge">(${chatCount})</span></button>`
+                            : '';
+                        })()}
                         <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Reimprimir ticket">
                             ??
                         </button>
