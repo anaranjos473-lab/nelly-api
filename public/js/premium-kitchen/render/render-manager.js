@@ -456,6 +456,8 @@ export function createRenderManager() {
         : 'La salida se activa en cuanto Cocina cierre la preparacion';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;
+      const badgeRiesgo = riesgoCritico ? 'CRITICO' : (riesgoAlerta ? 'RIESGO' : (esListo ? 'LISTO' : 'NORMAL'));
+      const badgeClase = riesgoCritico ? 'card-badge--critical' : (riesgoAlerta ? 'card-badge--warning' : (esListo ? 'card-badge--ready' : 'card-badge--normal'));
       const tiempoObjetivoMin = toNumberSafe(pedido.tiempo_objetivo || pedido.tiempoObjetivo || 8, 8);
       const estadoCocina = transcurridoMin <= tiempoObjetivoMin ? 'En tiempo' : 'Retraso';
       const senalCocina = transcurridoMin <= tiempoObjetivoMin ? '? En tiempo' : '? Retraso';
@@ -486,7 +488,7 @@ export function createRenderManager() {
                 <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}">
                     <div class="nelly-pattern-card__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
-                        <span class="nelly-state nelly-state--empty">${estadoLabel}</span>
+                        <span class="nelly-state nelly-state--empty ${badgeClase}">${badgeRiesgo}</span>
                     </div>
                     <div class="card-summary">
                         <div class="card-summary__row">
@@ -537,11 +539,11 @@ export function createRenderManager() {
                         <button ${botonAttrs} class="nelly-btn ${config.clase}">
                             ${config.texto}
                         </button>
-                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost">
-                            Reimprimir ticket
-                        </button>
                         <button onclick="window.sugerirCambioPedido('${id}')" class="nelly-btn nelly-btn--ghost">
                             Sugerir cambio
+                        </button>
+                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost">
+                            Reimprimir ticket
                         </button>
                         <button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost">
                             Chat cliente
