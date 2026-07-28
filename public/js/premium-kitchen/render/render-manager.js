@@ -505,7 +505,7 @@ export function createRenderManager() {
         : `onclick="${config.funcion}"`;
 
       const html = `
-                <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}">
+                <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}" data-pedido-id="${escapeHtml(String(id))}">
                     <div class="nelly-pattern-card__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
                         <span class="nelly-state nelly-state--empty ${badgeClase}">${badgeRiesgo}</span>
@@ -562,24 +562,16 @@ export function createRenderManager() {
                         <button ${botonAttrs} class="nelly-btn ${config.clase} nelly-card-actions__primary">
                             ${config.texto}
                         </button>
-                        ${(() => {
-                          const chatCount = (typeof window !== 'undefined' && typeof window.contarMensajesChatCliente === 'function') ? window.contarMensajesChatCliente(id) : 0;
-                          return chatCount > 0
-                            ? `<button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Chat cliente con ${chatCount} mensajes">💬 <span class="nelly-card-actions__badge">(${chatCount})</span></button>`
-                            : '';
-                        })()}
-                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Reimprimir ticket">
-                            ??
-                        </button>
                         <div class="card-actions-menu">
-                            <button type="button" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" data-actions-toggle aria-haspopup="true" aria-expanded="false" aria-label="Mas acciones" onclick="window.toggleCardActionsMenu(this)">
-                                ?
+                            <button type="button" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" data-actions-toggle aria-haspopup="true" aria-expanded="false" aria-label="Más opciones" onclick="window.toggleCardActionsMenu(this)">
+                                ⋯
                             </button>
                             <div class="card-actions-menu__panel" role="menu" aria-label="Acciones secundarias">
+                                <button type="button" class="card-actions-menu__item" onclick="window.verLineaTiempoPedido('${id}')">Ver línea de tiempo</button>
                                 <button type="button" class="card-actions-menu__item" onclick="window.verDetallePedido('${id}')">Ver detalle</button>
                                 <button type="button" class="card-actions-menu__item" onclick="window.sugerirCambioPedido('${id}')">Sugerir cambio</button>
-                                <button type="button" class="card-actions-menu__item" onclick="window.reimprimirTicket('${id}')">Historial / ticket</button>
-                                <button type="button" class="card-actions-menu__item" onclick="window.abrirChatCliente('${id}')">Incidencia / chat</button>
+                                <button type="button" class="card-actions-menu__item" onclick="window.abrirChatCliente('${id}')">Chat cliente</button>
+                                <button type="button" class="card-actions-menu__item" onclick="window.reimprimirTicket('${id}')">Reimprimir ticket</button>
                             </div>
                         </div>
                     </div>

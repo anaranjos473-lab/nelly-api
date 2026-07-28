@@ -2216,11 +2216,11 @@
                 logDebug(`Reimprimir ticket ${folio}`, 'ok');
             };
 
-            window.verDetallePedido = (id) => {
-                const keyResuelta = resolverKeyPedido(id);
-                const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
-                    || kitchenState.orders.pedidosReparto.get(keyResuelta)
-                    || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
+        window.verDetallePedido = (id) => {
+            const keyResuelta = resolverKeyPedido(id);
+            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
                 if (!pedido) {
                     showToast('Pedido no encontrado para ver detalle', 'err');
                     return;
@@ -2232,9 +2232,30 @@
                     `Estado: ${pedido.estado || 'sin estado'}`,
                     `Monto: $${Number(pedido.monto || pedido.total || 0).toFixed(2)}`
                 ].join('\n');
-                alert(detalle);
-                showToast('Detalle del pedido abierto', 'ok');
-            };
+            alert(detalle);
+            showToast('Detalle del pedido abierto', 'ok');
+        };
+
+        window.verLineaTiempoPedido = (id) => {
+            const keyResuelta = resolverKeyPedido(id);
+            const selectorKey = String(keyResuelta).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            const card = document.querySelector(`[data-pedido-id="${selectorKey}"]`);
+            if (!card) {
+                window.verDetallePedido(id);
+                return;
+            }
+            const detailsToggle = card.querySelector('.card-details-toggle');
+            const details = card.querySelector('.card-details');
+            if (detailsToggle && details) {
+                card.classList.add('is-expanded');
+                details.hidden = false;
+                detailsToggle.setAttribute('aria-expanded', 'true');
+                details.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                showToast('Línea de tiempo abierta', 'ok');
+                return;
+            }
+            window.verDetallePedido(id);
+        };
 
             window.exportarMetricasJSON = () => {
                 const data = window.verMetricasSync ? window.verMetricasSync() : {};
