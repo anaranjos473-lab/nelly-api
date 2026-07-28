@@ -2472,6 +2472,11 @@
                     return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
                 }
 
+                const snapshotCrudo = Array.isArray(window.__nellyPedidosCocinaSnapshotRaw) ? window.__nellyPedidosCocinaSnapshotRaw : [];
+                if (snapshotCrudo.length) {
+                    return snapshotCrudo.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                }
+
                 const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
                 return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
             }
@@ -3633,6 +3638,7 @@
 
             const raiz = snapshot.val();
             const idsVisibles = [];
+            const pedidosCrudos = [];
             if (raiz && typeof raiz === "object") {
                 Object.entries(raiz).forEach(([key, value]) => {
                     if (!value || typeof value !== "object") {
@@ -3650,6 +3656,7 @@
                         _rtdbKey: key,
                         __source: "rtdb_pedidos"
                     };
+                    pedidosCrudos.push(pedido);
 
                     if (fase === "COCINA") {
                         kitchenState.orders.pedidosPendientes.set(key, pedido);
@@ -3663,6 +3670,7 @@
                     }
                 });
             }
+            window.__nellyPedidosCocinaSnapshotRaw = pedidosCrudos;
 
             console.log('[COCINA] Total de pedidos', {
                 pendientes: kitchenState.orders.pedidosPendientes.size,
