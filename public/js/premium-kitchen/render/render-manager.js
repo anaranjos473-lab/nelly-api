@@ -505,7 +505,7 @@ export function createRenderManager() {
         : `onclick="${config.funcion}"`;
 
       const html = `
-                <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}" data-pedido-id="${escapeHtml(String(id))}">
+                <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}" data-pedido-id="${escapeHtml(String(id))}" onclick="window.mostrarPedidoEnPanel && window.mostrarPedidoEnPanel('${id}')" role="button" tabindex="0">
                     <div class="nelly-pattern-card__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
                         <span class="nelly-state nelly-state--empty ${badgeClase}">${badgeRiesgo}</span>
