@@ -439,16 +439,20 @@ export function createRenderManager() {
         ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` · Llegada estimada ${etaRepartidor} min` : ''}`
         : 'Buscando repartidor...';
       const esperaLogisticaMin = esListo
-        ? Math.max(1, Math.min(2, etaRepartidor ?? 2))
-        : Math.max(2, Math.min(5, etaRepartidor ?? 2));
+        ? Math.max(1, Math.round(etaRepartidor ?? 2))
+        : Math.max(2, Math.round(etaRepartidor ?? 2));
       const logisticaHeadline = esListo
         ? 'Listo para sincronizar salida'
         : 'Esperando estado listo';
       const logisticaWait = esListo
-        ? `Si esperas ${esperaLogisticaMin} min`
+        ? (etaRepartidor !== null
+          ? `Si esperas ${esperaLogisticaMin} min`
+          : 'Si esperas 2 min')
         : 'Cuando Cocina marque Listo';
       const logisticaResult = esListo
-        ? 'Llegará un repartidor justo al terminar'
+        ? (etaRepartidor !== null && esperaLogisticaMin <= 2
+          ? 'Llegará un repartidor justo al terminar'
+          : `Repartidor estimado en ${esperaLogisticaMin} min`)
         : 'La salida se activa en cuanto Cocina cierre la preparación';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;

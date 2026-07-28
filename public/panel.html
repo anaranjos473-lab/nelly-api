@@ -2266,6 +2266,11 @@
             const prediccionMin = cargaPorcentaje >= 80 ? 18 : (cargaPorcentaje >= 60 ? 12 : 8);
             const proximoPedidoMin = Math.min(45, prediccionMin + 4);
             const siguienteEscenarioMin = Math.min(60, prediccionMin + 5);
+            const etaPromedio = Number(metricas.eta || 0);
+            const ventanaLogistica = etaPromedio > 0 ? Math.max(1, Math.round(etaPromedio)) : 2;
+            const logisticaDetalle = etaPromedio > 0
+                ? `ETA real promedio ${ventanaLogistica} min para soltar el repartidor.`
+                : 'Si Cocina marca Listo, la ventana logística se mantiene en 2 min.';
             return {
                 tiempoObjetivo: objetivoMin,
                 estadoCocina: enTiempo ? 'En tiempo' : 'Retraso',
@@ -2273,6 +2278,8 @@
                 capacidadCocina: String(capacidadSegura),
                 activosCocina: String(capacidadActual),
                 cargaCocina: `${cargaPorcentaje} %`,
+                logisticaCocina: `${ventanaLogistica} min`,
+                logisticaHint: logisticaDetalle,
                 prediccionCocina: `Tiempo estimado ${prediccionMin} min antes de aceptar nuevos pedidos`,
                 siguientePedidoCocina: `Próximo pedido +${proximoPedidoMin - prediccionMin} min`,
                 aceptarOtroPedidoCocina: `Si aceptas otro pedido, tiempo estimado ${siguienteEscenarioMin} min`,
