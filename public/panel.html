@@ -392,6 +392,40 @@
             color: #9fb4d2;
             font-size: 0.9rem;
         }
+        .card-clock {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 10px 0 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(8, 17, 31, 0.8);
+        }
+        .card-clock__time {
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            color: #f8fafc;
+        }
+        .card-clock__tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #cbd5e1;
+        }
+        .card-clock--good .card-clock__time { color: #22c55e; }
+        .card-clock--warn .card-clock__time { color: #f59e0b; }
+        .card-clock--danger .card-clock__time { color: #ef4444; }
+        .card-risk--warning {
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35), 0 18px 32px rgba(245, 158, 11, 0.14);
+        }
+        .card-risk--critical {
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.42), 0 18px 32px rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.45);
+        }
         .producto-nombre {
             display: flex;
             align-items: center;

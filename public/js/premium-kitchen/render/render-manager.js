@@ -18,6 +18,48 @@ function updateRenderState(partial = {}) {
   return renderState;
 }
 
+function toNumberSafe(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function parseMinutes(value) {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.round(value));
+  const match = String(value).match(/(\d+(?:[.,]\d+)?)/);
+  if (!match) return null;
+  const parsed = Number(match[1].replace(',', '.'));
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : null;
+}
+
+function formatClockMinutes(minutes) {
+  const total = Math.max(0, Math.round(toNumberSafe(minutes, 0)));
+  const mm = String(Math.floor(total / 60)).padStart(2, '0');
+  const ss = String(total % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+function bucketForMinutes(minutes) {
+  if (minutes === null) return { tone: 'neutral', label: 'Sin reloj' };
+  if (minutes <= 2) return { tone: 'good', label: 'Nuevo' };
+  if (minutes <= 5) return { tone: 'good', label: 'Verde' };
+  if (minutes <= 8) return { tone: 'warn', label: 'Atención' };
+  return { tone: 'danger', label: 'Riesgo' };
+}
+
+function getPedidoTimestamp(pedido = {}) {
+  const candidate = pedido.createdAt
+    || pedido.created_at
+    || pedido.fecha_creacion
+    || pedido.fecha_creado
+    || pedido.timestamp
+    || pedido.timestampCreacion
+    || pedido.timestamp_creacion
+    || pedido.fecha;
+  const value = new Date(candidate || 0).getTime();
+  return Number.isFinite(value) && value > 0 ? value : Date.now();
+}
+
 export function createRenderManager() {
   const resolvePhase = (pedido = {}) => {
     const estado = String(pedido?.fase || pedido?.fase_panel || pedido?.estado || '').trim().toUpperCase();
@@ -132,7 +174,18 @@ export function createRenderManager() {
         entregados: 0
       };
 
-      pedidosPendientes.forEach((pedido, id) => {
+      const pedidosPendientesOrdenados = Array.from(pedidosPendientes.entries()).sort((a, b) => {
+        const pedidoA = a[1] || {};
+        const pedidoB = b[1] || {};
+        const urgenciaA = toNumberSafe(pedidoA.urgencia || pedidoA.priority || pedidoA.prioridad, 0);
+        const urgenciaB = toNumberSafe(pedidoB.urgencia || pedidoB.priority || pedidoB.prioridad, 0);
+        if (urgenciaA !== urgenciaB) {
+          return urgenciaB - urgenciaA;
+        }
+        return getPedidoTimestamp(pedidoA) - getPedidoTimestamp(pedidoB);
+      });
+
+      pedidosPendientesOrdenados.forEach(([id, pedido]) => {
         const fase = resolvePhase(pedido);
         const tarjeta = typeof renderTarjeta === 'function'
           ? renderTarjeta(pedido, id, true)
@@ -257,6 +310,12 @@ export function createRenderManager() {
       const toPhase = typeof helpers.obtenerFasePanel === 'function'
         ? helpers.obtenerFasePanel
         : () => 'COCINA';
+      const escapeHtml = (value = '') => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
       const monto = Number(pedido.monto || pedido.total || 0);
       const displayId = pedido.shortId || pedido.id_pedido || String(id).substring(0, 8);
@@ -274,6 +333,23 @@ export function createRenderManager() {
         referenciaUbicacion ? `Referencia: ${referenciaUbicacion}` : '',
         notasUbicacion ? `Notas: ${notasUbicacion}` : ''
       ].filter(Boolean).join(' · ');
+      const transcurridoMin = Math.max(0, Math.round((Date.now() - getPedidoTimestamp(pedido)) / 60000));
+      const reloj = formatClockMinutes(transcurridoMin * 60);
+      const bucket = bucketForMinutes(transcurridoMin);
+      const etaRepartidor = parseMinutes(pedido.eta_repartidor || pedido.repartidor_eta || pedido.driver_eta || pedido.tiempo_eta);
+      const repartidorNombre = String(
+        pedido.repartidor_nombre ||
+        pedido.conductor_nombre ||
+        pedido.driver_name ||
+        pedido.driver ||
+        pedido.repartidor ||
+        ''
+      ).trim();
+      const repartidorTexto = repartidorNombre
+        ? `Repartidor asignado: ${repartidorNombre}${etaRepartidor !== null ? ` · Llegada estimada ${etaRepartidor} min` : ''}`
+        : 'Buscando repartidor...';
+      const riesgoCritico = transcurridoMin >= 12;
+      const riesgoAlerta = transcurridoMin >= 8;
       const config = esPendiente || fase === 'COCINA'
         ? { texto: 'MARCAR LISTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
         : (esListo
@@ -284,16 +360,21 @@ export function createRenderManager() {
         : `onclick="${config.funcion}"`;
 
       const html = `
-                <div class="nelly-pattern-card animate__animated animate__fadeIn">
+                <div class="nelly-pattern-card animate__animated animate__fadeIn ${riesgoCritico ? 'card-risk--critical' : (riesgoAlerta ? 'card-risk--warning' : '')}">
                     <div class="nelly-pattern-card__meta">
                         <strong class="repartidor-mini__folio">#${displayId}</strong>
                         <span class="nelly-state nelly-state--empty">${estadoLabel}</span>
                     </div>
-                    <p class="nelly-pattern-card__title">${pedido.cliente_nombre || pedido.cliente || 'Cliente'}</p>
-                    <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${pedido.direccion}` : 'Direccion no disponible'}</p>
-                    ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${ubicacionHumanizada}</p>` : ''}
+                    <div class="card-clock card-clock--${bucket.tone}">
+                        <span class="card-clock__time">${reloj}</span>
+                        <span class="card-clock__tag">${bucket.label}</span>
+                    </div>
+                    <p class="nelly-pattern-card__title">${escapeHtml(pedido.cliente_nombre || pedido.cliente || 'Cliente')}</p>
+                    <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
+                    ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
                     <p class="nelly-pattern-card__body">${pedido.descripcion || 'Sin descripcion'}</p>
-                    <p class="nelly-pattern-card__amount">$${monto.toFixed(2)}</p>
+                    <p class="nelly-pattern-card__body">${repartidorTexto}</p>
+                    <p class="nelly-pattern-card__amount">${monto.toFixed(2)}</p>
                     <div class="nelly-card-actions">
                         <button ${botonAttrs} class="nelly-btn ${config.clase}">
                             ${config.texto}
