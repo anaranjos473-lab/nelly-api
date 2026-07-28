@@ -414,6 +414,13 @@
             color: #9fb4d2;
             font-size: 0.9rem;
         }
+        .ops-summary-card__value--pulse {
+            animation: pulseValue 1.8s ease-in-out infinite;
+        }
+        @keyframes pulseValue {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
         .card-clock {
             display: flex;
             align-items: center;
@@ -477,6 +484,27 @@
         .card-history__time {
             color: #93c5fd;
             white-space: nowrap;
+            font-weight: 700;
+        }
+        .column.is-hidden {
+            display: none !important;
+        }
+        .column-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0 0 16px 0;
+        }
+        .column-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: rgba(8, 17, 31, 0.8);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            font-size: 0.86rem;
             font-weight: 700;
         }
         .producto-nombre {
@@ -775,6 +803,29 @@
         </div>
     </section>
 
+    <section class="ops-summary" aria-label="Estadisticas avanzadas de cocina">
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">En riesgo</span>
+            <span id="kpi-riesgo" class="ops-summary-card__value ops-summary-card__value--pulse">0</span>
+            <span class="ops-summary-card__hint">Pedidos cerca del límite de SLA.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Pendientes por antigüedad</span>
+            <span id="kpi-antiguedad" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Ordenados desde el más viejo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Repartidor ETA</span>
+            <span id="kpi-eta" class="ops-summary-card__value">0 min</span>
+            <span class="ops-summary-card__hint">Llegada estimada del driver activo.</span>
+        </div>
+        <div class="ops-summary-card">
+            <span class="ops-summary-card__label">Pedidos visibles</span>
+            <span id="kpi-visibles" class="ops-summary-card__value">0</span>
+            <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
+        </div>
+    </section>
+
     <div class="kitchen-toolbar" aria-label="Filtros de cocina">
         <input id="filtro-busqueda-cocina" class="kitchen-search" type="search" placeholder="Buscar folio, cliente o dirección">
         <select id="filtro-prioridad-cocina" class="kitchen-select">
@@ -783,6 +834,13 @@
             <option value="atencion">Atención</option>
             <option value="nuevos">Nuevos</option>
         </select>
+    </div>
+
+    <div class="column-filters" aria-label="Personalizacion de columnas">
+        <label class="column-toggle"><input type="checkbox" data-column-toggle="pendientes" checked> Entrantes</label>
+        <label class="column-toggle"><input type="checkbox" data-column-toggle="listo" checked> Preparación</label>
+        <label class="column-toggle"><input type="checkbox" data-column-toggle="reparto" checked> Reparto</label>
+        <label class="column-toggle"><input type="checkbox" data-column-toggle="entregados" checked> Entregados</label>
     </div>
 
     <section id="kitchen-map-preview" class="kitchen-map-preview" aria-label="Mapa operativo de cocina visible">
@@ -800,28 +858,28 @@
     </section>
 
     <div class="dashboard-container">
-        <div class="column">
+        <div class="column" data-column="pendientes">
             <div class="column-header pendientes">
                 <h3>PEDIDOS ENTRANTES</h3>
                 <span id="count-pendientes" class="badge">0</span>
             </div>
             <div id="contenedor-pendientes" class="pedidos-grid"></div>
         </div>
-        <div class="column">
+        <div class="column" data-column="listo">
             <div class="column-header listo">
                 <h3>EN PREPARACIÓN</h3>
                 <span id="count-listo" class="badge">0</span>
             </div>
             <div id="contenedor-listo" class="pedidos-grid"></div>
         </div>
-        <div class="column">
+        <div class="column" data-column="reparto">
             <div class="column-header reparto">
                 <h3>EN REPARTO</h3>
                 <span id="count-reparto" class="badge">0</span>
             </div>
             <div id="contenedor-reparto" class="pedidos-grid"></div>
         </div>
-        <div class="column">
+        <div class="column" data-column="entregados">
             <div class="column-header entregados" style="background-color:#28a745;">
                 <h3>ENTREGADOS</h3>
                 <span id="count-entregados" class="badge">0</span>
@@ -1035,6 +1093,8 @@
                 const btnDebug = document.getElementById('btn-debug');
                 const btnNotificaciones = document.getElementById('btn-notificaciones');
                 const debugPanel = document.getElementById('debug-panel');
+                const filtroBusqueda = document.getElementById('filtro-busqueda-cocina');
+                const filtroPrioridad = document.getElementById('filtro-prioridad-cocina');
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -1056,6 +1116,16 @@
                         }
                     };
                 }
+                if (filtroBusqueda) {
+                    filtroBusqueda.addEventListener('input', () => solicitarRenderPanel('filtro-busqueda'));
+                }
+                if (filtroPrioridad) {
+                    filtroPrioridad.addEventListener('change', () => solicitarRenderPanel('filtro-prioridad'));
+                }
+                document.querySelectorAll('[data-column-toggle]').forEach((input) => {
+                    input.addEventListener('change', guardarColumnas);
+                });
+                aplicarColumnasGuardadas();
             });
 
             function logDebug(mensaje, tipo = 'ok') {
@@ -1708,6 +1778,63 @@
             return true;
         }
 
+        function getPedidoEdadMin(pedido = {}) {
+            const creado = new Date(pedido.createdAt || pedido.created_at || pedido.fecha_creacion || pedido.timestamp || 0).getTime() || Date.now();
+            return Math.max(0, Math.round((Date.now() - creado) / 60000));
+        }
+
+        function sumarMetricasPedidos(maps = []) {
+            const edades = [];
+            const riesgos = [];
+            let etaSuma = 0;
+            let etaCount = 0;
+
+            maps.forEach((mapa) => {
+                if (!mapa || typeof mapa.forEach !== 'function') return;
+                mapa.forEach((pedido) => {
+                    const edad = getPedidoEdadMin(pedido);
+                    edades.push(edad);
+                    if (edad >= 8) riesgos.push(pedido);
+                    const eta = Number(pedido?.eta_repartidor || pedido?.repartidor_eta || pedido?.driver_eta || pedido?.tiempo_eta);
+                    if (Number.isFinite(eta)) {
+                        etaSuma += eta;
+                        etaCount += 1;
+                    }
+                });
+            });
+
+            return {
+                riesgo: riesgos.length,
+                antiguedad: edades.length ? Math.max(...edades) : 0,
+                eta: etaCount ? etaSuma / etaCount : 0
+            };
+        }
+
+        function aplicarColumnasGuardadas() {
+            const saved = JSON.parse(localStorage.getItem('nelly-kitchen-columns') || '{}');
+            document.querySelectorAll('[data-column-toggle]').forEach((input) => {
+                const key = input.getAttribute('data-column-toggle');
+                const enabled = saved[key] !== false;
+                input.checked = enabled;
+                const column = document.querySelector(`.column[data-column="${key}"]`);
+                if (column) {
+                    column.classList.toggle('is-hidden', !enabled);
+                }
+            });
+        }
+
+        function guardarColumnas() {
+            const state = {};
+            document.querySelectorAll('[data-column-toggle]').forEach((input) => {
+                state[input.getAttribute('data-column-toggle')] = Boolean(input.checked);
+                const column = document.querySelector(`.column[data-column="${input.getAttribute('data-column-toggle')}"]`);
+                if (column) {
+                    column.classList.toggle('is-hidden', !input.checked);
+                }
+            });
+            localStorage.setItem('nelly-kitchen-columns', JSON.stringify(state));
+        }
+
         function agregarPedidoATablaVisual(key, data, opciones = {}) {
             if (!key || !data || typeof data !== 'object') {
                 return false;
@@ -2087,7 +2214,14 @@
                 listo: conteos.listo,
                 reparto: conteos.reparto,
                 entregados: conteos.entregados,
-                total: conteos.pendientes + conteos.listo + conteos.reparto
+                total: conteos.pendientes + conteos.listo + conteos.reparto,
+                visibles: conteos.pendientes + conteos.listo + conteos.reparto + conteos.entregados,
+                ...sumarMetricasPedidos([
+                    kitchenState.orders.pedidosPendientes,
+                    kitchenState.orders.pedidosReparto,
+                    kitchenState.orders.pedidosEnCamino,
+                    kitchenState.orders.pedidosEntregados
+                ])
             });
         }
 

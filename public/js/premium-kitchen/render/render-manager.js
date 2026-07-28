@@ -140,6 +140,10 @@ export function createRenderManager() {
       setText('kpi-preparando', counters.listo ?? 0);
       setText('kpi-esperando', counters.reparto ?? 0);
       setText('kpi-tiempo-promedio', `${Number(counters.tiempoPromedio ?? 0).toFixed(0)} min`);
+      setText('kpi-riesgo', counters.riesgo ?? 0);
+      setText('kpi-antiguedad', counters.antiguedad ?? 0);
+      setText('kpi-eta', `${Number(counters.eta ?? 0).toFixed(0)} min`);
+      setText('kpi-visibles', counters.visibles ?? counters.total ?? 0);
 
       return renderState.lastCounters;
     },
@@ -350,6 +354,14 @@ export function createRenderManager() {
         : 'Buscando repartidor...';
       const riesgoCritico = transcurridoMin >= 12;
       const riesgoAlerta = transcurridoMin >= 8;
+      const historialAcciones = Array.isArray(pedido.historico_acciones) && pedido.historico_acciones.length
+        ? pedido.historico_acciones.slice(0, 4)
+        : [
+            { label: 'Pedido recibido', time: pedido.createdAt || pedido.created_at || pedido.fecha_creacion || null },
+            { label: 'Preparación iniciada', time: pedido.timestampActualizacion || pedido.updatedAt || null },
+            { label: estadoNormalizado === 'LISTO' ? 'Marcado listo' : 'En cocina', time: pedido.fecha_despacho || null },
+            { label: estadoNormalizado === 'EN_CURSO' ? 'En reparto' : 'Esperando repartidor', time: pedido.eta_repartidor || pedido.repartidor_eta || null }
+          ];
       const config = esPendiente || fase === 'COCINA'
         ? { texto: 'MARCAR LISTO', clase: 'btn-danger', funcion: `window.moverAReparto('${id}')`, disabled: false }
         : (esListo
@@ -374,6 +386,15 @@ export function createRenderManager() {
                     ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
                     <p class="nelly-pattern-card__body">${pedido.descripcion || 'Sin descripcion'}</p>
                     <p class="nelly-pattern-card__body">${repartidorTexto}</p>
+                    <div class="card-history">
+                        <span class="card-history__label">Historial de acciones</span>
+                        <div class="card-history__items">
+                            ${historialAcciones.map((item) => {
+                              const fecha = item?.time ? new Date(item.time).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '—';
+                              return `<div class="card-history__item"><span>${escapeHtml(item.label || 'Evento')}</span><span class="card-history__time">${fecha}</span></div>`;
+                            }).join('')}
+                        </div>
+                    </div>
                     <p class="nelly-pattern-card__amount">${monto.toFixed(2)}</p>
                     <div class="nelly-card-actions">
                         <button ${botonAttrs} class="nelly-btn ${config.clase}">
