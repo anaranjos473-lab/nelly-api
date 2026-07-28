@@ -1531,7 +1531,7 @@
 <body class="nelly-shell">
 
     <header class="nelly-panel mb-4 overflow-hidden p-4 sm:p-5">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="flex flex-wrap items-center gap-3">
             <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="nelly-chip nelly-chip--success">🍳 Nelly Cocina</span>
@@ -1539,29 +1539,27 @@
                     <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
                 </div>
             </div>
-            <div class="flex items-start gap-3">
-                <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
-                <div class="grid gap-2">
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">💰 Hoy</div>
-                        <div id="ganancias" class="card-value">$0.00</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">📦 Cola</div>
-                        <div id="contador" class="card-value">0</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">⏱ Objetivo</div>
-                        <div id="kpi-objetivo-cocina" class="card-value">8m</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">⚠ Riesgo</div>
-                        <div id="kpi-riesgo" class="card-value">0</div>
-                    </div>
+            <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
+            <div class="flex flex-wrap items-stretch gap-2">
+                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
+                    <div class="card-title">💰 Hoy</div>
+                    <div id="ganancias" class="card-value">$0.00</div>
+                </div>
+                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
+                    <div class="card-title">📦 Cola</div>
+                    <div id="contador" class="card-value">0</div>
+                </div>
+                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
+                    <div class="card-title">⏱ Objetivo</div>
+                    <div id="kpi-objetivo-cocina" class="card-value">8m</div>
+                </div>
+                <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 96px;">
+                    <div class="card-title">⚠ Riesgo</div>
+                    <div id="kpi-riesgo" class="card-value">0</div>
                 </div>
             </div>
         </div>
-    </header>
+        </header>
 
     <div class="workspace-panels">
 
@@ -1596,29 +1594,29 @@
     <section class="ops-summary" aria-label="Inteligencia de cocina" data-workspace="intelligence">
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Pedidos activos</span>
-            <span class="ops-summary-card__value">22</span>
+            <span id="kpi-activos-cocina" class="ops-summary-card__value">22</span>
             <span class="ops-summary-card__hint">Pedidos en operación ahora mismo.</span>
         </div>
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Capacidad de sede</span>
-            <span class="ops-summary-card__hint">Lidos Pizza</span>
-            <span class="ops-summary-card__value">30</span>
+            <span id="kpi-restaurante-cocina" class="ops-summary-card__hint">Lidos Pizza</span>
+            <span id="kpi-capacidad-cocina" class="ops-summary-card__value">30</span>
             <span class="ops-summary-card__hint">Capacidad operativa configurada por restaurante.</span>
         </div>
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Carga</span>
-            <span class="ops-summary-card__value">73 %</span>
-            <span class="ops-summary-card__hint">Uso actual sobre la capacidad.</span>
+            <span id="kpi-carga-cocina" class="ops-summary-card__value">73 %</span>
+            <span id="kpi-carga-hint" class="ops-summary-card__hint">Uso actual sobre la capacidad.</span>
         </div>
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Inteligencia de cocina</span>
-            <span class="ops-summary-card__value">8 min</span>
-            <span class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
+            <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
+            <span id="kpi-estado-cocina" class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
         </div>
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Inteligencia logística</span>
-            <span class="ops-summary-card__value">2 min</span>
-            <span class="ops-summary-card__hint">Cuando Cocina marca listo, Logística sincroniza la salida.</span>
+            <span id="kpi-logistica-cocina" class="ops-summary-card__value">2 min</span>
+            <span id="kpi-logistica-hint" class="ops-summary-card__hint">Cuando Cocina marca listo, Logística sincroniza la salida.</span>
         </div>
     </section>
 
