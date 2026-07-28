@@ -592,6 +592,35 @@
             cursor: pointer;
             min-width: 280px;
         }
+        .incoming-control__actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .incoming-control__action {
+            min-height: 50px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.88);
+            color: #f8fafc;
+            font-size: 0.95rem;
+            font-weight: 900;
+            min-width: 170px;
+            cursor: pointer;
+        }
+        .incoming-control__action.is-active {
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            color: #052e16;
+            border-color: rgba(34, 197, 94, 0.25);
+        }
+        .incoming-control__action.is-closed {
+            background: linear-gradient(90deg, #f97316 0%, #fb7185 100%);
+            color: #fff;
+            border-color: rgba(251, 113, 133, 0.25);
+        }
         .incoming-control__button.is-paused {
             color: #fff;
             background: linear-gradient(90deg, #ef4444 0%, #fb7185 100%);
@@ -945,9 +974,17 @@
             <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min antes de aceptar nuevos pedidos</strong>
             <span id="incoming-control-hint" class="incoming-control__hint">La recepción sigue activa.</span>
         </div>
-        <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
-            Detener pedidos entrantes
-        </button>
+        <div class="incoming-control__actions">
+            <button id="btn-iniciar-jornada-cocina" class="incoming-control__action is-active" type="button">
+                Iniciar jornada
+            </button>
+            <button id="btn-cerrar-jornada-cocina" class="incoming-control__action is-closed" type="button">
+                Cerrar jornada
+            </button>
+            <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
+                Detener pedidos entrantes
+            </button>
+        </div>
     </section>
 
     <div class="kitchen-toolbar" aria-label="Filtros de cocina">
@@ -1219,6 +1256,8 @@
                 const debugPanel = document.getElementById('debug-panel');
                 const filtroBusqueda = document.getElementById('filtro-busqueda-cocina');
                 const filtroPrioridad = document.getElementById('filtro-prioridad-cocina');
+                const btnIniciarJornada = document.getElementById('btn-iniciar-jornada-cocina');
+                const btnCerrarJornada = document.getElementById('btn-cerrar-jornada-cocina');
                 const btnTogglePedidosEntrantes = document.getElementById('btn-toggle-pedidos-entrantes');
                 if (btn) {
                     btn.onclick = () => {
@@ -1250,10 +1289,17 @@
                 document.querySelectorAll('[data-column-toggle]').forEach((input) => {
                     input.addEventListener('change', guardarColumnas);
                 });
+                if (btnIniciarJornada) {
+                    btnIniciarJornada.addEventListener('click', iniciarJornadaCocina);
+                }
+                if (btnCerrarJornada) {
+                    btnCerrarJornada.addEventListener('click', cerrarJornadaCocina);
+                }
                 if (btnTogglePedidosEntrantes) {
                     btnTogglePedidosEntrantes.addEventListener('click', alternarRecepcionPedidosEntrantes);
                 }
                 aplicarColumnasGuardadas();
+                aplicarEstadoJornadaCocina();
                 aplicarEstadoRecepcionEntrantes();
             });
 
@@ -2001,12 +2047,57 @@
             }
         }
 
+        function aplicarEstadoJornadaCocina() {
+            const jornadaActiva = localStorage.getItem('nelly-kitchen-jornada-activa');
+            const activa = jornadaActiva === null ? true : jornadaActiva === '1';
+            const btnInicio = document.getElementById('btn-iniciar-jornada-cocina');
+            const btnCierre = document.getElementById('btn-cerrar-jornada-cocina');
+            if (btnInicio) {
+                btnInicio.disabled = activa;
+                btnInicio.textContent = activa ? 'Jornada iniciada' : 'Iniciar jornada';
+                btnInicio.classList.toggle('is-active', activa);
+            }
+            if (btnCierre) {
+                btnCierre.disabled = !activa;
+                btnCierre.textContent = activa ? 'Cerrar jornada' : 'Jornada cerrada';
+                btnCierre.classList.toggle('is-closed', !activa);
+            }
+            if (!activa) {
+                localStorage.setItem('nelly-kitchen-recepcion-pausada', '1');
+                kitchenState.sync.recepcionPausada = true;
+                aplicarEstadoRecepcionEntrantes();
+            }
+        }
+
+        function iniciarJornadaCocina() {
+            localStorage.setItem('nelly-kitchen-jornada-activa', '1');
+            localStorage.setItem('nelly-kitchen-recepcion-pausada', '0');
+            aplicarEstadoJornadaCocina();
+            aplicarEstadoRecepcionEntrantes();
+            showToast('Jornada de cocina iniciada', 'ok');
+            logDebug('Jornada iniciada', 'ok');
+            window.ejecutarProtocoloRescate();
+        }
+
+        function cerrarJornadaCocina() {
+            localStorage.setItem('nelly-kitchen-jornada-activa', '0');
+            localStorage.setItem('nelly-kitchen-recepcion-pausada', '1');
+            aplicarEstadoJornadaCocina();
+            aplicarEstadoRecepcionEntrantes();
+            showToast('Jornada de cocina cerrada', 'ok');
+            logDebug('Jornada cerrada', 'err');
+        }
+
         function alternarRecepcionPedidosEntrantes() {
             const pausada = localStorage.getItem('nelly-kitchen-recepcion-pausada') === '1';
             const siguiente = pausada ? '0' : '1';
             localStorage.setItem('nelly-kitchen-recepcion-pausada', siguiente);
             kitchenState.sync.recepcionPausada = siguiente === '1';
+            if (siguiente === '0') {
+                localStorage.setItem('nelly-kitchen-jornada-activa', '1');
+            }
             aplicarEstadoRecepcionEntrantes();
+            aplicarEstadoJornadaCocina();
             if (kitchenState.sync.recepcionPausada) {
                 showToast('Recepción de pedidos entrantes detenida', 'ok');
                 logDebug('Recepción de pedidos entrantes pausada', 'err');
