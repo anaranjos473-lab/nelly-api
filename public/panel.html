@@ -2449,26 +2449,9 @@
             }
 
             function todosLosPedidosCocina() {
-                const renderizados = window.__nellyPedidosCocinaRenderizados || {};
-                const fuentesRender = [
-                    renderizados.pedidosPendientes,
-                    renderizados.pedidosReparto,
-                    renderizados.pedidosEnCamino,
-                    renderizados.pedidosEntregados
-                ];
-                const fromRender = [];
-                const vistosRender = new Set();
-                for (const fuente of fuentesRender) {
-                    if (!Array.isArray(fuente)) continue;
-                    for (const pedido of fuente) {
-                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || '');
-                        if (!firma || vistosRender.has(firma)) continue;
-                        vistosRender.add(firma);
-                        fromRender.push(pedido);
-                    }
-                }
-                if (fromRender.length) {
-                    return fromRender.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
+                if (renderizados.length) {
+                    return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
                 }
                 const vistos = new Set();
                 const lista = [];
@@ -2484,30 +2467,10 @@
                         const firma = String(pedido?.id_pedido || pedido?.id || key);
                         if (vistos.has(firma)) continue;
                         vistos.add(firma);
-                        lista.push(pedido);
+                        lista.push({ id: key, ...pedido });
                     }
                 }
                 return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
-            }
-
-            function pedidosDesdeDOM() {
-                const nodos = Array.from(document.querySelectorAll('#contenedor-pendientes .nelly-pattern-card, #contenedor-listo .nelly-pattern-card, #contenedor-reparto .nelly-pattern-card, #contenedor-entregados .nelly-pattern-card'));
-                return nodos.map((node) => {
-                    const pedidoId = node?.dataset?.pedidoId || node?.dataset?.id || node?.id || '';
-                    const titulo = node.querySelector('.card-summary__name, .card-title, h4, h3')?.textContent?.trim() || 'Cliente';
-                    const estado = node.querySelector('.card-summary__status, .nelly-state, [data-state]')?.textContent?.trim() || 'Pendiente';
-                    const direccion = node.querySelector('.card-summary__address, .card-location, .card-details p')?.textContent?.trim() || '';
-                    const productos = Array.from(node.querySelectorAll('.card-summary__item, .card-items li, .card-details li')).map((el) => el.textContent.trim()).filter(Boolean);
-                    return {
-                        id_pedido: pedidoId,
-                        shortId: pedidoId,
-                        cliente_nombre: titulo,
-                        estado,
-                        direccion,
-                        descripcion: productos.join(', '),
-                        tiempo_objetivo: node.querySelector('.card-summary__eta, .card-sla, .card-objective')?.textContent?.replace(/\D+/g, '') || 8
-                    };
-                }).filter((pedido) => pedido.shortId || pedido.cliente_nombre);
             }
 
             function renderOperacionEnfoque(id) {
@@ -2519,8 +2482,7 @@
                 const count = document.getElementById('operation-focus-count');
                 if (!sidebar || !title || !subtitle || !badge || !body || !count) return;
 
-                const pedidos = todosLosPedidosCocina();
-                const pedidosFinales = pedidos.length ? pedidos : pedidosDesdeDOM();
+                const pedidosFinales = todosLosPedidosCocina();
                 count.textContent = String(pedidosFinales.length);
 
                 sidebar.innerHTML = pedidosFinales.slice(0, 12).map((pedido, index) => {

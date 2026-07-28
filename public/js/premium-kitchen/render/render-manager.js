@@ -378,13 +378,23 @@ export function createRenderManager() {
       };
       try {
         if (typeof window !== 'undefined') {
+          const pendientesPlano = Array.from(pedidosPendientes.entries()).map(([id, pedido]) => ({ id, ...pedido }));
+          const repartoPlano = Array.from(pedidosReparto.entries()).map(([id, pedido]) => ({ id, ...pedido }));
+          const enCaminoPlano = Array.from(pedidosEnCamino.entries()).map(([id, pedido]) => ({ id, ...pedido }));
+          const entregadosPlano = Array.from(pedidosEntregados.entries()).map(([id, pedido]) => ({ id, ...pedido }));
           window.__nellyPedidosCocinaRenderizados = {
-            pedidosPendientes: Array.from(pedidosPendientes.entries()).map(([id, pedido]) => ({ id, ...pedido })),
-            pedidosReparto: Array.from(pedidosReparto.entries()).map(([id, pedido]) => ({ id, ...pedido })),
-            pedidosEnCamino: Array.from(pedidosEnCamino.entries()).map(([id, pedido]) => ({ id, ...pedido })),
-            pedidosEntregados: Array.from(pedidosEntregados.entries()).map(([id, pedido]) => ({ id, ...pedido })),
+            pedidosPendientes: pendientesPlano,
+            pedidosReparto: repartoPlano,
+            pedidosEnCamino: enCaminoPlano,
+            pedidosEntregados: entregadosPlano,
             at: Date.now()
           };
+          window.__nellyOperationOrders = [
+            ...pendientesPlano,
+            ...repartoPlano,
+            ...enCaminoPlano,
+            ...entregadosPlano
+          ].filter((pedido, index, arr) => arr.findIndex((item) => String(item.id || item.id_pedido || item.shortId) === String(pedido.id || pedido.id_pedido || pedido.shortId)) === index);
         }
       } catch {}
 
