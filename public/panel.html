@@ -1339,6 +1339,23 @@
             padding: 16px;
             background: rgba(3, 10, 20, 0.34);
         }
+        .kitchen-map-preview__toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            background: rgba(8, 17, 31, 0.82);
+            color: #f8fafc;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .kitchen-map-preview__toggle span {
+            color: #22d3ee;
+            font-size: 1.1rem;
+        }
         .kitchen-map-preview h2 {
             margin: 0 0 10px;
             color: #f8fafc;
@@ -1346,6 +1363,9 @@
         }
         .kitchen-map-preview .kitchen-map-local {
             height: 230px;
+        }
+        .kitchen-map-preview.is-collapsed .kitchen-map-local {
+            display: none;
         }
         @media (max-width: 900px) {
             body { padding: 0; }
@@ -1650,7 +1670,10 @@
         <label class="column-toggle"><input type="checkbox" data-column-toggle="entregados" checked> Entregados</label>
     </div>
 
-    <section id="kitchen-map-preview" class="kitchen-map-preview" aria-label="Mapa operativo de cocina visible">
+    <section id="kitchen-map-preview" class="kitchen-map-preview is-collapsed" aria-label="Mapa operativo de cocina visible">
+        <button id="btn-toggle-kitchen-map" class="kitchen-map-preview__toggle" type="button" aria-expanded="false">
+            <span>🗺</span> Mostrar mapa <strong>▼</strong>
+        </button>
         <h2>Mapa operativo de cocina</h2>
         <div class="kitchen-map-local" aria-label="Mapa local visible de cocina, tienda y repartidores">
             <span class="kitchen-map-zone north">Zona Norte<br>Pedidos</span>
@@ -1925,6 +1948,8 @@
                 const panelInteligencia = document.getElementById('inteligencia-cocina-panel');
                 const btnToggleAprendizaje = document.getElementById('btn-toggle-aprendizaje-cocina');
                 const panelAprendizaje = document.getElementById('aprendizaje-cocina-panel');
+                const btnToggleKitchenMap = document.getElementById('btn-toggle-kitchen-map');
+                const kitchenMapPreview = document.getElementById('kitchen-map-preview');
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -1978,6 +2003,15 @@
                         panelAprendizaje.hidden = !open;
                         btnToggleAprendizaje.textContent = open ? 'Ocultar productos' : 'Ver productos';
                         btnToggleAprendizaje.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    });
+                }
+                if (btnToggleKitchenMap && kitchenMapPreview) {
+                    btnToggleKitchenMap.addEventListener('click', () => {
+                        const collapsed = kitchenMapPreview.classList.toggle('is-collapsed');
+                        btnToggleKitchenMap.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                        btnToggleKitchenMap.innerHTML = collapsed
+                            ? '<span>🗺</span> Mostrar mapa <strong>▼</strong>'
+                            : '<span>🗺</span> Ocultar mapa <strong>▲</strong>';
                     });
                 }
                 aplicarColumnasGuardadas();
