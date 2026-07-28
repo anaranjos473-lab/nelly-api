@@ -2466,6 +2466,27 @@
                     || null;
             }
 
+            function todosLosPedidosCocina() {
+                const vistos = new Set();
+                const lista = [];
+                const fuentes = [
+                    kitchenState.orders.pedidosPendientes,
+                    kitchenState.orders.pedidosReparto,
+                    kitchenState.orders.pedidosEnCamino,
+                    kitchenState.orders.pedidosEntregados
+                ];
+                for (const fuente of fuentes) {
+                    if (!(fuente instanceof Map)) continue;
+                    for (const [key, pedido] of fuente.entries()) {
+                        const firma = String(pedido?.id_pedido || pedido?.id || key);
+                        if (vistos.has(firma)) continue;
+                        vistos.add(firma);
+                        lista.push(pedido);
+                    }
+                }
+                return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+            }
+
             function renderOperacionEnfoque(id) {
                 const sidebar = document.getElementById('operation-focus-queue');
                 const title = document.getElementById('operation-focus-title');
@@ -2475,8 +2496,7 @@
                 const count = document.getElementById('operation-focus-count');
                 if (!sidebar || !title || !subtitle || !badge || !body || !count) return;
 
-                const pedidos = Array.from(kitchenState.orders.pedidosPendientes.values())
-                    .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                const pedidos = todosLosPedidosCocina();
                 count.textContent = String(pedidos.length);
 
                 sidebar.innerHTML = pedidos.slice(0, 12).map((pedido, index) => {
@@ -2576,6 +2596,14 @@
                 });
                 observer.observe(contenedorPendientes, { childList: true, subtree: true });
             }
+            window.addEventListener('load', () => {
+                const primero = todosLosPedidosCocina()[0];
+                if (primero) {
+                    renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
+                } else {
+                    renderOperacionEnfoque(null);
+                }
+            }, { once: true });
 
             window.reportarIncidenciaRapida = () => {
                 const motivo = prompt('Describe la incidencia operativa:');
