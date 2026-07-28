@@ -818,6 +818,41 @@
             color: #93c5fd;
             font-weight: 700;
         }
+        .dashboard-container[data-workspace="operation"] {
+            display: block;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] {
+            width: 100%;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="listo"],
+        .dashboard-container[data-workspace="operation"] .column[data-column="reparto"],
+        .dashboard-container[data-workspace="operation"] .column[data-column="entregados"] {
+            display: none;
+        }
+        .dashboard-container[data-workspace="operation"] #contenedor-pendientes {
+            display: grid;
+            gap: 10px;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-pedido {
+            margin-bottom: 0;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-intelligence,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-logistics,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-timeline,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .card-details,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card__amount {
+            display: none;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-intelligence,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-logistics,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-timeline,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-details,
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .nelly-pattern-card__amount {
+            display: block;
+        }
+        .dashboard-container[data-workspace="operation"] .column[data-column="pendientes"] .nelly-pattern-card.is-expanded .card-timeline {
+            display: flex;
+        }
         .card-timeline {
             margin-top: 6px;
             display: flex;
