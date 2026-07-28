@@ -1531,38 +1531,47 @@
 <body class="nelly-shell">
 
     <header class="nelly-panel mb-4 overflow-hidden p-4 sm:p-5">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="nelly-chip nelly-chip--success">🍳 Nelly Cocina</span>
-                    <span id="badge-estado" class="nelly-state nelly-state--loading">ONLINE</span>
-                    <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
+                    <span id="badge-estado" class="nelly-state nelly-state--loading">🟢 Online</span>
                 </div>
             </div>
-            <div class="flex items-start gap-3">
-                <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
-                <div class="grid gap-2">
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">💰 Hoy</div>
-                        <div id="ganancias" class="card-value">$0.00</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">📦 Cola</div>
-                        <div id="contador" class="card-value">0</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">⏱ Objetivo</div>
-                        <div id="kpi-objetivo-cocina" class="card-value">8m</div>
-                    </div>
-                    <div class="stat-card metric-card" style="padding: 8px 12px; min-width: 120px;">
-                        <div class="card-title">⚠ Riesgo</div>
-                        <div id="kpi-riesgo" class="card-value">0</div>
-                    </div>
+            <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
+        </div>
+        <div class="mt-4">
+            <nav class="workspace-tabs workspace-tabs--compact" aria-label="Centros de cocina">
+                <div class="workspace-tabs__rail workspace-tabs__rail--compact">
+                    <button class="workspace-tabs__button is-active" type="button" data-workspace-tab="operation">🟢 Operación</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="intelligence">🧠 Inteligencia</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="inventory">📦 Inventario</button>
+                    <button class="workspace-tabs__button" type="button" data-workspace-tab="logistics">🚴 Despacho</button>
                 </div>
+            </nav>
+        </div>
+        <div class="mt-4 grid gap-3 sm:grid-cols-4">
+            <div class="stat-card metric-card" style="padding: 10px 12px;">
+                <div class="card-title">💰 Hoy</div>
+                <div id="ganancias" class="card-value">$0.00</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 10px 12px;">
+                <div class="card-title">📦 Cola</div>
+                <div id="contador" class="card-value">0</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 10px 12px;">
+                <div class="card-title">⏱ Objetivo</div>
+                <div id="kpi-objetivo-cocina" class="card-value">8m</div>
+            </div>
+            <div class="stat-card metric-card" style="padding: 10px 12px;">
+                <div class="card-title">⚠ Riesgo</div>
+                <div id="kpi-riesgo" class="card-value">0</div>
             </div>
         </div>
     </header>
-
     <div class="workspace-panels">
 
     <section class="ops-summary" aria-label="Cockpit operativo" data-workspace="operation">
