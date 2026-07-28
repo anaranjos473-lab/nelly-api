@@ -997,6 +997,25 @@
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 17, 31, 0.96));
         }
+        .inventory-panel__toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            background: rgba(8, 17, 31, 0.82);
+            color: #f8fafc;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .inventory-panel__toggle strong {
+            color: #22d3ee;
+        }
+        .inventory-panel.is-collapsed .inventory-panel__content {
+            display: none;
+        }
         .inventory-panel__header {
             display: flex;
             justify-content: space-between;
@@ -1606,15 +1625,20 @@
         </div>
     </section>
 
-    <section class="inventory-panel" aria-label="Productos agotados">
-        <div class="inventory-panel__header">
-            <div>
-                <div class="inventory-panel__title">Productos agotados</div>
-                <div class="inventory-panel__hint">Ingredientes con riesgo de frenar pedidos o provocar cancelaciones.</div>
+    <section id="inventory-panel" class="inventory-panel is-collapsed" aria-label="Productos agotados">
+        <button id="btn-toggle-inventory" class="inventory-panel__toggle" type="button" aria-expanded="false">
+            🔵 Inventario <strong>▼</strong>
+        </button>
+        <div class="inventory-panel__content">
+            <div class="inventory-panel__header">
+                <div>
+                    <div class="inventory-panel__title">Productos agotados</div>
+                    <div class="inventory-panel__hint">Ingredientes con riesgo de frenar pedidos o provocar cancelaciones.</div>
+                </div>
+                <div class="inventory-panel__hint" id="inventory-summary">Cargando inventario...</div>
             </div>
-            <div class="inventory-panel__hint" id="inventory-summary">Cargando inventario...</div>
+            <div id="inventory-list" class="inventory-panel__list"></div>
         </div>
-        <div id="inventory-list" class="inventory-panel__list"></div>
     </section>
 
     <div class="kitchen-toolbar" aria-label="Filtros de cocina">
@@ -1914,6 +1938,8 @@
                 const panelAprendizaje = document.getElementById('aprendizaje-cocina-panel');
                 const btnToggleKitchenMap = document.getElementById('btn-toggle-kitchen-map');
                 const kitchenMapPreview = document.getElementById('kitchen-map-preview');
+                const btnToggleInventory = document.getElementById('btn-toggle-inventory');
+                const inventoryPanel = document.getElementById('inventory-panel');
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -1976,6 +2002,15 @@
                         btnToggleKitchenMap.innerHTML = collapsed
                             ? '<span>🗺</span> Mostrar mapa <strong>▼</strong>'
                             : '<span>🗺</span> Ocultar mapa <strong>▲</strong>';
+                    });
+                }
+                if (btnToggleInventory && inventoryPanel) {
+                    btnToggleInventory.addEventListener('click', () => {
+                        const collapsed = inventoryPanel.classList.toggle('is-collapsed');
+                        btnToggleInventory.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                        btnToggleInventory.innerHTML = collapsed
+                            ? '🔵 Inventario <strong>▼</strong>'
+                            : '🔵 Inventario <strong>▲</strong>';
                     });
                 }
                 aplicarColumnasGuardadas();
@@ -2725,8 +2760,22 @@
                 || pedido.timestampCreacion
                 || pedido.timestamp_creacion
                 || pedido.fecha;
-            const value = new Date(candidate || 0).getTime();
-            return Number.isFinite(value) && value > 0 ? value : Date.now();
+            if (candidate === null || candidate === undefined || candidate === '') {
+                return Date.now();
+            }
+            if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+                const normalized = candidate < 1e12 ? candidate * 1000 : candidate;
+                return normalized > 0 ? normalized : Date.now();
+            }
+            const parsed = Date.parse(candidate);
+            if (Number.isFinite(parsed) && parsed > 0) {
+                return parsed;
+            }
+            const asNumber = Number(candidate);
+            if (Number.isFinite(asNumber) && asNumber > 0) {
+                return asNumber < 1e12 ? asNumber * 1000 : asNumber;
+            }
+            return Date.now();
         }
 
         window.toggleCardActionsMenu = function toggleCardActionsMenu(button) {

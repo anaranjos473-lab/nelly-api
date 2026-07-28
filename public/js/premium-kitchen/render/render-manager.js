@@ -56,8 +56,22 @@ function getPedidoTimestamp(pedido = {}) {
     || pedido.timestampCreacion
     || pedido.timestamp_creacion
     || pedido.fecha;
-  const value = new Date(candidate || 0).getTime();
-  return Number.isFinite(value) && value > 0 ? value : Date.now();
+  if (candidate === null || candidate === undefined || candidate === '') {
+    return Date.now();
+  }
+  if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+    const normalized = candidate < 1e12 ? candidate * 1000 : candidate;
+    return normalized > 0 ? normalized : Date.now();
+  }
+  const parsed = Date.parse(candidate);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  const asNumber = Number(candidate);
+  if (Number.isFinite(asNumber) && asNumber > 0) {
+    return asNumber < 1e12 ? asNumber * 1000 : asNumber;
+  }
+  return Date.now();
 }
 
 function normalizeProductName(name) {
