@@ -243,6 +243,60 @@
             padding: 8px 10px;
             font-size: 0.82rem;
         }
+        .nelly-card-actions--compact {
+            align-items: stretch;
+        }
+        .nelly-card-actions__primary {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .nelly-card-actions__icon {
+            flex: 0 0 42px;
+            min-width: 42px;
+            max-width: 42px;
+            padding: 8px 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+        .card-actions-menu {
+            position: relative;
+            flex: 0 0 42px;
+        }
+        .card-actions-menu__panel {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            min-width: 180px;
+            z-index: 20;
+            display: none;
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.98);
+            box-shadow: 0 18px 32px rgba(0, 0, 0, 0.35);
+        }
+        .card-actions-menu.is-open .card-actions-menu__panel {
+            display: grid;
+            gap: 6px;
+        }
+        .card-actions-menu__item {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(15, 23, 42, 0.9);
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .card-actions-menu__item:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #f8fafc;
+        }
         .btn-danger { background-color: #e74c3c; }
         .btn-danger:hover { background-color: #c0392b; }
         .btn-success { background-color: #2ecc71; }
@@ -2439,6 +2493,24 @@
             const value = new Date(candidate || 0).getTime();
             return Number.isFinite(value) && value > 0 ? value : Date.now();
         }
+
+        window.toggleCardActionsMenu = function toggleCardActionsMenu(button) {
+            const menu = button?.closest('.card-actions-menu');
+            if (!menu) {
+                return;
+            }
+            const isOpen = menu.classList.toggle('is-open');
+            button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            document.querySelectorAll('.card-actions-menu.is-open').forEach((openMenu) => {
+                if (openMenu !== menu) {
+                    openMenu.classList.remove('is-open');
+                    const trigger = openMenu.querySelector('[data-actions-toggle]');
+                    if (trigger) {
+                        trigger.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        };
 
         function extraerProductosPedido(pedido = {}) {
             const raw = [

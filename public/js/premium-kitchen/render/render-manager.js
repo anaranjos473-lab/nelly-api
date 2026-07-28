@@ -544,22 +544,27 @@ export function createRenderManager() {
                         </div>
                     </div>
                     <p class="nelly-pattern-card__amount">${monto.toFixed(2)}</p>
-                    <div class="nelly-card-actions">
-                        <button ${botonAttrs} class="nelly-btn ${config.clase}">
+                    <div class="nelly-card-actions nelly-card-actions--compact">
+                        <button ${botonAttrs} class="nelly-btn ${config.clase} nelly-card-actions__primary">
                             ${config.texto}
                         </button>
-                        <button onclick="window.sugerirCambioPedido('${id}')" class="nelly-btn nelly-btn--ghost">
-                            Sugerir cambio
+                        <button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Chat cliente">
+                            ??
                         </button>
-                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost">
-                            Reimprimir ticket
+                        <button onclick="window.reimprimirTicket('${id}')" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" aria-label="Reimprimir ticket">
+                            ??
                         </button>
-                        <button onclick="window.abrirChatCliente('${id}')" class="nelly-btn nelly-btn--ghost">
-                            Chat cliente
-                        </button>
-                        <button onclick="window.verDetallePedido('${id}')" class="nelly-btn nelly-btn--ghost">
-                            Ver detalle
-                        </button>
+                        <div class="card-actions-menu">
+                            <button type="button" class="nelly-btn nelly-btn--ghost nelly-card-actions__icon" data-actions-toggle aria-haspopup="true" aria-expanded="false" aria-label="Mas acciones" onclick="window.toggleCardActionsMenu(this)">
+                                ?
+                            </button>
+                            <div class="card-actions-menu__panel" role="menu" aria-label="Acciones secundarias">
+                                <button type="button" class="card-actions-menu__item" onclick="window.verDetallePedido('${id}')">Ver detalle</button>
+                                <button type="button" class="card-actions-menu__item" onclick="window.sugerirCambioPedido('${id}')">Sugerir cambio</button>
+                                <button type="button" class="card-actions-menu__item" onclick="window.reimprimirTicket('${id}')">Historial / ticket</button>
+                                <button type="button" class="card-actions-menu__item" onclick="window.abrirChatCliente('${id}')">Incidencia / chat</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
