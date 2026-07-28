@@ -151,6 +151,11 @@ export function createRenderManager() {
       setText('kpi-activos-cocina', counters.activosCocina || '0');
       setText('kpi-carga-cocina', counters.cargaCocina || '0 %');
       setText('kpi-prediccion-cocina', counters.prediccionCocina || 'Tiempo estimado 18 min antes de aceptar nuevos pedidos');
+      const prediccionDetalle = [
+        counters.siguientePedidoCocina,
+        counters.aceptarOtroPedidoCocina
+      ].filter(Boolean).join(' · ');
+      setText('incoming-control-hint', prediccionDetalle || 'La recepción sigue activa.');
       setText('kpi-restaurante-cocina', counters.restauranteCocina || 'Restaurante');
       setText('kpi-senal-cocina', counters.senalCocina || '✓');
       setText('kpi-senal-hint', counters.senalHint || 'Sin retraso detectado.');

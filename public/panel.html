@@ -2160,6 +2160,8 @@
             const capacidadSegura = Math.max(capacidadObjetivo, capacidadActual);
             const cargaPorcentaje = capacidadSegura > 0 ? Math.round((capacidadActual / capacidadSegura) * 100) : 0;
             const prediccionMin = cargaPorcentaje >= 80 ? 18 : (cargaPorcentaje >= 60 ? 12 : 8);
+            const proximoPedidoMin = Math.min(45, prediccionMin + 4);
+            const siguienteEscenarioMin = Math.min(60, prediccionMin + 5);
             return {
                 tiempoObjetivo: objetivoMin,
                 estadoCocina: enTiempo ? 'En tiempo' : 'Retraso',
@@ -2168,6 +2170,8 @@
                 activosCocina: String(capacidadActual),
                 cargaCocina: `${cargaPorcentaje} %`,
                 prediccionCocina: `Tiempo estimado ${prediccionMin} min antes de aceptar nuevos pedidos`,
+                siguientePedidoCocina: `Próximo pedido +${proximoPedidoMin - prediccionMin} min`,
+                aceptarOtroPedidoCocina: `Si aceptas otro pedido, tiempo estimado ${siguienteEscenarioMin} min`,
                 restauranteCocina: RESTAURANT_NAME,
                 senalCocina: enTiempo ? '✓ En tiempo' : '⚠ Retraso',
                 senalHint: enTiempo ? 'Sin retraso detectado.' : 'Pedido fuera del objetivo de cocina.'
