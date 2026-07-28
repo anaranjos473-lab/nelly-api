@@ -1502,76 +1502,6 @@
         </div>
     </section>
 
-    <section class="ops-summary-toggle" aria-label="Inteligencia de cocina">
-        <button id="btn-toggle-inteligencia-cocina" class="ops-summary-toggle__button" type="button" aria-expanded="false">
-            <span>Inteligencia</span>
-            <strong>Mostrar más</strong>
-        </button>
-        <div id="inteligencia-cocina-panel" class="ops-summary-toggle__panel" hidden>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Pedidos nuevos</span>
-                <span id="kpi-nuevos" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Lo primero que cocina debe atacar.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Preparando</span>
-                <span id="kpi-preparando" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Pedidos en proceso ahora mismo.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Esperando repartidor</span>
-                <span id="kpi-esperando" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Ya listos para salir sin retraso.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Pendientes por antigüedad</span>
-                <span id="kpi-antiguedad" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Ordenados desde el más viejo.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Pedidos visibles</span>
-                <span id="kpi-visibles" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Capacidad de sede</span>
-                <span id="kpi-restaurante-cocina" class="ops-summary-card__hint">Lidos Pizza</span>
-                <span id="kpi-capacidad-cocina" class="ops-summary-card__value">30</span>
-                <span class="ops-summary-card__hint">Capacidad operativa configurada por restaurante.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Inteligencia de cocina</span>
-                <span id="kpi-objetivo-cocina" class="ops-summary-card__value">8 min</span>
-                <span id="kpi-estado-cocina" class="ops-summary-card__hint">Tiempo objetivo operativo por pedido.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Inteligencia logística</span>
-                <span id="kpi-logistica-cocina" class="ops-summary-card__value">2 min</span>
-                <span id="kpi-logistica-hint" class="ops-summary-card__hint">Cuando Cocina marca listo, Logística sincroniza la salida.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Aprendizaje</span>
-                <span id="kpi-aprendizaje-cocina" class="ops-summary-card__value">Pendiente</span>
-                <span id="kpi-aprendizaje-hint" class="ops-summary-card__hint">Todavía no hay suficiente histórico entregado.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Tiempo sugerido</span>
-                <span id="kpi-aprendizaje-tiempo" class="ops-summary-card__value">8 min</span>
-                <span class="ops-summary-card__hint">Se ajusta con el histórico de pedidos cerrados.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Productos aprendidos</span>
-                <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">0</span>
-                <span class="ops-summary-card__hint">Promedios por producto con evidencia.</span>
-            </div>
-            <div class="ops-summary-card">
-                <span class="ops-summary-card__label">Mejor ajuste</span>
-                <span id="kpi-aprendizaje-mejor" class="ops-summary-card__value">N/A</span>
-                <span class="ops-summary-card__hint">Propuesta automática del tiempo objetivo.</span>
-            </div>
-        </div>
-    </section>
-
     <section class="ops-summary" aria-label="Inteligencia de cocina">
         <div class="ops-summary-card">
             <span class="ops-summary-card__label">Pedidos activos</span>
@@ -1601,17 +1531,17 @@
         </div>
     </section>
 
-    <section class="learning-summary" aria-label="Aprendizaje de cocina">
+    <aside class="learning-summary learning-summary--side" aria-label="Inteligencia de cocina">
         <div class="learning-summary__main">
             <div class="ops-summary-card learning-summary__card">
-                <span class="ops-summary-card__label">IA</span>
+                <span class="ops-summary-card__label">🤖 Inteligencia</span>
                 <span id="kpi-aprendizaje-productos" class="ops-summary-card__value">12 productos</span>
                 <span id="kpi-aprendizaje-cocina" class="ops-summary-card__hint">Objetivo sugerido</span>
                 <strong id="kpi-aprendizaje-tiempo" class="learning-summary__goal">8 min</strong>
                 <span id="kpi-aprendizaje-mejor" class="ops-summary-card__hint">Aprendizaje aplicado por producto con evidencia real.</span>
             </div>
             <button id="btn-toggle-aprendizaje-cocina" class="learning-summary__toggle" type="button" aria-expanded="false">
-                Ver productos
+                ▼
             </button>
         </div>
         <div id="aprendizaje-cocina-panel" class="learning-summary__panel" hidden>
@@ -1620,6 +1550,40 @@
                 <span id="kpi-aprendizaje-hint" class="learning-summary__panel-hint">Todavía no hay suficiente histórico entregado.</span>
             </div>
             <div id="kpi-aprendizaje-lista" class="learning-summary__list"></div>
+        </div>
+    </aside>
+
+    <section class="ops-summary-toggle" aria-label="Más indicadores">
+        <button id="btn-toggle-inteligencia-cocina" class="ops-summary-toggle__button" type="button" aria-expanded="false">
+            <span>Más indicadores</span>
+            <strong>Mostrar más</strong>
+        </button>
+        <div id="inteligencia-cocina-panel" class="ops-summary-toggle__panel" hidden>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pedidos nuevos</span>
+                <span id="kpi-nuevos" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Lo primero que cocina debe atacar.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Preparando</span>
+                <span id="kpi-preparando" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Pedidos en proceso ahora mismo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Esperando repartidor</span>
+                <span id="kpi-esperando" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Ya listos para salir sin retraso.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pendientes por antigüedad</span>
+                <span id="kpi-antiguedad" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Ordenados desde el más viejo.</span>
+            </div>
+            <div class="ops-summary-card">
+                <span class="ops-summary-card__label">Pedidos visibles</span>
+                <span id="kpi-visibles" class="ops-summary-card__value">0</span>
+                <span class="ops-summary-card__hint">Tras aplicar búsqueda y prioridad.</span>
+            </div>
         </div>
     </section>
 
