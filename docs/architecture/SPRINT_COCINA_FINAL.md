@@ -26,6 +26,8 @@
   - Cada comercio administra su propio stock y Cocina consume la misma lectura.
 - [x] Chat operativo generico.
   - Se agregaron respuestas rapidas sin depender de un producto especifico.
+- [x] Inteligencia logistica.
+  - Cuando Cocina marca `Listo`, Logistica estima el mejor momento para soltar el repartidor y sincronizar la salida con el cierre real de preparacion.
 
 ## Extensiones de negocio
 
@@ -63,6 +65,22 @@ Valor:
 - Permite que cada comercio administre su propio catalogo.
 - Mantiene alineados Comercio, Cocina y Cliente con la misma verdad.
 
+### Inteligencia Logistica
+
+La entrega no debe arrancar por intuicion, sino por sincronizacion entre Cocina y Logistica.
+
+Ejemplo operativo:
+- Estado en Cocina: `Listo`
+- Espera sugerida: `2 min`
+- Resultado: `el repartidor llega justo al terminar`
+
+Valor:
+- Reduce tiempos muertos entre estaciones.
+- Evita que un pedido se enfrie esperando salida.
+- Ayuda a Logistica a preparar asignacion en el momento correcto.
+- Sincroniza el cierre de Cocina con la activacion de reparto.
+- Hace visible un handoff mas preciso entre preparacion y despacho.
+
 ## Validacion
 
 Estado: validado.
@@ -85,6 +103,7 @@ Criterio de cierre:
 - El chat operativo ofrece respuestas rapidas genericas.
 - Comercio cuenta con una capa de inteligencia comercial sobre producto, ventas y riesgo.
 - El inventario opera con ocultamiento automatico y sustitucion sugerida.
+- Logistica estima la mejor ventana de salida cuando Cocina marca `Listo`.
 
 ## Cierre funcional
 
