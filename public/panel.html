@@ -600,7 +600,6 @@
                 <div class="nelly-divider"></div>
                 <div class="flex flex-wrap gap-2">
                     <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">Reportar incidencia</button>
-                    <button id="btn-herramientas" class="nelly-btn nelly-btn--accent" title="Herramientas de soporte">Herramientas</button>
                 </div>
             </div>
             <div class="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
@@ -612,13 +611,6 @@
                     <p class="text-xs uppercase tracking-wide text-slate-400">Acciones</p>
                     <p class="mt-2 text-sm text-slate-300">Pedidos entrantes, preparación, reparto y soporte operativo para la cocina.</p>
                 </div>
-            </div>
-        </div>
-        <div id="menu-herramientas" class="hidden mt-4 rounded-xl border border-white/10 bg-slate-950/90 p-3 shadow-xl">
-            <div class="flex flex-col gap-2">
-                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">Centro operativo</div>
-                <a href="/control" class="nelly-btn nelly-btn--ghost justify-start">Abrir Operaciones</a>
-                <a href="/admin#developer-data-governance" class="nelly-btn nelly-btn--ghost justify-start">Ir a Developer</a>
             </div>
         </div>
     </header>
@@ -883,8 +875,6 @@
                 const seccion = document.getElementById('seccion-historial');
                 const btnDebug = document.getElementById('btn-debug');
                 const btnNotificaciones = document.getElementById('btn-notificaciones');
-                const btnHerramientas = document.getElementById('btn-herramientas');
-                const menuHerramientas = document.getElementById('menu-herramientas');
                 const debugPanel = document.getElementById('debug-panel');
                 if (btn) {
                     btn.onclick = () => {
@@ -906,15 +896,6 @@
                             solicitarPermisoNotificaciones();
                         }
                     };
-                }
-                if (btnHerramientas && menuHerramientas) {
-                    btnHerramientas.onclick = (event) => {
-                        event.stopPropagation();
-                        menuHerramientas.style.display = menuHerramientas.style.display === 'block' ? 'none' : 'block';
-                    };
-                    document.addEventListener('click', () => {
-                        menuHerramientas.style.display = 'none';
-                    });
                 }
             });
 
