@@ -1046,30 +1046,71 @@
             min-width: 150px;
         }
         .operation-focus__timeline {
+            position: relative;
             display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
-        }
-        .operation-focus__timeline .card-timeline__step {
-            display: grid;
-            grid-template-columns: 16px minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 8px;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            padding: 8px 10px;
-            border-radius: 10px;
+            padding: 16px 8px 8px;
+            border-radius: 14px;
             background: rgba(8, 17, 31, 0.88);
             border: 1px solid rgba(148, 163, 184, 0.12);
+            overflow: hidden;
         }
-        .operation-focus__timeline .card-timeline__dot {
-            width: 10px;
-            height: 10px;
+        .operation-focus__timeline::before {
+            content: '';
+            position: absolute;
+            left: 28px;
+            right: 28px;
+            top: 33px;
+            height: 3px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.18), rgba(249, 115, 22, 0.55), rgba(148, 163, 184, 0.28));
         }
-        .operation-focus__timeline .card-timeline__time {
-            color: #9fb4d2;
-            font-variant-numeric: tabular-nums;
+        .operation-focus__timeline-step {
+            position: relative;
+            display: grid;
+            justify-items: center;
+            gap: 6px;
+            text-align: center;
+            min-width: 0;
+        }
+        .operation-focus__timeline-step .card-timeline__dot {
+            width: 14px;
+            height: 14px;
+            box-shadow: 0 0 0 4px rgba(71, 85, 105, 0.12);
+        }
+        .operation-focus__timeline-step.is-done .card-timeline__dot {
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16);
+        }
+        .operation-focus__timeline-step.is-current .card-timeline__dot {
+            background: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+        }
+        .operation-focus__timeline-label {
+            font-size: 0.8rem;
+            font-weight: 900;
+            color: #e2e8f0;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .operation-focus__timeline-time {
             font-size: 0.72rem;
             font-weight: 800;
+            color: #9fb4d2;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1;
+        }
+        @media (max-width: 900px) {
+            .operation-focus__timeline {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .operation-focus__timeline::before {
+                display: none;
+            }
         }
         .operation-focus__intel {
             display: grid;
@@ -2752,11 +2793,11 @@
                     ['Cocina', pedido.cocina_at || pedido.listo_at || '—', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
                     ['Reparto', pedido.reparto_at || pedido.asignado_at || '—', pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO']
                 ];
-                const timelineHtml = timelineEventos.map(([label, hora, done]) => `
-                    <div class="card-timeline__step ${done ? 'is-done' : ''}">
+                const timelineHtml = timelineEventos.map(([label, hora, done], index) => `
+                    <div class="operation-focus__timeline-step ${done ? 'is-done' : ''}${index === 2 && pedido.estado !== 'ENTREGADO' ? ' is-current' : ''}">
                         <span class="card-timeline__dot"></span>
-                        <span>${escapeHtmlOperacion(label)}</span>
-                        <span class="card-timeline__time">${escapeHtmlOperacion(String(hora))}</span>
+                        <span class="operation-focus__timeline-label">${escapeHtmlOperacion(label)}</span>
+                        <span class="operation-focus__timeline-time">${escapeHtmlOperacion(String(hora))}</span>
                     </div>
                 `).join('');
                 const productosHtml = productos.map((p) => {
