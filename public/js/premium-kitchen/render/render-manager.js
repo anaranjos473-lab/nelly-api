@@ -74,6 +74,17 @@ function getPedidoTimestamp(pedido = {}) {
   return Date.now();
 }
 
+function getEnabledColumnKeys() {
+  if (typeof document === 'undefined') {
+    return ['pendientes', 'listo', 'reparto', 'entregados'];
+  }
+  const checked = Array.from(document.querySelectorAll('[data-column-toggle]'))
+    .filter((input) => input.checked)
+    .map((input) => input.getAttribute('data-column-toggle'))
+    .filter(Boolean);
+  return checked.length ? checked : ['pendientes', 'listo', 'reparto', 'entregados'];
+}
+
 function formatDailyShortId(pedido = {}, fallbackIndex = 1) {
   const timestamp = getPedidoTimestamp(pedido);
   const fecha = new Date(timestamp);
@@ -286,6 +297,7 @@ export function createRenderManager() {
         reparto: 0,
         entregados: 0
       };
+      const columnasActivas = new Set(getEnabledColumnKeys());
 
       const pedidosPendientesOrdenados = Array.from(pedidosPendientes.entries()).sort((a, b) => {
         const pedidoA = a[1] || {};
@@ -303,19 +315,19 @@ export function createRenderManager() {
           return;
         }
 
-        if (fase === 'COCINA' && contenedorPendientes) {
+        if (fase === 'COCINA' && contenedorPendientes && columnasActivas.has('pendientes')) {
           contenedorPendientes.insertAdjacentHTML('beforeend', tarjeta);
           counts.pendientes += 1;
           return;
         }
 
-        if (fase === 'DESPACHO' && contenedorListo) {
+        if (fase === 'DESPACHO' && contenedorListo && columnasActivas.has('listo')) {
           contenedorListo.insertAdjacentHTML('beforeend', tarjeta);
           counts.listo += 1;
           return;
         }
 
-        if (fase === 'EN_REPARTO' && contenedorReparto) {
+        if (fase === 'EN_REPARTO' && contenedorReparto && columnasActivas.has('reparto')) {
           contenedorReparto.insertAdjacentHTML('beforeend', tarjeta);
           counts.reparto += 1;
         }
@@ -325,7 +337,7 @@ export function createRenderManager() {
         if (pedidosPendientes.has(id)) {
           return;
         }
-        if (contenedorListo && typeof renderTarjeta === 'function') {
+        if (contenedorListo && columnasActivas.has('listo') && typeof renderTarjeta === 'function') {
           const tarjeta = renderTarjeta({ ...pedido, estado: 'LISTO', fase: 'DESPACHO' }, id, false);
           if (!tarjeta) {
             return;
@@ -352,7 +364,7 @@ export function createRenderManager() {
           return;
         }
 
-        if (contenedorReparto && typeof renderTarjeta === 'function') {
+        if (contenedorReparto && columnasActivas.has('reparto') && typeof renderTarjeta === 'function') {
           const tarjeta = renderTarjeta({ ...pedido, estado, fase: 'EN_REPARTO' }, id, false);
           if (!tarjeta) {
             return;
@@ -366,7 +378,7 @@ export function createRenderManager() {
         if (pedidosPendientes.has(id) || pedidosReparto.has(id) || pedidosEnCamino.has(id)) {
           return;
         }
-        if (contenedorEntregados && typeof renderTarjeta === 'function') {
+        if (contenedorEntregados && columnasActivas.has('entregados') && typeof renderTarjeta === 'function') {
           const tarjeta = renderTarjeta({ ...pedido, estado: 'ENTREGADO', fase: 'ENTREGADO' }, id, false);
           if (!tarjeta) {
             return;
