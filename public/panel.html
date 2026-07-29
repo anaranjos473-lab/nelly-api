@@ -1137,6 +1137,45 @@
             border-color: rgba(34, 197, 94, 0.25);
             background: linear-gradient(180deg, rgba(12, 44, 26, 0.96), rgba(8, 17, 31, 0.98));
         }
+        .operation-focus__content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.38fr) minmax(0, 0.62fr);
+            gap: 12px;
+        }
+        .operation-focus__left-stack,
+        .operation-focus__right-stack {
+            display: grid;
+            gap: 10px;
+            min-width: 0;
+        }
+        .operation-focus__communication {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .operation-focus__contact-card {
+            min-height: 0;
+            grid-template-rows: auto auto auto;
+        }
+        .operation-focus__payment-card {
+            min-height: 0;
+        }
+        .operation-focus__contact-title {
+            font-size: 0.96rem;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+        .operation-focus__contact-action {
+            width: 100%;
+            min-height: 36px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(8, 17, 31, 0.88);
+            color: #e2e8f0;
+            font-weight: 900;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
         .operation-focus__payment-label {
             font-size: 0.72rem;
             letter-spacing: 0.08em;
@@ -1145,7 +1184,7 @@
             font-weight: 900;
         }
         .operation-focus__payment-method {
-            font-size: 1.6rem;
+            font-size: 1.35rem;
             font-weight: 950;
             line-height: 1.05;
             color: #f8fafc;
@@ -1180,13 +1219,13 @@
         }
         .operation-focus__payment-action {
             width: 100%;
-            min-height: 48px;
+            min-height: 42px;
             border: none;
             border-radius: 12px;
             background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
             color: #fff;
             font-weight: 950;
-            font-size: 0.98rem;
+            font-size: 0.92rem;
             cursor: pointer;
         }
         .operation-focus__payment-action:disabled {
@@ -1194,28 +1233,22 @@
             background: linear-gradient(90deg, #14532d 0%, #16a34a 100%);
             color: #dcfce7;
         }
-        .operation-focus__contact-title {
-            font-size: 1rem;
-            font-weight: 900;
-            color: #f8fafc;
+        .operation-focus__payment-card {
+            border-color: rgba(168, 85, 247, 0.2);
+            display: grid;
+            gap: 8px;
         }
-        .operation-focus__contact-action {
-            width: 100%;
-            min-height: 42px;
-            border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.22);
-            background: rgba(8, 17, 31, 0.88);
-            color: #e2e8f0;
-            font-weight: 900;
-            cursor: pointer;
+        .operation-focus__payment-card.is-paid {
+            border-color: rgba(34, 197, 94, 0.25);
+            background: linear-gradient(180deg, rgba(12, 44, 26, 0.96), rgba(8, 17, 31, 0.98));
         }
         .operation-focus__summary-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 10px;
         }
         .operation-focus__summary-grid .operation-focus__section {
-            min-height: 110px;
+            min-height: 0;
         }
         .operation-focus__footer {
             display: flex;
@@ -1248,6 +1281,9 @@
             color: #f8fafc;
             font-weight: 800;
             line-height: 1.35;
+        }
+        .operation-focus__section-value.is-compact {
+            font-size: 0.94rem;
         }
         .operation-focus__product-row {
             display: grid;
@@ -1290,7 +1326,7 @@
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
-            padding: 16px 8px 8px;
+            padding: 14px 8px 8px;
             border-radius: 14px;
             background: rgba(8, 17, 31, 0.88);
             border: 1px solid rgba(148, 163, 184, 0.12);
@@ -2464,7 +2500,6 @@
                     <div class="operation-focus__detail-title" id="operation-focus-title">Selecciona un pedido</div>
                     <div class="ops-summary-card__hint" id="operation-focus-subtitle">La pantalla principal mostrará el pedido elegido.</div>
                 </div>
-                <span class="nelly-state nelly-state--empty" id="operation-focus-badge">Cola</span>
             </div>
             <div class="operation-focus__detail-body" id="operation-focus-body">
                 <div class="operation-focus__empty">Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.</div>
@@ -3205,11 +3240,6 @@
 
                 title.textContent = `Pedido #${displayId}`;
                 subtitle.textContent = nombre;
-                const badge = document.getElementById('operation-focus-badge');
-                if (badge) {
-                    badge.className = `nelly-state ${riesgo.clase === 'is-critical' ? 'nelly-state--danger' : (riesgo.clase === 'is-warning' ? 'nelly-state--warn' : 'nelly-state--success')}`;
-                    badge.textContent = estadoVisible === 'PREPARANDO' ? 'EN COCINA' : estadoVisible;
-                }
                 body.innerHTML = `
                     <div class="operation-focus__detail-shell">
                         <div class="operation-focus__hero">
@@ -3244,63 +3274,80 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="operation-focus__summary-grid">
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Cliente</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(nombre)}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Dirección</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Productos (${productos.length})</span>
-                                <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
-                            </div>
-                        </div>
-                        <div class="operation-focus__summary-grid">
-                            <div class="operation-focus__section" style="grid-column: 1 / -1;">
-                                <span class="operation-focus__section-label">Línea de tiempo</span>
-                                <div class="operation-focus__timeline">${timelineHtml}</div>
-                            </div>
-                        </div>
-                        <div class="operation-focus__communication">
-                            <div class="operation-focus__contact-card">
-                                <span class="operation-focus__section-label">Comunicación cliente</span>
-                                <strong class="operation-focus__contact-title">${escapeHtmlOperacion(nombre)}</strong>
-                                <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatCliente && window.abrirChatCliente('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
-                                <button class="operation-focus__contact-action" type="button" onclick="window.llamarCliente && window.llamarCliente('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
-                            </div>
-                            <div class="operation-focus__contact-card">
-                                <span class="operation-focus__section-label">Comunicación repartidor</span>
-                                <strong class="operation-focus__contact-title">${escapeHtmlOperacion(repartidor)}</strong>
-                                <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatRepartidor && window.abrirChatRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
-                                <button class="operation-focus__contact-action" type="button" onclick="window.llamarRepartidor && window.llamarRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
-                                <button class="operation-focus__contact-action" type="button" onclick="window.verUbicacionPedido && window.verUbicacionPedido('${String(displayId).replace(/'/g, "\\'")}')">Ver ubicación</button>
-                            </div>
-                            <div class="operation-focus__payment-card ${pagoCompletado ? 'is-paid' : ''}">
-                                <span class="operation-focus__payment-label">Pago del pedido</span>
-                                <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
-                                <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
-                                <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
-                                <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
-                            </div>
-                        </div>
-                        <div class="operation-focus__summary-grid">
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Notas</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Más opciones</span>
-                                <div class="operation-focus__footer">
-                                    <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">⋮</button>
-                                    <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
+                        <div class="operation-focus__content-grid">
+                            <div class="operation-focus__left-stack">
+                                <div class="operation-focus__summary-grid">
+                                    <div class="operation-focus__section">
+                                        <span class="operation-focus__section-label">Cliente</span>
+                                        <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(nombre)}</div>
+                                    </div>
+                                    <div class="operation-focus__section">
+                                        <span class="operation-focus__section-label">Estado</span>
+                                        <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(estadoVisible)}</div>
+                                    </div>
+                                </div>
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Dirección</span>
+                                    <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
+                                </div>
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Productos (${productos.length})</span>
+                                    <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
+                                </div>
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Línea de tiempo</span>
+                                    <div class="operation-focus__timeline">${timelineHtml}</div>
                                 </div>
                             </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Estado</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(estadoVisible)}</div>
+                            <div class="operation-focus__right-stack">
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Prioridad</span>
+                                    <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(riesgo.etiqueta)}</div>
+                                    <div class="ops-summary-card__hint">Orden sugerido por urgencia</div>
+                                </div>
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Repartidor</span>
+                                    <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(repartidor)}</div>
+                                    <div class="ops-summary-card__hint">${escapeHtmlOperacion(String(eta))}</div>
+                                </div>
+                                <div class="operation-focus__section">
+                                    <span class="operation-focus__section-label">Comunicación</span>
+                                    <div class="operation-focus__communication">
+                                        <div class="operation-focus__contact-card">
+                                            <strong class="operation-focus__contact-title">${escapeHtmlOperacion(nombre)}</strong>
+                                            <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatCliente && window.abrirChatCliente('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
+                                            <button class="operation-focus__contact-action" type="button" onclick="window.llamarCliente && window.llamarCliente('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
+                                        </div>
+                                        <div class="operation-focus__contact-card">
+                                            <strong class="operation-focus__contact-title">${escapeHtmlOperacion(repartidor)}</strong>
+                                            <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatRepartidor && window.abrirChatRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
+                                            <button class="operation-focus__contact-action" type="button" onclick="window.llamarRepartidor && window.llamarRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:10px;">
+                                        <button class="operation-focus__contact-action" type="button" onclick="window.verUbicacionPedido && window.verUbicacionPedido('${String(displayId).replace(/'/g, "\\'")}')">Ver ubicación</button>
+                                    </div>
+                                </div>
+                                <div class="operation-focus__payment-card ${pagoCompletado ? 'is-paid' : ''}">
+                                    <span class="operation-focus__payment-label">Pago del pedido</span>
+                                    <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
+                                    <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
+                                    <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
+                                    <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
+                                </div>
+                                <div class="operation-focus__summary-grid">
+                                    <div class="operation-focus__section">
+                                        <span class="operation-focus__section-label">Notas</span>
+                                        <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
+                                    </div>
+                                    <div class="operation-focus__section">
+                                        <span class="operation-focus__section-label">Más opciones</span>
+                                        <div class="operation-focus__footer">
+                                            <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">⋮</button>
+                                            <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
