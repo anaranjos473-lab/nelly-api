@@ -2779,13 +2779,16 @@
                 body.innerHTML = `
                     <div class="operation-focus__detail-shell">
                         <div class="operation-focus__detail-main">
-                            <div class="operation-focus__detail-headline">
-                                <div class="operation-focus__detail-headline-id">Pedido #${escapeHtmlOperacion(displayId)}</div>
-                                <div class="operation-focus__detail-headline-timer">${escapeHtmlOperacion(cronometro)}</div>
-                                <div class="operation-focus__detail-headline-meta">
-                                    <span class="operation-focus__detail-headline-chip">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</span>
-                                    <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
-                                    <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(estadoVisible)}</span>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Resumen</span>
+                                <div class="operation-focus__section-value">
+                                    <div class="operation-focus__detail-headline-id">Pedido #${escapeHtmlOperacion(displayId)}</div>
+                                    <div class="operation-focus__detail-headline-timer">${escapeHtmlOperacion(cronometro)}</div>
+                                    <div class="operation-focus__detail-headline-meta">
+                                        <span class="operation-focus__detail-headline-chip">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</span>
+                                        <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
+                                        <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(estadoVisible)}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="operation-focus__section">
