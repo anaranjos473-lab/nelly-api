@@ -1112,6 +1112,103 @@
             font-size: 0.8rem;
             line-height: 1.3;
         }
+        .operation-focus__communication {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .operation-focus__contact-card,
+        .operation-focus__payment-card {
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            display: grid;
+            gap: 10px;
+            min-height: 180px;
+        }
+        .operation-focus__contact-card {
+            grid-template-rows: auto auto 1fr;
+        }
+        .operation-focus__payment-card {
+            border-color: rgba(168, 85, 247, 0.2);
+        }
+        .operation-focus__payment-card.is-paid {
+            border-color: rgba(34, 197, 94, 0.25);
+            background: linear-gradient(180deg, rgba(12, 44, 26, 0.96), rgba(8, 17, 31, 0.98));
+        }
+        .operation-focus__payment-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #c4b5fd;
+            font-weight: 900;
+        }
+        .operation-focus__payment-method {
+            font-size: 1.6rem;
+            font-weight: 950;
+            line-height: 1.05;
+            color: #f8fafc;
+        }
+        .operation-focus__payment-method.is-green {
+            color: #22c55e;
+        }
+        .operation-focus__payment-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+        .operation-focus__payment-status.is-paid {
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .operation-focus__payment-status.is-due {
+            color: #fdba74;
+            background: rgba(249, 115, 22, 0.12);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        .operation-focus__payment-amount {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #e2e8f0;
+        }
+        .operation-focus__payment-action {
+            width: 100%;
+            min-height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #f97316 0%, #fb923c 100%);
+            color: #fff;
+            font-weight: 950;
+            font-size: 0.98rem;
+            cursor: pointer;
+        }
+        .operation-focus__payment-action:disabled {
+            cursor: default;
+            background: linear-gradient(90deg, #14532d 0%, #16a34a 100%);
+            color: #dcfce7;
+        }
+        .operation-focus__contact-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+        .operation-focus__contact-action {
+            width: 100%;
+            min-height: 42px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(8, 17, 31, 0.88);
+            color: #e2e8f0;
+            font-weight: 900;
+            cursor: pointer;
+        }
         .operation-focus__summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -2964,6 +3061,50 @@
                 return '•';
             }
 
+            function normalizarMetodoPagoOperacion(pedido = {}) {
+                const raw = String(
+                    pedido.metodo_pago ||
+                    pedido.metodoPago ||
+                    pedido.pago ||
+                    pedido.payment_method ||
+                    pedido.paymentMethod ||
+                    ''
+                ).trim().toLowerCase();
+                if (!raw) return { clave: 'efectivo', etiqueta: 'Efectivo', pagado: false, esEfectivo: true };
+                if (/(tarjeta|card|visa|master|transferencia|spei|bank|online|digital)/.test(raw)) {
+                    return {
+                        clave: raw,
+                        etiqueta: /transferencia|spei|bank/.test(raw) ? 'Transferencia' : 'Tarjeta',
+                        pagado: true,
+                        esEfectivo: false
+                    };
+                }
+                return { clave: 'efectivo', etiqueta: 'Efectivo', pagado: false, esEfectivo: true };
+            }
+
+            function pagoConfirmadoOperacion(id) {
+                try {
+                    const store = JSON.parse(localStorage.getItem('nelly-payment-confirmed') || '{}');
+                    return Boolean(store[String(id || '')]);
+                } catch (_err) {
+                    return false;
+                }
+            }
+
+            function marcarPagoConfirmadoOperacion(id) {
+                const key = String(id || '').trim();
+                if (!key) return;
+                const store = (() => {
+                    try {
+                        return JSON.parse(localStorage.getItem('nelly-payment-confirmed') || '{}');
+                    } catch (_err) {
+                        return {};
+                    }
+                })();
+                store[key] = true;
+                localStorage.setItem('nelly-payment-confirmed', JSON.stringify(store));
+            }
+
             function renderOperacionEnfoque(id) {
                 const sidebar = document.getElementById('operation-focus-queue');
                 const title = document.getElementById('operation-focus-title');
@@ -3032,6 +3173,9 @@
                 const notas = pedido.notas || pedido.nota || pedido.referencia || 'Sin notas';
                 const repartidor = pedido.repartidor_nombre || pedido.repartidor || pedido.driver_nombre || 'Buscando...';
                 const eta = pedido.eta || pedido.eta_estimada || pedido.eta_estimado || 'Sin asignar';
+                const pago = normalizarMetodoPagoOperacion(pedido);
+                const pagoCompletado = pago.pagado || pagoConfirmadoOperacion(displayId);
+                const totalCobro = Number(pedido.monto || pedido.total || pedido.monto_total || 0);
                 const timelineEventos = [
                     ['Recibido', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
                     ['Preparando', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
@@ -3120,6 +3264,28 @@
                                 <div class="operation-focus__timeline">${timelineHtml}</div>
                             </div>
                         </div>
+                        <div class="operation-focus__communication">
+                            <div class="operation-focus__contact-card">
+                                <span class="operation-focus__section-label">Comunicación cliente</span>
+                                <strong class="operation-focus__contact-title">${escapeHtmlOperacion(nombre)}</strong>
+                                <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatCliente && window.abrirChatCliente('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
+                                <button class="operation-focus__contact-action" type="button" onclick="window.llamarCliente && window.llamarCliente('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
+                            </div>
+                            <div class="operation-focus__contact-card">
+                                <span class="operation-focus__section-label">Comunicación repartidor</span>
+                                <strong class="operation-focus__contact-title">${escapeHtmlOperacion(repartidor)}</strong>
+                                <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatRepartidor && window.abrirChatRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
+                                <button class="operation-focus__contact-action" type="button" onclick="window.llamarRepartidor && window.llamarRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
+                                <button class="operation-focus__contact-action" type="button" onclick="window.verUbicacionPedido && window.verUbicacionPedido('${String(displayId).replace(/'/g, "\\'")}')">Ver ubicación</button>
+                            </div>
+                            <div class="operation-focus__payment-card ${pagoCompletado ? 'is-paid' : ''}">
+                                <span class="operation-focus__payment-label">Pago del pedido</span>
+                                <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
+                                <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
+                                <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
+                                <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
+                            </div>
+                        </div>
                         <div class="operation-focus__summary-grid">
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Notas</span>
@@ -3153,6 +3319,61 @@
                     || ''
                 );
                 renderOperacionEnfoque(window.__nellyPedidoEnfoque);
+            };
+
+            window.llamarCliente = (id) => {
+                const pedido = resolverPedidoOperacion(id);
+                const telefono = String(pedido?.telefono || pedido?.phone || pedido?.contacto || '').trim();
+                if (telefono) {
+                    showToast(`Llamando al cliente ${telefono}`, 'ok');
+                    return;
+                }
+                showToast('Cliente sin telefono visible', 'err');
+            };
+
+            window.llamarRepartidor = (id) => {
+                const pedido = resolverPedidoOperacion(id);
+                const repartidor = String(pedido?.repartidor_nombre || pedido?.repartidor || pedido?.driver_name || '').trim();
+                if (repartidor) {
+                    showToast(`Llamando a ${repartidor}`, 'ok');
+                    return;
+                }
+                showToast('Repartidor aun no asignado', 'err');
+            };
+
+            window.abrirChatRepartidor = (id) => {
+                const pedido = resolverPedidoOperacion(id);
+                const repartidor = String(pedido?.repartidor_nombre || pedido?.repartidor || pedido?.driver_name || 'repartidor').trim();
+                showToast(`Abriendo chat con ${repartidor}`, 'ok');
+            };
+
+            window.verUbicacionPedido = (id) => {
+                const pedido = resolverPedidoOperacion(id);
+                if (pedido?.direccion || pedido?.lat || pedido?.lng) {
+                    showToast('Mostrando ubicacion del pedido', 'ok');
+                    return;
+                }
+                showToast('Ubicacion no disponible', 'err');
+            };
+
+            window.confirmarPagoPedido = (id) => {
+                const pedido = resolverPedidoOperacion(id);
+                const metodo = normalizarMetodoPagoOperacion(pedido);
+                if (!pedido) {
+                    showToast('Pedido no encontrado para pago', 'err');
+                    return;
+                }
+                if (metodo.pagado) {
+                    marcarPagoConfirmadoOperacion(id);
+                    renderOperacionEnfoque(window.__nellyPedidoEnfoque || id);
+                    showToast(`Pago reconocido como ${metodo.etiqueta}`, 'ok');
+                    return;
+                }
+                const ok = confirm(`Confirmar que se recibió el pago en efectivo de $${Number(pedido?.monto || pedido?.total || 0).toFixed(2)}?`);
+                if (!ok) return;
+                marcarPagoConfirmadoOperacion(id);
+                renderOperacionEnfoque(window.__nellyPedidoEnfoque || id);
+                showToast('Pago confirmado', 'ok');
             };
 
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
