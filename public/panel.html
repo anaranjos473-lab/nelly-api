@@ -2726,7 +2726,7 @@
                     `;
                 }).join('');
 
-                const pedido = (id && pedidoDesdeEstado(id)) || pedidosFinales[0] || null;
+                const pedido = (id ? pedidoDesdeEstado(id) : null) || pedidosFinales[0] || null;
                 if (!pedido) {
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
@@ -2910,7 +2910,8 @@
             const keyResuelta = resolverKeyPedido(id);
             const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
                 || kitchenState.orders.pedidosReparto.get(keyResuelta)
-                || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
+                || kitchenState.orders.pedidosEnCamino.get(keyResuelta)
+                || kitchenState.orders.pedidosEntregados.get(keyResuelta);
             if (!pedido) {
                 showToast('Pedido no encontrado para ver detalle', 'err');
                 return;
