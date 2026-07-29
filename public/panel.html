@@ -2811,36 +2811,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="operation-focus__detail-aside">
-                            <div class="operation-focus__intel">
-                                <div class="operation-focus__intel-card">
-                                    <span class="operation-focus__intel-label">IA</span>
-                                    <span class="operation-focus__intel-value">${Math.max(1, Math.round(Math.max(0, objetivo - Number(pedido.tiempo_transcurrido || pedido.tiempo_transcurrido_min || 0))))} min</span>
-                                    <span class="operation-focus__intel-hint">Tiempo restante estimado</span>
-                                </div>
-                                <div class="operation-focus__intel-card">
-                                    <span class="operation-focus__intel-label">Prioridad</span>
-                                    <span class="operation-focus__intel-value">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
-                                    <span class="operation-focus__intel-hint">Orden sugerido por urgencia</span>
-                                </div>
-                                <div class="operation-focus__intel-card">
-                                    <span class="operation-focus__intel-label">Repartidor</span>
-                                    <span class="operation-focus__intel-value">${escapeHtmlOperacion(pedido.repartidor_nombre || pedido.repartidor || 'Buscando...')}</span>
-                                    <span class="operation-focus__intel-hint">${escapeHtmlOperacion(pedido.eta_repartidor || 'ETA pendiente')}</span>
-                                </div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Línea de tiempo</span>
-                                <div class="operation-focus__timeline">${timelineHtml}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Notas</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Dirección</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
-                            </div>
+                        <div class="operation-focus__section">
+                            <span class="operation-focus__section-label">Línea de tiempo</span>
+                            <div class="operation-focus__timeline">${timelineHtml}</div>
+                        </div>
+                        <div class="operation-focus__section">
+                            <span class="operation-focus__section-label">Notas</span>
+                            <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
+                        </div>
+                        <div class="operation-focus__section">
+                            <span class="operation-focus__section-label">Dirección</span>
+                            <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
                         </div>
                     </div>
                 `;
