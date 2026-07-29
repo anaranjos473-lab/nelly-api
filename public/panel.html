@@ -887,6 +887,33 @@
             gap: 10px;
             margin-bottom: 10px;
         }
+        .operation-focus__sidebar-filter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 44px;
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(8, 17, 31, 0.92);
+            color: #e2e8f0;
+            font-size: 0.78rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+        .operation-focus__sidebar-filter:hover {
+            border-color: rgba(34, 211, 238, 0.35);
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.09);
+            transform: translateY(-1px);
+        }
+        .operation-focus__sidebar-filter.is-active {
+            background: linear-gradient(90deg, rgba(34, 211, 238, 0.18), rgba(45, 212, 191, 0.2));
+            border-color: rgba(34, 211, 238, 0.5);
+            color: #f8fafc;
+        }
         .operation-focus__sidebar-title {
             font-size: 0.78rem;
             letter-spacing: 0.08em;
@@ -2438,11 +2465,11 @@
         </div>
         <div class="ops-summary-card">
             <div class="ops-summary-card__topline">
-                <span class="ops-summary-card__icon ops-summary-card__icon--slate">⏱</span>
-                <span class="ops-summary-card__label">Entregados</span>
+                <span class="ops-summary-card__icon ops-summary-card__icon--slate">✓</span>
+                <span class="ops-summary-card__label">Entregados hoy</span>
             </div>
-            <span id="kpi-eta" class="ops-summary-card__value ops-summary-card__value--large">8</span>
-            <span class="ops-summary-card__bar ops-summary-card__bar--soft"><span style="width: 66%; background: linear-gradient(90deg, #cbd5e1, #94a3b8);"></span></span>
+            <span id="kpi-entregados-hoy" class="ops-summary-card__value ops-summary-card__value--large">0</span>
+            <span class="ops-summary-card__hint">Pedidos cerrados sin retraso operativo.</span>
         </div>
     </section>
 
@@ -2585,6 +2612,7 @@
         <aside class="operation-focus__sidebar">
             <div class="operation-focus__sidebar-head">
                 <span class="operation-focus__sidebar-title">Pedidos</span>
+                <button id="btn-toggle-operation-filter" class="operation-focus__sidebar-filter" type="button" aria-pressed="false" title="Filtrar pedidos">Filtro</button>
                 <span class="badge" id="operation-focus-count">0</span>
             </div>
             <div id="operation-focus-queue" class="operation-focus__queue"></div>
@@ -2925,8 +2953,24 @@
                 const kitchenMapPreview = document.getElementById('kitchen-map-preview');
                 const btnToggleInventory = document.getElementById('btn-toggle-inventory');
                 const inventoryPanel = document.getElementById('inventory-panel');
+                const btnToggleOperationFilter = document.getElementById('btn-toggle-operation-filter');
                 const workspaceTabs = Array.from(document.querySelectorAll('[data-workspace-tab]'));
                 const workspacePanels = Array.from(document.querySelectorAll('[data-workspace]'));
+                const filterOrder = ['todas', 'nuevos', 'atencion', 'riesgo'];
+
+                const syncOperationFilterButton = () => {
+                    if (!btnToggleOperationFilter || !filtroPrioridad) return;
+                    const value = String(filtroPrioridad.value || 'todas');
+                    const labels = {
+                        todas: 'Filtro',
+                        nuevos: 'Nuevos',
+                        atencion: 'Atención',
+                        riesgo: 'Riesgo'
+                    };
+                    btnToggleOperationFilter.textContent = labels[value] || 'Filtro';
+                    btnToggleOperationFilter.classList.toggle('is-active', value !== 'todas');
+                    btnToggleOperationFilter.setAttribute('aria-pressed', value !== 'todas' ? 'true' : 'false');
+                };
 
                 const setWorkspace = (active) => {
                     workspaceTabs.forEach((tab) => {
@@ -2978,6 +3022,17 @@
                 if (filtroPrioridad) {
                     filtroPrioridad.addEventListener('change', () => {
                         solicitarRenderPanel('filtro-prioridad');
+                        syncOperationFilterButton();
+                        refrescarOperacion();
+                    });
+                }
+                if (btnToggleOperationFilter && filtroPrioridad) {
+                    btnToggleOperationFilter.addEventListener('click', () => {
+                        const current = String(filtroPrioridad.value || 'todas');
+                        const nextIndex = (filterOrder.indexOf(current) + 1) % filterOrder.length;
+                        filtroPrioridad.value = filterOrder[nextIndex];
+                        syncOperationFilterButton();
+                        solicitarRenderPanel('filtro-prioridad-ciclo');
                         refrescarOperacion();
                     });
                 }
@@ -3040,6 +3095,7 @@
                 aplicarColumnasGuardadas();
                 aplicarEstadoJornadaCocina();
                 aplicarEstadoRecepcionEntrantes();
+                syncOperationFilterButton();
             });
 
             function logDebug(mensaje, tipo = 'ok') {
@@ -3099,31 +3155,27 @@
                     }
                 }
 
+                const ordenar = (coleccion = []) => coleccion
+                    .slice()
+                    .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+
                 if (lista.length) {
-                    return asignarShortIdsDiarios(
-                        lista
-                            .filter((pedido) => esPedidoDelMesActual(pedido))
-                            .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
-                    );
+                    const visiblesDelMes = lista.filter((pedido) => esPedidoDelMesActual(pedido));
+                    const base = visiblesDelMes.length ? visiblesDelMes : lista;
+                    return asignarShortIdsDiarios(ordenar(base));
                 }
 
                 const snapshotCrudo = Array.isArray(window.__nellyPedidosCocinaSnapshotRaw) ? window.__nellyPedidosCocinaSnapshotRaw : [];
                 if (snapshotCrudo.length) {
-                    return asignarShortIdsDiarios(
-                        snapshotCrudo
-                            .filter((pedido) => esPedidoDelMesActual(pedido))
-                            .slice()
-                            .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
-                    );
+                    const visiblesDelMes = snapshotCrudo.filter((pedido) => esPedidoDelMesActual(pedido));
+                    const base = visiblesDelMes.length ? visiblesDelMes : snapshotCrudo;
+                    return asignarShortIdsDiarios(ordenar(base));
                 }
 
                 const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
-                return asignarShortIdsDiarios(
-                    renderizados
-                        .filter((pedido) => esPedidoDelMesActual(pedido))
-                        .slice()
-                        .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
-                );
+                const visiblesDelMes = renderizados.filter((pedido) => esPedidoDelMesActual(pedido));
+                const base = visiblesDelMes.length ? visiblesDelMes : renderizados;
+                return asignarShortIdsDiarios(ordenar(base));
             }
 
             function resolverPedidoOperacion(identificador) {
@@ -3285,6 +3337,17 @@
                 return true;
             }
 
+            function pedidoPasaColumnasOperacion(pedido = {}, columnasActivas = getEnabledColumnKeys()) {
+                const activas = new Set(Array.isArray(columnasActivas) ? columnasActivas : getEnabledColumnKeys());
+                if (!activas.size) return true;
+                const fase = obtenerFasePanel(pedido?.fase || pedido?.fase_panel || pedido?.estado || '');
+                if (fase === 'COCINA') return activas.has('pendientes');
+                if (fase === 'DESPACHO') return activas.has('listo');
+                if (fase === 'EN_REPARTO') return activas.has('reparto');
+                if (fase === 'ENTREGADO') return activas.has('entregados');
+                return true;
+            }
+
             function marcarPagoConfirmadoOperacion(id) {
                 const key = String(id || '').trim();
                 if (!key) return;
@@ -3308,7 +3371,10 @@
                 if (!sidebar || !title || !subtitle || !body || !count) return;
 
                 const filtros = getKitchenFilters();
-                const pedidosFinales = todosLosPedidosCocina().filter((pedido) => pedidoPasaFiltrosOperacion(pedido, filtros));
+                const columnasActivas = getEnabledColumnKeys();
+                const pedidosFinales = todosLosPedidosCocina()
+                    .filter((pedido) => pedidoPasaColumnasOperacion(pedido, columnasActivas))
+                    .filter((pedido) => pedidoPasaFiltrosOperacion(pedido, filtros));
                 count.textContent = String(pedidosFinales.length);
 
                 sidebar.innerHTML = pedidosFinales.map((pedido, index) => {
@@ -4240,7 +4306,8 @@
             if (estado === 'PENDIENTE') return 'COCINA';
             if (estado === 'LISTO') return 'DESPACHO';
             if (estado === 'EN_CURSO') return 'EN_REPARTO';
-            if (estado === 'ENTREGADO') return 'FINALIZADO';
+            if (estado === 'ENTREGADO') return 'ENTREGADO';
+            if (estado === 'FINALIZADO') return 'ENTREGADO';
             return 'COCINA';
         }
 

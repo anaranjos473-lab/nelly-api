@@ -240,7 +240,7 @@ export function createRenderManager() {
       setText('kpi-tiempo-promedio', `${Number(counters.tiempoPromedio ?? 0).toFixed(0)} min`);
       setText('kpi-riesgo', counters.riesgo ?? 0);
       setText('kpi-antiguedad', counters.antiguedad ?? 0);
-      setText('kpi-eta', `${Number(counters.eta ?? 0).toFixed(0)} min`);
+      setText('kpi-entregados-hoy', counters.entregados ?? 0);
       setText('kpi-visibles', counters.visibles ?? counters.total ?? 0);
       setText('kpi-objetivo-cocina', `${Number(counters.tiempoObjetivo ?? 8).toFixed(0)} min`);
       setText('kpi-estado-cocina', counters.estadoCocina || 'En tiempo');
