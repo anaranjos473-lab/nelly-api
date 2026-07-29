@@ -2722,6 +2722,40 @@
                 return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
             }
 
+            function resolverPedidoOperacion(identificador) {
+                const valor = String(identificador || '').trim();
+                if (!valor) return null;
+
+                const colecciones = [
+                    kitchenState.orders.pedidosPendientes,
+                    kitchenState.orders.pedidosReparto,
+                    kitchenState.orders.pedidosEnCamino,
+                    kitchenState.orders.pedidosEntregados
+                ];
+
+                for (const mapa of colecciones) {
+                    if (!(mapa instanceof Map)) continue;
+                    if (mapa.has(valor)) {
+                        return mapa.get(valor);
+                    }
+                    for (const [key, pedido] of mapa.entries()) {
+                        const candidatos = [
+                            key,
+                            pedido?.id,
+                            pedido?.id_pedido,
+                            pedido?.pedido_id,
+                            pedido?.shortId,
+                            pedido?._rtdbKey
+                        ].filter(Boolean).map((item) => String(item));
+                        if (candidatos.includes(valor)) {
+                            return { ...pedido, id: key };
+                        }
+                    }
+                }
+
+                return null;
+            }
+
             function escapeHtmlOperacion(valor = '') {
                 return String(valor)
                     .replace(/&/g, '&amp;')
@@ -2818,7 +2852,7 @@
                     `;
                 }).join('');
 
-                const pedido = (id ? pedidoDesdeEstado(id) : null) || pedidosFinales[0] || null;
+                const pedido = (id ? resolverPedidoOperacion(id) : null) || pedidosFinales[0] || null;
                 if (!pedido) {
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
@@ -2914,8 +2948,16 @@
 
             window.renderOperacionEnfoque = renderOperacionEnfoque;
             window.mostrarPedidoEnPanel = (id) => {
-                window.__nellyPedidoEnfoque = String(id || '');
-                renderOperacionEnfoque(id);
+                const pedido = resolverPedidoOperacion(id);
+                window.__nellyPedidoEnfoque = String(
+                    pedido?.id
+                    || pedido?.id_pedido
+                    || pedido?.pedido_id
+                    || pedido?.shortId
+                    || id
+                    || ''
+                );
+                renderOperacionEnfoque(window.__nellyPedidoEnfoque);
             };
 
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
