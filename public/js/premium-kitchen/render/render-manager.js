@@ -281,11 +281,6 @@ export function createRenderManager() {
       const pedidosPendientesOrdenados = Array.from(pedidosPendientes.entries()).sort((a, b) => {
         const pedidoA = a[1] || {};
         const pedidoB = b[1] || {};
-        const urgenciaA = toNumberSafe(pedidoA.urgencia || pedidoA.priority || pedidoA.prioridad, 0);
-        const urgenciaB = toNumberSafe(pedidoB.urgencia || pedidoB.priority || pedidoB.prioridad, 0);
-        if (urgenciaA !== urgenciaB) {
-          return urgenciaB - urgenciaA;
-        }
         return getPedidoTimestamp(pedidoA) - getPedidoTimestamp(pedidoB);
       });
 
