@@ -2821,9 +2821,12 @@
                     <div class="operation-focus__detail-shell">
                         <div class="operation-focus__detail-main">
                             <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Línea de tiempo</span>
+                                <div class="operation-focus__timeline">${timelineHtml}</div>
+                            </div>
+                            <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Resumen</span>
                                 <div class="operation-focus__section-value">
-                                    <div class="operation-focus__detail-headline-id">Pedido #${escapeHtmlOperacion(displayId)}</div>
                                     <div class="operation-focus__detail-headline-timer">${escapeHtmlOperacion(cronometro)}</div>
                                     <div class="operation-focus__detail-headline-meta">
                                         <span class="operation-focus__detail-headline-chip">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</span>
@@ -2837,12 +2840,12 @@
                                 <div class="operation-focus__section-value">${escapeHtmlOperacion(nombre)}</div>
                             </div>
                             <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Productos</span>
-                                <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
+                                <span class="operation-focus__section-label">Dirección</span>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
                             </div>
                             <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Objetivo</span>
-                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(objetivo))} min</div>
+                                <span class="operation-focus__section-label">Productos</span>
+                                <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Más opciones</span>
@@ -2853,16 +2856,8 @@
                             </div>
                         </div>
                         <div class="operation-focus__section">
-                            <span class="operation-focus__section-label">Línea de tiempo</span>
-                            <div class="operation-focus__timeline">${timelineHtml}</div>
-                        </div>
-                        <div class="operation-focus__section">
                             <span class="operation-focus__section-label">Notas</span>
                             <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
-                        </div>
-                        <div class="operation-focus__section">
-                            <span class="operation-focus__section-label">Dirección</span>
-                            <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
                         </div>
                     </div>
                 `;
