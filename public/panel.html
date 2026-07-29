@@ -2927,6 +2927,16 @@
                         panel.hidden = panel.getAttribute('data-workspace') !== active;
                     });
                 };
+                const refrescarOperacion = () => {
+                    if (typeof window.actualizarPanel === 'function') {
+                        window.actualizarPanel();
+                        return;
+                    }
+                    if (typeof window.renderOperacionEnfoque === 'function') {
+                        const actual = window.__nellyPedidoEnfoque || (todosLosPedidosCocina()[0]?.shortId || todosLosPedidosCocina()[0]?.id_pedido || todosLosPedidosCocina()[0]?.id || null);
+                        window.renderOperacionEnfoque(actual);
+                    }
+                };
                 if (btn) {
                     btn.onclick = () => {
                         window.toggleSeccionHistorial();
@@ -2949,13 +2959,22 @@
                     };
                 }
                 if (filtroBusqueda) {
-                    filtroBusqueda.addEventListener('input', () => solicitarRenderPanel('filtro-busqueda'));
+                    filtroBusqueda.addEventListener('input', () => {
+                        solicitarRenderPanel('filtro-busqueda');
+                        refrescarOperacion();
+                    });
                 }
                 if (filtroPrioridad) {
-                    filtroPrioridad.addEventListener('change', () => solicitarRenderPanel('filtro-prioridad'));
+                    filtroPrioridad.addEventListener('change', () => {
+                        solicitarRenderPanel('filtro-prioridad');
+                        refrescarOperacion();
+                    });
                 }
                 document.querySelectorAll('[data-column-toggle]').forEach((input) => {
-                    input.addEventListener('change', guardarColumnas);
+                    input.addEventListener('change', () => {
+                        guardarColumnas();
+                        refrescarOperacion();
+                    });
                 });
                 if (btnIniciarJornada) {
                     btnIniciarJornada.addEventListener('click', iniciarJornadaCocina);
@@ -3003,6 +3022,7 @@
                 workspaceTabs.forEach((tab) => {
                     tab.addEventListener('click', () => {
                         setWorkspace(tab.getAttribute('data-workspace-tab'));
+                        refrescarOperacion();
                     });
                 });
                 setWorkspace('operation');
