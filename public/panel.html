@@ -1737,9 +1737,9 @@
         }
         .incoming-control--inline {
             margin: 0;
-            padding: 8px 12px;
+            padding: 6px 10px;
             gap: 10px;
-            flex: 1 1 520px;
+            flex: 1 1 100%;
             min-width: 0;
         }
         .incoming-control--inline .incoming-control__copy {
@@ -1747,34 +1747,34 @@
             gap: 2px;
         }
         .incoming-control--inline .incoming-control__title {
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             line-height: 1.02;
         }
         .incoming-control--inline .incoming-control__hint {
-            font-size: 0.76rem;
+            font-size: 0.7rem;
         }
         .incoming-control--inline .incoming-control__actions {
             gap: 8px;
             flex: 0 0 auto;
         }
         .incoming-control--inline .incoming-control__action {
-            min-height: 34px;
-            min-width: 118px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 0.84rem;
+            min-height: 32px;
+            min-width: 108px;
+            padding: 7px 12px;
+            border-radius: 11px;
+            font-size: 0.8rem;
         }
         .incoming-control--inline .incoming-control__button {
-            min-height: 34px;
+            min-height: 32px;
             min-width: 168px;
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-size: 0.86rem;
+            padding: 7px 14px;
+            border-radius: 11px;
+            font-size: 0.8rem;
             box-shadow: 0 10px 18px rgba(34, 211, 238, 0.18);
         }
         .incoming-control__copy {
             display: grid;
-            gap: 4px;
+            gap: 2px;
             min-width: 220px;
         }
         .incoming-control__label {
@@ -1809,8 +1809,8 @@
         }
         .incoming-control__actions {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 8px;
+            flex-wrap: nowrap;
             align-items: center;
             justify-content: flex-end;
         }
@@ -2304,31 +2304,31 @@
 </head>
 <body class="nelly-shell">
 
-    <header class="nelly-panel mb-4 overflow-hidden p-4 sm:p-5">
-        <div class="flex flex-wrap items-center gap-3">
+    <header class="nelly-panel mb-4 overflow-hidden p-3 sm:p-4">
+        <div class="flex items-center justify-between gap-3">
             <span class="nelly-chip nelly-chip--success">🍳 Nelly Cocina</span>
             <span id="badge-estado" class="nelly-state nelly-state--loading">🟢 Online</span>
         </div>
-        <div class="mt-3 flex flex-wrap items-center gap-3">
+        <div class="mt-2 flex flex-wrap items-center gap-2">
             <span class="nelly-chip nelly-chip--accent">📍 Lidos Pizza</span>
             <button id="btn-notificaciones" class="nelly-btn nelly-btn--ghost">⚠ Incidencia</button>
-            <div class="incoming-control incoming-control--inline" aria-label="Control de pedidos entrantes">
-                <div class="incoming-control__copy">
-                    <span class="incoming-control__label">Predicción</span>
-                    <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min</strong>
-                    <span id="incoming-control-hint" class="incoming-control__hint">La recepción sigue activa.</span>
-                </div>
-                <div class="incoming-control__actions">
-                    <button id="btn-iniciar-jornada-cocina" class="incoming-control__action is-active" type="button">
-                        Iniciar jornada
-                    </button>
-                    <button id="btn-cerrar-jornada-cocina" class="incoming-control__action is-closed" type="button">
-                        Cerrar jornada
-                    </button>
-                    <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
-                        Detener pedidos entrantes
-                    </button>
-                </div>
+        </div>
+        <div class="mt-3 incoming-control incoming-control--inline" aria-label="Control de pedidos entrantes">
+            <div class="incoming-control__copy">
+                <span class="incoming-control__label">Predicción</span>
+                <strong id="kpi-prediccion-cocina" class="incoming-control__title">Tiempo estimado 18 min antes de aceptar nuevos pedidos</strong>
+                <span id="incoming-control-hint" class="incoming-control__hint">Próximo pedido +4 min · Si aceptas otro pedido, tiempo estimado 23 min</span>
+            </div>
+            <div class="incoming-control__actions">
+                <button id="btn-iniciar-jornada-cocina" class="incoming-control__action is-active" type="button">
+                    Jornada iniciada
+                </button>
+                <button id="btn-cerrar-jornada-cocina" class="incoming-control__action is-closed" type="button">
+                    Cerrar jornada
+                </button>
+                <button id="btn-toggle-pedidos-entrantes" class="incoming-control__button" type="button">
+                    Detener pedidos entrantes
+                </button>
             </div>
         </div>
         <div class="mt-4">
