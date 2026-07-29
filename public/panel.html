@@ -3210,6 +3210,36 @@
                 }
             }
 
+            function pedidoCoincideBusquedaOperacion(pedido = {}, search = '') {
+                const termino = String(search || '').trim().toLowerCase();
+                if (!termino) return true;
+                const campos = [
+                    pedido.shortId,
+                    pedido.id_pedido,
+                    pedido.id,
+                    pedido.cliente_nombre,
+                    pedido.cliente,
+                    pedido.direccion,
+                    pedido.descripcion,
+                    pedido.items,
+                    pedido.productos
+                ];
+                const texto = campos.flatMap((valor) => Array.isArray(valor) ? valor : [valor])
+                    .filter(Boolean)
+                    .map((valor) => String(valor).toLowerCase())
+                    .join(' ');
+                return texto.includes(termino);
+            }
+
+            function pedidoPasaFiltrosOperacion(pedido = {}, filtros = getKitchenFilters()) {
+                if (!pedido || typeof pedido !== 'object') return false;
+                const search = String(filtros.search || '').trim().toLowerCase();
+                const priority = String(filtros.priority || 'todas').trim();
+                if (!pedidoCoincideBusquedaOperacion(pedido, search)) return false;
+                if (!coincideFiltroPrioridad(pedido, priority)) return false;
+                return true;
+            }
+
             function marcarPagoConfirmadoOperacion(id) {
                 const key = String(id || '').trim();
                 if (!key) return;
@@ -3232,7 +3262,8 @@
                 const count = document.getElementById('operation-focus-count');
                 if (!sidebar || !title || !subtitle || !body || !count) return;
 
-                const pedidosFinales = todosLosPedidosCocina();
+                const filtros = getKitchenFilters();
+                const pedidosFinales = todosLosPedidosCocina().filter((pedido) => pedidoPasaFiltrosOperacion(pedido, filtros));
                 count.textContent = String(pedidosFinales.length);
 
                 sidebar.innerHTML = pedidosFinales.map((pedido, index) => {
@@ -3246,7 +3277,7 @@
                     const claseRiesgo = riesgo.clase === 'is-critical' ? 'is-critical' : (riesgo.clase === 'is-warning' ? 'is-warning' : 'is-normal');
                     const activo = String(pedidoId) === String(id) || (!id && index === 0);
                     return `
-                        <div class="operation-focus__queue-item ${claseRiesgo}${activo ? ' is-active' : ''}" role="button" tabindex="0" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
+                        <div class="operation-focus__queue-item ${claseRiesgo}${activo ? ' is-active' : ''}" role="button" tabindex="0" data-operation-pedido="${escapeHtmlOperacion(String(pedidoId))}">
                             <div class="operation-focus__queue-item-main">
                                 <div class="operation-focus__queue-item-left">
                                     <div class="operation-focus__queue-item-title">
@@ -3270,6 +3301,18 @@
                         </div>
                     `;
                 }).join('');
+
+                sidebar.querySelectorAll('[data-operation-pedido]').forEach((item) => {
+                    const pedidoId = item.getAttribute('data-operation-pedido');
+                    const activate = () => window.mostrarPedidoEnPanel && window.mostrarPedidoEnPanel(pedidoId);
+                    item.addEventListener('click', activate);
+                    item.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            activate();
+                        }
+                    });
+                });
 
                 const pedido = (id ? resolverPedidoOperacion(id) : null) || pedidosFinales[0] || null;
                 if (!pedido) {
