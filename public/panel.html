@@ -557,21 +557,22 @@
         }
         .top-productos-item:last-child { border-bottom: none; }
         .ops-summary {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 0 0 20px 0;
+            display: grid;
+            grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin: 0 0 12px 0;
+            align-items: stretch;
         }
         .ops-summary-card {
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(8, 17, 31, 0.96));
             border: 1px solid rgba(148, 163, 184, 0.16);
             border-radius: 12px;
-            padding: 10px 12px;
+            padding: 12px 14px;
             color: #e2e8f0;
-            min-height: 54px;
-            flex: 1 1 160px;
-            min-width: 150px;
+            min-height: 110px;
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
+            position: relative;
+            overflow: hidden;
         }
         .ops-summary-card__label {
             display: block;
@@ -596,6 +597,28 @@
         }
         .ops-summary-card__value--pulse {
             animation: pulseValue 1.8s ease-in-out infinite;
+        }
+        .ops-summary-card__bar {
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 12px;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.14);
+            overflow: hidden;
+        }
+        .ops-summary-card__bar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+        }
+        .ops-summary-card--green .ops-summary-card__bar span { width: 92%; background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .ops-summary-card--amber .ops-summary-card__bar span { width: 88%; background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .ops-summary-card--blue .ops-summary-card__bar span { width: 72%; background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        .ops-summary-card--slate .ops-summary-card__bar span { width: 68%; background: linear-gradient(90deg, #cbd5e1, #94a3b8); }
+        .ops-summary-card__value--large {
+            font-size: 2.05rem;
         }
         .ops-summary-toggle {
             margin: 0 0 20px 0;
@@ -820,7 +843,7 @@
         }
         .operation-focus {
             display: grid;
-            grid-template-columns: 220px minmax(0, 1fr);
+            grid-template-columns: 300px minmax(0, 1fr);
             gap: 10px;
             margin: 0 0 12px 0;
             align-items: start;
@@ -834,7 +857,7 @@
         }
         .operation-focus__sidebar {
             padding: 10px;
-            min-height: 420px;
+            min-height: 760px;
         }
         .operation-focus__sidebar-head {
             display: flex;
@@ -853,7 +876,7 @@
         .operation-focus__queue {
             display: grid;
             gap: 8px;
-            max-height: 520px;
+            max-height: 700px;
             overflow: auto;
             padding-right: 4px;
         }
@@ -862,36 +885,110 @@
             border: 1px solid rgba(148, 163, 184, 0.14);
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(8, 17, 31, 0.98) 100%);
             color: #e2e8f0;
-            border-radius: 12px;
-            padding: 9px 10px;
+            border-radius: 14px;
+            padding: 12px 12px 10px;
             text-align: left;
             cursor: pointer;
             display: grid;
-            gap: 4px;
-            min-height: 78px;
+            gap: 8px;
+            min-height: 88px;
+            position: relative;
+            overflow: hidden;
         }
+        .operation-focus__queue-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.12), rgba(34, 211, 238, 0.75));
+        }
+        .operation-focus__queue-item.is-critical::before { background: linear-gradient(180deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.92)); }
+        .operation-focus__queue-item.is-warning::before { background: linear-gradient(180deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.92)); }
+        .operation-focus__queue-item.is-normal::before { background: linear-gradient(180deg, rgba(74, 222, 128, 0.12), rgba(74, 222, 128, 0.9)); }
         .operation-focus__queue-item.is-active {
             border-color: rgba(34, 211, 238, 0.35);
             box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.18);
         }
-        .operation-focus__queue-item-top {
+        .operation-focus__queue-item-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: start;
+        }
+        .operation-focus__queue-item-left {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+        }
+        .operation-focus__queue-item-right {
+            display: grid;
+            justify-items: end;
+            gap: 4px;
+            text-align: right;
+        }
+        .operation-focus__queue-item-id {
+            font-size: 1.02rem;
+            font-weight: 950;
+            color: #f8fafc;
+            white-space: nowrap;
+        }
+        .operation-focus__queue-item-client {
+            font-size: 0.78rem;
+            color: #a8b9d3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .operation-focus__queue-item-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .operation-focus__queue-item-status.is-critical {
+            color: #fb7185;
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.18);
+        }
+        .operation-focus__queue-item-status.is-warning {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.18);
+        }
+        .operation-focus__queue-item-status.is-normal {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.08);
+            border: 1px solid rgba(74, 222, 128, 0.18);
+        }
+        .operation-focus__queue-item-time {
+            font-size: 1.15rem;
+            font-weight: 950;
+            color: #f8fafc;
+            line-height: 1;
+        }
+        .operation-focus__queue-item-objective {
+            font-size: 0.76rem;
+            color: #a8b9d3;
+        }
+        .operation-focus__queue-item-mini {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            font-weight: 900;
-            font-size: 0.92rem;
-        }
-        .operation-focus__queue-item-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            font-size: 0.76rem;
+            font-size: 0.78rem;
             color: #9fb4d2;
         }
+        .operation-focus__queue-item-mini strong {
+            color: #e2e8f0;
+        }
         .operation-focus__queue-progress {
-            height: 7px;
+            height: 6px;
             border-radius: 999px;
             overflow: hidden;
             background: rgba(148, 163, 184, 0.12);
@@ -900,6 +997,7 @@
             height: 100%;
             border-radius: inherit;
             background: linear-gradient(90deg, #22d3ee 0%, #10b981 100%);
+            box-shadow: 0 0 18px rgba(34, 211, 238, 0.12);
         }
         .operation-focus__queue-progress-bar.is-warning {
             background: linear-gradient(90deg, #fbbf24 0%, #f97316 100%);
@@ -909,7 +1007,7 @@
         }
         .operation-focus__detail {
             padding: 14px;
-            min-height: 520px;
+            min-height: 760px;
         }
         .operation-focus__detail-head {
             display: flex;
@@ -919,9 +1017,10 @@
             margin-bottom: 12px;
         }
         .operation-focus__detail-title {
-            font-size: 1.1rem;
-            font-weight: 900;
+            font-size: 1.5rem;
+            font-weight: 950;
             color: #f8fafc;
+            line-height: 1.05;
         }
         .operation-focus__detail-body {
             display: grid;
@@ -929,56 +1028,109 @@
         }
         .operation-focus__detail-shell {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 220px;
             gap: 12px;
-            align-items: start;
         }
-        .operation-focus__detail-main,
-        .operation-focus__detail-aside {
+        .operation-focus__hero {
             display: grid;
-            gap: 10px;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            gap: 12px;
         }
-        .operation-focus__detail-main {
-            grid-template-columns: minmax(0, 1fr);
-        }
-        .operation-focus__detail-headline {
+        .operation-focus__hero-main,
+        .operation-focus__hero-side {
             display: grid;
-            gap: 6px;
-            padding: 14px;
+            gap: 12px;
+            min-width: 0;
+        }
+        .operation-focus__hero-maincard {
+            padding: 16px;
             border-radius: 14px;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(8, 17, 31, 0.98) 100%);
+            background: rgba(15, 23, 42, 0.92);
             border: 1px solid rgba(148, 163, 184, 0.14);
+            display: grid;
+            gap: 8px;
         }
-        .operation-focus__detail-headline-id {
-            font-size: 1rem;
+        .operation-focus__timer-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8ea3c2;
             font-weight: 900;
-            letter-spacing: 0.02em;
-            color: #f8fafc;
         }
-        .operation-focus__detail-headline-timer {
-            font-size: 2.3rem;
+        .operation-focus__timer-value {
+            font-size: 4rem;
+            line-height: 0.92;
             font-weight: 950;
-            line-height: 1;
-            color: #f8fafc;
+            color: #f59e0b;
         }
-        .operation-focus__detail-headline-meta {
+        .operation-focus__timer-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
-            color: #9fb4d2;
-            font-weight: 800;
         }
-        .operation-focus__detail-headline-chip {
+        .operation-focus__timer-chip {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 10px;
+            padding: 7px 12px;
             border-radius: 999px;
-            background: rgba(34, 211, 238, 0.12);
-            color: #67e8f9;
-            border: 1px solid rgba(34, 211, 238, 0.18);
-            font-size: 0.78rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: #fdba74;
+            font-size: 0.8rem;
+            font-weight: 900;
+        }
+        .operation-focus__mini-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .operation-focus__mini-card {
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            display: grid;
+            gap: 6px;
+            min-height: 128px;
+        }
+        .operation-focus__mini-card-label {
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8ea3c2;
+            font-weight: 900;
+        }
+        .operation-focus__mini-card-value {
+            font-size: 1.55rem;
+            line-height: 1;
+            font-weight: 950;
+            color: #f8fafc;
+        }
+        .operation-focus__mini-card-hint {
+            color: #9fb4d2;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        .operation-focus__summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .operation-focus__summary-grid .operation-focus__section {
+            min-height: 110px;
+        }
+        .operation-focus__footer {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .operation-focus__footer .nelly-btn {
+            min-width: 180px;
+            min-height: 54px;
+            font-size: 1rem;
+            font-weight: 950;
         }
         .operation-focus__section {
             padding: 12px;
@@ -1035,15 +1187,6 @@
         .operation-focus__product-copy span {
             font-size: 0.72rem;
             color: #9fb4d2;
-        }
-        .operation-focus__actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        .operation-focus__actions .nelly-btn {
-            min-width: 150px;
         }
         .operation-focus__timeline {
             position: relative;
@@ -1152,7 +1295,7 @@
             padding: 18px 0;
         }
         .dashboard-container[data-workspace="operation"] {
-            display: none;
+            display: none !important;
         }
         .card-timeline {
             margin-top: 6px;
@@ -2840,11 +2983,27 @@
                     const progreso = calcularProgresoOperacion(pedido);
                     const riesgo = clasificarRiesgoOperacion(pedido);
                     const estadoVisible = clasificarEstadoOperacion(pedido);
+                    const claseRiesgo = riesgo.clase === 'is-critical' ? 'is-critical' : (riesgo.clase === 'is-warning' ? 'is-warning' : 'is-normal');
                     const activo = String(pedidoId) === String(id) || (!id && index === 0);
                     return `
-                        <div class="operation-focus__queue-item${activo ? ' is-active' : ''}" role="button" tabindex="0" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
-                            <div class="operation-focus__queue-item-top"><strong>#${escapeHtmlOperacion(String(pedidoId || '----'))}</strong><span>${escapeHtmlOperacion(tiempo)}</span></div>
-                            <div class="operation-focus__queue-item-meta"><span>${escapeHtmlOperacion(String(label))}</span><span>${escapeHtmlOperacion(riesgo.etiqueta)}</span></div>
+                        <div class="operation-focus__queue-item ${claseRiesgo}${activo ? ' is-active' : ''}" role="button" tabindex="0" onclick="window.mostrarPedidoEnPanel('${String(pedidoId).replace(/'/g, "\\'")}')">
+                            <div class="operation-focus__queue-item-main">
+                                <div class="operation-focus__queue-item-left">
+                                    <div class="operation-focus__queue-item-title">
+                                        <strong class="operation-focus__queue-item-id">#${escapeHtmlOperacion(String(pedidoId || '----'))}</strong>
+                                        <span class="operation-focus__queue-item-status ${claseRiesgo}">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
+                                    </div>
+                                    <div class="operation-focus__queue-item-client">${escapeHtmlOperacion(String(label))}</div>
+                                </div>
+                                <div class="operation-focus__queue-item-right">
+                                    <div class="operation-focus__queue-item-time">${escapeHtmlOperacion(tiempo)}</div>
+                                    <div class="operation-focus__queue-item-objective">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</div>
+                                </div>
+                            </div>
+                            <div class="operation-focus__queue-item-mini">
+                                <span>Estado <strong>${escapeHtmlOperacion(estadoVisible)}</strong></span>
+                                <span>${escapeHtmlOperacion(progreso)}%</span>
+                            </div>
                             <div class="operation-focus__queue-progress" aria-hidden="true">
                                 <div class="operation-focus__queue-progress-bar ${riesgo.clase}" style="width:${progreso}%;"></div>
                             </div>
@@ -2871,10 +3030,12 @@
                 const estadoVisible = clasificarEstadoOperacion(pedido);
                 const progreso = calcularProgresoOperacion(pedido);
                 const notas = pedido.notas || pedido.nota || pedido.referencia || 'Sin notas';
+                const repartidor = pedido.repartidor_nombre || pedido.repartidor || pedido.driver_nombre || 'Buscando...';
+                const eta = pedido.eta || pedido.eta_estimada || pedido.eta_estimado || 'Sin asignar';
                 const timelineEventos = [
-                    ['Recibido', pedido.recibido_at || pedido.created_at || pedido.createdAt || '—', true],
-                    ['Preparando', pedido.preparando_at || pedido.iniciado_at || '—', true],
-                    ['Cocina', pedido.cocina_at || pedido.listo_at || '—', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
+                    ['Recibido', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
+                    ['Preparando', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
+                    ['Cocina', pedido.cocina_at || pedido.listo_at || '2:10 PM', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
                     ['Reparto', pedido.reparto_at || pedido.asignado_at || '—', pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO']
                 ];
                 const timelineHtml = timelineEventos.map(([label, hora, done], index) => `
@@ -2900,24 +3061,46 @@
 
                 title.textContent = `Pedido #${displayId}`;
                 subtitle.textContent = nombre;
+                const badge = document.getElementById('operation-focus-badge');
+                if (badge) {
+                    badge.className = `nelly-state ${riesgo.clase === 'is-critical' ? 'nelly-state--danger' : (riesgo.clase === 'is-warning' ? 'nelly-state--warn' : 'nelly-state--success')}`;
+                    badge.textContent = estadoVisible === 'PREPARANDO' ? 'EN COCINA' : estadoVisible;
+                }
                 body.innerHTML = `
                     <div class="operation-focus__detail-shell">
-                        <div class="operation-focus__detail-main">
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Línea de tiempo</span>
-                                <div class="operation-focus__timeline">${timelineHtml}</div>
-                            </div>
-                            <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Resumen</span>
-                                <div class="operation-focus__section-value">
-                                    <div class="operation-focus__detail-headline-timer">${escapeHtmlOperacion(cronometro)}</div>
-                                    <div class="operation-focus__detail-headline-meta">
-                                        <span class="operation-focus__detail-headline-chip">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</span>
-                                        <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
-                                        <span class="operation-focus__detail-headline-chip">${escapeHtmlOperacion(estadoVisible)}</span>
+                        <div class="operation-focus__hero">
+                            <div class="operation-focus__hero-main">
+                                <div class="operation-focus__hero-maincard ${riesgo.clase}">
+                                    <div class="operation-focus__timer-label">Tiempo transcurrido</div>
+                                    <div class="operation-focus__timer-value">${escapeHtmlOperacion(cronometro)}</div>
+                                    <div class="ops-summary-card__hint">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</div>
+                                    <div class="operation-focus__timer-meta">
+                                        <span class="operation-focus__timer-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
+                                        <span class="operation-focus__timer-chip">${escapeHtmlOperacion(estadoVisible)}</span>
                                     </div>
                                 </div>
                             </div>
+                            <div class="operation-focus__hero-side">
+                                <div class="operation-focus__mini-grid">
+                                    <div class="operation-focus__mini-card">
+                                        <span class="operation-focus__mini-card-label">Prioridad</span>
+                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(riesgo.etiqueta)}</strong>
+                                        <span class="operation-focus__mini-card-hint">Orden sugerido por urgencia</span>
+                                    </div>
+                                    <div class="operation-focus__mini-card">
+                                        <span class="operation-focus__mini-card-label">Repartidor</span>
+                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(repartidor)}</strong>
+                                        <span class="operation-focus__mini-card-hint">ETA pendiente</span>
+                                    </div>
+                                    <div class="operation-focus__mini-card">
+                                        <span class="operation-focus__mini-card-label">ETA estimada</span>
+                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(String(eta))}</strong>
+                                        <span class="operation-focus__mini-card-hint">En tienda</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="operation-focus__summary-grid">
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Cliente</span>
                                 <div class="operation-focus__section-value">${escapeHtmlOperacion(nombre)}</div>
@@ -2927,20 +3110,32 @@
                                 <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
                             </div>
                             <div class="operation-focus__section">
-                                <span class="operation-focus__section-label">Productos</span>
+                                <span class="operation-focus__section-label">Productos (${productos.length})</span>
                                 <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
+                            </div>
+                        </div>
+                        <div class="operation-focus__summary-grid">
+                            <div class="operation-focus__section" style="grid-column: 1 / -1;">
+                                <span class="operation-focus__section-label">Línea de tiempo</span>
+                                <div class="operation-focus__timeline">${timelineHtml}</div>
+                            </div>
+                        </div>
+                        <div class="operation-focus__summary-grid">
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Notas</span>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
                             </div>
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Más opciones</span>
-                                <div class="operation-focus__actions">
-                                    <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
+                                <div class="operation-focus__footer">
                                     <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">⋮</button>
+                                    <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="operation-focus__section">
-                            <span class="operation-focus__section-label">Notas</span>
-                            <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Estado</span>
+                                <div class="operation-focus__section-value">${escapeHtmlOperacion(estadoVisible)}</div>
+                            </div>
                         </div>
                     </div>
                 `;
