@@ -299,11 +299,20 @@ export function createRenderManager() {
       };
       const columnasActivas = new Set(getEnabledColumnKeys());
 
+      const ordenarPorAntiguedad = (entries = []) => entries.sort((a, b) => {
+        const pedidoA = a[1] || {};
+        const pedidoB = b[1] || {};
+        return getPedidoTimestamp(pedidoA) - getPedidoTimestamp(pedidoB);
+      });
+
       const pedidosPendientesOrdenados = Array.from(pedidosPendientes.entries()).sort((a, b) => {
         const pedidoA = a[1] || {};
         const pedidoB = b[1] || {};
         return getPedidoTimestamp(pedidoA) - getPedidoTimestamp(pedidoB);
       });
+      const pedidosRepartoOrdenados = ordenarPorAntiguedad(Array.from(pedidosReparto.entries()));
+      const pedidosEnCaminoOrdenados = ordenarPorAntiguedad(Array.from(pedidosEnCamino.entries()));
+      const pedidosEntregadosOrdenados = ordenarPorAntiguedad(Array.from(pedidosEntregados.entries()));
 
       pedidosPendientesOrdenados.forEach(([id, pedido]) => {
         const fase = resolvePhase(pedido);
@@ -333,7 +342,7 @@ export function createRenderManager() {
         }
       });
 
-      pedidosReparto.forEach((pedido, id) => {
+      pedidosRepartoOrdenados.forEach(([id, pedido]) => {
         if (pedidosPendientes.has(id)) {
           return;
         }
@@ -347,7 +356,7 @@ export function createRenderManager() {
         }
       });
 
-      pedidosEnCamino.forEach((pedido, id) => {
+      pedidosEnCaminoOrdenados.forEach(([id, pedido]) => {
         if (pedidosPendientes.has(id) || pedidosReparto.has(id)) {
           return;
         }
@@ -374,7 +383,7 @@ export function createRenderManager() {
         }
       });
 
-      pedidosEntregados.forEach((pedido, id) => {
+      pedidosEntregadosOrdenados.forEach(([id, pedido]) => {
         if (pedidosPendientes.has(id) || pedidosReparto.has(id) || pedidosEnCamino.has(id)) {
           return;
         }

@@ -1677,6 +1677,7 @@
             box-sizing: border-box;
             cursor: pointer;
             user-select: none;
+            transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, transform 0.18s ease;
         }
         .column-toggle input {
             appearance: none;
@@ -1692,6 +1693,13 @@
             flex: 0 0 auto;
             transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
+        .column-toggle.is-active {
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.16) 0%, rgba(8, 17, 31, 0.94) 100%);
+            border-color: rgba(34, 211, 238, 0.5);
+            color: #f8fafc;
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.08), inset 0 0 0 1px rgba(34, 211, 238, 0.05);
+            transform: translateY(-1px);
+        }
         .column-toggle input::after {
             content: '';
             width: 8px;
@@ -1705,6 +1713,9 @@
             background: linear-gradient(90deg, #22d3ee 0%, #2dd4bf 100%);
             border-color: transparent;
             box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+        }
+        .column-toggle.is-active input {
+            border-color: rgba(34, 211, 238, 0.9);
         }
         .column-toggle input:checked::after {
             transform: scale(1);
@@ -4526,6 +4537,10 @@
                 if (column) {
                     column.classList.toggle('is-hidden', !enabled);
                 }
+                const label = input.closest('.column-toggle');
+                if (label) {
+                    label.classList.toggle('is-active', enabled);
+                }
             });
         }
 
@@ -4536,6 +4551,10 @@
                 const column = document.querySelector(`.column[data-column="${input.getAttribute('data-column-toggle')}"]`);
                 if (column) {
                     column.classList.toggle('is-hidden', !input.checked);
+                }
+                const label = input.closest('.column-toggle');
+                if (label) {
+                    label.classList.toggle('is-active', input.checked);
                 }
             });
             localStorage.setItem('nelly-kitchen-columns', JSON.stringify(state));
