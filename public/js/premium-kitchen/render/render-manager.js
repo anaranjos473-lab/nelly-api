@@ -509,6 +509,25 @@ export function createRenderManager() {
           ];
       const resumenProductos = String(pedido.descripcion || 'Sin descripcion').replace(/\s+/g, ' ').trim();
       const resumenProductosCorto = resumenProductos.length > 58 ? `${resumenProductos.slice(0, 55).trim()}...` : resumenProductos;
+      const telefono = String(pedido.telefono || pedido.phone || pedido.contacto || 'No disponible').trim();
+      const modificadores = Array.isArray(pedido.modificadores)
+        ? pedido.modificadores.map((mod) => {
+            if (!mod) return '';
+            if (typeof mod === 'string') return mod.trim();
+            return String(mod.nombre || mod.descripcion || mod.modificador || '').trim();
+          }).filter(Boolean)
+        : [];
+      const subitems = Array.isArray(pedido.items)
+        ? pedido.items.map((item) => {
+            if (!item || typeof item !== 'object') return String(item || '').trim();
+            const nombre = String(item.nombre || item.producto || item.descripcion || 'Producto').trim();
+            const cantidad = Number(item.cantidad || item.qty || 1);
+            const extras = Array.isArray(item.modificadores)
+              ? item.modificadores.map((mod) => String(mod?.nombre || mod?.descripcion || mod || '').trim()).filter(Boolean)
+              : [];
+            return `${nombre}${Number.isFinite(cantidad) && cantidad > 1 ? ` x${cantidad}` : ''}${extras.length ? ` (${extras.join(', ')})` : ''}`;
+          }).filter(Boolean)
+        : [];
       const detallesId = `details-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
       const timelineSteps = [
         { label: 'Recibido', done: true },
@@ -564,9 +583,12 @@ export function createRenderManager() {
                         <span class="card-details-toggle__label">Ver mas</span>
                     </button>
                     <div id="${detallesId}" class="card-details" hidden>
+                        <p class="nelly-pattern-card__body"><strong>Folio corto:</strong> #${escapeHtml(displayId)} · <strong>Tel:</strong> ${escapeHtml(telefono)}</p>
                         <p class="nelly-pattern-card__body">${pedido.direccion ? `Direccion: ${escapeHtml(pedido.direccion)}` : 'Direccion no disponible'}</p>
                         ${ubicacionHumanizada ? `<p class="nelly-pattern-card__body">${escapeHtml(ubicacionHumanizada)}</p>` : ''}
                         <p class="nelly-pattern-card__body">${escapeHtml(pedido.descripcion || 'Sin descripcion')}</p>
+                        ${subitems.length ? `<div class="card-details__subitems">${subitems.map((item) => `<p class="nelly-pattern-card__body">${escapeHtml(item)}</p>`).join('')}</div>` : ''}
+                        ${modificadores.length ? `<p class="nelly-pattern-card__body">${escapeHtml(`Modificadores: ${modificadores.join(' | ')}`)}</p>` : ''}
                         <p class="nelly-pattern-card__body">${escapeHtml(repartidorTexto)}</p>
                         <div class="card-history card-history--expanded">
                             <span class="card-history__label">Historial de acciones</span>

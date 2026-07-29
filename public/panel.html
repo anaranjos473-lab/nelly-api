@@ -2706,7 +2706,7 @@
                 const pedidosFinales = todosLosPedidosCocina();
                 count.textContent = String(pedidosFinales.length);
 
-                sidebar.innerHTML = pedidosFinales.slice(0, 12).map((pedido, index) => {
+                sidebar.innerHTML = pedidosFinales.map((pedido, index) => {
                     const pedidoId = pedido.shortId || pedido.id_pedido || pedido.id || '';
                     const label = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                     const objetivo = calcularMetaOperacion(pedido);
@@ -2911,17 +2911,47 @@
             const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
                 || kitchenState.orders.pedidosReparto.get(keyResuelta)
                 || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
-                if (!pedido) {
-                    showToast('Pedido no encontrado para ver detalle', 'err');
-                    return;
+            if (!pedido) {
+                showToast('Pedido no encontrado para ver detalle', 'err');
+                return;
+            }
+
+            const productosFuente = Array.isArray(pedido.items)
+                ? pedido.items
+                : Array.isArray(pedido.productos)
+                    ? pedido.productos
+                    : String(pedido.descripcion || '').split(/\n|,|·/).map((item) => item.trim()).filter(Boolean);
+            const productos = productosFuente.map((item) => {
+                if (item && typeof item === 'object') {
+                    const nombre = String(item.nombre || item.producto || item.descripcion || 'Producto').trim();
+                    const cantidad = Number(item.cantidad || item.qty || 1);
+                    const extras = Array.isArray(item.modificadores)
+                        ? item.modificadores.map((mod) => String(mod?.nombre || mod?.descripcion || mod || '').trim()).filter(Boolean)
+                        : [];
+                    return `${nombre}${Number.isFinite(cantidad) && cantidad > 1 ? ` x${cantidad}` : ''}${extras.length ? ` (${extras.join(', ')})` : ''}`;
                 }
-                const detalle = [
-                    `Folio: ${pedido.shortId || pedido.id_pedido || keyResuelta}`,
-                    `Cliente: ${pedido.cliente_nombre || pedido.cliente || 'Cliente'}`,
-                    `Dirección: ${pedido.direccion || 'No disponible'}`,
-                    `Estado: ${pedido.estado || 'sin estado'}`,
-                    `Monto: $${Number(pedido.monto || pedido.total || 0).toFixed(2)}`
-                ].join('\n');
+                return String(item);
+            }).filter(Boolean);
+
+            const telefono = String(pedido.telefono || pedido.phone || pedido.contacto || 'No disponible').trim();
+            const notas = String(pedido.notas || pedido.nota || pedido.referencia || pedido.observaciones || 'Sin notas').trim();
+            const timeline = [
+                `Recibido: ${pedido.recibido_at || pedido.created_at || pedido.createdAt || '—'}`,
+                `Preparando: ${pedido.preparando_at || pedido.iniciado_at || '—'}`,
+                `Cocina: ${pedido.cocina_at || pedido.listo_at || '—'}`,
+                `Reparto: ${pedido.reparto_at || pedido.asignado_at || '—'}`
+            ];
+            const detalle = [
+                `Pedido: #${pedido.shortId || pedido.id_pedido || keyResuelta}`,
+                `Cliente: ${pedido.cliente_nombre || pedido.cliente || 'Cliente'}`,
+                `Teléfono: ${telefono}`,
+                `Dirección: ${pedido.direccion || 'No disponible'}`,
+                `Estado: ${pedido.estado || 'sin estado'}`,
+                `Monto: $${Number(pedido.monto || pedido.total || 0).toFixed(2)}`,
+                `Productos: ${productos.length ? productos.join(' | ') : 'Sin productos'}`,
+                `Notas: ${notas}`,
+                ...timeline
+            ].join('\n');
             alert(detalle);
             showToast('Detalle del pedido abierto', 'ok');
         };
