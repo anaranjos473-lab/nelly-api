@@ -2739,10 +2739,9 @@
                 const sidebar = document.getElementById('operation-focus-queue');
                 const title = document.getElementById('operation-focus-title');
                 const subtitle = document.getElementById('operation-focus-subtitle');
-                const badge = document.getElementById('operation-focus-badge');
                 const body = document.getElementById('operation-focus-body');
                 const count = document.getElementById('operation-focus-count');
-                if (!sidebar || !title || !subtitle || !badge || !body || !count) return;
+                if (!sidebar || !title || !subtitle || !body || !count) return;
 
                 const pedidosFinales = todosLosPedidosCocina();
                 count.textContent = String(pedidosFinales.length);
@@ -2771,7 +2770,6 @@
                 if (!pedido) {
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
-                    badge.textContent = 'Cola';
                     body.innerHTML = `<div class="operation-focus__empty">${escapeHtmlOperacion('Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.')}</div>`;
                     return;
                 }
@@ -2816,7 +2814,6 @@
 
                 title.textContent = `Pedido #${displayId}`;
                 subtitle.textContent = nombre;
-                badge.textContent = riesgo.etiqueta;
                 body.innerHTML = `
                     <div class="operation-focus__detail-shell">
                         <div class="operation-focus__detail-main">
