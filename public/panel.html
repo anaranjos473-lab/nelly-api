@@ -3089,16 +3089,30 @@
                 }
 
                 if (lista.length) {
-                    return lista.sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                    return asignarShortIdsDiarios(
+                        lista
+                            .filter((pedido) => esPedidoDelMesActual(pedido))
+                            .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
+                    );
                 }
 
                 const snapshotCrudo = Array.isArray(window.__nellyPedidosCocinaSnapshotRaw) ? window.__nellyPedidosCocinaSnapshotRaw : [];
                 if (snapshotCrudo.length) {
-                    return asignarShortIdsDiarios(snapshotCrudo.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0)));
+                    return asignarShortIdsDiarios(
+                        snapshotCrudo
+                            .filter((pedido) => esPedidoDelMesActual(pedido))
+                            .slice()
+                            .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
+                    );
                 }
 
                 const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
-                return asignarShortIdsDiarios(renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0)));
+                return asignarShortIdsDiarios(
+                    renderizados
+                        .filter((pedido) => esPedidoDelMesActual(pedido))
+                        .slice()
+                        .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0))
+                );
             }
 
             function resolverPedidoOperacion(identificador) {
@@ -4386,6 +4400,14 @@
                 return asNumber < 1e12 ? asNumber * 1000 : asNumber;
                 }
                 return Date.now();
+            }
+
+            function esPedidoDelMesActual(pedido = {}) {
+                const timestamp = getPedidoTimestampLocal(pedido);
+                const fechaPedido = new Date(timestamp);
+                const ahora = new Date();
+                return fechaPedido.getFullYear() === ahora.getFullYear()
+                    && fechaPedido.getMonth() === ahora.getMonth();
             }
 
             function formatearShortIdDiario(pedido = {}, indice = 1) {
