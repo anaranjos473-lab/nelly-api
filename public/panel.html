@@ -3094,11 +3094,11 @@
 
                 const snapshotCrudo = Array.isArray(window.__nellyPedidosCocinaSnapshotRaw) ? window.__nellyPedidosCocinaSnapshotRaw : [];
                 if (snapshotCrudo.length) {
-                    return snapshotCrudo.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                    return asignarShortIdsDiarios(snapshotCrudo.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0)));
                 }
 
                 const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
-                return renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                return asignarShortIdsDiarios(renderizados.slice().sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0)));
             }
 
             function resolverPedidoOperacion(identificador) {
@@ -4361,10 +4361,10 @@
                 .trim();
         }
 
-        function getPedidoTimestampLocal(pedido = {}) {
-            const candidate = pedido.createdAt
-                || pedido.created_at
-                || pedido.fecha_creacion
+            function getPedidoTimestampLocal(pedido = {}) {
+                const candidate = pedido.createdAt
+                    || pedido.created_at
+                    || pedido.fecha_creacion
                 || pedido.fecha_creado
                 || pedido.timestamp
                 || pedido.timestampCreacion
@@ -4384,9 +4384,32 @@
             const asNumber = Number(candidate);
             if (Number.isFinite(asNumber) && asNumber > 0) {
                 return asNumber < 1e12 ? asNumber * 1000 : asNumber;
+                }
+                return Date.now();
             }
-            return Date.now();
-        }
+
+            function formatearShortIdDiario(pedido = {}, indice = 1) {
+                const timestamp = getPedidoTimestampLocal(pedido);
+                const fecha = new Date(timestamp);
+                const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+                const dd = String(fecha.getDate()).padStart(2, '0');
+                const seq = String(Math.max(1, Number(indice) || 1)).padStart(2, '0');
+                return `${mm}${dd}-#${seq}`;
+            }
+
+            function asignarShortIdsDiarios(lista = []) {
+                const porDia = new Map();
+                return lista.map((pedido) => {
+                    const copia = { ...pedido };
+                    const timestamp = getPedidoTimestampLocal(copia);
+                    const fecha = new Date(timestamp);
+                    const keyDia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+                    const siguiente = (porDia.get(keyDia) || 0) + 1;
+                    porDia.set(keyDia, siguiente);
+                    copia.shortId = copia.shortId || formatearShortIdDiario(copia, siguiente);
+                    return copia;
+                });
+            }
 
         window.toggleCardActionsMenu = function toggleCardActionsMenu(button) {
             const menu = button?.closest('.card-actions-menu');
@@ -4676,6 +4699,7 @@
                         _rtdbKey: key,
                         __source: "rtdb_pedidos"
                     };
+                    pedido.shortId = pedido.shortId || formatearShortIdDiario(pedido, idsVisibles.length + pedidosCrudos.length);
                     pedidosCrudos.push(pedido);
 
                     if (fase === "COCINA") {

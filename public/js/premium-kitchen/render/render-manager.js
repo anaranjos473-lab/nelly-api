@@ -74,6 +74,15 @@ function getPedidoTimestamp(pedido = {}) {
   return Date.now();
 }
 
+function formatDailyShortId(pedido = {}, fallbackIndex = 1) {
+  const timestamp = getPedidoTimestamp(pedido);
+  const fecha = new Date(timestamp);
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dd = String(fecha.getDate()).padStart(2, '0');
+  const seq = String(Math.max(1, Number(fallbackIndex) || 1)).padStart(2, '0');
+  return `${mm}${dd}-#${seq}`;
+}
+
 function normalizeProductName(name) {
   return String(name || '')
     .toLowerCase()
@@ -438,7 +447,7 @@ export function createRenderManager() {
         .replace(/'/g, '&#39;');
 
       const monto = Number(pedido.monto || pedido.total || 0);
-      const displayId = pedido.shortId || pedido.id_pedido || String(id).substring(0, 8);
+      const displayId = pedido.shortId || pedido.id_pedido || formatDailyShortId(pedido, 1);
       const estadoNormalizado = normalize(pedido.estado);
       const fase = toPhase(estadoNormalizado);
       const esListo = estadoNormalizado === 'LISTO';
