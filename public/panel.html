@@ -4322,6 +4322,7 @@
             generatedAt: null,
             error: null
         };
+        let archiveEngineActiveOrdersLoadPromise = null;
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -5326,6 +5327,11 @@
         }
 
         async function cargarPedidosActivosDesdeContrato() {
+            if (archiveEngineActiveOrdersLoadPromise) {
+                return archiveEngineActiveOrdersLoadPromise;
+            }
+
+            archiveEngineActiveOrdersLoadPromise = (async () => {
             try {
                 const token = await obtenerIdTokenPanel();
                 const response = await fetch(DATA_ACCESS_ENDPOINT, {
@@ -5379,7 +5385,12 @@
                     logDebug('NAE fallback ignorado para no vaciar la cola ya visible', 'warn');
                 }
                 return [];
+            } finally {
+                archiveEngineActiveOrdersLoadPromise = null;
             }
+            })();
+
+            return archiveEngineActiveOrdersLoadPromise;
         }
         window.cargarPedidosActivosDesdeContrato = cargarPedidosActivosDesdeContrato;
 
