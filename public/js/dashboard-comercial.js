@@ -57,6 +57,17 @@ const API_ORIGIN = (() => {
   return 'https://nelly-api-8lh1.onrender.com';
 })();
 
+const DATA_ACCESS_ENDPOINT = `${API_ORIGIN}/api/data-architecture/data-access`;
+
+let archiveEngineTodayOrdersCache = [];
+let archiveEngineTodayOrdersMeta = {
+  source: 'fallback',
+  contract_version: null,
+  module: 'commerce',
+  generatedAt: null,
+  error: null
+};
+
 function money(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
@@ -87,6 +98,23 @@ function setLoginError(message) {
   ui.loginError.classList.remove('hidden');
 }
 
+function setArchiveEngineMeta(meta = {}) {
+  archiveEngineTodayOrdersMeta = {
+    source: meta.source || 'fallback',
+    contract_version: meta.contract_version || null,
+    module: 'commerce',
+    generatedAt: meta.generatedAt || null,
+    error: meta.error || null
+  };
+  window.__nellyArchiveEngineMeta = archiveEngineTodayOrdersMeta;
+}
+
+function mapTodayOrders(payload) {
+  if (Array.isArray(payload?.today_orders)) return payload.today_orders;
+  if (Array.isArray(payload?.active_orders)) return payload.active_orders;
+  return [];
+}
+
 async function fetchCommercialDashboard() {
   const user = auth.currentUser;
   if (!user) {
@@ -94,14 +122,29 @@ async function fetchCommercialDashboard() {
   }
 
   const token = await user.getIdToken();
-  const response = await fetch(`${API_ORIGIN}/api/admin/dashboard/operativo`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  const payload = await response.json();
-  if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.error || `HTTP ${response.status}`);
+  const [dashboardResponse, dataAccessResponse] = await Promise.all([
+    fetch(`${API_ORIGIN}/api/admin/dashboard/operativo`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }),
+    fetch(DATA_ACCESS_ENDPOINT, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+  ]);
+
+  const dashboardPayload = await dashboardResponse.json().catch(() => ({}));
+  const dataAccessPayload = await dataAccessResponse.json().catch(() => ({}));
+
+  if (!dashboardResponse.ok || !dashboardPayload?.ok) {
+    throw new Error(dashboardPayload?.error || `HTTP ${dashboardResponse.status}`);
   }
-  return payload;
+  if (!dataAccessResponse.ok || !dataAccessPayload?.ok) {
+    throw new Error(dataAccessPayload?.error || `HTTP ${dataAccessResponse.status}`);
+  }
+
+  return {
+    dashboard: dashboardPayload,
+    dataAccess: dataAccessPayload
+  };
 }
 
 function renderOpportunityCard(item) {
@@ -160,14 +203,32 @@ function renderEmptyState(title, body) {
 }
 
 function renderCommercial(snapshot) {
-  const commercial = snapshot?.projections?.commercial || {};
+  const dashboard = snapshot?.dashboard || {};
+  const dataAccess = snapshot?.dataAccess || {};
+  const commercial = dashboard?.projections?.commercial || {};
   const summary = commercial?.summary || {};
   const alerts = commercial?.alerts || [];
-  const market = snapshot?.projections?.marketplace || {};
-  const c4 = snapshot?.projections?.commercial_insights || {};
+  const market = dashboard?.projections?.marketplace || {};
+  const c4 = dashboard?.projections?.commercial_insights || {};
   const c4Opportunities = Array.isArray(c4?.opportunities) ? c4.opportunities : [];
   const c4Actions = Array.isArray(c4?.actions) ? c4.actions : [];
   const c5Promotions = Array.isArray(c4?.promotions) ? c4.promotions : [];
+  const todayOrders = mapTodayOrders(dataAccess);
+  const deliveredTodayOrders = todayOrders.filter((pedido) => {
+    const estado = String(pedido?.estado_pedido || pedido?.estado || pedido?.logistica?.estado || '').trim().toLowerCase();
+    return estado === 'entregado' || estado === 'finalizado';
+  }).length;
+  const activeTodayOrders = todayOrders.filter((pedido) => {
+    const estado = String(pedido?.estado_pedido || pedido?.estado || pedido?.logistica?.estado || '').trim().toLowerCase();
+    return !['entregado', 'finalizado', 'cancelado', 'cancelada'].includes(estado);
+  }).length;
+
+  archiveEngineTodayOrdersCache = todayOrders;
+  setArchiveEngineMeta({
+    source: 'archive-engine',
+    contract_version: dataAccess?.contract_version || 'v1',
+    generatedAt: dataAccess?.generatedAt || null
+  });
 
   ui.dashboardStatus.textContent = commercial?.signal === 'operacion_comercial_estable'
     ? 'ESTABLE'
@@ -177,13 +238,13 @@ function renderCommercial(snapshot) {
     : 'nelly-state nelly-state--warn mt-1 text-2xl font-bold text-comm-warn';
 
   ui.overviewVentasDia.textContent = money(summary.ventas_dia ?? 0);
-  ui.overviewPedidosActivos.textContent = String(summary.pedidos_en_proceso ?? snapshot?.overview?.pedidos_activos ?? 0);
+  ui.overviewPedidosActivos.textContent = String(activeTodayOrders || summary.pedidos_en_proceso || dashboard?.overview?.pedidos_activos || 0);
   ui.overviewTicketPromedio.textContent = money(summary.ticket_promedio ?? 0);
   ui.overviewClientesRecurrentes.textContent = String(summary.clientes_recurrentes ?? 0);
 
   ui.operationSignal.textContent = commercial?.signal || 'Sin datos';
   ui.operationSummary.textContent = commercial?.signal
-    ? `Ventas hoy: ${money(summary.ventas_dia ?? 0)} · Pedidos recibidos: ${summary.pedidos_recibidos ?? 0} · Entregados: ${summary.pedidos_entregados ?? 0}`
+    ? `Ventas hoy: ${money(summary.ventas_dia ?? 0)} · Pedidos hoy: ${todayOrders.length} · Entregados hoy: ${deliveredTodayOrders}`
     : 'Esperando actividad comercial suficiente para generar señales.';
 
   ui.alertsSignal.textContent = alerts.length > 0 ? `${alerts.length} alertas` : 'Sin alertas';
@@ -203,7 +264,7 @@ function renderCommercial(snapshot) {
   ui.marketSummary.textContent = `Comercios: ${market?.summary?.comercios ?? 0} · Productos: ${market?.summary?.productos ?? 0} · Disponibles: ${market?.summary?.productos_disponibles ?? 0}`;
 
   ui.kpiVentasMes.textContent = money(summary.ventas_mes ?? 0);
-  ui.kpiPedidosEntregados.textContent = String(summary.pedidos_entregados ?? 0);
+  ui.kpiPedidosEntregados.textContent = String(deliveredTodayOrders || summary.pedidos_entregados || 0);
   ui.kpiFrecuenciaCompra.textContent = Number(summary.frecuencia_compra ?? 0).toFixed(2);
   ui.kpiEntregasPuntuales.textContent = `${Number(summary.entregas_puntuales_pct ?? 0).toFixed(0)}%`;
 
@@ -241,10 +302,17 @@ async function refreshDashboard() {
   try {
     const snapshot = await fetchCommercialDashboard();
     renderCommercial(snapshot);
+    ui.dashboardStatus.textContent = archiveEngineTodayOrdersMeta.source === 'archive-engine'
+      ? 'ESTABLE / NAE'
+      : ui.dashboardStatus.textContent;
   } catch (error) {
     ui.dashboardStatus.textContent = 'ERROR';
     ui.dashboardStatus.className = 'nelly-state nelly-state--danger mt-1 text-2xl font-bold text-red-300';
     ui.alertsSummary.textContent = `No se pudo cargar el snapshot comercial: ${error.message}`;
+    setArchiveEngineMeta({
+      source: 'fallback',
+      error: error.message
+    });
   }
 }
 
