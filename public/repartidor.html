@@ -268,10 +268,19 @@
       return 'https://nelly-api-8lh1.onrender.com';
     })();
 
+    const DATA_ACCESS_ENDPOINT = `${API_ORIGIN}/api/data-architecture/data-access`;
     const DRIVER_TOKEN_ENDPOINTS = [`${API_ORIGIN}/api/auth/driver-token`];
     const DELIVERY_ACCEPT_ENDPOINTS = [`${API_ORIGIN}/api/delivery/accept-order`];
 
     let authRequestInFlight = false;
+    let archiveEngineTodayOrdersCache = [];
+    let archiveEngineTodayOrdersMeta = {
+      source: 'fallback',
+      contract_version: null,
+      module: 'logistics',
+      generatedAt: null,
+      error: null
+    };
     let repartidorUid = localStorage.getItem('nelly_repartidor_uid') || '';
     nombreInput.value = repartidorUid;
     accessUidInput.value = repartidorUid;
@@ -354,6 +363,146 @@
         statusEl.textContent = `Error de acceso: ${error.message}`;
       } finally {
         authRequestInFlight = false;
+      }
+    }
+
+    function establecerMetaArchiveEngine(meta = {}) {
+      archiveEngineTodayOrdersMeta = {
+        source: meta.source || 'fallback',
+        contract_version: meta.contract_version || null,
+        module: 'logistics',
+        generatedAt: meta.generatedAt || null,
+        error: meta.error || null
+      };
+      window.__nellyArchiveEngineMeta = archiveEngineTodayOrdersMeta;
+    }
+
+    function mapearHoyDesdeContrato(payload) {
+      if (Array.isArray(payload?.today_orders)) {
+        return payload.today_orders;
+      }
+      if (Array.isArray(payload?.active_orders)) {
+        return payload.active_orders;
+      }
+      return [];
+    }
+
+    function renderFallbackLocalTodayOrders(snapshotValue) {
+      const data = snapshotValue && typeof snapshotValue === 'object' ? snapshotValue : {};
+      const todayOrders = Object.entries(data)
+        .map(([key, value]) => ({ key, pedido: value }))
+        .filter(({ pedido }) => pedido && typeof pedido === 'object');
+      renderListasDesdeTodayOrders(todayOrders, 'fallback-local');
+    }
+
+    function renderListasDesdeTodayOrders(todayOrders, source = 'archive-engine') {
+      const disponibles = [];
+      const mios = [];
+
+      function normalizarEstado(valor) {
+        const raw = String(valor || '').trim().toLowerCase();
+        if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
+        if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'llegue_a_tienda' || raw === 'pedido_abordo' || raw === 'llegue_a_cliente') return 'EN_CURSO';
+        if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
+        if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
+        return raw.toUpperCase();
+      }
+
+      (Array.isArray(todayOrders) ? todayOrders : []).forEach(({ key, pedido }) => {
+        if (!pedido || typeof pedido !== 'object') return;
+        const logistica = pedido.logistica || {};
+        const repartidorId = String(pedido.repartidor_id || pedido.conductorId || logistica.repartidor_id || '');
+        const estado = normalizarEstado(pedido.estado_pedido || pedido.estado || logistica.estado);
+
+        if (repartidorUid && repartidorId === repartidorUid && (estado === 'EN_CURSO' || estado === 'ENTREGADO')) {
+          mios.push({ key, pedido });
+          return;
+        }
+
+        if (!repartidorId && estado === 'LISTO') {
+          disponibles.push({ key, pedido });
+        }
+      });
+
+      countDisponibles.textContent = String(disponibles.length);
+      countMios.textContent = String(mios.length);
+
+      listaDisponibles.innerHTML = disponibles.length
+        ? disponibles.map(({ key, pedido }) => cardHTML(key, pedido, true)).join('')
+        : `
+          <div class="wc-card">
+            <h3>Sin pedidos disponibles</h3>
+            <p class="wc-muted">Cuando Cocina publique pedidos listos, apareceran aqui para tomarlos.</p>
+          </div>
+        `;
+
+      listaMios.innerHTML = mios.length
+        ? mios.map(({ key, pedido }) => cardHTML(key, pedido, false)).join('')
+        : `
+          <div class="wc-card">
+            <h3>No tienes pedidos asignados</h3>
+            <p class="wc-muted">Cuando aceptes un pedido, lo veras en esta seccion con su estado activo o entregado hoy.</p>
+          </div>
+        `;
+
+      statusEl.textContent = `Pedidos de hoy cargados desde ${source === 'archive-engine' ? 'NAE' : 'fallback local'}.`;
+      establecerMetaArchiveEngine({
+        source,
+        contract_version: source === 'archive-engine' ? 'v1' : null
+      });
+    }
+
+    async function cargarPedidosHoyDesdeContrato() {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('auth_inactiva');
+        }
+
+        const idToken = await user.getIdToken();
+        const response = await fetch(DATA_ACCESS_ENDPOINT, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload?.error || `http_${response.status}`);
+        }
+
+        archiveEngineTodayOrdersCache = mapearHoyDesdeContrato(payload).map((pedido, index) => ({
+          key: String(pedido?.id || pedido?.pedidoId || pedido?.id_pedido || `today-${index}`),
+          pedido: pedido
+        }));
+
+        renderListasDesdeTodayOrders(archiveEngineTodayOrdersCache, 'archive-engine');
+        return archiveEngineTodayOrdersCache;
+      } catch (error) {
+        archiveEngineTodayOrdersMeta = {
+          source: 'fallback',
+          contract_version: null,
+          module: 'logistics',
+          generatedAt: null,
+          error: error?.message || String(error)
+        };
+        window.__nellyArchiveEngineMeta = archiveEngineTodayOrdersMeta;
+        console.warn('[NAE] fallback local para Logistica:', archiveEngineTodayOrdersMeta.error);
+
+        return new Promise((resolve) => {
+          onValue(ref(rtdb, 'pedidos'), (snapshot) => {
+            const value = snapshot.val();
+            const todayOrders = Object.entries(value && typeof value === 'object' ? value : {})
+              .map(([key, pedido]) => ({ key, pedido }));
+            archiveEngineTodayOrdersCache = todayOrders;
+            renderFallbackLocalTodayOrders(value);
+            resolve(todayOrders);
+          }, (_error) => {
+            statusEl.textContent = 'No se pudo cargar Logistica desde NAE ni desde fallback local.';
+            resolve([]);
+          });
+        });
       }
     }
 
@@ -454,67 +603,11 @@
       }
     };
 
-    function renderListas(raiz) {
-      const data = raiz && typeof raiz === 'object' ? raiz : {};
-      const disponibles = [];
-      const mios = [];
-
-      function normalizarEstado(valor) {
-        const raw = String(valor || '').trim().toLowerCase();
-        if (raw === 'listo' || raw === 'pendiente_aceptacion' || raw === 'listo_para_reparto' || raw === 'esperando_repartidor' || raw === 'despacho') return 'LISTO';
-        if (raw === 'en_camino' || raw === 'en_curso' || raw === 'en_reparto' || raw === 'reparto' || raw === 'llegue_a_tienda' || raw === 'pedido_abordo' || raw === 'llegue_a_cliente') return 'EN_CURSO';
-        if (raw === 'entregado' || raw === 'finalizado') return 'ENTREGADO';
-        if (raw === 'cancelado' || raw === 'cancelada') return 'CANCELADO';
-        return raw.toUpperCase();
-      }
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (!value || typeof value !== 'object') return;
-        const logistica = value.logistica || {};
-        const repartidorId = String(value.repartidor_id || value.conductorId || logistica.repartidor_id || '');
-        const estado = normalizarEstado(value.estado_pedido || value.estado || logistica.estado);
-
-        if (repartidorUid && repartidorId === repartidorUid && estado === 'EN_CURSO') {
-          mios.push({ key, pedido: value });
-          return;
-        }
-
-        if (!repartidorId && estado === 'LISTO') {
-          disponibles.push({ key, pedido: value });
-        }
-      });
-
-      countDisponibles.textContent = String(disponibles.length);
-      countMios.textContent = String(mios.length);
-
-      listaDisponibles.innerHTML = disponibles.length
-        ? disponibles.map(({ key, pedido }) => cardHTML(key, pedido, true)).join('')
-        : `
-          <div class="wc-card">
-            <h3>Sin pedidos disponibles</h3>
-            <p class="wc-muted">Cuando cocina publique pedidos listos, apareceran aqui para tomarlos.</p>
-          </div>
-        `;
-
-      listaMios.innerHTML = mios.length
-        ? mios.map(({ key, pedido }) => cardHTML(key, pedido, false)).join('')
-        : `
-          <div class="wc-card">
-            <h3>No tienes pedidos asignados</h3>
-            <p class="wc-muted">Cuando aceptes un pedido, lo veras en esta seccion con su estado activo.</p>
-          </div>
-        `;
-    }
-
     onAuthStateChanged(auth, (user) => {
       if (user) {
         if (!repartidorUid) return;
         statusEl.textContent = repartidorUid ? `Activo como ${repartidorUid}` : 'Conectado. Guarda tu UID para tomar pedidos.';
-        onValue(ref(rtdb, 'pedidos'), (snapshot) => {
-          renderListas(snapshot.val());
-        }, (error) => {
-          statusEl.textContent = `Error de datos: ${error.message}`;
-        });
+        cargarPedidosHoyDesdeContrato();
       } else {
         if (repartidorUid && !appSection.classList.contains('hidden')) {
           autenticar();
