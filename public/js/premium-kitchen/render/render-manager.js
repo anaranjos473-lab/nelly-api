@@ -284,6 +284,18 @@ export function createRenderManager() {
         || (pedidosEnCamino instanceof Map && pedidosEnCamino.size > 0)
         || (pedidosEntregados instanceof Map && pedidosEntregados.size > 0);
 
+      if (typeof window !== 'undefined' && window.__nellyDebugKitchenRender !== false) {
+        console.debug('[Kitchen Render]', {
+          ts: performance.now(),
+          pendientes: pedidosPendientes instanceof Map ? pedidosPendientes.size : 0,
+          reparto: pedidosReparto instanceof Map ? pedidosReparto.size : 0,
+          enCamino: pedidosEnCamino instanceof Map ? pedidosEnCamino.size : 0,
+          entregados: pedidosEntregados instanceof Map ? pedidosEntregados.size : 0,
+          tienePedidosEntrantes,
+          canonicalPrevio: canonicalPrevio.length
+        });
+      }
+
       if (!tienePedidosEntrantes && canonicalPrevio.length > 0) {
         return renderState.lastOrderLists || {
           pendientes: 0,
