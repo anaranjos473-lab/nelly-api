@@ -13,6 +13,8 @@ const FINANCE_API_ENDPOINT = (() => {
   return PROD_API_ENDPOINT;
 })();
 
+const DATA_ACCESS_ENDPOINT = `${FINANCE_API_ENDPOINT}/api/data-architecture/data-access`;
+
 const ui = {
   loginSection: document.getElementById("login-section"),
   appSection: document.getElementById("app-section"),
@@ -30,6 +32,8 @@ const ui = {
   driversCount: document.getElementById("drivers-count"),
   driversTableBody: document.getElementById("drivers-table-body"),
   liquidationsList: document.getElementById("liquidations-list"),
+  monthlySummaryList: document.getElementById("finance-monthly-summary"),
+  annualSummaryList: document.getElementById("finance-annual-summary"),
   paymentForm: document.getElementById("payment-form"),
   driverUid: document.getElementById("driver-uid"),
   paymentAmount: document.getElementById("payment-amount"),
@@ -43,6 +47,13 @@ const ui = {
 };
 
 let currentDrivers = {};
+let archiveEngineFinanceMeta = {
+  source: 'fallback',
+  contract_version: null,
+  module: 'finance',
+  generatedAt: null,
+  error: null
+};
 
 function money(value) {
   const number = Number(value || 0);
@@ -103,6 +114,46 @@ function setDebug(payload, type = "processing") {
         <div class="wc-row"><span>Bloqueado</span><strong>${payload.bloqueado_por_deuda ? "Si" : "No"}</strong></div>
       </div>`
     : "Sin diagnostico aun.";
+}
+
+function setArchiveMeta(meta = {}) {
+  archiveEngineFinanceMeta = {
+    source: meta.source || 'fallback',
+    contract_version: meta.contract_version || null,
+    module: 'finance',
+    generatedAt: meta.generatedAt || null,
+    error: meta.error || null
+  };
+  window.__nellyArchiveEngineMeta = archiveEngineFinanceMeta;
+}
+
+function renderSummaryItem(label, details, meta) {
+  return `<div class="wc-row"><span><strong>${escapeHtml(label)}</strong><br><small class="wc-muted">${escapeHtml(details)}</small></span><strong>${escapeHtml(meta)}</strong></div>`;
+}
+
+function renderNAEFinancialSummaries(payload = {}) {
+  const monthly = Array.isArray(payload?.monthly_summary) ? payload.monthly_summary : [];
+  const annual = Array.isArray(payload?.annual_summary) ? payload.annual_summary : [];
+
+  if (ui.monthlySummaryList) {
+    ui.monthlySummaryList.innerHTML = monthly.length
+      ? monthly.slice(0, 6).map((item) => renderSummaryItem(
+          String(item.period || 'Periodo'),
+          `Pedidos: ${item.pedidos || 0} · Entregados: ${item.entregados || 0} · Cancelados: ${item.cancelados || 0}`,
+          money(item.monto_total || 0)
+        )).join("")
+      : `<div class="wc-empty">Sin resumen mensual disponible.</div>`;
+  }
+
+  if (ui.annualSummaryList) {
+    ui.annualSummaryList.innerHTML = annual.length
+      ? annual.slice(0, 6).map((item) => renderSummaryItem(
+          String(item.year || 'Año'),
+          `Pedidos: ${item.pedidos || 0} · Entregados: ${item.entregados || 0} · Cancelados: ${item.cancelados || 0}`,
+          money(item.monto_total || 0)
+        )).join("")
+      : `<div class="wc-empty">Sin resumen anual disponible.</div>`;
+  }
 }
 
 async function getToken() {
@@ -199,15 +250,24 @@ function renderLiquidations(payload) {
 async function loadData() {
   ui.driversTableBody.innerHTML = `<tr><td colspan="6"><div class="wc-loading">Cargando conductores...</div></td></tr>`;
   ui.liquidationsList.innerHTML = `<div class="wc-loading">Cargando liquidaciones...</div>`;
+  if (ui.monthlySummaryList) ui.monthlySummaryList.innerHTML = `<div class="wc-loading">Cargando resumen mensual...</div>`;
+  if (ui.annualSummaryList) ui.annualSummaryList.innerHTML = `<div class="wc-loading">Cargando resumen anual...</div>`;
 
-  const [driversPayload, liquidationsPayload] = await Promise.all([
+  const [driversPayload, liquidationsPayload, naePayload] = await Promise.all([
     api("/api/panel/finanzas/repartidores-deuda").catch(async () => api("/api/admin/repartidores")),
-    api("/api/panel/finanzas/liquidaciones").catch(async () => api("/api/liquidaciones"))
+    api("/api/panel/finanzas/liquidaciones").catch(async () => api("/api/liquidaciones")),
+    api("/api/data-architecture/data-access").catch(async () => api("/api/data-architecture/data-access"))
   ]);
 
   currentDrivers = driversPayload?.drivers || {};
   renderDrivers(currentDrivers);
   renderLiquidations(liquidationsPayload);
+  renderNAEFinancialSummaries(naePayload);
+  setArchiveMeta({
+    source: 'archive-engine',
+    contract_version: naePayload?.contract_version || 'v1',
+    generatedAt: naePayload?.generatedAt || null
+  });
 }
 
 async function diagnoseDebt() {
@@ -288,6 +348,12 @@ onAuthStateChanged(auth, (user) => {
   loadData().catch((error) => {
     ui.driversTableBody.innerHTML = `<tr><td colspan="6"><div class="wc-empty">No se pudo cargar Finanzas: ${escapeHtml(error.message)}</div></td></tr>`;
     ui.liquidationsList.innerHTML = `<div class="wc-empty">No se pudo cargar liquidaciones.</div>`;
+    if (ui.monthlySummaryList) ui.monthlySummaryList.innerHTML = `<div class="wc-empty">No se pudo cargar el resumen mensual.</div>`;
+    if (ui.annualSummaryList) ui.annualSummaryList.innerHTML = `<div class="wc-empty">No se pudo cargar el resumen anual.</div>`;
+    setArchiveMeta({
+      source: 'fallback',
+      error: error.message
+    });
     setResult(error.message, "error");
   });
 });
