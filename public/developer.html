@@ -494,6 +494,67 @@
         </div>
         <code class="dev-code">Evidence -> Diagnosis -> Fix -> Validation -> Documentation</code>
       </article>
+
+      <article id="developer-audit" class="wc-card" style="margin-top: 12px;">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">NAE / Auditoria</p>
+            <h2>Excepciones y reglas historicas</h2>
+          </div>
+          <span class="wc-state wc-state-processing">audit_index</span>
+        </div>
+        <p class="wc-muted">Auditoria no recorre toda la historia: prioriza excepciones por severidad y permite abrir el detalle historico solo cuando existe un hallazgo.</p>
+        <div class="governance-toolbar">
+          <label>
+            Severidad
+            <select id="audit-severity" class="wc-input">
+              <option value="">Todas</option>
+              <option value="critical">Criticas</option>
+              <option value="operational">Operativas</option>
+              <option value="quality">Calidad</option>
+            </select>
+          </label>
+          <label>
+            Comercio
+            <input id="audit-commerce" class="wc-input" type="text" placeholder="Lidos Pizza" />
+          </label>
+          <label>
+            Cliente
+            <input id="audit-customer" class="wc-input" type="text" placeholder="Cliente" />
+          </label>
+          <label>
+            Repartidor
+            <input id="audit-driver" class="wc-input" type="text" placeholder="driver_piloto" />
+          </label>
+          <button id="audit-refresh" class="wc-action-secondary" type="button">Actualizar auditoria NAE</button>
+        </div>
+        <div class="governance-split">
+          <article class="wc-card" style="box-shadow:none;">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Alertas</p>
+                <h2>Severidad priorizada</h2>
+              </div>
+              <span class="wc-pill yellow">historical_orders</span>
+            </div>
+            <div id="audit-alerts-list" class="governance-list">
+              <div><span>Cargando alertas...</span><strong>NAE</strong></div>
+            </div>
+          </article>
+          <article class="wc-card" style="box-shadow:none;">
+            <div class="wc-card-header">
+              <div>
+                <p class="wc-eyebrow">Detalle</p>
+                <h2>Pedido historico</h2>
+              </div>
+              <span class="wc-state wc-state-active">Profundizar</span>
+            </div>
+            <div id="audit-detail" class="governance-list">
+              <div><span>Selecciona una alerta</span><strong>Detalle</strong></div>
+            </div>
+          </article>
+        </div>
+      </article>
     </main>
   </section>
   <script type="module" src="/js/work-center-access.js"></script>

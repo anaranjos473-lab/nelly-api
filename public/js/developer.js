@@ -30,6 +30,13 @@ const ui = {
   healthComponents: document.getElementById('gov-health-components'),
   indicatorsTable: document.getElementById('governance-indicators-table'),
   coexistenceTable: document.getElementById('governance-coexistence-table'),
+  auditSeverity: document.getElementById('audit-severity'),
+  auditCommerce: document.getElementById('audit-commerce'),
+  auditCustomer: document.getElementById('audit-customer'),
+  auditDriver: document.getElementById('audit-driver'),
+  auditRefresh: document.getElementById('audit-refresh'),
+  auditAlertsList: document.getElementById('audit-alerts-list'),
+  auditDetail: document.getElementById('audit-detail'),
   modePill: document.getElementById('gov-mode-pill'),
   runtime: document.getElementById('gov-runtime'),
   businessSource: document.getElementById('gov-business-source'),
@@ -45,6 +52,9 @@ const GOALS = {
   drivers_live_duplicates: 'Unificar nombre y propietario',
   finance_rtdb_firestore: 'Mantener sin duplicidad critica'
 };
+
+let lastGovernanceSnapshot = null;
+let lastAuditPayload = null;
 
 function setText(element, value) {
   if (element) element.textContent = String(value ?? '--');
@@ -80,6 +90,22 @@ function totalGovernedEntities(snapshot) {
   const rtdb = Array.isArray(snapshot?.rtdb) ? snapshot.rtdb.length : 0;
   const firestore = Array.isArray(snapshot?.firestore) ? snapshot.firestore.length : 0;
   return rtdb + firestore;
+}
+
+function getOrderTimestamp(order = {}) {
+  return Number(order.timestampActualizacion || order.finalizado_at || order.entregado_en || order.createdAt || order.created_at || order.fecha_creacion || order.fecha || order.timestamp || Date.now());
+}
+
+function getOrderState(order = {}) {
+  return String(order?.estado_pedido || order?.estado || order?.logistica?.estado || '').trim().toLowerCase();
+}
+
+function renderAuditRow(left, right, meta = '') {
+  return `<div><span>${escapeHtml(left)}</span><strong>${escapeHtml(right)}</strong>${meta ? `<small class="wc-muted">${escapeHtml(meta)}</small>` : ''}</div>`;
+}
+
+function normalizeAuditIndex(payload) {
+  return payload?.audit_index?.history_index || { comercio: {}, cliente: {}, driver: {}, forma_pago: {}, incidencia: {} };
 }
 
 function triggeredCoexistence(snapshot) {
@@ -163,7 +189,101 @@ function renderCoexistence(snapshot) {
   }).join('');
 }
 
+function buildAuditAlerts(payload = {}) {
+  const history = Array.isArray(payload?.historical_orders) ? payload.historical_orders : [];
+  const auditIndex = normalizeAuditIndex(payload);
+  const commerceFilter = String(ui.auditCommerce?.value || '').trim().toLowerCase();
+  const customerFilter = String(ui.auditCustomer?.value || '').trim().toLowerCase();
+  const driverFilter = String(ui.auditDriver?.value || '').trim().toLowerCase();
+  const severityFilter = String(ui.auditSeverity?.value || '').trim().toLowerCase();
+
+  const alerts = [];
+
+  history.forEach((order) => {
+    const commerce = String(order?.comercio?.nombre || order?.tienda?.nombre || order?.comercio_nombre || order?.tienda_nombre || '').trim();
+    const customer = String(order?.cliente_nombre || order?.cliente?.nombre || order?.cliente || '').trim();
+    const driver = String(order?.repartidor_nombre || order?.repartidor?.nombre || order?.repartidor_id || order?.driverUid || '').trim();
+    const payment = String(order?.metodo_pago || order?.forma_pago || order?.pago?.metodo || order?.pago?.tipo || '').trim().toLowerCase();
+    const state = getOrderState(order);
+    const amount = Number(order?.monto_total || order?.total || order?.monto || 0);
+    const timeSpent = Number(order?.tiempo_promedio_entrega || order?.tiempo_entrega || 0);
+    const incident = String(order?.incidencia_tipo || order?.causa_raiz || order?.tipo_incidencia || '').trim();
+
+    if (commerceFilter && !commerce.toLowerCase().includes(commerceFilter)) return;
+    if (customerFilter && !customer.toLowerCase().includes(customerFilter)) return;
+    if (driverFilter && !driver.toLowerCase().includes(driverFilter)) return;
+
+    if (state === 'entregado' && payment === 'efectivo' && !String(order?.pago?.estado || '').trim()) {
+      alerts.push({ severity: 'critical', title: 'Pedido entregado sin cobro registrado', order, commerce, customer, driver, amount });
+    }
+    if (state === 'cancelado' && amount > 0) {
+      alerts.push({ severity: 'operational', title: 'Pedido cancelado con importe registrado', order, commerce, customer, driver, amount });
+    }
+    if (timeSpent > 30) {
+      alerts.push({ severity: 'operational', title: 'Pedido fuera del SLA', order, commerce, customer, driver, amount });
+    }
+    if (incident) {
+      alerts.push({ severity: 'quality', title: 'Pedido con incidencia histórica', order, commerce, customer, driver, amount });
+    }
+  });
+
+  const seen = new Set();
+  const filtered = alerts.filter((alert) => {
+    const key = `${alert.severity}:${alert.title}:${alert.order?.id || alert.order?.pedido_id || alert.order?.id_pedido || ''}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return !severityFilter || alert.severity === severityFilter;
+  });
+
+  return {
+    alerts: filtered,
+    auditIndex
+  };
+}
+
+function renderAuditDetail(order) {
+  if (!ui.auditDetail) return;
+  if (!order) {
+    ui.auditDetail.innerHTML = '<div><span>Selecciona una alerta</span><strong>Detalle</strong></div>';
+    return;
+  }
+  const timestamp = new Date(getOrderTimestamp(order)).toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  ui.auditDetail.innerHTML = [
+    renderAuditRow('Pedido', String(order.shortId || order.id_pedido || order.id || 'sin id')),
+    renderAuditRow('Fecha', timestamp),
+    renderAuditRow('Estado', String(order.estado_pedido || order.estado || order?.logistica?.estado || 'sin estado')),
+    renderAuditRow('Comercio', String(order?.comercio?.nombre || order?.tienda?.nombre || order?.comercio_nombre || order?.tienda_nombre || 'sin comercio')),
+    renderAuditRow('Cliente', String(order?.cliente_nombre || order?.cliente?.nombre || order?.cliente || 'sin cliente')),
+    renderAuditRow('Repartidor', String(order?.repartidor_nombre || order?.repartidor?.nombre || order?.repartidor_id || order?.driverUid || 'sin repartidor'))
+  ].join('');
+}
+
+function renderAudit(snapshot) {
+  const payload = lastAuditPayload || {};
+  const { alerts, auditIndex } = buildAuditAlerts(payload);
+  const groups = {
+    critical: alerts.filter((item) => item.severity === 'critical'),
+    operational: alerts.filter((item) => item.severity === 'operational'),
+    quality: alerts.filter((item) => item.severity === 'quality')
+  };
+
+  if (ui.auditAlertsList) {
+    ui.auditAlertsList.innerHTML = alerts.length
+      ? [
+          renderAuditRow('Comercios', String(Object.keys(auditIndex.comercio || {}).length), 'history_index'),
+          renderAuditRow('Clientes', String(Object.keys(auditIndex.cliente || {}).length), 'history_index'),
+          groups.critical.length ? renderAuditRow('Criticas', `${groups.critical.length} alertas`, 'Revisar primero') : '',
+          groups.operational.length ? renderAuditRow('Operativas', `${groups.operational.length} alertas`, 'SLA / retrasos') : '',
+          groups.quality.length ? renderAuditRow('Calidad', `${groups.quality.length} alertas`, 'Evidencia / datos') : ''
+        ].join('')
+      : '<div><span>Sin alertas historicas</span><strong>NAE</strong></div>';
+  }
+
+  renderAuditDetail(alerts[0]?.order || null);
+}
+
 function renderSnapshot(snapshot) {
+  lastGovernanceSnapshot = snapshot;
   const duplicities = triggeredCoexistence(snapshot);
   const high = Number(snapshot?.summary?.highRiskDuplicities || 0);
   const failedReads = Number(snapshot?.summary?.failedReads || 0);
@@ -191,6 +311,7 @@ function renderSnapshot(snapshot) {
   renderHealth(snapshot);
   renderIndicators(snapshot);
   renderCoexistence(snapshot);
+  renderAudit(snapshot);
 
   const message = high > 0 || failedIndicators > 0
     ? 'La auditoria detecto violaciones SSOT de alto riesgo. No avanzar sin revisar.'
@@ -243,13 +364,21 @@ async function fetchGovernance({ withLogin = false } = {}) {
   setState(ui.statusPill, 'Cargando', 'processing');
 
   const headers = await getAuthHeader({ withLogin });
-  const response = await fetch(`${API_ORIGIN}/api/data-architecture/status`, { headers });
+  const [response, auditResponse] = await Promise.all([
+    fetch(`${API_ORIGIN}/api/data-architecture/status`, { headers }),
+    fetch(`${API_ORIGIN}/api/data-architecture/data-access`, { headers })
+  ]);
   const payload = await response.json().catch(() => ({}));
+  const auditPayload = await auditResponse.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
     throw new Error(payload?.error || `HTTP ${response.status}`);
   }
+  if (!auditResponse.ok || auditPayload?.ok === false) {
+    throw new Error(auditPayload?.error || `HTTP ${auditResponse.status}`);
+  }
 
+  lastAuditPayload = auditPayload;
   renderSnapshot(payload);
   return payload;
 }
@@ -328,6 +457,17 @@ ui.refresh?.addEventListener('click', async () => {
 ui.exportJson?.addEventListener('click', () => exportGovernanceJson().catch((error) => renderUnavailable(error)));
 ui.exportCsv?.addEventListener('click', () => exportGovernanceCsv().catch((error) => renderUnavailable(error)));
 ui.snapshotDiscord?.addEventListener('click', () => sendSnapshotDiscord().catch((error) => renderUnavailable(error)));
+ui.auditRefresh?.addEventListener('click', async () => {
+  try {
+    await fetchGovernance();
+  } catch (error) {
+    renderUnavailable(error);
+  }
+});
+ui.auditSeverity?.addEventListener('change', () => fetchGovernance().catch((error) => renderUnavailable(error)));
+ui.auditCommerce?.addEventListener('input', () => fetchGovernance().catch((error) => renderUnavailable(error)));
+ui.auditCustomer?.addEventListener('input', () => fetchGovernance().catch((error) => renderUnavailable(error)));
+ui.auditDriver?.addEventListener('input', () => fetchGovernance().catch((error) => renderUnavailable(error)));
 
 window.addEventListener('nelly:work-center-authenticated', async () => {
   try {
