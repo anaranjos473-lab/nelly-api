@@ -27,6 +27,10 @@
             let pedidosListenerCallback = null;
 
             Promise.resolve().then(() => {
+                if (window.__nellyKitchenBootstrapDone) {
+                    return;
+                }
+                window.__nellyKitchenBootstrapDone = true;
                 const db = window.nellyDb;
                 window.nellyDb = db;
                 window.dispatchEvent(new Event('firebase-ready'));
@@ -3899,14 +3903,20 @@
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
             if (contenedorPendientes && window.MutationObserver) {
                 const observer = new MutationObserver(() => {
+                    if (window.__nellyKitchenInitialFocusDone) {
+                        return;
+                    }
                     if (window.__nellyPedidoEnfoque) {
+                        window.__nellyKitchenInitialFocusDone = true;
                         renderOperacionEnfoque(window.__nellyPedidoEnfoque);
                         return;
                     }
                     const primero = kitchenState.orders.pedidosPendientes.values().next().value;
                     if (primero) {
+                        window.__nellyKitchenInitialFocusDone = true;
                         renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
                     } else {
+                        window.__nellyKitchenInitialFocusDone = true;
                         renderOperacionEnfoque(null);
                     }
                 });
@@ -3914,18 +3924,24 @@
             }
 
             window.setTimeout(() => {
-                if (!window.__nellyPedidoEnfoque) {
+                if (!window.__nellyPedidoEnfoque && !window.__nellyKitchenInitialFocusDone) {
                     const primero = todosLosPedidosCocina()[0];
                     if (primero) {
+                        window.__nellyKitchenInitialFocusDone = true;
                         renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
                     }
                 }
             }, 900);
             window.addEventListener('load', () => {
+                if (window.__nellyKitchenInitialFocusDone) {
+                    return;
+                }
                 const primero = todosLosPedidosCocina()[0];
                 if (primero) {
+                    window.__nellyKitchenInitialFocusDone = true;
                     renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
                 } else {
+                    window.__nellyKitchenInitialFocusDone = true;
                     renderOperacionEnfoque(null);
                 }
             }, { once: true });
@@ -4323,6 +4339,85 @@
             error: null
         };
         let archiveEngineActiveOrdersLoadPromise = null;
+        window.__nellyKitchenBootstrapDone = window.__nellyKitchenBootstrapDone === true;
+        window.__nellyKitchenInitialFocusDone = window.__nellyKitchenInitialFocusDone === true;
+        window.__nellyKitchenStateTrace = Array.isArray(window.__nellyKitchenStateTrace) ? window.__nellyKitchenStateTrace : [];
+        window.__nellyDebugKitchenState = window.__nellyDebugKitchenState !== false;
+
+        function contarEstadoPedidosCocina() {
+            return {
+                pendientes: kitchenState.orders.pedidosPendientes.size,
+                reparto: kitchenState.orders.pedidosReparto.size,
+                enCamino: kitchenState.orders.pedidosEnCamino.size,
+                entregados: kitchenState.orders.pedidosEntregados.size
+            };
+        }
+
+        function trazarEstadoPedidosCocina(origen, antes = {}, despues = {}, extra = {}) {
+            if (window.__nellyDebugKitchenState === false) {
+                return;
+            }
+
+            let stack = '';
+            try {
+                stack = new Error().stack || '';
+            } catch (_error) {
+                stack = '';
+            }
+
+            const muestra = {
+                ts: Date.now(),
+                origen,
+                antes,
+                despues,
+                stack,
+                ...extra
+            };
+            window.__nellyKitchenStateTrace.push(muestra);
+            if (window.__nellyKitchenStateTrace.length > 50) {
+                window.__nellyKitchenStateTrace.shift();
+            }
+            console.debug('[COCINA][STATE]', muestra);
+        }
+
+        function vaciarMapaPedidosCocina(mapa, nombre, origen, extra = {}) {
+            const antes = contarEstadoPedidosCocina();
+            if (mapa && typeof mapa.clear === 'function') {
+                mapa.clear();
+            }
+            trazarEstadoPedidosCocina(origen || `clear-${nombre}`, antes, contarEstadoPedidosCocina(), {
+                operacion: 'clear',
+                mapa: nombre,
+                ...extra
+            });
+        }
+
+        function asignarPedidoMapaCocina(mapa, nombre, key, pedido, origen, extra = {}) {
+            const antes = contarEstadoPedidosCocina();
+            if (mapa && typeof mapa.set === 'function') {
+                mapa.set(key, pedido);
+            }
+            trazarEstadoPedidosCocina(origen || `set-${nombre}`, antes, contarEstadoPedidosCocina(), {
+                operacion: 'set',
+                mapa: nombre,
+                key,
+                ...extra
+            });
+        }
+
+        function eliminarPedidoMapaCocina(mapa, nombre, key, origen, extra = {}) {
+            const antes = contarEstadoPedidosCocina();
+            const eliminado = mapa && typeof mapa.delete === 'function' ? mapa.delete(key) : false;
+            if (eliminado) {
+                trazarEstadoPedidosCocina(origen || `delete-${nombre}`, antes, contarEstadoPedidosCocina(), {
+                    operacion: 'delete',
+                    mapa: nombre,
+                    key,
+                    ...extra
+                });
+            }
+            return eliminado;
+        }
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -4340,7 +4435,9 @@
         }
 
         function sincronizarPendientesDesdeSnapshot(snapshot, origen = 'snapshot-pendientes') {
-            kitchenState.orders.pedidosPendientes.clear();
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', origen, {
+                operacion: 'sincronizarPendientesDesdeSnapshot'
+            });
             snapshot.forEach((child) => {
                 const pedido = child.val();
                 if (!pedido || typeof pedido !== 'object') {
@@ -5016,6 +5113,10 @@
                 reproducirSonido('/sounds/notificacion_pedido.mp3');
             }
 
+            trazarEstadoPedidosCocina(opciones.origen || 'agregarPedidoATablaVisual', {}, contarEstadoPedidosCocina(), {
+                operacion: 'agregarPedidoATablaVisual',
+                key
+            });
             solicitarRenderPanel(opciones.origen || 'agregarPedidoATablaVisual');
             return true;
         }
@@ -5025,7 +5126,9 @@
                 return false;
             }
 
-            const eliminado = kitchenState.orders.pedidosPendientes.delete(key);
+            const eliminado = eliminarPedidoMapaCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', key, opciones.origen || 'eliminarFilaVisual', {
+                operacion: 'eliminarFilaVisual'
+            });
             if (eliminado) {
                 solicitarRenderPanel(opciones.origen || 'eliminarFilaVisual');
             }
@@ -5060,14 +5163,21 @@
                 solicitarRenderPanel('recepcion-pausada');
                 return;
             }
+            const antes = contarEstadoPedidosCocina();
             console.log('[COCINA] Snapshot recibido', {
                 origen,
                 existe: snapshot.exists(),
                 size: snapshot.size ?? null
             });
-            kitchenState.orders.pedidosPendientes.clear();
-            kitchenState.orders.pedidosReparto.clear();
-            kitchenState.orders.pedidosEnCamino.clear();
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+            });
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosReparto, 'pedidosReparto', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+            });
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosEnCamino, 'pedidosEnCamino', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+            });
 
             const raiz = snapshot.val();
             const idsVisibles = [];
@@ -5092,14 +5202,20 @@
                     pedido.shortId = pedido.shortId || formatearShortIdDiario(pedido, idsVisibles.length + pedidosCrudos.length);
                     pedidosCrudos.push(pedido);
 
-                    if (fase === "COCINA") {
-                        kitchenState.orders.pedidosPendientes.set(key, pedido);
+                if (fase === "COCINA") {
+                        asignarPedidoMapaCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', key, pedido, origen, {
+                            operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+                        });
                         idsVisibles.push(pedido.id);
                     } else if (fase === "DESPACHO") {
-                        kitchenState.orders.pedidosReparto.set(key, pedido);
+                        asignarPedidoMapaCocina(kitchenState.orders.pedidosReparto, 'pedidosReparto', key, pedido, origen, {
+                            operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+                        });
                         idsVisibles.push(pedido.id);
                     } else if (fase === "EN_REPARTO" || estado === "ENTREGADO") {
-                        kitchenState.orders.pedidosEnCamino.set(key, pedido);
+                        asignarPedidoMapaCocina(kitchenState.orders.pedidosEnCamino, 'pedidosEnCamino', key, pedido, origen, {
+                            operacion: 'sincronizarPedidosOperativosDesdeSnapshot'
+                        });
                         idsVisibles.push(pedido.id);
                     }
                 });
@@ -5113,6 +5229,11 @@
                 total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
             });
             console.log('[COCINA] IDs visibles', idsVisibles);
+            trazarEstadoPedidosCocina(origen || 'onValue-pedidos', {}, contarEstadoPedidosCocina(), {
+                operacion: 'sincronizarPedidosOperativosDesdeSnapshot',
+                idsVisibles: idsVisibles.length,
+                pedidosCrudos: pedidosCrudos.length
+            });
             registrarEvento('pedidosSnapshot');
             solicitarRenderPanel(origen || 'onValue-pedidos');
         }
@@ -5126,14 +5247,21 @@
             }
 
             const lista = Array.isArray(pedidos) ? pedidos : [];
+            const antes = contarEstadoPedidosCocina();
             console.log('[COCINA] Contrato recibido', {
                 origen,
                 size: lista.length
             });
 
-            kitchenState.orders.pedidosPendientes.clear();
-            kitchenState.orders.pedidosReparto.clear();
-            kitchenState.orders.pedidosEnCamino.clear();
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeContrato'
+            });
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosReparto, 'pedidosReparto', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeContrato'
+            });
+            vaciarMapaPedidosCocina(kitchenState.orders.pedidosEnCamino, 'pedidosEnCamino', origen, {
+                operacion: 'sincronizarPedidosOperativosDesdeContrato'
+            });
 
             const idsVisibles = [];
             const pedidosCrudos = [];
@@ -5158,17 +5286,23 @@
                 pedidosCrudos.push(pedido);
 
                 if (fase === 'COCINA') {
-                    kitchenState.orders.pedidosPendientes.set(pedido._rtdbKey, pedido);
+                    asignarPedidoMapaCocina(kitchenState.orders.pedidosPendientes, 'pedidosPendientes', pedido._rtdbKey, pedido, origen, {
+                        operacion: 'sincronizarPedidosOperativosDesdeContrato'
+                    });
                     idsVisibles.push(pedido.id);
                     return;
                 }
                 if (fase === 'DESPACHO') {
-                    kitchenState.orders.pedidosReparto.set(pedido._rtdbKey, pedido);
+                    asignarPedidoMapaCocina(kitchenState.orders.pedidosReparto, 'pedidosReparto', pedido._rtdbKey, pedido, origen, {
+                        operacion: 'sincronizarPedidosOperativosDesdeContrato'
+                    });
                     idsVisibles.push(pedido.id);
                     return;
                 }
                 if (fase === 'EN_REPARTO' || estado === 'ENTREGADO') {
-                    kitchenState.orders.pedidosEnCamino.set(pedido._rtdbKey, pedido);
+                    asignarPedidoMapaCocina(kitchenState.orders.pedidosEnCamino, 'pedidosEnCamino', pedido._rtdbKey, pedido, origen, {
+                        operacion: 'sincronizarPedidosOperativosDesdeContrato'
+                    });
                     idsVisibles.push(pedido.id);
                 }
             });
@@ -5182,6 +5316,11 @@
                 total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
             });
             console.log('[COCINA] IDs visibles desde contrato', idsVisibles);
+            trazarEstadoPedidosCocina(origen || 'nae-active-orders', antes, contarEstadoPedidosCocina(), {
+                operacion: 'sincronizarPedidosOperativosDesdeContrato',
+                idsVisibles: idsVisibles.length,
+                pedidosCrudos: pedidosCrudos.length
+            });
             registrarEvento('pedidosContrato');
             solicitarRenderPanel(origen || 'nae-active-orders');
         }
@@ -5428,19 +5567,24 @@
             }));
 
             listeners.push(onValue(completadosRef, (snapshot) => {
-                kitchenState.orders.pedidosEntregados.clear();
+                vaciarMapaPedidosCocina(kitchenState.orders.pedidosEntregados, 'pedidosEntregados', 'onValue-completados', {
+                    operacion: 'pedidosEntregadosSnapshot',
+                    size: snapshot.size ?? null
+                });
                 const raiz = snapshot.val();
                 if (raiz && typeof raiz === 'object') {
                     Object.entries(raiz).forEach(([key, value]) => {
                         if (!value || typeof value !== 'object') {
                             return;
                         }
-                        kitchenState.orders.pedidosEntregados.set(key, {
+                        asignarPedidoMapaCocina(kitchenState.orders.pedidosEntregados, 'pedidosEntregados', key, {
                             ...value,
                             estado: normalizarEstado(value.estado_pedido || value.estado || 'ENTREGADO'),
                             fase: 'ENTREGADO',
                             _rtdbKey: key,
                             __source: 'rtdb_completados'
+                        }, 'onValue-completados', {
+                            operacion: 'pedidosEntregadosSnapshot'
                         });
                     });
                 }
