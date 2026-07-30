@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nelly OS - Historial NAE</title>
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/themes.css" />
+  <link rel="stylesheet" href="/styles/nelly-design.css" />
+  <link rel="stylesheet" href="/styles/states.css" />
+  <link rel="stylesheet" href="/styles/work-centers.css" />
+</head>
+<body class="nelly-work-body" data-work-center-access="panel" data-center="historial">
+  <span class="sr-only">Nelly Delivery - Historial NAE</span>
+
+  <section id="work-center-login-section" class="wc-login-shell">
+    <article class="wc-login-card">
+      <p class="wc-eyebrow">Nelly Archive Engine</p>
+      <h1>Historial operativo</h1>
+      <p>Consulta pedidos archivados, resúmenes mensuales y señales históricas sin tocar la operación viva.</p>
+      <form id="work-center-login-form" class="wc-login-form">
+        <label>
+          Correo autorizado
+          <input id="work-center-email" type="email" value="admin@nellydelivery.com" autocomplete="username" />
+        </label>
+        <label>
+          Contrasena
+          <input id="work-center-password" type="password" placeholder="Contrasena de acceso" autocomplete="current-password" />
+        </label>
+        <button type="submit">Entrar a Historial</button>
+        <p id="work-center-login-error" class="wc-error hidden" role="alert"></p>
+      </form>
+    </article>
+  </section>
+
+  <section id="work-center-app-section" class="wc-shell hidden">
+    <aside class="wc-sidebar">
+      <a class="wc-brand" href="/os">
+        <span class="wc-brand-mark">N</span>
+        <span>
+          <strong>Nelly Delivery</strong>
+          <small>Historial</small>
+        </span>
+      </a>
+      <nav class="wc-nav" aria-label="Navegacion historial">
+        <a class="active" href="#history-overview">Resumen</a>
+        <a href="#history-browser">Archivo</a>
+        <a href="#history-filters">Filtros</a>
+        <a href="#history-index">Indices</a>
+        <a href="/commerce">Comercio</a>
+        <a href="/control">Operaciones</a>
+      </nav>
+      <div class="wc-status-card">
+        <span class="wc-dot"></span>
+        <strong>Solo lectura</strong>
+        <small>No modifica pedidos ni indices</small>
+      </div>
+    </aside>
+
+    <main class="wc-main">
+      <header class="wc-topbar">
+        <div>
+          <p class="wc-eyebrow">Nelly OS / Archivado</p>
+          <h1>Historial NAE</h1>
+          <p class="wc-muted">Año, mes y día en capas. El archivo crece sin afectar la operación del día.</p>
+        </div>
+        <div class="wc-top-actions">
+          <span class="wc-state wc-state-active">Read only</span>
+          <a class="wc-action-secondary" href="/os">Volver a Nelly OS</a>
+          <button id="work-center-logout" type="button" class="wc-action-secondary">Cerrar sesion</button>
+        </div>
+      </header>
+
+      <section id="history-overview" class="wc-kpi-grid">
+        <article class="wc-kpi">
+          <small>Año activo</small>
+          <strong id="history-year-count">0</strong>
+          <em>Con archivo</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Meses</small>
+          <strong id="history-month-count">0</strong>
+          <em>Disponibles</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Días</small>
+          <strong id="history-day-count">0</strong>
+          <em>Archivados</em>
+        </article>
+        <article class="wc-kpi">
+          <small>Pedidos</small>
+          <strong id="history-order-count">0</strong>
+          <em>Históricos</em>
+        </article>
+      </section>
+
+      <section class="wc-grid">
+        <article id="history-browser" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Archivo</p>
+              <h2>Navegacion jerárquica</h2>
+            </div>
+            <span class="wc-state wc-state-processing">NAE v1</span>
+          </div>
+          <div class="wc-row" style="gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <select id="history-year-select" class="wc-input" style="max-width: 160px;"></select>
+            <select id="history-month-select" class="wc-input" style="max-width: 200px;"></select>
+            <select id="history-day-select" class="wc-input" style="max-width: 200px;"></select>
+            <button id="history-refresh" type="button">Refrescar</button>
+          </div>
+          <div class="wc-list" id="history-tree"></div>
+        </article>
+
+        <article id="history-filters" class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Filtros</p>
+              <h2>Consulta rapida</h2>
+            </div>
+            <span class="wc-pill blue">history_index</span>
+          </div>
+          <div class="wc-list" id="history-filter-list"></div>
+        </article>
+      </section>
+
+      <section id="history-index" class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Resumen mensual</p>
+              <h2>monthly_summary</h2>
+            </div>
+            <span class="wc-pill green">NAE</span>
+          </div>
+          <div id="history-monthly-summary" class="wc-list"></div>
+        </article>
+
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Resumen anual</p>
+              <h2>annual_summary</h2>
+            </div>
+            <span class="wc-pill blue">NAE</span>
+          </div>
+          <div id="history-annual-summary" class="wc-list"></div>
+        </article>
+      </section>
+
+      <article class="wc-card" style="margin-top:12px">
+        <div class="wc-card-header">
+          <div>
+            <p class="wc-eyebrow">Pedidos del dia seleccionado</p>
+            <h2 id="history-detail-title">Selecciona un dia</h2>
+          </div>
+          <span class="wc-pill yellow">Solo lectura</span>
+        </div>
+        <p id="history-detail-summary" class="wc-muted">Los pedidos archivados apareceran aqui al elegir año, mes y dia.</p>
+        <div id="history-detail-list" class="wc-list" style="margin-top:12px"></div>
+      </article>
+    </main>
+  </section>
+
+  <script type="module" src="/js/work-center-access.js"></script>
+  <script type="module" src="/js/historial.js"></script>
+</body>
+</html>

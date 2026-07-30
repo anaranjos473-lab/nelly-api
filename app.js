@@ -80,6 +80,8 @@ const panelAliases = {
     '/finanzas': '/finanzas.html',
     '/finance': '/finanzas.html',
     '/analytics': '/analytics.html',
+    '/history': '/historial.html',
+    '/historial': '/historial.html',
     '/developer': '/developer.html',
     '/tracking': '/seguimiento.html',
     '/cliente': '/seguimiento.html'
