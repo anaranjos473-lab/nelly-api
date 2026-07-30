@@ -2,7 +2,7 @@
 
 ## Estado
 
-PLANNED
+CLOSED
 
 ## Objetivo
 

@@ -2,7 +2,7 @@
 
 ## Estado
 
-PLANNED
+APPROVED
 
 ## Objetivo
 
@@ -102,6 +102,10 @@ El sprint solo puede considerarse completo cuando exista evidencia reproducible 
 ## Siguiente paso
 
 Si esta certificacion pasa, el proyecto entra al sprint [`NAE-CLEANUP`](./NAE_CLEANUP.md) para retirar fallbacks temporales, congelar `DataAccessService v1` y eliminar accesos directos a las colecciones operativas.
+
+## Acta de cierre
+
+- [`ACTA_CIERRE_NAE_E2E_V1.md`](./ACTA_CIERRE_NAE_E2E_V1.md)
 
 ## Historial de cambios
 

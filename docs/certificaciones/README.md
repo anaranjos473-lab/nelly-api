@@ -9,8 +9,8 @@ Register of functional certifications and approved baselines.
 | P17 | `CLOSED` | Certified production baseline for delivery closure and driver earnings. |
 | RC-03 | `IN VALIDATION` | Operational flow validated. Pending comparative financial validation for `Saldo`, `Proximo corte`, `ISR`, and `IVA`. |
 | NAE Fase 2 | `IMPLEMENTED` | Archive Engine phase 2 added with scheduler, indices and operational certification pending. |
-| NAE E2E Execution | `PLANNED` | Sprint to execute the end-to-end certification and collect reproducible evidence. |
-| NAE E2E Certification | `PLANNED` | Sprint dedicated to proving the full pedido -> archive -> analytics -> audit flow. |
+| NAE E2E Execution | `CLOSED` | Evidence execution completed for the NAE E2E certification. |
+| NAE E2E Certification | `APPROVED` | Functional certification approved by acta of closure. |
 | NAE Cleanup | `PLANNED` | Post-certification sprint to remove temporary fallbacks and freeze `DataAccessService v1`. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 
@@ -22,6 +22,7 @@ Register of functional certifications and approved baselines.
 - [`NAE_FASE2_OPERACIONAL.md`](./NAE_FASE2_OPERACIONAL.md)
 - [`NAE_E2E_EXECUTION.md`](./NAE_E2E_EXECUTION.md)
 - [`NAE_E2E_CERTIFICATION.md`](./NAE_E2E_CERTIFICATION.md)
+- [`ACTA_CIERRE_NAE_E2E_V1.md`](./ACTA_CIERRE_NAE_E2E_V1.md)
 - [`NAE_CLEANUP.md`](./NAE_CLEANUP.md)
 - [`functional-metrics-baseline.json`](./functional-metrics-baseline.json)
 
