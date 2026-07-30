@@ -12,6 +12,7 @@ Register of functional certifications and approved baselines.
 | NAE E2E Execution | `CLOSED` | Evidence execution completed for the NAE E2E certification. |
 | NAE E2E Certification | `APPROVED` | Functional certification approved by acta of closure. |
 | NAE Cleanup | `PLANNED` | Post-certification sprint to remove temporary fallbacks and freeze `DataAccessService v1`. |
+| NAE Release Report v1.0 | `CERTIFIED` | Final frozen release report for NAE v1.0. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 
 ## Documents
@@ -24,6 +25,7 @@ Register of functional certifications and approved baselines.
 - [`NAE_E2E_CERTIFICATION.md`](./NAE_E2E_CERTIFICATION.md)
 - [`ACTA_CIERRE_NAE_E2E_V1.md`](./ACTA_CIERRE_NAE_E2E_V1.md)
 - [`NAE_CLEANUP.md`](./NAE_CLEANUP.md)
+- [`NAE_RELEASE_REPORT_v1.0.md`](./NAE_RELEASE_REPORT_v1.0.md)
 - [`functional-metrics-baseline.json`](./functional-metrics-baseline.json)
 
 ## Rule

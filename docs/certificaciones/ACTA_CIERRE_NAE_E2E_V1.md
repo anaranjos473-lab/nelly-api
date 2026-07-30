@@ -70,6 +70,10 @@ Resultado:
 
 El Nelly Archive Engine v1.0 supera satisfactoriamente la certificacion E2E funcional. Se autoriza el inicio del sprint de limpieza (`NAE-CLEANUP`) previo al congelamiento de la version.
 
+## Release final
+
+- [`NAE_RELEASE_REPORT_v1.0.md`](./NAE_RELEASE_REPORT_v1.0.md)
+
 ## Historial de cambios
 
 - 2026-07-30: acta de cierre creada a partir de la evidencia operacional recolectada.
