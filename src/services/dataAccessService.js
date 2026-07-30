@@ -1,5 +1,13 @@
 import { buildArchiveEngineSnapshot } from './archiveEngine.js';
 
+function sanitizeFirebaseKey(value = '') {
+  return String(value || '')
+    .trim()
+    .replace(/[.#$\/\[\]]/g, '_')
+    .replace(/\s+/g, ' ')
+    .slice(0, 768);
+}
+
 function buildDataAccessContract(orders = [], now = Date.now()) {
   const snapshot = buildArchiveEngineSnapshot(orders, now);
   const monthlyIndex = Array.isArray(snapshot.monthly_index) ? snapshot.monthly_index : [];
@@ -42,11 +50,11 @@ function buildDataAccessContract(orders = [], now = Date.now()) {
     getAuditIndex() {
       return {
         history_index: snapshot.orders_history.reduce((acc, order) => {
-          const commerce = String(order?.comercio?.nombre || order?.tienda?.nombre || order?.comercio_nombre || order?.tienda_nombre || '').trim();
-          const customer = String(order?.cliente_nombre || order?.cliente?.nombre || order?.cliente || '').trim();
-          const driver = String(order?.repartidor_nombre || order?.repartidor?.nombre || order?.repartidor_id || order?.driverUid || '').trim();
-          const payment = String(order?.metodo_pago || order?.forma_pago || order?.pago?.metodo || order?.pago?.tipo || '').trim();
-          const incident = String(order?.incidencia_tipo || order?.causa_raiz || order?.tipo_incidencia || '').trim();
+          const commerce = sanitizeFirebaseKey(order?.comercio?.nombre || order?.tienda?.nombre || order?.comercio_nombre || order?.tienda_nombre || '');
+          const customer = sanitizeFirebaseKey(order?.cliente_nombre || order?.cliente?.nombre || order?.cliente || '');
+          const driver = sanitizeFirebaseKey(order?.repartidor_nombre || order?.repartidor?.nombre || order?.repartidor_id || order?.driverUid || '');
+          const payment = sanitizeFirebaseKey(order?.metodo_pago || order?.forma_pago || order?.pago?.metodo || order?.pago?.tipo || '');
+          const incident = sanitizeFirebaseKey(order?.incidencia_tipo || order?.causa_raiz || order?.tipo_incidencia || '');
           if (commerce) acc.comercio[commerce] = (acc.comercio[commerce] || 0) + 1;
           if (customer) acc.cliente[customer] = (acc.cliente[customer] || 0) + 1;
           if (driver) acc.driver[driver] = (acc.driver[driver] || 0) + 1;

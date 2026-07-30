@@ -51,6 +51,14 @@ function normalizeState(state = '') {
   return String(state || '').trim().toUpperCase();
 }
 
+function sanitizeFirebaseKey(value = '') {
+  return String(value || '')
+    .trim()
+    .replace(/[.#$\/\[\]]/g, '_')
+    .replace(/\s+/g, ' ')
+    .slice(0, 768);
+}
+
 function classifyOrderCycle(order = {}, now = Date.now()) {
   const createdAt = getOrderTimestamp(order);
   const state = normalizeState(order.estado_pedido || order.estado);
@@ -198,7 +206,7 @@ function buildArchiveEngineUpdates(orders = [], now = Date.now()) {
 
   const groupBy = (items, keyFn, target) => {
     items.forEach((order) => {
-      const key = String(keyFn(order) || '').trim();
+      const key = sanitizeFirebaseKey(keyFn(order));
       if (!key) return;
       target[key] = target[key] || { key, pedidos: 0 };
       target[key].pedidos += 1;
