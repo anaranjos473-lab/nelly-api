@@ -2,7 +2,7 @@
 
 ## Estado
 
-IN VALIDATION
+IMPLEMENTADA
 
 ## Objetivo
 
@@ -20,6 +20,16 @@ Formalizar la fase 2 del Nelly Archive Engine para clasificar pedidos vivos, ped
 
 - Pruebas unitarias del clasificador y del update idempotente.
 - Verificacion de sintaxis en el servicio, scheduler y servidor.
+
+## Certificacion operativa pendiente
+
+La fase no se considera `CERTIFICADA` hasta completar una validacion E2E con datos reales que demuestre:
+
+- ejecucion automatica del scheduler
+- archivado sin duplicados
+- preservacion de pedidos activos
+- indice mensual y anual consistentes
+- auditoria basica sobre entregados sin pago cuando aplique
 
 ## Criterios de aceptacion
 
