@@ -277,6 +277,22 @@ export function createRenderManager() {
       const contenedorListo = document.getElementById('contenedor-listo');
       const contenedorReparto = document.getElementById('contenedor-reparto');
       const contenedorEntregados = document.getElementById('contenedor-entregados');
+      const canonicalPrevio = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
+      const tienePedidosEntrantes =
+        (pedidosPendientes instanceof Map && pedidosPendientes.size > 0)
+        || (pedidosReparto instanceof Map && pedidosReparto.size > 0)
+        || (pedidosEnCamino instanceof Map && pedidosEnCamino.size > 0)
+        || (pedidosEntregados instanceof Map && pedidosEntregados.size > 0);
+
+      if (!tienePedidosEntrantes && canonicalPrevio.length > 0) {
+        return renderState.lastOrderLists || {
+          pendientes: 0,
+          listo: 0,
+          reparto: 0,
+          entregados: 0,
+          at: Date.now()
+        };
+      }
 
       [contenedorPendientes, contenedorListo, contenedorReparto, contenedorEntregados].forEach((node) => {
         if (node) {
