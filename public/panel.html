@@ -16,7 +16,7 @@
    <link rel="stylesheet" href="/styles/components/forms.css" />
         <script type="module">
             // Inicializacion segura de Firebase: usa la RTDB real del panel
-            import { off, onValue, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+            import { off, onValue, ref } from "./js/premium-kitchen/firebase/index.js";
             // --- Documentacion: Flujo de sincronia ---
             // 1. Solo se escuchan pedidos con estado 'pendiente' para optimizar lecturas.
             // 2. Todos los listeners se limpian automaticamente al recargar o cerrar el panel.
@@ -30,43 +30,9 @@
                 const db = window.nellyDb;
                 window.nellyDb = db;
                 window.dispatchEvent(new Event('firebase-ready'));
-
-                pedidosListenerRef = ref(db, 'pedidos');
-                pedidosListenerCallback = (snapshot) => {
-                    const div = document.getElementById('lista-pedidos');
-                    if (!div) return;
-                    div.innerHTML = "";
-                    if (!snapshot.exists()) {
-                        div.innerHTML = `
-                    <div class="nelly-empty-state" style="grid-column: 1 / -1;">
-                        <p class="nelly-empty-state__title">Sin pedidos pendientes</p>
-                        <p class="nelly-empty-state__body">Cuando la SSOT publique pedidos nuevos, apareceran aqui en tiempo real.</p>
-                    </div>
-                        `;
-                        return;
-                    }
-                    snapshot.forEach((child) => {
-                        const p = child.val();
-                        const estado = String(p?.estado_pedido || p?.estado || '').trim().toUpperCase();
-                        if (estado !== 'PENDIENTE') return;
-                        div.innerHTML += `
-                            <div class="card">
-                                    <h3>Folio: #${child.key}</h3>
-                                    <p><strong>Cliente:</strong> ${p.cliente || 'No especificado'}</p>
-                                    <p><strong>Total:</strong> $${p.total || p.monto || 0}</p>
-                                    <button class="btn" onclick="window.moverAReparto('${child.key}')">Marcar como LISTO</button>
-                            </div>
-                        `;
-                    });
-                };
-                onValue(pedidosListenerRef, pedidosListenerCallback);
-
-            // Limpieza automatica de listeners al cerrar o recargar
-                window.addEventListener('beforeunload', () => {
-                    if (pedidosListenerRef && pedidosListenerCallback) {
-                        off(pedidosListenerRef, 'value', pedidosListenerCallback);
-                    }
-                });
+                if (typeof window.cargarPedidosActivosDesdeContrato === 'function') {
+                    void window.cargarPedidosActivosDesdeContrato();
+                }
             }).catch(e => {
                 console.warn('Cocina operando con fallback local:', e.message);
             });
@@ -2359,7 +2325,7 @@
     </style>
     <script type="module">
         import { rtdb } from "./firebase.js";
-        import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { ref, onValue } from "./js/premium-kitchen/firebase/index.js";
 
         window.nellyDb = rtdb;
 
@@ -2859,26 +2825,12 @@
     <script type="module" src="js/logistica-maps.js"></script>
 
     <script type="module">
-        import { auth, rtdb } from "./firebase.js";
+        import { auth, rtdb, onValue, ref, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, runTransaction, set, off } from "./js/premium-kitchen/firebase/index.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import { getKitchenConfig, getRestaurantConfig } from "./js/premium-kitchen/state/kitchen-config.js";
         import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
         import { normalizarEstado, construirFilaEstadoVacio } from "./js/premium-kitchen/panel-state-utils.mjs";
-        import {
-            onAuthStateChanged,
-            signInWithCustomToken
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import {
-            onChildAdded,
-            onChildChanged,
-            onChildRemoved,
-            onValue,
-            orderByChild,
-            query,
-            ref,
-            runTransaction,
-            set
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { onAuthStateChanged, signInWithCustomToken } from "./js/premium-kitchen/firebase/index.js";
 
         const API_BASE_URL =
             window.location.hostname === 'nelly-delivery.web.app'
@@ -3991,8 +3943,7 @@
             };
 
             // Logica para el Historial de Ventas
-            window.filtrarVentas = (rango) => {
-                const pedidosRef = ref(rtdb, 'pedidos');
+            window.filtrarVentas = async (rango) => {
                 const hoy = new Date();
                 hoy.setHours(0, 0, 0, 0);
                 const inicioSemana = new Date();
@@ -4002,31 +3953,29 @@
                 const inicioSemanaAnterior = inicioSemana.getTime() - (7 * 24 * 60 * 60 * 1000);
                 const finSemanaAnterior = inicioSemana.getTime();
 
-                onValue(pedidosRef, (snapshot) => {
+                try {
+                    const token = await window.cargarPedidosActivosDesdeContrato
+                        ? await obtenerIdTokenPanel()
+                        : null;
+                    const response = await fetch(DATA_ACCESS_ENDPOINT, {
+                        method: 'GET',
+                        headers: token ? { Authorization: `Bearer ${token}` } : {}
+                    });
+                    if (!response.ok) {
+                        throw new Error(`data_access_http_${response.status}`);
+                    }
+                    const payload = await response.json();
+                    const pedidos = Array.isArray(payload?.historical_orders) ? payload.historical_orders : [];
+
                     let total = 0;
                     let count = 0;
                     let html = '';
                     const conteoProductos = {};
                     let totalSemanaActual = 0;
                     let totalSemanaAnterior = 0;
-                    const pedidos = [];
-                    if (snapshot && typeof snapshot === 'object' && typeof snapshot.forEach === 'function') {
-                        snapshot.forEach((child) => {
-                            if (!child || typeof child.val !== 'function') {
-                                return;
-                            }
-                            const pedido = child.val();
-                            if (pedido && typeof pedido === 'object') {
-                                pedidos.push({
-                                    ...pedido,
-                                    __key: child.key
-                                });
-                            }
-                        });
-                    }
 
                     pedidos.forEach((pedido) => {
-                        const fechaPedido = new Date(pedido.fecha_finalizado || pedido.fecha_creacion || pedido.createdAt || pedido.created_at || 0).getTime();
+                        const fechaPedido = new Date(pedido.fecha_finalizado || pedido.entregado_en || pedido.finalizado_at || pedido.fecha_creacion || pedido.createdAt || pedido.created_at || 0).getTime();
                         if (!Number.isFinite(fechaPedido)) {
                             return;
                         }
@@ -4090,7 +4039,15 @@
                     document.getElementById('cantidad-pedidos').innerText = count;
                     window.renderizarTopProductos(top5);
                     window.renderizarComparativoSemanal(totalSemanaActual, totalSemanaAnterior);
-                }, { onlyOnce: true });
+                } catch (error) {
+                    console.warn('No se pudo cargar el historial de ventas desde el contrato:', error.message);
+                    document.getElementById('body-historial').innerHTML = construirFilaEstadoVacio('Sin ventas en este rango');
+                    document.getElementById('total-ventas').innerText = '$0.00';
+                    document.getElementById('total-comisiones').innerText = '$0.00';
+                    document.getElementById('cantidad-pedidos').innerText = '0';
+                    window.renderizarTopProductos([]);
+                    window.renderizarComparativoSemanal(0, 0);
+                }
             };
 
             // Exportar tabla a CSV
@@ -4184,14 +4141,16 @@
 
         window.ejecutarProtocoloRescate = () => {
             showToast('Ejecutando rescate de pedidos...', 'ok');
-            onValue(ref(rtdb, 'pedidos'), (snapshot) => {
-                sincronizarPedidosOperativosDesdeSnapshot(snapshot, 'rescate-manual');
-                const total = snapshot.exists() ? snapshot.size : 0;
-                logDebug(`Rescate manual completado. Pedidos: ${total}`);
-                showToast(`Rescate completado (${total} pedidos)`, 'ok');
-            }, {
-                onlyOnce: true
-            });
+            cargarPedidosActivosDesdeContrato()
+                .then((pedidos) => {
+                    const total = Array.isArray(pedidos) ? pedidos.length : 0;
+                    logDebug(`Rescate manual completado. Pedidos: ${total}`);
+                    showToast(`Rescate completado (${total} pedidos)`, 'ok');
+                })
+                .catch((error) => {
+                    logDebug(`Rescate manual fallido: ${error?.message || error}`, 'err');
+                    showToast('Rescate manual fallido', 'err');
+                });
         };
 
         function refrescarMetricasDebug() {
@@ -4945,6 +4904,75 @@
             solicitarRenderPanel(origen || 'onValue-pedidos');
         }
 
+        function sincronizarPedidosOperativosDesdeContrato(pedidos = [], origen) {
+            if (kitchenState.sync.recepcionPausada) {
+                console.log('[COCINA] Recepcion pausada, contrato ignorado', { origen });
+                registrarEvento('recepcionPausada');
+                solicitarRenderPanel('recepcion-pausada');
+                return;
+            }
+
+            const lista = Array.isArray(pedidos) ? pedidos : [];
+            console.log('[COCINA] Contrato recibido', {
+                origen,
+                size: lista.length
+            });
+
+            kitchenState.orders.pedidosPendientes.clear();
+            kitchenState.orders.pedidosReparto.clear();
+            kitchenState.orders.pedidosEnCamino.clear();
+
+            const idsVisibles = [];
+            const pedidosCrudos = [];
+
+            lista.forEach((value, index) => {
+                if (!value || typeof value !== 'object') {
+                    return;
+                }
+
+                const estado = normalizarEstado(value.estado_pedido || value.estado);
+                const fase = obtenerFasePanel(estado);
+                const pedidoId = value.id || value.id_pedido || value.pedido_id || `contract-${index}`;
+                const pedido = {
+                    ...value,
+                    estado,
+                    fase,
+                    id: pedidoId,
+                    _rtdbKey: value._rtdbKey || pedidoId,
+                    __source: 'contract_active_orders'
+                };
+                pedido.shortId = pedido.shortId || formatearShortIdDiario(pedido, idsVisibles.length + pedidosCrudos.length);
+                pedidosCrudos.push(pedido);
+
+                if (fase === 'COCINA') {
+                    kitchenState.orders.pedidosPendientes.set(pedido._rtdbKey, pedido);
+                    idsVisibles.push(pedido.id);
+                    return;
+                }
+                if (fase === 'DESPACHO') {
+                    kitchenState.orders.pedidosReparto.set(pedido._rtdbKey, pedido);
+                    idsVisibles.push(pedido.id);
+                    return;
+                }
+                if (fase === 'EN_REPARTO' || estado === 'ENTREGADO') {
+                    kitchenState.orders.pedidosEnCamino.set(pedido._rtdbKey, pedido);
+                    idsVisibles.push(pedido.id);
+                }
+            });
+
+            window.__nellyPedidosCocinaSnapshotRaw = pedidosCrudos;
+
+            console.log('[COCINA] Total de pedidos desde contrato', {
+                pendientes: kitchenState.orders.pedidosPendientes.size,
+                reparto: kitchenState.orders.pedidosReparto.size,
+                enCamino: kitchenState.orders.pedidosEnCamino.size,
+                total: kitchenState.orders.pedidosPendientes.size + kitchenState.orders.pedidosReparto.size + kitchenState.orders.pedidosEnCamino.size
+            });
+            console.log('[COCINA] IDs visibles desde contrato', idsVisibles);
+            registrarEvento('pedidosContrato');
+            solicitarRenderPanel(origen || 'nae-active-orders');
+        }
+
         function resolverKeyPedido(identificador) {
             if (kitchenState.orders.pedidosPendientes.has(identificador) || kitchenState.orders.pedidosReparto.has(identificador) || kitchenState.orders.pedidosEnCamino.has(identificador)) {
                 return identificador;
@@ -4992,7 +5020,7 @@
                     limpiarListeners();
                     listenersActivos.push(iniciarSincronizacion());
                 }
-                void cargarPedidosActivosDesdeContrato().then(() => {
+                void window.cargarPedidosActivosDesdeContrato().then(() => {
                     solicitarRenderPanel('nae-active-orders');
                 });
             } else {
@@ -5108,6 +5136,7 @@
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
                 logDebug(`NAE activos cargados: ${archiveEngineActiveOrdersCache.length}`, 'ok');
+                sincronizarPedidosOperativosDesdeContrato(archiveEngineActiveOrdersCache, 'nae-active-orders');
                 return archiveEngineActiveOrdersCache;
             } catch (error) {
                 archiveEngineActiveOrdersMeta = {
@@ -5118,15 +5147,16 @@
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
                 console.warn('[NAE] fallback local para Cocina:', archiveEngineActiveOrdersMeta.error);
+                sincronizarPedidosOperativosDesdeContrato([], 'nae-active-orders-fallback');
                 return [];
             }
         }
+        window.cargarPedidosActivosDesdeContrato = cargarPedidosActivosDesdeContrato;
 
         function iniciarSincronizacion() {
             // Devuelve funcion de limpieza para listeners
             const listeners = [];
             const gananciasRef = ref(rtdb, "metricas/ganancias_hoy");
-            const dbRef = ref(rtdb, "pedidos");
             const completadosRef = ref(rtdb, "pedidos_completados");
             iniciarMonitorMetricas();
             refrescarMetricasDebug();
@@ -5154,15 +5184,6 @@
                     ...metricas,
                     ...inteligencia
                 });
-            }));
-
-            listeners.push(onValue(dbRef, (snapshot) => {
-                sincronizarPedidosOperativosDesdeSnapshot(snapshot, kitchenState.sync.primeraCargaPendientes ? 'snapshot-inicial-pedidos' : 'snapshot-resync-pedidos');
-                if (kitchenState.sync.primeraCargaPendientes) {
-                    kitchenState.sync.primeraCargaPendientes = false;
-                }
-            }, (error) => {
-                reportarErrorListener('onValue(pedidos)', error);
             }));
 
             listeners.push(onValue(completadosRef, (snapshot) => {

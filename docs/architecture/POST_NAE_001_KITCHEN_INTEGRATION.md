@@ -2,7 +2,7 @@
 
 ## Estado
 
-Propuesto
+K5 certificado
 
 ## Proposito
 
@@ -67,11 +67,52 @@ El trabajo puede cerrarse cuando exista evidencia reproducible de que:
 3. Desacoplamiento gradual.
 4. Regresion visual y operativa.
 
+## Frente actual
+
+- [`POST_NAE_001_KITCHEN_INTEGRATION_K1_INVENTORY.md`](./POST_NAE_001_KITCHEN_INTEGRATION_K1_INVENTORY.md)
+- [`POST_NAE_001_KITCHEN_INTEGRATION_K2_EQUIVALENCE.md`](./POST_NAE_001_KITCHEN_INTEGRATION_K2_EQUIVALENCE.md)
+- [`POST_NAE_001_KITCHEN_INTEGRATION_K2_1_OPERATIONAL_VIEW.md`](./POST_NAE_001_KITCHEN_INTEGRATION_K2_1_OPERATIONAL_VIEW.md)
+- [`POST_NAE_001_KITCHEN_INTEGRATION_K2_1_EXECUTION.md`](./POST_NAE_001_KITCHEN_INTEGRATION_K2_1_EXECUTION.md)
+- [`POST_NAE_001_K4_RTDB_RESIDUAL_DECOUPLING.md`](./POST_NAE_001_K4_RTDB_RESIDUAL_DECOUPLING.md)
+
+## Estado por fase
+
+- K1: cerrado
+- K2: cerrado
+- K2.1: cerrado
+- K3: certificado
+- K4: certificado
+- K5: certificado
+
 ## Relacion con el NAE
 
 - NAE queda congelado.
 - Este trabajo es posterior al release `NAE v1.0 Certified`.
 - Cualquier ajuste aqui debe preservar el contrato de lectura existente.
+
+## Certificacion final
+
+La certificacion final del frente de Cocina quedo cerrada con:
+
+- K3: migracion del render principal hacia `DataAccessService`.
+- K4: desacoplamiento residual de RTDB.
+- K5: certificacion E2E completa del frente.
+
+### Conclusiones finales
+
+- La cola principal de Cocina se construye desde `active_orders` mediante `DataAccessService`.
+- `window.__nellyArchiveEngineMeta` quedo en modo `archive-engine` con `error: null`.
+- El contrato `/api/data-architecture/data-access` respondio correctamente y entrego datos validos.
+- El pedido de referencia `PED_1784509957904` aparece exactamente una vez en `historical_orders` y no permanece en `active_orders` ni `today_orders`.
+- RTDB dejo de ser la fuente principal de la cola operativa.
+- No se observo un faltante estructural que comprometa la operacion basica de Cocina.
+
+### Observaciones de calidad
+
+Estas observaciones no bloquean la certificacion final, pero se registran para saneamiento posterior:
+
+- Existe un registro con identificador `TES ` que conviene revisar por higiene de datos.
+- La vista historica de entregados puede requerir una mejora de presentacion o navegacion si se quiere mostrar el pedido archivado de forma mas explicita en una corrida visual dedicada.
 
 ## Historial de cambios
 
