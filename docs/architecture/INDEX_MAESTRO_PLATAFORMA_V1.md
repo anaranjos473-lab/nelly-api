@@ -109,6 +109,9 @@ P1.1 ya cuenta con evidencia de series internas consecutivas sobre la base certi
 - [`POST_NAE_001_KITCHEN_INTEGRATION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POST_NAE_001_KITCHEN_INTEGRATION.md)
 #### Resumen POST-NAE-001
 POST-NAE-001 abre la migracion de Cocina hacia consumo exclusivo de `DataAccessService v1`, retirando la mezcla de lectura con RTDB en la cola visible sin tocar el release certificado del NAE.
+- [`POST_NAE_001_KITCHEN_INTEGRATION_EXECUTION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POST_NAE_001_KITCHEN_INTEGRATION_EXECUTION.md)
+#### Resumen POST-NAE-001-E1
+POST-NAE-001-E1 inicia la ejecucion controlada de la integracion de Cocina, con foco en evidencia visual y desacoplamiento gradual del listener legado de RTDB.
 - [`GOAL-P1-005.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-005.md)
 #### Resumen P1.5
 P1.5 formaliza la gestion operativa de deuda como capacidad oficial del producto para eliminar saneamientos manuales y convertir el umbral de bloqueo, el desbloqueo, la liquidacion y las alertas de administracion en un flujo trazable y medible.
