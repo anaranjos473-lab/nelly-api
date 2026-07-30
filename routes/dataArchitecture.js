@@ -107,7 +107,18 @@ router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next
     const snapshot = await admin.database().ref('pedidos').once('value');
     const pedidos = snapshot.val() || {};
     const orders = Object.entries(pedidos).map(([id, pedido]) => ({ id, ...pedido }));
-    return res.json(buildDataAccessContract(orders));
+    const contract = buildDataAccessContract(orders);
+    return res.json({
+      ok: true,
+      contract_version: 'v1',
+      generatedAt: contract.generatedAt,
+      active_orders: contract.getActiveOrders(),
+      today_orders: contract.getTodayOrders(),
+      historical_orders: contract.getHistoricalOrders(),
+      monthly_summary: contract.getMonthlySummary(),
+      annual_summary: contract.getAnnualSummary(),
+      audit_index: contract.getAuditIndex()
+    });
   } catch (error) {
     return next(error);
   }

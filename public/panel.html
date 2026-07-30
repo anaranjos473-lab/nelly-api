@@ -3152,7 +3152,7 @@
                         vistosMap.add(firma);
                         listaMap.push({ ...pedido });
                     });
-                    return asignarShortIdsDiarios(listaMap.sort((a, b) => Number(a?.created_at || a?.createdAt || a?.timestamp_creacion || a?.timestampCreacion || 0) - Number(b?.created_at || b?.createdAt || b?.timestamp_creacion || b?.timestampCreacion || 0)));
+                    return asignarShortIdsDiarios(listaMap.sort(compararPedidosOperacion));
                 }
 
                 const canonical = Array.isArray(window.__nellyPedidosCocinaCanonical)
@@ -3163,7 +3163,7 @@
                 }
                 const ordenar = (coleccion = []) => coleccion
                     .slice()
-                    .sort((a, b) => Number(a?.created_at || a?.createdAt || a?.timestamp_creacion || a?.timestampCreacion || 0) - Number(b?.created_at || b?.createdAt || b?.timestamp_creacion || b?.timestampCreacion || 0));
+                    .sort(compararPedidosOperacion);
                 const lista = canonical
                     .filter((pedido) => pedido && typeof pedido === 'object')
                     .map((pedido) => ({ ...pedido }));
@@ -3171,12 +3171,17 @@
             }
 
             function todosLosPedidosCocina() {
-                const lista = recolectarPedidosCocinaBase();
+                const lista = Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length
+                    ? archiveEngineActiveOrdersCache.map((pedido) => ({ ...pedido }))
+                    : recolectarPedidosCocinaBase();
                 if (!lista.length) {
                     return [];
                 }
+                if (Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length) {
+                    return asignarShortIdsDiarios(lista.sort(compararPedidosOperacion));
+                }
                 const visiblesDelMes = lista.filter((pedido) => esPedidoDelMesActual(pedido));
-                return asignarShortIdsDiarios(visiblesDelMes.length ? visiblesDelMes : lista);
+                return asignarShortIdsDiarios(visiblesDelMes.sort(compararPedidosOperacion));
             }
 
             function resolverPedidoOperacion(identificador) {
@@ -3383,19 +3388,22 @@
                 if (!pedidosBase.length && Array.isArray(window.__nellyOperationOrders) && window.__nellyOperationOrders.length) {
                     pedidosBase.push(...window.__nellyOperationOrders.map((pedido) => ({ ...pedido })));
                 }
-                const pedidosFiltradosColumnas = pedidosBase
+                const pedidosOperativos = pedidosBase
+                    .filter((pedido) => esPedidoDelMesActual(pedido))
+                    .sort(compararPedidosOperacion);
+                const pedidosFiltradosColumnas = pedidosOperativos
                     .filter((pedido) => pedidoPasaColumnasOperacion(pedido, columnasActivas))
                 const pedidosFiltrados = pedidosFiltradosColumnas
                     .filter((pedido) => pedidoPasaFiltrosOperacion(pedido, filtros));
                 const pedidosFinales = pedidosFiltrados.length
                     ? pedidosFiltrados
-                    : (pedidosFiltradosColumnas.length ? pedidosFiltradosColumnas : pedidosBase);
-                if (!pedidosFinales.length && pedidosBase.length) {
+                    : pedidosFiltradosColumnas;
+                if (!pedidosFinales.length && pedidosOperativos.length) {
                     document.querySelectorAll('[data-column-toggle]').forEach((input) => {
                         input.checked = true;
                     });
                     guardarColumnas();
-                    const recalculados = pedidosBase
+                    const recalculados = pedidosOperativos
                         .filter((pedido) => pedidoPasaColumnasOperacion(pedido, obtenerColumnasActivasOperacion()))
                         .filter((pedido) => pedidoPasaFiltrosOperacion(pedido, getKitchenFilters()));
                     if (recalculados.length) {
@@ -4131,12 +4139,20 @@
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/dispatch-order'));
         const COMPLETE_ORDER_ENDPOINTS = PANEL_TOKEN_ENDPOINTS
             .map((endpoint) => endpoint.replace('/api/auth/panel-token', '/api/delivery/complete-order'));
+        const DATA_ACCESS_ENDPOINT = `${API_BASE_URL || 'https://nelly-api-8lh1.onrender.com'}/api/data-architecture/data-access`;
         const RESTAURANT_CAPACITY_PRESETS = {
             'Lidos Pizza': 18,
             Sushi: 40,
             Café: 12
         };
         const RESTAURANT_NAME = restaurantConfig.name || 'Restaurante';
+        let archiveEngineActiveOrdersCache = [];
+        let archiveEngineActiveOrdersMeta = {
+            source: 'fallback-local',
+            contract_version: 'v1',
+            generatedAt: null,
+            error: null
+        };
 
         function esErrorPermisoFirebase(error) {
             const codigo = String(error?.code || '').toUpperCase();
@@ -4439,7 +4455,6 @@
         function getEnabledColumnKeys() {
             return obtenerColumnasActivasOperacion();
         }
-        window.getEnabledColumnKeys = getEnabledColumnKeys;
 
         function coincideFiltroPrioridad(pedido, prioridad = 'todas') {
             if (!prioridad || prioridad === 'todas') return true;
@@ -4561,6 +4576,10 @@
                 const ahora = new Date();
                 return fechaPedido.getFullYear() === ahora.getFullYear()
                     && fechaPedido.getMonth() === ahora.getMonth();
+            }
+
+            function compararPedidosOperacion(a = {}, b = {}) {
+                return getPedidoTimestampLocal(b) - getPedidoTimestampLocal(a);
             }
 
             function formatearShortIdDiario(pedido = {}, indice = 1) {
@@ -4973,6 +4992,9 @@
                     limpiarListeners();
                     listenersActivos.push(iniciarSincronizacion());
                 }
+                void cargarPedidosActivosDesdeContrato().then(() => {
+                    solicitarRenderPanel('nae-active-orders');
+                });
             } else {
                 limpiarListeners();
                 autenticarPanelConBackend();
@@ -5061,6 +5083,43 @@
             }
 
             return auth.currentUser.getIdToken();
+        }
+
+        async function cargarPedidosActivosDesdeContrato() {
+            try {
+                const token = await obtenerIdTokenPanel();
+                const response = await fetch(DATA_ACCESS_ENDPOINT, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`data_access_http_${response.status}`);
+                }
+                const data = await response.json();
+                const activeOrders = Array.isArray(data?.active_orders) ? data.active_orders : [];
+                archiveEngineActiveOrdersCache = activeOrders.map((pedido) => ({ ...pedido, __source: 'archive_engine' }));
+                archiveEngineActiveOrdersMeta = {
+                    source: 'archive-engine',
+                    contract_version: String(data?.contract_version || 'v1'),
+                    generatedAt: data?.generatedAt || new Date().toISOString(),
+                    error: null
+                };
+                window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                logDebug(`NAE activos cargados: ${archiveEngineActiveOrdersCache.length}`, 'ok');
+                return archiveEngineActiveOrdersCache;
+            } catch (error) {
+                archiveEngineActiveOrdersMeta = {
+                    source: 'fallback-local',
+                    contract_version: 'v1',
+                    generatedAt: null,
+                    error: String(error?.message || error || 'unknown')
+                };
+                window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                console.warn('[NAE] fallback local para Cocina:', archiveEngineActiveOrdersMeta.error);
+                return [];
+            }
         }
 
         function iniciarSincronizacion() {

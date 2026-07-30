@@ -1,4 +1,4 @@
-import { getAdmin } from '../config/firebase-admin-esm.js';
+import { getAdmin } from '../../config/firebase-admin-esm.js';
 import { buildArchiveEngineUpdates } from './archiveEngine.js';
 
 const DEFAULT_HOUR = 0;
