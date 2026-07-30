@@ -5,6 +5,7 @@ import {
   DATA_ARCHITECTURE_MODE,
   TARGET_ARCHITECTURE
 } from '../src/services/dataArchitectureService.js';
+import { buildArchiveEngineSnapshot } from '../src/services/archiveEngine.js';
 
 const router = express.Router();
 
@@ -82,6 +83,18 @@ router.get('/status', requireDataArchitectureAccess, async (_req, res, next) => 
     const admin = await getAdmin();
     const snapshot = await buildDataArchitectureSnapshot(admin);
     return res.json(snapshot);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/archive', requireDataArchitectureAccess, async (_req, res, next) => {
+  try {
+    const admin = await getAdmin();
+    const snapshot = await admin.database().ref('pedidos').once('value');
+    const pedidos = snapshot.val() || {};
+    const orders = Object.entries(pedidos).map(([id, pedido]) => ({ id, ...pedido }));
+    return res.json(buildArchiveEngineSnapshot(orders));
   } catch (error) {
     return next(error);
   }
