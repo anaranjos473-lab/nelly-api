@@ -1434,6 +1434,202 @@
                 display: none;
             }
         }
+        .operation-focus__detail-shell.is-premium {
+            gap: 8px;
+        }
+        .operation-focus__premium-top {
+            display: grid;
+            grid-template-columns: minmax(220px, 0.92fr) minmax(0, 1.5fr);
+            gap: 8px;
+        }
+        .operation-focus__premium-top .operation-focus__hero-maincard {
+            padding: 12px 14px;
+            border-radius: 10px;
+            min-height: 92px;
+        }
+        .operation-focus__premium-top .operation-focus__timer-value {
+            font-size: clamp(2.35rem, 4vw, 3rem);
+        }
+        .operation-focus__premium-top .operation-focus__mini-card {
+            min-height: 92px;
+            padding: 11px;
+            border-radius: 10px;
+        }
+        .operation-focus__premium-top .operation-focus__mini-card-value {
+            font-size: 1rem;
+        }
+        .operation-focus__premium-top .operation-focus__mini-card-hint {
+            font-size: 0.68rem;
+        }
+        .operation-focus__premium-middle {
+            display: grid;
+            grid-template-columns: minmax(190px, 0.82fr) minmax(250px, 1.08fr) minmax(230px, 0.96fr);
+            gap: 8px;
+        }
+        .operation-focus__premium-bottom {
+            display: grid;
+            grid-template-columns: minmax(190px, 0.82fr) minmax(100px, 0.42fr) minmax(0, 1.58fr);
+            gap: 8px;
+        }
+        .operation-focus__premium-footer {
+            display: grid;
+            grid-template-columns: auto minmax(190px, 0.78fr) minmax(210px, 0.92fr);
+            gap: 8px;
+            align-items: stretch;
+        }
+        .operation-focus__premium-footer .nelly-btn {
+            min-height: 42px;
+        }
+        .operation-focus__premium-footer .btn-success {
+            font-size: 0.92rem;
+            font-weight: 950;
+        }
+        .operation-focus__identity {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr);
+            gap: 8px;
+            align-items: start;
+            margin-bottom: 7px;
+        }
+        .operation-focus__identity:last-child {
+            margin-bottom: 0;
+        }
+        .operation-focus__identity-icon {
+            color: #22c55e;
+            line-height: 1.2;
+        }
+        .operation-focus__identity-copy {
+            display: grid;
+            gap: 1px;
+            min-width: 0;
+            color: #b8c7dc;
+            font-size: 0.73rem;
+            line-height: 1.28;
+        }
+        .operation-focus__identity-copy strong {
+            color: #f8fafc;
+            font-size: 0.8rem;
+        }
+        .operation-focus__premium-middle .operation-focus__communication {
+            gap: 8px;
+        }
+        .operation-focus__premium-middle .operation-focus__contact-card {
+            padding: 8px;
+            border-radius: 9px;
+            gap: 6px;
+        }
+        .operation-focus__premium-middle .operation-focus__contact-action {
+            min-height: 28px;
+            border-radius: 7px;
+            font-size: 0.72rem;
+        }
+        .operation-focus__premium-middle .operation-focus__payment-card {
+            padding: 10px;
+            border-radius: 10px;
+            gap: 5px;
+        }
+        .operation-focus__premium-middle .operation-focus__payment-action {
+            min-height: 32px;
+            border-radius: 7px;
+            font-size: 0.78rem;
+        }
+        .operation-focus__premium-middle .operation-focus__payment-method {
+            font-size: 0.9rem;
+        }
+        .operation-focus__premium-middle .operation-focus__payment-status {
+            padding: 3px 7px;
+            font-size: 0.68rem;
+        }
+        .operation-focus__premium-middle .operation-focus__payment-amount {
+            font-size: 0.72rem;
+        }
+        .operation-focus__premium-bottom .operation-focus__section,
+        .operation-focus__premium-middle .operation-focus__section {
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .operation-focus__premium-bottom .operation-focus__product-row {
+            padding: 3px 0;
+            margin: 0;
+            border: 0;
+            background: transparent;
+            grid-template-columns: 20px minmax(0, 1fr);
+            gap: 6px;
+        }
+        .operation-focus__premium-bottom .operation-focus__product-emoji {
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            font-size: 0.8rem;
+        }
+        .operation-focus__premium-bottom .operation-focus__product-copy {
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+        }
+        .operation-focus__premium-bottom .operation-focus__product-copy strong {
+            font-size: 0.72rem;
+        }
+        .operation-focus__premium-bottom .operation-focus__product-copy span {
+            font-size: 0.68rem;
+        }
+        .operation-focus__premium-bottom .operation-focus__timeline {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            padding: 9px 4px 5px;
+            gap: 4px;
+            border: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+        .operation-focus__premium-bottom .operation-focus__timeline::before {
+            top: 25px;
+            left: 22px;
+            right: 22px;
+            height: 2px;
+        }
+        .operation-focus__premium-bottom .operation-focus__timeline-step {
+            gap: 4px;
+        }
+        .operation-focus__premium-bottom .operation-focus__timeline-label {
+            font-size: 0.65rem;
+        }
+        .operation-focus__premium-bottom .operation-focus__timeline-time {
+            font-size: 0.6rem;
+        }
+        .operation-focus__intel-strip {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 10px;
+            align-items: center;
+            padding: 8px 11px;
+            border: 1px solid rgba(168, 85, 247, 0.18);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(34, 20, 61, 0.96), rgba(10, 17, 31, 0.96));
+            color: #aebed5;
+            font-size: 0.68rem;
+        }
+        .operation-focus__intel-strip strong {
+            color: #c084fc;
+        }
+        .operation-focus__intel-mark {
+            display: grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            color: #c084fc;
+            background: rgba(124, 58, 237, 0.18);
+            font-weight: 950;
+        }
+        @media (max-width: 980px) {
+            .operation-focus__premium-top,
+            .operation-focus__premium-middle,
+            .operation-focus__premium-bottom {
+                grid-template-columns: 1fr;
+            }
+            .operation-focus__premium-footer {
+                grid-template-columns: 1fr;
+            }
+        }
         .operation-focus__intel {
             display: grid;
             gap: 10px;
@@ -3509,7 +3705,8 @@
                     ['Recibido', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
                     ['Preparando', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
                     ['Cocina', pedido.cocina_at || pedido.listo_at || '2:10 PM', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
-                    ['Reparto', pedido.reparto_at || pedido.asignado_at || '—', pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO']
+                    ['Reparto', pedido.reparto_at || pedido.asignado_at || '—', pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
+                    ['Entregado', pedido.entregado_at || pedido.completed_at || '—', pedido.estado === 'ENTREGADO']
                 ];
                 const timelineHtml = timelineEventos.map(([label, hora, done], index) => `
                     <div class="operation-focus__timeline-step ${done ? 'is-done' : ''}${index === 2 && pedido.estado !== 'ENTREGADO' ? ' is-current' : ''}">
@@ -3535,114 +3732,91 @@
                 title.textContent = `Pedido #${displayId}`;
                 subtitle.textContent = nombre;
                 body.innerHTML = `
-                    <div class="operation-focus__detail-shell">
-                        <div class="operation-focus__hero">
-                            <div class="operation-focus__hero-main">
-                                <div class="operation-focus__hero-maincard ${riesgo.clase}">
-                                    <div class="operation-focus__timer-label">Tiempo transcurrido</div>
-                                    <div class="operation-focus__timer-value">${escapeHtmlOperacion(cronometro)}</div>
-                                    <div class="ops-summary-card__hint">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</div>
-                                    <div class="operation-focus__timer-meta">
-                                        <span class="operation-focus__timer-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
-                                        <span class="operation-focus__timer-chip">${escapeHtmlOperacion(estadoVisible)}</span>
-                                    </div>
+                    <div class="operation-focus__detail-shell is-premium">
+                        <div class="operation-focus__premium-top">
+                            <div class="operation-focus__hero-maincard ${riesgo.clase}">
+                                <div class="operation-focus__timer-label">Tiempo transcurrido</div>
+                                <div class="operation-focus__timer-value">${escapeHtmlOperacion(cronometro)}</div>
+                                <div class="ops-summary-card__hint">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</div>
+                                <div class="operation-focus__timer-meta">
+                                    <span class="operation-focus__timer-chip">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
+                                    <span class="operation-focus__timer-chip">${escapeHtmlOperacion(estadoVisible)}</span>
                                 </div>
                             </div>
-                            <div class="operation-focus__hero-side">
-                                <div class="operation-focus__mini-grid">
-                                    <div class="operation-focus__mini-card">
-                                        <span class="operation-focus__mini-card-label">Prioridad</span>
-                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(riesgo.etiqueta)}</strong>
-                                        <span class="operation-focus__mini-card-hint">Orden sugerido por urgencia</span>
-                                    </div>
-                                    <div class="operation-focus__mini-card">
-                                        <span class="operation-focus__mini-card-label">Repartidor</span>
-                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(repartidor)}</strong>
-                                        <span class="operation-focus__mini-card-hint">ETA pendiente</span>
-                                    </div>
-                                    <div class="operation-focus__mini-card">
-                                        <span class="operation-focus__mini-card-label">ETA estimada</span>
-                                        <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(String(eta))}</strong>
-                                        <span class="operation-focus__mini-card-hint">En tienda</span>
-                                    </div>
+                            <div class="operation-focus__mini-grid">
+                                <div class="operation-focus__mini-card">
+                                    <span class="operation-focus__mini-card-label">⚡ Prioridad</span>
+                                    <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(riesgo.etiqueta)}</strong>
+                                    <span class="operation-focus__mini-card-hint">Orden sugerido por urgencia</span>
+                                </div>
+                                <div class="operation-focus__mini-card">
+                                    <span class="operation-focus__mini-card-label">♙ Repartidor</span>
+                                    <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(repartidor)}</strong>
+                                    <span class="operation-focus__mini-card-hint">Asignación operativa</span>
+                                </div>
+                                <div class="operation-focus__mini-card">
+                                    <span class="operation-focus__mini-card-label">◷ ETA estimada</span>
+                                    <strong class="operation-focus__mini-card-value">${escapeHtmlOperacion(String(eta))}</strong>
+                                    <span class="operation-focus__mini-card-hint">En tienda</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="operation-focus__content-grid">
-                            <div class="operation-focus__left-stack">
-                                <div class="operation-focus__summary-grid">
-                                    <div class="operation-focus__section">
-                                        <span class="operation-focus__section-label">Cliente</span>
-                                        <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(nombre)}</div>
-                                    </div>
-                                    <div class="operation-focus__section">
-                                        <span class="operation-focus__section-label">Estado</span>
-                                        <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(estadoVisible)}</div>
-                                    </div>
+                        <div class="operation-focus__premium-middle">
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Cliente y dirección</span>
+                                <div class="operation-focus__identity">
+                                    <span class="operation-focus__identity-icon">♙</span>
+                                    <div class="operation-focus__identity-copy"><strong>${escapeHtmlOperacion(nombre)}</strong></div>
                                 </div>
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Dirección</span>
-                                    <div class="operation-focus__section-value">${escapeHtmlOperacion(direccion)}</div>
-                                </div>
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Productos (${productos.length})</span>
-                                    <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
-                                </div>
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Línea de tiempo</span>
-                                    <div class="operation-focus__timeline">${timelineHtml}</div>
+                                <div class="operation-focus__identity">
+                                    <span class="operation-focus__identity-icon">⌖</span>
+                                    <div class="operation-focus__identity-copy">${escapeHtmlOperacion(direccion)}</div>
                                 </div>
                             </div>
-                            <div class="operation-focus__right-stack">
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Prioridad</span>
-                                    <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(riesgo.etiqueta)}</div>
-                                    <div class="ops-summary-card__hint">Orden sugerido por urgencia</div>
-                                </div>
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Repartidor</span>
-                                    <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(repartidor)}</div>
-                                    <div class="ops-summary-card__hint">${escapeHtmlOperacion(String(eta))}</div>
-                                </div>
-                                <div class="operation-focus__section">
-                                    <span class="operation-focus__section-label">Comunicación</span>
-                                    <div class="operation-focus__communication">
-                                        <div class="operation-focus__contact-card">
-                                            <strong class="operation-focus__contact-title">${escapeHtmlOperacion(nombre)}</strong>
-                                            <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatCliente && window.abrirChatCliente('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
-                                            <button class="operation-focus__contact-action" type="button" onclick="window.llamarCliente && window.llamarCliente('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
-                                        </div>
-                                        <div class="operation-focus__contact-card">
-                                            <strong class="operation-focus__contact-title">${escapeHtmlOperacion(repartidor)}</strong>
-                                            <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatRepartidor && window.abrirChatRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
-                                            <button class="operation-focus__contact-action" type="button" onclick="window.llamarRepartidor && window.llamarRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
-                                        </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Comunicación</span>
+                                <div class="operation-focus__communication">
+                                    <div class="operation-focus__contact-card">
+                                        <strong class="operation-focus__contact-title">Cliente</strong>
+                                        <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatCliente && window.abrirChatCliente('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
+                                        <button class="operation-focus__contact-action" type="button" onclick="window.llamarCliente && window.llamarCliente('${String(displayId).replace(/'/g, "\\'")}')">Llamar</button>
                                     </div>
-                                    <div style="margin-top:10px;">
+                                    <div class="operation-focus__contact-card">
+                                        <strong class="operation-focus__contact-title">Repartidor · ${escapeHtmlOperacion(repartidor)}</strong>
+                                        <button class="operation-focus__contact-action" type="button" onclick="window.abrirChatRepartidor && window.abrirChatRepartidor('${String(displayId).replace(/'/g, "\\'")}')">Chat</button>
                                         <button class="operation-focus__contact-action" type="button" onclick="window.verUbicacionPedido && window.verUbicacionPedido('${String(displayId).replace(/'/g, "\\'")}')">Ver ubicación</button>
                                     </div>
                                 </div>
-                                <div class="operation-focus__payment-card ${pagoCompletado ? 'is-paid' : ''}">
-                                    <span class="operation-focus__payment-label">Pago del pedido</span>
-                                    <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
-                                    <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
-                                    <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
-                                    <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
-                                </div>
-                                <div class="operation-focus__summary-grid">
-                                    <div class="operation-focus__section">
-                                        <span class="operation-focus__section-label">Notas</span>
-                                        <div class="operation-focus__section-value">${escapeHtmlOperacion(String(notas))}</div>
-                                    </div>
-                                    <div class="operation-focus__section">
-                                        <span class="operation-focus__section-label">Más opciones</span>
-                                        <div class="operation-focus__footer">
-                                            <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">⋮</button>
-                                            <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">MARCAR LISTO</button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                            <div class="operation-focus__payment-card ${pagoCompletado ? 'is-paid' : ''}">
+                                <span class="operation-focus__payment-label">Pago del pedido</span>
+                                <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
+                                <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
+                                <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
+                                <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
+                            </div>
+                        </div>
+                        <div class="operation-focus__premium-bottom">
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Productos (${productos.length})</span>
+                                <div class="operation-focus__section-value">${productosHtml || '<div>Sin productos</div>'}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Notas</span>
+                                <div class="operation-focus__section-value is-compact">${escapeHtmlOperacion(String(notas))}</div>
+                            </div>
+                            <div class="operation-focus__section">
+                                <span class="operation-focus__section-label">Línea de tiempo</span>
+                                <div class="operation-focus__timeline">${timelineHtml}</div>
+                            </div>
+                        </div>
+                        <div class="operation-focus__premium-footer">
+                            <button class="nelly-btn nelly-btn--ghost" type="button" onclick="window.verDetallePedido('${String(displayId).replace(/'/g, "\\'")}')">⋮ Más opciones</button>
+                            <div class="operation-focus__intel-strip">
+                                <span class="operation-focus__intel-mark">IA</span>
+                                <span>Tiempo restante estimado: <strong>${escapeHtmlOperacion(String(Math.max(0, Math.round(objetivo * (1 - progreso / 100)))))} min</strong><br>Sugerencia: puedes iniciar el siguiente pedido.</span>
+                            </div>
+                            <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">✓ MARCAR LISTO</button>
                         </div>
                     </div>
                 `;
