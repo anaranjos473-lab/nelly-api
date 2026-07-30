@@ -5339,6 +5339,20 @@
                 }
                 const data = await response.json();
                 const activeOrders = Array.isArray(data?.active_orders) ? data.active_orders : [];
+                const teniaCachePrevio = Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length > 0;
+
+                if (!activeOrders.length && teniaCachePrevio) {
+                    logDebug('NAE contrato devolvio 0 pedidos, conservando cache previo', 'warn');
+                    archiveEngineActiveOrdersMeta = {
+                        source: 'archive-engine',
+                        contract_version: String(data?.contract_version || 'v1'),
+                        generatedAt: data?.generatedAt || new Date().toISOString(),
+                        error: null
+                    };
+                    window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                    return archiveEngineActiveOrdersCache;
+                }
+
                 archiveEngineActiveOrdersCache = activeOrders.map((pedido) => ({ ...pedido, __source: 'archive_engine' }));
                 archiveEngineActiveOrdersMeta = {
                     source: 'archive-engine',
@@ -5359,7 +5373,11 @@
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
                 console.warn('[NAE] fallback local para Cocina:', archiveEngineActiveOrdersMeta.error);
-                sincronizarPedidosOperativosDesdeContrato([], 'nae-active-orders-fallback');
+                if (!(Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length > 0)) {
+                    sincronizarPedidosOperativosDesdeContrato([], 'nae-active-orders-fallback');
+                } else {
+                    logDebug('NAE fallback ignorado para no vaciar la cola ya visible', 'warn');
+                }
                 return [];
             }
         }
