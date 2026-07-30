@@ -3135,47 +3135,48 @@
                     || null;
             }
 
-            function todosLosPedidosCocina() {
-                const fuentes = [
-                    kitchenState.orders.pedidosPendientes,
-                    kitchenState.orders.pedidosReparto,
-                    kitchenState.orders.pedidosEnCamino,
-                    kitchenState.orders.pedidosEntregados
+            function recolectarPedidosCocinaBase() {
+                const fuentesMap = [
+                    kitchenState.orders.pedidosPendientes instanceof Map ? Array.from(kitchenState.orders.pedidosPendientes.entries()).map(([id, pedido]) => ({ id, ...pedido })) : [],
+                    kitchenState.orders.pedidosReparto instanceof Map ? Array.from(kitchenState.orders.pedidosReparto.entries()).map(([id, pedido]) => ({ id, ...pedido })) : [],
+                    kitchenState.orders.pedidosEnCamino instanceof Map ? Array.from(kitchenState.orders.pedidosEnCamino.entries()).map(([id, pedido]) => ({ id, ...pedido })) : [],
+                    kitchenState.orders.pedidosEntregados instanceof Map ? Array.from(kitchenState.orders.pedidosEntregados.entries()).map(([id, pedido]) => ({ id, ...pedido })) : []
                 ];
-                const vistos = new Set();
-                const lista = [];
-
-                for (const fuente of fuentes) {
-                    if (!(fuente instanceof Map)) continue;
-                    for (const [key, pedido] of fuente.entries()) {
-                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || key);
-                        if (!firma || vistos.has(firma)) continue;
-                        vistos.add(firma);
-                        lista.push({ id: key, ...pedido });
-                    }
+                const fromMaps = fuentesMap.flat();
+                if (fromMaps.length) {
+                    const vistosMap = new Set();
+                    const listaMap = [];
+                    fromMaps.forEach((pedido) => {
+                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || pedido?._rtdbKey || '');
+                        if (!firma || vistosMap.has(firma)) return;
+                        vistosMap.add(firma);
+                        listaMap.push({ ...pedido });
+                    });
+                    return asignarShortIdsDiarios(listaMap.sort((a, b) => Number(a?.created_at || a?.createdAt || a?.timestamp_creacion || a?.timestampCreacion || 0) - Number(b?.created_at || b?.createdAt || b?.timestamp_creacion || b?.timestampCreacion || 0)));
                 }
 
+                const canonical = Array.isArray(window.__nellyPedidosCocinaCanonical)
+                    ? window.__nellyPedidosCocinaCanonical
+                    : (Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : []);
+                if (!canonical.length) {
+                    return [];
+                }
                 const ordenar = (coleccion = []) => coleccion
                     .slice()
-                    .sort((a, b) => Number(a?.created_at || a?.createdAt || 0) - Number(b?.created_at || b?.createdAt || 0));
+                    .sort((a, b) => Number(a?.created_at || a?.createdAt || a?.timestamp_creacion || a?.timestampCreacion || 0) - Number(b?.created_at || b?.createdAt || b?.timestamp_creacion || b?.timestampCreacion || 0));
+                const lista = canonical
+                    .filter((pedido) => pedido && typeof pedido === 'object')
+                    .map((pedido) => ({ ...pedido }));
+                return asignarShortIdsDiarios(ordenar(lista));
+            }
 
-                if (lista.length) {
-                    const visiblesDelMes = lista.filter((pedido) => esPedidoDelMesActual(pedido));
-                    const base = visiblesDelMes.length ? visiblesDelMes : lista;
-                    return asignarShortIdsDiarios(ordenar(base));
+            function todosLosPedidosCocina() {
+                const lista = recolectarPedidosCocinaBase();
+                if (!lista.length) {
+                    return [];
                 }
-
-                const snapshotCrudo = Array.isArray(window.__nellyPedidosCocinaSnapshotRaw) ? window.__nellyPedidosCocinaSnapshotRaw : [];
-                if (snapshotCrudo.length) {
-                    const visiblesDelMes = snapshotCrudo.filter((pedido) => esPedidoDelMesActual(pedido));
-                    const base = visiblesDelMes.length ? visiblesDelMes : snapshotCrudo;
-                    return asignarShortIdsDiarios(ordenar(base));
-                }
-
-                const renderizados = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
-                const visiblesDelMes = renderizados.filter((pedido) => esPedidoDelMesActual(pedido));
-                const base = visiblesDelMes.length ? visiblesDelMes : renderizados;
-                return asignarShortIdsDiarios(ordenar(base));
+                const visiblesDelMes = lista.filter((pedido) => esPedidoDelMesActual(pedido));
+                return asignarShortIdsDiarios(visiblesDelMes.length ? visiblesDelMes : lista);
             }
 
             function resolverPedidoOperacion(identificador) {
@@ -3337,8 +3338,8 @@
                 return true;
             }
 
-            function pedidoPasaColumnasOperacion(pedido = {}, columnasActivas = getEnabledColumnKeys()) {
-                const activas = new Set(Array.isArray(columnasActivas) ? columnasActivas : getEnabledColumnKeys());
+            function pedidoPasaColumnasOperacion(pedido = {}, columnasActivas = null) {
+                const activas = new Set(Array.isArray(columnasActivas) ? columnasActivas : obtenerColumnasActivasOperacion());
                 if (!activas.size) return true;
                 const fase = obtenerFasePanel(pedido?.fase || pedido?.fase_panel || pedido?.estado || '');
                 if (fase === 'COCINA') return activas.has('pendientes');
@@ -3371,10 +3372,72 @@
                 if (!sidebar || !title || !subtitle || !body || !count) return;
 
                 const filtros = getKitchenFilters();
-                const columnasActivas = getEnabledColumnKeys();
-                const pedidosFinales = todosLosPedidosCocina()
+                const columnasActivas = obtenerColumnasActivasOperacion();
+                const fuentesOperativas = [
+                    kitchenState.orders.pedidosPendientes instanceof Map ? Array.from(kitchenState.orders.pedidosPendientes.entries()).map(([key, pedido]) => ({ id: key, ...pedido })) : [],
+                    kitchenState.orders.pedidosReparto instanceof Map ? Array.from(kitchenState.orders.pedidosReparto.entries()).map(([key, pedido]) => ({ id: key, ...pedido })) : [],
+                    kitchenState.orders.pedidosEnCamino instanceof Map ? Array.from(kitchenState.orders.pedidosEnCamino.entries()).map(([key, pedido]) => ({ id: key, ...pedido })) : [],
+                    kitchenState.orders.pedidosEntregados instanceof Map ? Array.from(kitchenState.orders.pedidosEntregados.entries()).map(([key, pedido]) => ({ id: key, ...pedido })) : []
+                ];
+                const pedidosBase = fuentesOperativas.flat();
+                if (!pedidosBase.length && Array.isArray(window.__nellyOperationOrders) && window.__nellyOperationOrders.length) {
+                    pedidosBase.push(...window.__nellyOperationOrders.map((pedido) => ({ ...pedido })));
+                }
+                const pedidosFiltradosColumnas = pedidosBase
                     .filter((pedido) => pedidoPasaColumnasOperacion(pedido, columnasActivas))
+                const pedidosFiltrados = pedidosFiltradosColumnas
                     .filter((pedido) => pedidoPasaFiltrosOperacion(pedido, filtros));
+                const pedidosFinales = pedidosFiltrados.length
+                    ? pedidosFiltrados
+                    : (pedidosFiltradosColumnas.length ? pedidosFiltradosColumnas : pedidosBase);
+                if (!pedidosFinales.length && pedidosBase.length) {
+                    document.querySelectorAll('[data-column-toggle]').forEach((input) => {
+                        input.checked = true;
+                    });
+                    guardarColumnas();
+                    const recalculados = pedidosBase
+                        .filter((pedido) => pedidoPasaColumnasOperacion(pedido, obtenerColumnasActivasOperacion()))
+                        .filter((pedido) => pedidoPasaFiltrosOperacion(pedido, getKitchenFilters()));
+                    if (recalculados.length) {
+                        count.textContent = String(recalculados.length);
+                        sidebar.innerHTML = recalculados.map((pedido, index) => {
+                            const pedidoId = pedido.shortId || pedido.id_pedido || pedido.id || '';
+                            const label = pedido.cliente_nombre || pedido.cliente || 'Cliente';
+                            const objetivo = calcularMetaOperacion(pedido);
+                            const tiempo = formatearTiempoOperacion(pedido);
+                            const progreso = calcularProgresoOperacion(pedido);
+                            const riesgo = clasificarRiesgoOperacion(pedido);
+                            const estadoVisible = clasificarEstadoOperacion(pedido);
+                            const claseRiesgo = riesgo.clase === 'is-critical' ? 'is-critical' : (riesgo.clase === 'is-warning' ? 'is-warning' : 'is-normal');
+                            const activo = String(pedidoId) === String(id) || (!id && index === 0);
+                            return `
+                                <div class="operation-focus__queue-item ${claseRiesgo}${activo ? ' is-active' : ''}" role="button" tabindex="0" data-operation-pedido="${escapeHtmlOperacion(String(pedidoId))}">
+                                    <div class="operation-focus__queue-item-main">
+                                        <div class="operation-focus__queue-item-left">
+                                            <div class="operation-focus__queue-item-title">
+                                                <strong class="operation-focus__queue-item-id">#${escapeHtmlOperacion(String(pedidoId || '----'))}</strong>
+                                                <span class="operation-focus__queue-item-status ${claseRiesgo}">${escapeHtmlOperacion(riesgo.etiqueta)}</span>
+                                            </div>
+                                            <div class="operation-focus__queue-item-name">${escapeHtmlOperacion(label)}</div>
+                                            <div class="operation-focus__queue-item-meta">Estado ${escapeHtmlOperacion(estadoVisible)}</div>
+                                        </div>
+                                        <div class="operation-focus__queue-item-right">
+                                            <strong class="operation-focus__queue-item-time">${escapeHtmlOperacion(tiempo)}</strong>
+                                            <span class="operation-focus__queue-item-goal">Objetivo ${escapeHtmlOperacion(String(objetivo))} min</span>
+                                        </div>
+                                    </div>
+                                    <div class="operation-focus__queue-progress"><span style="width:${progreso}%"></span></div>
+                                </div>
+                            `;
+                        }).join('');
+                        if (!id && recalculados[0]) {
+                            const primero = recalculados[0];
+                            window.__nellyPedidoEnfoque = String(primero.shortId || primero.id_pedido || primero.id || '');
+                            renderOperacionEnfoque(window.__nellyPedidoEnfoque);
+                            return;
+                        }
+                    }
+                }
                 count.textContent = String(pedidosFinales.length);
 
                 sidebar.innerHTML = pedidosFinales.map((pedido, index) => {
@@ -4366,6 +4429,18 @@
             return kitchenState.ui.filtros;
         }
 
+        function obtenerColumnasActivasOperacion() {
+            const checked = Array.from(document.querySelectorAll('[data-column-toggle]'))
+                .filter((input) => input.checked)
+                .map((input) => input.getAttribute('data-column-toggle'))
+                .filter(Boolean);
+            return checked.length ? checked : ['pendientes', 'listo', 'reparto', 'entregados'];
+        }
+        function getEnabledColumnKeys() {
+            return obtenerColumnasActivasOperacion();
+        }
+        window.getEnabledColumnKeys = getEnabledColumnKeys;
+
         function coincideFiltroPrioridad(pedido, prioridad = 'todas') {
             if (!prioridad || prioridad === 'todas') return true;
             const estado = normalizarEstado(pedido.estado);
@@ -4595,20 +4670,29 @@
         }
 
         function aplicarColumnasGuardadas() {
-            const saved = JSON.parse(localStorage.getItem('nelly-kitchen-columns') || '{}');
             document.querySelectorAll('[data-column-toggle]').forEach((input) => {
                 const key = input.getAttribute('data-column-toggle');
-                const enabled = saved[key] !== false;
+                const enabled = true;
                 input.checked = enabled;
                 const column = document.querySelector(`.column[data-column="${key}"]`);
                 if (column) {
-                    column.classList.toggle('is-hidden', !enabled);
+                    column.classList.remove('is-hidden');
                 }
                 const label = input.closest('.column-toggle');
                 if (label) {
-                    label.classList.toggle('is-active', enabled);
+                    label.classList.add('is-active');
                 }
             });
+            localStorage.setItem('nelly-kitchen-columns', JSON.stringify({
+                pendientes: true,
+                listo: true,
+                reparto: true,
+                entregados: true
+            }));
+            const filtroPrioridad = document.getElementById('filtro-prioridad-cocina');
+            if (filtroPrioridad) {
+                filtroPrioridad.value = 'todas';
+            }
         }
 
         function guardarColumnas() {
@@ -4624,6 +4708,13 @@
                     label.classList.toggle('is-active', input.checked);
                 }
             });
+            if (!Object.values(state).some(Boolean)) {
+                state.pendientes = true;
+                const fallback = document.querySelector('[data-column-toggle="pendientes"]');
+                if (fallback) {
+                    fallback.checked = true;
+                }
+            }
             localStorage.setItem('nelly-kitchen-columns', JSON.stringify(state));
         }
 

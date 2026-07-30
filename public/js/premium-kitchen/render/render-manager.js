@@ -407,6 +407,13 @@ export function createRenderManager() {
           const repartoPlano = Array.from(pedidosReparto.entries()).map(([id, pedido]) => ({ id, ...pedido }));
           const enCaminoPlano = Array.from(pedidosEnCamino.entries()).map(([id, pedido]) => ({ id, ...pedido }));
           const entregadosPlano = Array.from(pedidosEntregados.entries()).map(([id, pedido]) => ({ id, ...pedido }));
+          const canonical = [
+            ...pendientesPlano,
+            ...repartoPlano,
+            ...enCaminoPlano,
+            ...entregadosPlano
+          ].filter((pedido, index, arr) => arr.findIndex((item) => String(item.id || item.id_pedido || item.shortId) === String(pedido.id || pedido.id_pedido || pedido.shortId)) === index);
+          window.__nellyPedidosCocinaCanonical = canonical;
           window.__nellyPedidosCocinaRenderizados = {
             pedidosPendientes: pendientesPlano,
             pedidosReparto: repartoPlano,
@@ -414,12 +421,7 @@ export function createRenderManager() {
             pedidosEntregados: entregadosPlano,
             at: Date.now()
           };
-          window.__nellyOperationOrders = [
-            ...pendientesPlano,
-            ...repartoPlano,
-            ...enCaminoPlano,
-            ...entregadosPlano
-          ].filter((pedido, index, arr) => arr.findIndex((item) => String(item.id || item.id_pedido || item.shortId) === String(pedido.id || pedido.id_pedido || pedido.shortId)) === index);
+          window.__nellyOperationOrders = canonical;
         }
       } catch {}
 
