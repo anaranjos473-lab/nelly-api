@@ -106,6 +106,9 @@ El Plan Estrategico explica la vision y los principios que guian a Nelly como pl
 - [`GOAL-P1-001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-001.md)
 #### Resumen de avance P1.1
 P1.1 ya cuenta con evidencia de series internas consecutivas sobre la base certificada: primero 3 ciclos completos en verde, luego una tanda extendida de 20 ciclos con bloqueo por deuda en el ciclo 6 para el driver original, y finalmente 10 ciclos completos sobre un repartidor de prueba limpio antes de volver a topar el umbral de deuda en el ciclo 11. El hallazgo confirma una restriccion de negocio trazable y no una falla del core.
+- [`POST_NAE_001_KITCHEN_INTEGRATION.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/POST_NAE_001_KITCHEN_INTEGRATION.md)
+#### Resumen POST-NAE-001
+POST-NAE-001 abre la migracion de Cocina hacia consumo exclusivo de `DataAccessService v1`, retirando la mezcla de lectura con RTDB en la cola visible sin tocar el release certificado del NAE.
 - [`GOAL-P1-005.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL-P1-005.md)
 #### Resumen P1.5
 P1.5 formaliza la gestion operativa de deuda como capacidad oficial del producto para eliminar saneamientos manuales y convertir el umbral de bloqueo, el desbloqueo, la liquidacion y las alertas de administracion en un flujo trazable y medible.
