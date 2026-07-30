@@ -141,8 +141,90 @@ function buildArchiveEngineSnapshot(orders = [], now = Date.now()) {
   };
 }
 
+function buildArchiveEngineUpdates(orders = [], now = Date.now()) {
+  const snapshot = buildArchiveEngineSnapshot(orders, now);
+  const dateParts = getMexicoCityDateParts(now);
+  const dateKey = `${dateParts.year}-${String(dateParts.month).padStart(2, '0')}-${String(dateParts.day).padStart(2, '0')}`;
+  const monthKey = `${dateParts.year}-${String(dateParts.month).padStart(2, '0')}`;
+  const yearKey = String(dateParts.year);
+  const dailyHistory = snapshot.orders_today;
+  const combinedHistory = [...snapshot.orders_history, ...snapshot.orders_today];
+
+  const historyIndex = {
+    comercio: {},
+    cliente: {},
+    driver: {},
+    forma_pago: {},
+    incidencia: {},
+    fecha: {}
+  };
+
+  const byMonth = combinedHistory.reduce((acc, order) => {
+    const parts = getMexicoCityDateParts(getOrderTimestamp(order));
+    const key = `${parts.year}-${String(parts.month).padStart(2, '0')}`;
+    if (!acc[key]) {
+      acc[key] = {
+        period: key,
+        pedidos: 0,
+        entregados: 0,
+        cancelados: 0,
+        monto_total: 0
+      };
+    }
+    acc[key].pedidos += 1;
+    const state = normalizeState(order.estado_pedido || order.estado);
+    if (state === 'ENTREGADO' || state === 'FINALIZADO') acc[key].entregados += 1;
+    if (state === 'CANCELADO') acc[key].cancelados += 1;
+    acc[key].monto_total += Number(order.monto || order.total || order.monto_total || 0) || 0;
+    return acc;
+  }, {});
+
+  const annualSummary = combinedHistory.reduce((acc, order) => {
+    const state = normalizeState(order.estado_pedido || order.estado);
+    const amount = Number(order.monto || order.total || order.monto_total || 0) || 0;
+    acc.pedidos += 1;
+    acc.monto_total += amount;
+    if (state === 'ENTREGADO' || state === 'FINALIZADO') acc.entregados += 1;
+    if (state === 'CANCELADO') acc.cancelados += 1;
+    return acc;
+  }, {
+    year: dateParts.year,
+    pedidos: 0,
+    entregados: 0,
+    cancelados: 0,
+    monto_total: 0,
+    actualizada_en: new Date(now).toISOString()
+  });
+
+  const groupBy = (items, keyFn, target) => {
+    items.forEach((order) => {
+      const key = String(keyFn(order) || '').trim();
+      if (!key) return;
+      target[key] = target[key] || { key, pedidos: 0 };
+      target[key].pedidos += 1;
+    });
+  };
+
+  groupBy(combinedHistory, (order) => order.comercio?.nombre || order.tienda?.nombre || order.comercio_nombre || order.tienda_nombre, historyIndex.comercio);
+  groupBy(combinedHistory, (order) => order.cliente_nombre || order.cliente?.nombre || order.cliente, historyIndex.cliente);
+  groupBy(combinedHistory, (order) => order.repartidor_nombre || order.repartidor?.nombre || order.repartidor_id || order.driverUid, historyIndex.driver);
+  groupBy(combinedHistory, (order) => order.metodo_pago || order.forma_pago || order.pago?.metodo || order.pago?.tipo, historyIndex.forma_pago);
+  groupBy(combinedHistory, (order) => order.incidencia_tipo || order.causa_raiz || order.tipo_incidencia, historyIndex.incidencia);
+  groupBy(combinedHistory, (order) => `${getMexicoCityDateParts(getOrderTimestamp(order)).year}-${String(getMexicoCityDateParts(getOrderTimestamp(order)).month).padStart(2, '0')}-${String(getMexicoCityDateParts(getOrderTimestamp(order)).day).padStart(2, '0')}`, historyIndex.fecha);
+
+  return {
+    [`archive_engine/orders_active`]: snapshot.orders_active,
+    [`archive_engine/orders_today`]: snapshot.orders_today,
+    [`archive_engine/orders_history/${dateKey}`]: dailyHistory,
+    [`archive_engine/monthly_index/${monthKey}`]: snapshot.monthly_index,
+    [`archive_engine/annual_summary/${yearKey}`]: annualSummary,
+    [`archive_engine/history_index/${yearKey}`]: historyIndex
+  };
+}
+
 export {
   buildArchiveEngineSnapshot,
+  buildArchiveEngineUpdates,
   classifyOrderCycle,
   getOrderTimestamp,
   isSameMexicoCityDay,

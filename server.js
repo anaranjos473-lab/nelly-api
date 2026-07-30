@@ -5,8 +5,10 @@ import { iniciarAgenteAntifraude } from './src/agentes/agenteAntifraude.js';
 import { iniciarAgenteSoporte, limpiarAgenteSoporte } from './src/agentes/agenteSoporte.js';
 import { getAdmin } from './config/firebase-admin-esm.js';
 import { startC5ShadowObserver } from './src/services/c5ShadowObserver.js';
+import { scheduleArchiveEngineDailyJob } from './src/services/archiveScheduler.js';
 
 let c5ShadowObserver = null;
+let archiveEngineScheduler = null;
 
 function isEnabled(value) {
   return String(value || '').trim().toLowerCase() === 'true';
@@ -45,6 +47,11 @@ function limpiarC5ShadowValidator() {
   c5ShadowObserver = null;
 }
 
+function limpiarArchiveEngineScheduler() {
+  archiveEngineScheduler?.stop?.();
+  archiveEngineScheduler = null;
+}
+
 async function iniciarAgentes() {
   try {
     await iniciarAgenteDespacho();
@@ -61,12 +68,14 @@ async function iniciarAgentes() {
 // Limpieza de listeners al cerrar el proceso
 process.on('SIGINT', () => {
   limpiarC5ShadowValidator();
+  limpiarArchiveEngineScheduler();
   limpiarAgenteDespacho();
   limpiarAgenteSoporte();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
   limpiarC5ShadowValidator();
+  limpiarArchiveEngineScheduler();
   limpiarAgenteDespacho();
   limpiarAgenteSoporte();
   process.exit(0);
@@ -76,6 +85,7 @@ const PORT = process.env.PORT || 3001;
 
 if (shouldRunRuntimeAgents()) {
   await iniciarAgentes();
+  archiveEngineScheduler = scheduleArchiveEngineDailyJob({ logger: console });
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor de Nelly corriendo en el puerto ${PORT}`);
   });
@@ -84,4 +94,5 @@ if (shouldRunRuntimeAgents()) {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor de Nelly corriendo en el puerto ${PORT} sin agentes runtime`);
   });
+  archiveEngineScheduler = scheduleArchiveEngineDailyJob({ logger: console });
 }
