@@ -24,6 +24,8 @@ Cerrar la etapa de coexistencia temporal del Nelly Archive Engine despues de la 
 4. Confirmar que el contrato sigue respondiendo con la misma forma.
 5. Validar que no existen accesos directos residuales a la fuente operativa.
 6. Registrar evidencia de cierre.
+7. Eliminar archivos temporales de depuracion que ya no aporten evidencia.
+8. Reejecutar pruebas unitarias y validaciones de lectura.
 
 ## Criterios de cierre
 
@@ -34,6 +36,15 @@ El sprint solo puede considerarse completo cuando exista evidencia reproducible 
 - ausencia de accesos directos a colecciones operativas;
 - contrato `v1` estable y congelado;
 - documentacion actualizada.
+
+## Verificacion sugerida
+
+Antes de cerrar el sprint, validar:
+
+- que `orders_active`, `orders_today` y `orders_history` no tengan consumidores directos fuera del contrato;
+- que los fallbacks ya no sean necesarios para los centros certificados;
+- que los archivos temporales de trabajo hayan sido retirados si ya no sirven para depuracion;
+- que la matriz E2E permanezca consistente despues del cleanup.
 
 ## No alcance
 
