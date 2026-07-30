@@ -46,6 +46,19 @@ Antes de cerrar el sprint, validar:
 - que los archivos temporales de trabajo hayan sido retirados si ya no sirven para depuracion;
 - que la matriz E2E permanezca consistente despues del cleanup.
 
+## Auditoria preliminar
+
+Estado de la revision realizada sobre el repositorio al 2026-07-30:
+
+- No se identifico codigo muerto critico con evidencia suficiente para eliminarse sin afectar compatibilidad certificada.
+- Los fallbacks residuales observados corresponden a mecanismos de resiliencia documentados o a coexistencia temporal aprobada.
+- Los archivos temporales de depuracion que ya no aportaban valor fueron retirados.
+- No se altero el contrato `v1`, el scheduler ni el flujo de archivado.
+
+Conclusión preliminar:
+
+- El cleanup debe ser conservador y solo actuar sobre duplicidades o restos con evidencia objetiva de no uso.
+
 ## No alcance
 
 - No se agregan capacidades nuevas.
