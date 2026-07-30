@@ -97,6 +97,40 @@
         </article>
       </section>
 
+      <section class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">KPIs ejecutivos</p>
+              <h2>Lectura NAE</h2>
+            </div>
+            <span class="wc-pill green">historical_orders</span>
+          </div>
+          <div class="wc-list">
+            <div class="wc-row"><span>Pedidos historicos</span><strong id="analytics-total-orders">0</strong></div>
+            <div class="wc-row"><span>Ventas acumuladas</span><strong id="analytics-total-sales">$0.00</strong></div>
+            <div class="wc-row"><span>Ticket promedio</span><strong id="analytics-average-ticket">$0.00</strong></div>
+            <div class="wc-row"><span>Pedidos entregados</span><strong id="analytics-delivered-orders">0</strong></div>
+          </div>
+        </article>
+
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Indicadores rapidos</p>
+              <h2>history_index</h2>
+            </div>
+            <span class="wc-pill blue">NAE v1</span>
+          </div>
+          <div class="wc-list">
+            <div class="wc-row"><span>Comercios</span><strong id="analytics-commerce-count">0</strong></div>
+            <div class="wc-row"><span>Clientes</span><strong id="analytics-customer-count">0</strong></div>
+            <div class="wc-row"><span>Repartidores</span><strong id="analytics-driver-count">0</strong></div>
+            <div class="wc-row"><span>Incidencias</span><strong id="analytics-incident-count">0</strong></div>
+          </div>
+        </article>
+      </section>
+
       <section class="wc-grid">
         <article id="analytics-operativo" class="wc-card">
           <div class="wc-card-header">
@@ -106,11 +140,7 @@
             </div>
             <span class="wc-state wc-state-processing">En observacion</span>
           </div>
-          <div class="wc-list">
-            <div class="wc-row"><span>Pedidos</span><strong>Crear, aceptar, entregar</strong></div>
-            <div class="wc-row"><span>Tiempos</span><strong>Asignacion y entrega</strong></div>
-            <div class="wc-row"><span>Incidencias</span><strong>Registro y severidad</strong></div>
-          </div>
+          <div id="analytics-operativo-list" class="wc-list"></div>
         </article>
 
         <article id="analytics-comercial" class="wc-card">
@@ -121,10 +151,49 @@
             </div>
             <span class="wc-state wc-state-pending">Piloto</span>
           </div>
-          <div class="wc-list">
-            <div class="wc-row"><span>Ventas</span><strong>Por periodo</strong></div>
-            <div class="wc-row"><span>Restaurantes</span><strong>Altas y actividad</strong></div>
-            <div class="wc-row"><span>Clientes</span><strong>Recurrencia</strong></div>
+          <div id="analytics-comercial-list" class="wc-list"></div>
+        </article>
+      </section>
+
+      <section class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Tendencias</p>
+              <h2>monthly_summary</h2>
+            </div>
+            <span class="wc-pill green">Mes a mes</span>
+          </div>
+          <div id="analytics-monthly-list" class="wc-list">
+            <div class="wc-loading">Cargando tendencias mensuales...</div>
+          </div>
+        </article>
+
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Comparativo anual</p>
+              <h2>annual_summary</h2>
+            </div>
+            <span class="wc-pill blue">Año a año</span>
+          </div>
+          <div id="analytics-annual-list" class="wc-list">
+            <div class="wc-loading">Cargando comparativo anual...</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="wc-grid" style="margin-top:12px">
+        <article class="wc-card">
+          <div class="wc-card-header">
+            <div>
+              <p class="wc-eyebrow">Inteligencia de negocio</p>
+              <h2>Señales historicas</h2>
+            </div>
+            <span class="wc-pill yellow">history_index</span>
+          </div>
+          <div id="analytics-business-list" class="wc-list">
+            <div class="wc-loading">Cargando señales historicas...</div>
           </div>
         </article>
       </section>
@@ -142,5 +211,6 @@
     </main>
   </section>
   <script type="module" src="/js/work-center-access.js"></script>
+  <script type="module" src="/js/analytics.js"></script>
 </body>
 </html>
