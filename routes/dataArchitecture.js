@@ -6,6 +6,7 @@ import {
   TARGET_ARCHITECTURE
 } from '../src/services/dataArchitectureService.js';
 import { buildArchiveEngineSnapshot } from '../src/services/archiveEngine.js';
+import { buildDataAccessContract } from '../src/services/dataAccessService.js';
 
 const router = express.Router();
 
@@ -95,6 +96,18 @@ router.get('/archive', requireDataArchitectureAccess, async (_req, res, next) =>
     const pedidos = snapshot.val() || {};
     const orders = Object.entries(pedidos).map(([id, pedido]) => ({ id, ...pedido }));
     return res.json(buildArchiveEngineSnapshot(orders));
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next) => {
+  try {
+    const admin = await getAdmin();
+    const snapshot = await admin.database().ref('pedidos').once('value');
+    const pedidos = snapshot.val() || {};
+    const orders = Object.entries(pedidos).map(([id, pedido]) => ({ id, ...pedido }));
+    return res.json(buildDataAccessContract(orders));
   } catch (error) {
     return next(error);
   }
