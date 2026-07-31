@@ -1185,21 +1185,21 @@
         }
         .operation-focus__content-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-            gap: 8px;
+            grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
+            gap: 7px;
             align-items: start;
         }
         .operation-focus__left-stack,
         .operation-focus__right-stack {
             display: grid;
-            gap: 7px;
+            gap: 6px;
             min-width: 0;
             align-content: start;
         }
         .operation-focus__communication {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 7px;
+            gap: 6px;
         }
         .operation-focus__contact-card {
             min-height: 0;
@@ -1212,7 +1212,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 900;
             color: #f8fafc;
         }
@@ -1229,25 +1229,25 @@
         .operation-focus__contact-title-icon.is-driver { color: #38bdf8; }
         .operation-focus__contact-action {
             width: 100%;
-            min-height: 33px;
-            border-radius: 11px;
+            min-height: 32px;
+            border-radius: 10px;
             border: 1px solid rgba(56, 189, 248, 0.22);
             background: linear-gradient(180deg, rgba(9, 17, 32, 0.96), rgba(7, 12, 24, 0.96));
             color: #e2e8f0;
             font-weight: 900;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             cursor: pointer;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
         .operation-focus__payment-label {
-            font-size: 0.66rem;
+            font-size: 0.64rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: #c4b5fd;
             font-weight: 900;
         }
         .operation-focus__payment-method {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 950;
             line-height: 1.05;
             color: #f8fafc;
@@ -1260,9 +1260,9 @@
             align-items: center;
             gap: 6px;
             width: fit-content;
-            padding: 5px 9px;
+            padding: 4px 8px;
             border-radius: 999px;
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             font-weight: 900;
         }
         .operation-focus__payment-status.is-paid {
@@ -1276,19 +1276,19 @@
             border: 1px solid rgba(249, 115, 22, 0.2);
         }
         .operation-focus__payment-amount {
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 900;
             color: #e2e8f0;
         }
         .operation-focus__payment-action {
             width: 100%;
-            min-height: 40px;
+            min-height: 38px;
             border: none;
-            border-radius: 12px;
+            border-radius: 11px;
             background: linear-gradient(90deg, #ea580c 0%, #fb923c 55%, #fdba74 100%);
             color: #fff;
             font-weight: 950;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             cursor: pointer;
             box-shadow: 0 14px 28px rgba(249, 115, 22, 0.24);
         }
@@ -1301,7 +1301,7 @@
         .operation-focus__payment-card {
             border-color: rgba(168, 85, 247, 0.2);
             display: grid;
-            gap: 6px;
+            gap: 5px;
             align-self: stretch;
         }
         .operation-focus__payment-card.is-paid {
@@ -1311,7 +1311,7 @@
         .operation-focus__summary-grid {
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 6px;
+            gap: 5px;
             align-items: stretch;
         }
         .operation-focus__summary-grid .operation-focus__section {
@@ -1319,15 +1319,15 @@
         }
         .operation-focus__footer {
             display: flex;
-            gap: 8px;
+            gap: 7px;
             align-items: center;
             justify-content: space-between;
             width: 100%;
         }
         .operation-focus__footer .nelly-btn {
-            min-width: 148px;
-            min-height: 44px;
-            font-size: 0.9rem;
+            min-width: 146px;
+            min-height: 42px;
+            font-size: 0.88rem;
             font-weight: 950;
         }
         .operation-focus__section {
@@ -3755,11 +3755,11 @@
                 const pagoCompletado = pago.pagado || pagoConfirmadoOperacion(displayId);
                 const totalCobro = Number(pedido.monto || pedido.total || pedido.monto_total || 0);
                 const timelineEventos = [
-                    ['Recibido', '🟢', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
-                    ['Preparando', '🟢', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
-                    ['Cocina', '🟠', pedido.cocina_at || pedido.listo_at || '2:10 PM', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
+                    ['Recibido', '✓', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
+                    ['Preparando', '✓', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
+                    ['Cocina', '🍳', pedido.cocina_at || pedido.listo_at || '2:10 PM', pedido.estado === 'LISTO' || pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
                     ['Reparto', '🚚', pedido.reparto_at || pedido.asignado_at || '—', pedido.estado === 'EN_CURSO' || pedido.estado === 'ENTREGADO'],
-                    ['Entregado', '⚪', pedido.entregado_at || pedido.completed_at || '—', pedido.estado === 'ENTREGADO']
+                    ['Entregado', '✓', pedido.entregado_at || pedido.completed_at || '—', pedido.estado === 'ENTREGADO']
                 ];
                 const timelineHtml = timelineEventos.map(([label, emoji, hora, done], index) => `
                     <div class="operation-focus__timeline-step ${done ? 'is-done' : ''}${index === 2 && pedido.estado !== 'ENTREGADO' ? ' is-current' : ''}">
