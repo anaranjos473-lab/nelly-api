@@ -13,6 +13,7 @@ Register of functional certifications and approved baselines.
 | NAE E2E Certification | `APPROVED` | Functional certification approved by acta of closure. |
 | NAE Cleanup | `PLANNED` | Post-certification sprint to remove temporary fallbacks and freeze `DataAccessService v1`. |
 | NAE Release Report v1.0 | `CERTIFIED` | Final frozen release report for NAE v1.0. |
+| Incident Render Kitchen 404 Data Access | `CLOSED` | Deploy desynchronization on Render caused `/api/data-architecture/data-access` to return 404 until `main` was aligned and redeployed. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 
 ## Documents
@@ -26,6 +27,7 @@ Register of functional certifications and approved baselines.
 - [`ACTA_CIERRE_NAE_E2E_V1.md`](./ACTA_CIERRE_NAE_E2E_V1.md)
 - [`NAE_CLEANUP.md`](./NAE_CLEANUP.md)
 - [`NAE_RELEASE_REPORT_v1.0.md`](./NAE_RELEASE_REPORT_v1.0.md)
+- [`INCIDENTE_RENDER_KITCHEN_404_DATA_ACCESS.md`](./INCIDENTE_RENDER_KITCHEN_404_DATA_ACCESS.md)
 - [`functional-metrics-baseline.json`](./functional-metrics-baseline.json)
 
 ## Rule
