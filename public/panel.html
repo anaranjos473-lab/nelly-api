@@ -834,21 +834,21 @@
         }
         .operation-focus {
             display: grid;
-            grid-template-columns: 300px minmax(0, 1fr);
-            gap: 10px;
+            grid-template-columns: minmax(300px, 0.86fr) minmax(0, 1.14fr);
+            gap: 12px;
             margin: 0 0 12px 0;
             align-items: start;
         }
         .operation-focus__sidebar,
         .operation-focus__detail {
             border: 1px solid rgba(148, 163, 184, 0.16);
-            border-radius: 14px;
-            background: rgba(8, 17, 31, 0.94);
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
+            border-radius: 18px;
+            background: rgba(8, 17, 31, 0.96);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
         }
         .operation-focus__sidebar {
-            padding: 10px;
-            min-height: 760px;
+            padding: 12px;
+            min-height: 780px;
         }
         .operation-focus__sidebar-head {
             display: flex;
@@ -903,13 +903,13 @@
             border: 1px solid rgba(148, 163, 184, 0.14);
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(8, 17, 31, 0.98) 100%);
             color: #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 12px 10px;
+            border-radius: 16px;
+            padding: 13px 13px 11px;
             text-align: left;
             cursor: pointer;
             display: grid;
             gap: 8px;
-            min-height: 88px;
+            min-height: 92px;
             position: relative;
             overflow: hidden;
         }
@@ -947,7 +947,7 @@
             text-align: right;
         }
         .operation-focus__queue-item-id {
-            font-size: 1.02rem;
+            font-size: 1.08rem;
             font-weight: 950;
             color: #f8fafc;
             white-space: nowrap;
@@ -985,7 +985,7 @@
             border: 1px solid rgba(74, 222, 128, 0.18);
         }
         .operation-focus__queue-item-time {
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-weight: 950;
             color: #f8fafc;
             line-height: 1;
@@ -1024,36 +1024,36 @@
             background: linear-gradient(90deg, #fb7185 0%, #ef4444 100%);
         }
         .operation-focus__detail {
-            padding: 14px;
-            min-height: 760px;
+            padding: 16px;
+            min-height: 780px;
             background:
                 radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 28%),
                 radial-gradient(circle at top right, rgba(168, 85, 247, 0.07), transparent 24%),
                 linear-gradient(180deg, rgba(5, 10, 23, 0.98) 0%, rgba(7, 15, 31, 0.98) 55%, rgba(4, 8, 20, 1) 100%);
             border: 1px solid rgba(148, 163, 184, 0.16);
-            border-radius: 18px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 22px 48px rgba(2, 6, 23, 0.34);
+            border-radius: 20px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 24px 52px rgba(2, 6, 23, 0.38);
         }
         .operation-focus__detail-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .operation-focus__detail-title {
-            font-size: 1.5rem;
+            font-size: 1.62rem;
             font-weight: 950;
             color: #f8fafc;
             line-height: 1.05;
         }
         .operation-focus__detail-body {
             display: grid;
-            gap: 10px;
+            gap: 12px;
         }
         .operation-focus__detail-shell {
             display: grid;
-            gap: 10px;
+            gap: 12px;
         }
         .operation-focus__hero {
             display: grid;
@@ -1067,13 +1067,13 @@
             min-width: 0;
         }
         .operation-focus__hero-maincard {
-            padding: 14px;
-            border-radius: 16px;
+            padding: 16px;
+            border-radius: 18px;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(9, 14, 28, 0.98) 100%);
             border: 1px solid rgba(148, 163, 184, 0.18);
-            box-shadow: 0 14px 26px rgba(2, 6, 23, 0.24);
+            box-shadow: 0 18px 34px rgba(2, 6, 23, 0.28);
             display: grid;
-            gap: 6px;
+            gap: 7px;
         }
         .operation-focus__timer-label {
             font-size: 0.72rem;
@@ -1083,7 +1083,7 @@
             font-weight: 900;
         }
         .operation-focus__timer-value {
-            font-size: clamp(2.8rem, 4.6vw, 3.8rem);
+            font-size: clamp(3rem, 5vw, 4.2rem);
             line-height: 0.9;
             font-weight: 980;
             color: #fb923c;
@@ -1099,7 +1099,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 10px;
+            padding: 7px 11px;
             border-radius: 999px;
             background: rgba(245, 158, 11, 0.12);
             border: 1px solid rgba(245, 158, 11, 0.24);
@@ -1111,17 +1111,17 @@
         .operation-focus__mini-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+            gap: 10px;
         }
         .operation-focus__mini-card {
-            padding: 12px;
-            border-radius: 14px;
+            padding: 13px 14px;
+            border-radius: 16px;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(10, 18, 34, 0.94) 100%);
             border: 1px solid rgba(148, 163, 184, 0.16);
-            box-shadow: 0 10px 18px rgba(2, 6, 23, 0.16);
+            box-shadow: 0 12px 22px rgba(2, 6, 23, 0.18);
             display: grid;
             gap: 5px;
-            min-height: 108px;
+            min-height: 118px;
         }
         .operation-focus__mini-card-label {
             font-size: 0.68rem;
@@ -1131,7 +1131,7 @@
             font-weight: 900;
         }
         .operation-focus__mini-card-value {
-            font-size: 1.35rem;
+            font-size: 1.42rem;
             line-height: 1;
             font-weight: 950;
             color: #f8fafc;
@@ -1144,18 +1144,18 @@
         .operation-focus__communication {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
+            gap: 10px;
         }
         .operation-focus__contact-card,
         .operation-focus__payment-card {
-            padding: 12px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 16px;
             background: linear-gradient(180deg, rgba(12, 18, 34, 0.98) 0%, rgba(7, 12, 25, 0.96) 100%);
             border: 1px solid rgba(148, 163, 184, 0.16);
-            box-shadow: 0 10px 18px rgba(2, 6, 23, 0.16);
+            box-shadow: 0 12px 22px rgba(2, 6, 23, 0.18);
             display: grid;
             gap: 8px;
-            min-height: 150px;
+            min-height: 156px;
         }
         .operation-focus__contact-card {
             grid-template-rows: auto auto 1fr;
@@ -1217,7 +1217,7 @@
             font-weight: 900;
         }
         .operation-focus__payment-method {
-            font-size: 1.18rem;
+            font-size: 1.28rem;
             font-weight: 950;
             line-height: 1.05;
             color: #f8fafc;
@@ -1246,21 +1246,21 @@
             border: 1px solid rgba(249, 115, 22, 0.2);
         }
         .operation-focus__payment-amount {
-            font-size: 0.95rem;
+            font-size: 0.98rem;
             font-weight: 900;
             color: #e2e8f0;
         }
         .operation-focus__payment-action {
             width: 100%;
-            min-height: 40px;
+            min-height: 44px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             background: linear-gradient(90deg, #ea580c 0%, #fb923c 55%, #fdba74 100%);
             color: #fff;
             font-weight: 950;
-            font-size: 0.92rem;
+            font-size: 0.96rem;
             cursor: pointer;
-            box-shadow: 0 12px 24px rgba(249, 115, 22, 0.22);
+            box-shadow: 0 14px 28px rgba(249, 115, 22, 0.24);
         }
         .operation-focus__payment-action:disabled {
             cursor: default;
@@ -1301,11 +1301,11 @@
             font-weight: 950;
         }
         .operation-focus__section {
-            padding: 11px;
-            border-radius: 12px;
+            padding: 13px;
+            border-radius: 14px;
             background: linear-gradient(180deg, rgba(14, 20, 34, 0.96), rgba(8, 14, 26, 0.96));
             border: 1px solid rgba(148, 163, 184, 0.14);
-            box-shadow: 0 10px 18px rgba(2, 6, 23, 0.14);
+            box-shadow: 0 12px 22px rgba(2, 6, 23, 0.16);
             align-self: stretch;
         }
         .operation-focus__section-label {
@@ -1330,8 +1330,8 @@
             grid-template-columns: 28px minmax(0, 1fr);
             gap: 10px;
             align-items: center;
-            padding: 8px 10px;
-            border-radius: 10px;
+            padding: 9px 10px;
+            border-radius: 12px;
             background: rgba(8, 17, 31, 0.72);
             border: 1px solid rgba(148, 163, 184, 0.12);
             margin-bottom: 8px;
@@ -1366,11 +1366,11 @@
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
-            padding: 12px 8px 8px;
-            border-radius: 14px;
+            padding: 14px 10px 10px;
+            border-radius: 16px;
             background: linear-gradient(180deg, rgba(8, 17, 31, 0.96), rgba(5, 10, 20, 0.96));
             border: 1px solid rgba(148, 163, 184, 0.14);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 10px 20px rgba(2, 6, 23, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 24px rgba(2, 6, 23, 0.18);
             overflow: hidden;
         }
         .operation-focus__timeline::before {
@@ -1439,55 +1439,55 @@
             }
         }
         .operation-focus__detail-shell.is-premium {
-            gap: 7px;
-            max-width: 1120px;
+            gap: 10px;
+            max-width: 1240px;
             margin: 0 auto;
         }
         .operation-focus__premium-top {
             display: grid;
-            grid-template-columns: minmax(300px, 1.55fr) minmax(430px, 2.15fr);
-            gap: 8px;
+            grid-template-columns: minmax(320px, 1.45fr) minmax(420px, 2.05fr);
+            gap: 10px;
         }
         .operation-focus__premium-top .operation-focus__hero-maincard {
-            padding: 18px 18px 15px;
-            border-radius: 16px;
-            min-height: 132px;
+            padding: 18px 18px 16px;
+            border-radius: 18px;
+            min-height: 142px;
         }
         .operation-focus__premium-top .operation-focus__timer-value {
-            font-size: clamp(3.25rem, 5.2vw, 4.45rem);
+            font-size: clamp(3.3rem, 5.4vw, 4.75rem);
             line-height: 0.9;
             letter-spacing: -0.04em;
         }
         .operation-focus__premium-top .operation-focus__mini-card {
-            min-height: 132px;
-            padding: 14px 15px 14px;
-            border-radius: 16px;
+            min-height: 140px;
+            padding: 15px 16px 14px;
+            border-radius: 18px;
         }
         .operation-focus__premium-top .operation-focus__mini-card-value {
-            font-size: 1.6rem;
+            font-size: 1.68rem;
             line-height: 1;
         }
         .operation-focus__premium-top .operation-focus__mini-card-hint {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
         }
         .operation-focus__premium-middle {
             display: grid;
             grid-template-columns: minmax(250px, 1.12fr) minmax(300px, 1.22fr) minmax(250px, 1fr);
-            gap: 9px;
+            gap: 10px;
         }
         .operation-focus__premium-bottom {
             display: grid;
-            grid-template-columns: minmax(250px, 1.18fr) minmax(150px, 0.52fr) minmax(380px, 1.42fr);
-            gap: 9px;
+            grid-template-columns: minmax(250px, 1.18fr) minmax(170px, 0.56fr) minmax(380px, 1.42fr);
+            gap: 10px;
         }
         .operation-focus__premium-footer {
             display: grid;
             grid-template-columns: auto minmax(260px, 1fr) minmax(230px, 0.92fr);
-            gap: 9px;
+            gap: 10px;
             align-items: stretch;
         }
         .operation-focus__premium-footer .nelly-btn {
-            min-height: 50px;
+            min-height: 52px;
         }
         .operation-focus__premium-footer .btn-success {
             font-size: 1rem;
@@ -1523,8 +1523,8 @@
             gap: 9px;
         }
         .operation-focus__premium-middle .operation-focus__contact-card {
-            padding: 11px;
-            border-radius: 13px;
+            padding: 12px;
+            border-radius: 14px;
             gap: 7px;
         }
         .operation-focus__premium-middle .operation-focus__contact-action {
@@ -1533,8 +1533,8 @@
             font-size: 0.8rem;
         }
         .operation-focus__premium-middle .operation-focus__payment-card {
-            padding: 13px;
-            border-radius: 13px;
+            padding: 14px;
+            border-radius: 14px;
             gap: 8px;
         }
         .operation-focus__premium-middle .operation-focus__payment-action {
@@ -1543,7 +1543,7 @@
             font-size: 0.88rem;
         }
         .operation-focus__premium-middle .operation-focus__payment-method {
-            font-size: 1.22rem;
+            font-size: 1.28rem;
         }
         .operation-focus__premium-middle .operation-focus__payment-status {
             padding: 4px 9px;
@@ -1554,8 +1554,8 @@
         }
         .operation-focus__premium-bottom .operation-focus__section,
         .operation-focus__premium-middle .operation-focus__section {
-            padding: 13px;
-            border-radius: 13px;
+            padding: 14px;
+            border-radius: 15px;
         }
         .operation-focus__premium-bottom .operation-focus__product-row {
             padding: 8px 0;
@@ -1583,7 +1583,7 @@
         }
         .operation-focus__premium-bottom .operation-focus__timeline {
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            padding: 16px 6px 8px;
+            padding: 16px 8px 8px;
             gap: 7px;
             border: 0;
             box-shadow: none;
