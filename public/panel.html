@@ -3903,22 +3903,13 @@
             const contenedorPendientes = document.getElementById('contenedor-pendientes');
             if (contenedorPendientes && window.MutationObserver) {
                 const observer = new MutationObserver(() => {
-                    if (window.__nellyKitchenInitialFocusDone) {
-                        return;
-                    }
-                    if (window.__nellyPedidoEnfoque) {
-                        window.__nellyKitchenInitialFocusDone = true;
-                        renderOperacionEnfoque(window.__nellyPedidoEnfoque);
-                        return;
-                    }
-                    const primero = kitchenState.orders.pedidosPendientes.values().next().value;
-                    if (primero) {
-                        window.__nellyKitchenInitialFocusDone = true;
-                        renderOperacionEnfoque(primero.shortId || primero.id_pedido || primero.id);
-                    } else {
-                        window.__nellyKitchenInitialFocusDone = true;
-                        renderOperacionEnfoque(null);
-                    }
+                    console.log('[COCINA][OBSERVADOR]', {
+                        ts: performance.now(),
+                        childList: contenedorPendientes.childNodes.length,
+                        childElementCount: contenedorPendientes.childElementCount,
+                        enfoqueActual: window.__nellyPedidoEnfoque || null
+                    });
+                    return;
                 });
                 observer.observe(contenedorPendientes, { childList: true, subtree: true });
             }
