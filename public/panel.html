@@ -1041,6 +1041,20 @@
             gap: 12px;
             margin-bottom: 8px;
         }
+        .operation-focus__action-status {
+            display: none;
+            margin: 0 0 7px 0;
+            padding: 7px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 197, 94, 0.18);
+            background: rgba(12, 44, 26, 0.42);
+            color: #dcfce7;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+        .operation-focus__action-status.is-visible {
+            display: block;
+        }
         .operation-focus__detail-title {
             font-size: 1.45rem;
             font-weight: 950;
@@ -2306,9 +2320,10 @@
         .chat-sheet {
             position: fixed;
             right: 16px;
-            bottom: 16px;
+            top: 88px;
+            bottom: auto;
             width: min(420px, calc(100vw - 32px));
-            max-height: 70vh;
+            max-height: calc(100vh - 104px);
             border-radius: 18px;
             border: 1px solid rgba(148, 163, 184, 0.18);
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 17, 31, 0.99));
@@ -2318,6 +2333,15 @@
             overflow: hidden;
         }
         .chat-sheet.is-open { display: grid; grid-template-rows: auto 1fr auto; }
+        @media (max-width: 900px) {
+            .chat-sheet {
+                top: 72px;
+                right: 8px;
+                left: 8px;
+                width: auto;
+                max-height: calc(100vh - 88px);
+            }
+        }
         .chat-sheet__header,
         .chat-sheet__composer {
             padding: 12px 14px;
@@ -2872,6 +2896,7 @@
                     <div class="ops-summary-card__hint" id="operation-focus-subtitle">La pantalla principal mostrará el pedido elegido.</div>
                 </div>
             </div>
+            <div class="operation-focus__action-status" id="operation-focus-action-status"></div>
             <div class="operation-focus__detail-body" id="operation-focus-body">
                 <div class="operation-focus__empty">Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.</div>
             </div>
@@ -3735,10 +3760,12 @@
                     title.textContent = 'Selecciona un pedido';
                     subtitle.textContent = 'La pantalla principal mostrará el pedido elegido.';
                     body.innerHTML = `<div class="operation-focus__empty">${escapeHtmlOperacion('Toca un pedido de la lista para ver cliente, productos, cronómetro, objetivo, timeline y acciones.')}</div>`;
+                    window.__nellyPedidoEnfoqueData = null;
                     return;
                 }
 
                 const displayId = pedido.shortId || pedido.id_pedido || pedido.id || id;
+                window.__nellyPedidoEnfoqueData = pedido;
                 const nombre = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                 const direccion = pedido.direccion || 'Dirección no disponible';
                 const rawProductos = String(pedido.descripcion || pedido.items || pedido.productos || 'Sin productos');
@@ -3876,6 +3903,45 @@
                 `;
             }
 
+            function mostrarAccionVisibleOperacion(mensaje, tipo = 'ok') {
+                const status = document.getElementById('operation-focus-action-status');
+                if (!status) return;
+                status.textContent = mensaje;
+                status.dataset.tipo = tipo;
+                status.classList.add('is-visible');
+                status.style.borderColor = tipo === 'err'
+                    ? 'rgba(248, 113, 113, 0.22)'
+                    : 'rgba(34, 197, 94, 0.18)';
+                status.style.background = tipo === 'err'
+                    ? 'rgba(127, 29, 29, 0.42)'
+                    : 'rgba(12, 44, 26, 0.42)';
+                status.style.color = tipo === 'err' ? '#fecaca' : '#dcfce7';
+                clearTimeout(window.__operationFocusStatusTimer);
+                window.__operationFocusStatusTimer = setTimeout(() => {
+                    if (status.textContent === mensaje) {
+                        status.classList.remove('is-visible');
+                    }
+                }, 2200);
+            }
+
+            function obtenerPedidoEnfoqueActual(identificador = '') {
+                const pedidoEnfoque = window.__nellyPedidoEnfoqueData || null;
+                const valor = String(identificador || '').trim();
+                if (pedidoEnfoque) {
+                    const candidatos = [
+                        pedidoEnfoque.id,
+                        pedidoEnfoque.id_pedido,
+                        pedidoEnfoque.pedido_id,
+                        pedidoEnfoque.shortId,
+                        pedidoEnfoque._rtdbKey
+                    ].filter(Boolean).map((item) => String(item));
+                    if (!valor || candidatos.includes(valor)) {
+                        return pedidoEnfoque;
+                    }
+                }
+                return resolverPedidoOperacion(valor) || pedidoEnfoque || null;
+            }
+
             window.renderOperacionEnfoque = renderOperacionEnfoque;
             window.mostrarPedidoEnPanel = (id) => {
                 const pedido = resolverPedidoOperacion(id);
@@ -3891,7 +3957,9 @@
             };
 
             window.llamarCliente = (id) => {
-                const pedido = resolverPedidoOperacion(id);
+                showToast('Iniciando llamada al cliente', 'ok');
+                mostrarAccionVisibleOperacion('Iniciando llamada al cliente', 'ok');
+                const pedido = obtenerPedidoEnfoqueActual(id);
                 const telefono = String(pedido?.telefono || pedido?.phone || pedido?.contacto || '').trim();
                 if (telefono) {
                     showToast(`Llamando al cliente ${telefono}`, 'ok');
@@ -3901,7 +3969,9 @@
             };
 
             window.llamarRepartidor = (id) => {
-                const pedido = resolverPedidoOperacion(id);
+                showToast('Iniciando llamada al repartidor', 'ok');
+                mostrarAccionVisibleOperacion('Iniciando llamada al repartidor', 'ok');
+                const pedido = obtenerPedidoEnfoqueActual(id);
                 const repartidor = String(pedido?.repartidor_nombre || pedido?.repartidor || pedido?.driver_name || '').trim();
                 if (repartidor) {
                     showToast(`Llamando a ${repartidor}`, 'ok');
@@ -3911,22 +3981,28 @@
             };
 
             window.abrirChatRepartidor = (id) => {
-                const pedido = resolverPedidoOperacion(id);
+                showToast('Abriendo chat con repartidor', 'ok');
+                mostrarAccionVisibleOperacion('Abriendo chat con repartidor', 'ok');
+                const pedido = obtenerPedidoEnfoqueActual(id);
                 const repartidor = String(pedido?.repartidor_nombre || pedido?.repartidor || pedido?.driver_name || 'repartidor').trim();
                 showToast(`Abriendo chat con ${repartidor}`, 'ok');
             };
 
             window.verUbicacionPedido = (id) => {
-                const pedido = resolverPedidoOperacion(id);
+                showToast('Abriendo ubicación del pedido', 'ok');
+                mostrarAccionVisibleOperacion('Abriendo ubicación del pedido', 'ok');
+                const pedido = obtenerPedidoEnfoqueActual(id);
                 if (pedido?.direccion || pedido?.lat || pedido?.lng) {
-                    showToast('Mostrando ubicacion del pedido', 'ok');
+                    showToast(`Mostrando ubicación: ${String(pedido.direccion || pedido.ubicacion || 'Pedido').trim()}`, 'ok');
                     return;
                 }
-                showToast('Ubicacion no disponible', 'err');
+                showToast('Ubicación no disponible', 'err');
             };
 
             window.confirmarPagoPedido = (id) => {
-                const pedido = resolverPedidoOperacion(id);
+                showToast('Iniciando confirmación de pago', 'ok');
+                mostrarAccionVisibleOperacion('Iniciando confirmación de pago', 'ok');
+                const pedido = obtenerPedidoEnfoqueActual(id);
                 const metodo = normalizarMetodoPagoOperacion(pedido);
                 if (!pedido) {
                     showToast('Pedido no encontrado para pago', 'err');
@@ -4006,15 +4082,13 @@
             };
 
         window.verDetallePedido = (id) => {
-            const keyResuelta = resolverKeyPedido(id);
-            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
-                || kitchenState.orders.pedidosReparto.get(keyResuelta)
-                || kitchenState.orders.pedidosEnCamino.get(keyResuelta)
-                || kitchenState.orders.pedidosEntregados.get(keyResuelta);
+            showToast('Abriendo detalle del pedido', 'ok');
+            const pedido = obtenerPedidoEnfoqueActual(id);
             if (!pedido) {
                 showToast('Pedido no encontrado para ver detalle', 'err');
                 return;
             }
+            const keyResuelta = pedido._rtdbKey || pedido.id_pedido || pedido.id || id;
 
             const productosFuente = Array.isArray(pedido.items)
                 ? pedido.items
@@ -6148,11 +6222,9 @@
         };
 
         window.abrirChatCliente = (id) => {
-            const keyResuelta = resolverKeyPedido(id);
-            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
-                || kitchenState.orders.pedidosReparto.get(keyResuelta)
-                || kitchenState.orders.pedidosEnCamino.get(keyResuelta)
-                || kitchenState.orders.pedidosEntregados.get(keyResuelta);
+            showToast('Abriendo chat con cliente', 'ok');
+            mostrarAccionVisibleOperacion('Abriendo chat con cliente', 'ok');
+            const pedido = obtenerPedidoEnfoqueActual(id);
             renderChatCliente(pedido, 'Hola, tenemos una sugerencia para evitar una cancelación.');
         };
 
