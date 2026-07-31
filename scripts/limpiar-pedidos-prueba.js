@@ -80,7 +80,7 @@ async function main() {
   const { dryRun, prefixes: cliPrefixes } = parseArgs(process.argv.slice(2));
   const prefixes = cliPrefixes.length > 0
     ? cliPrefixes
-    : (process.env.TEST_ORDER_PREFIXES || 'ANDROID_TEST_,VALIDACION_G3_,TEST_,PED_TEST_,CICLO_REPETIBLE_').split(',').map((item) => item.trim()).filter(Boolean);
+    : (process.env.TEST_ORDER_PREFIXES || 'ANDROID_TEST_,VALIDACION_G3_,TEST_,PED_TEST_,CICLO_REPETIBLE_,TES').split(',').map((item) => item.trim()).filter(Boolean);
 
   if (prefixes.length === 0) {
     throw new Error('No hay prefijos de pedidos de prueba definidos');
