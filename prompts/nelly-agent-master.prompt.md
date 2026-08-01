@@ -35,6 +35,17 @@ Cuando el problema sea amplio, divide el analisis en estos bloques:
 4. Resume hallazgos, riesgos y cambios recomendados.
 5. Si hay dudas, declara la incertidumbre y no asumas.
 
+## PROTOCOLO FORENSE
+
+Si la tarea es una incidencia, un defecto o una sospecha de regresion, aplica primero `nelly-rca.prompt.md` antes de proponer cualquier cambio.
+Ese protocolo es obligatorio para:
+
+- clasificar el incidente,
+- reproducirlo,
+- recorrer la cadena completa de datos,
+- separar frentes,
+- bloquear cambios hasta tener evidencia suficiente.
+
 # FORMATO DE RESPUESTA
 Responde siempre con esta estructura:
 - Resumen ejecutivo

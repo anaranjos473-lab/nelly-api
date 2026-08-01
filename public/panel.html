@@ -4467,6 +4467,53 @@
         window.__nellyKitchenStateTrace = Array.isArray(window.__nellyKitchenStateTrace) ? window.__nellyKitchenStateTrace : [];
         window.__nellyDebugKitchenState = window.__nellyDebugKitchenState !== false;
 
+        function resumirIdsPedido(lista = []) {
+            return Array.isArray(lista)
+                ? lista.slice(0, 12).map((pedido) => String(pedido?.id || pedido?.id_pedido || pedido?.pedido_id || pedido?.shortId || '')).filter(Boolean)
+                : [];
+        }
+
+        function capturarFotoEstadoCocina(origen = 'desconocido', extra = {}) {
+            const contractSnapshot = window.__nellyArchiveEngineContractSnapshot || null;
+            const contractActive = Array.isArray(archiveEngineActiveOrdersCache) ? archiveEngineActiveOrdersCache : [];
+            const operationOrders = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
+            const canonicalOrders = Array.isArray(window.__nellyPedidosCocinaCanonical) ? window.__nellyPedidosCocinaCanonical : [];
+            const pendientes = kitchenState.orders.pedidosPendientes instanceof Map ? Array.from(kitchenState.orders.pedidosPendientes.values()) : [];
+            const reparto = kitchenState.orders.pedidosReparto instanceof Map ? Array.from(kitchenState.orders.pedidosReparto.values()) : [];
+            const enCamino = kitchenState.orders.pedidosEnCamino instanceof Map ? Array.from(kitchenState.orders.pedidosEnCamino.values()) : [];
+            const entregados = kitchenState.orders.pedidosEntregados instanceof Map ? Array.from(kitchenState.orders.pedidosEntregados.values()) : [];
+            const snapshot = {
+                at: new Date().toISOString(),
+                origen,
+                contract: {
+                    active_orders: contractSnapshot?.active_orders ?? contractActive.length,
+                    today_orders: contractSnapshot?.today_orders ?? null,
+                    historical_orders: contractSnapshot?.historical_orders ?? null,
+                    ids: resumirIdsPedido(contractActive)
+                },
+                memory: {
+                    operation_orders: operationOrders.length,
+                    canonical_orders: canonicalOrders.length,
+                    pendientes: pendientes.length,
+                    reparto: reparto.length,
+                    enCamino: enCamino.length,
+                    entregados: entregados.length,
+                    ids_pendientes: resumirIdsPedido(pendientes),
+                    ids_reparto: resumirIdsPedido(reparto),
+                    ids_enCamino: resumirIdsPedido(enCamino),
+                    ids_entregados: resumirIdsPedido(entregados)
+                },
+                extra
+            };
+            window.__nellyKitchenAuditTrace = Array.isArray(window.__nellyKitchenAuditTrace) ? window.__nellyKitchenAuditTrace : [];
+            window.__nellyKitchenAuditTrace.push(snapshot);
+            if (window.__nellyKitchenAuditTrace.length > 120) {
+                window.__nellyKitchenAuditTrace.splice(0, window.__nellyKitchenAuditTrace.length - 120);
+            }
+            console.log('[KITCHEN_AUDIT]', snapshot);
+            return snapshot;
+        }
+
         function contarEstadoPedidosCocina() {
             return {
                 pendientes: kitchenState.orders.pedidosPendientes.size,
@@ -5370,6 +5417,9 @@
             }
 
             const lista = Array.isArray(pedidos) ? pedidos : [];
+            capturarFotoEstadoCocina(`sincronizarPedidosOperativosDesdeContrato:${origen}:before`, {
+                size: lista.length
+            });
             const antes = contarEstadoPedidosCocina();
             console.log('[COCINA] Contrato recibido', {
                 origen,
@@ -5431,6 +5481,11 @@
             });
 
             window.__nellyPedidosCocinaSnapshotRaw = pedidosCrudos;
+            capturarFotoEstadoCocina(`sincronizarPedidosOperativosDesdeContrato:${origen}:after`, {
+                size: lista.length,
+                pedidosCrudos: pedidosCrudos.length,
+                idsVisibles: idsVisibles.length
+            });
 
             console.log('[COCINA] Total de pedidos desde contrato', {
                 pendientes: kitchenState.orders.pedidosPendientes.size,
@@ -5611,21 +5666,15 @@
                     throw new Error(`data_access_http_${response.status}`);
                 }
                 const data = await response.json();
+                window.__nellyArchiveEngineContractSnapshot = {
+                    at: new Date().toISOString(),
+                    contract_version: String(data?.contract_version || 'v1'),
+                    generatedAt: data?.generatedAt || null,
+                    active_orders: Array.isArray(data?.active_orders) ? data.active_orders.length : 0,
+                    today_orders: Array.isArray(data?.today_orders) ? data.today_orders.length : 0,
+                    historical_orders: Array.isArray(data?.historical_orders) ? data.historical_orders.length : 0
+                };
                 const activeOrders = Array.isArray(data?.active_orders) ? data.active_orders : [];
-                const teniaCachePrevio = Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length > 0;
-
-                if (!activeOrders.length && teniaCachePrevio) {
-                    logDebug('NAE contrato devolvio 0 pedidos, conservando cache previo', 'warn');
-                    archiveEngineActiveOrdersMeta = {
-                        source: 'archive-engine',
-                        contract_version: String(data?.contract_version || 'v1'),
-                        generatedAt: data?.generatedAt || new Date().toISOString(),
-                        error: null
-                    };
-                    window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
-                    return archiveEngineActiveOrdersCache;
-                }
-
                 archiveEngineActiveOrdersCache = activeOrders.map((pedido) => ({ ...pedido, __source: 'archive_engine' }));
                 archiveEngineActiveOrdersMeta = {
                     source: 'archive-engine',
@@ -5634,6 +5683,10 @@
                     error: null
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                capturarFotoEstadoCocina('cargarPedidosActivosDesdeContrato:after-contract', {
+                    contract_version: archiveEngineActiveOrdersMeta.contract_version,
+                    active_orders: archiveEngineActiveOrdersCache.length
+                });
                 logDebug(`NAE activos cargados: ${archiveEngineActiveOrdersCache.length}`, 'ok');
                 sincronizarPedidosOperativosDesdeContrato(archiveEngineActiveOrdersCache, 'nae-active-orders');
                 return archiveEngineActiveOrdersCache;
@@ -5647,6 +5700,9 @@
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
                 console.warn('[NAE] fallback local para Cocina:', archiveEngineActiveOrdersMeta.error);
                 if (!(Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length > 0)) {
+                    capturarFotoEstadoCocina('cargarPedidosActivosDesdeContrato:fallback-vacio', {
+                        error: archiveEngineActiveOrdersMeta.error
+                    });
                     sincronizarPedidosOperativosDesdeContrato([], 'nae-active-orders-fallback');
                 } else {
                     logDebug('NAE fallback ignorado para no vaciar la cola ya visible', 'warn');
@@ -5765,6 +5821,12 @@
 
         /* === [BLOQUE NUEVO: MOTOR DE DESPACHO NELLY V3] === */
         function actualizarPanel() {
+            capturarFotoEstadoCocina('actualizarPanel:before-render', {
+                pendientes: kitchenState.orders.pedidosPendientes.size,
+                reparto: kitchenState.orders.pedidosReparto.size,
+                enCamino: kitchenState.orders.pedidosEnCamino.size,
+                entregados: kitchenState.orders.pedidosEntregados.size
+            });
             console.log('[COCINA] Render pedido', {
                 pendientes: kitchenState.orders.pedidosPendientes.size,
                 reparto: kitchenState.orders.pedidosReparto.size,
@@ -5829,6 +5891,12 @@
                 ]))
             });
             renderInventarioCocina();
+            capturarFotoEstadoCocina('actualizarPanel:after-render', {
+                pendientes: conteos.pendientes,
+                listo: conteos.listo,
+                reparto: conteos.reparto,
+                entregados: conteos.entregados
+            });
         }
 
         window.moverAReparto = async function(id) {

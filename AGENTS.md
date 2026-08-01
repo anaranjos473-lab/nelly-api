@@ -125,6 +125,16 @@ Use this order:
 5. Certification
 6. Documentation
 
+For any incident or defect investigation, first apply the forensics protocol in `prompts/nelly-rca.prompt.md`:
+
+1. Classification
+2. Reproduction
+3. Investigation
+4. Evidence
+5. Minimum correction
+6. Recertification
+7. Closure
+
 Before changing code:
 
 - reproduce the issue
@@ -148,6 +158,12 @@ Before proposing changes, look for:
 - `docs/investigaciones`
 - `docs/runbooks`
 - `README.md`
+
+For important RCA corrections, also use:
+
+- `docs/investigaciones/ADR_LIGERO_RCA.md`
+- `docs/investigaciones/INDEX.md`
+- `docs/investigaciones/FRONT_TEMPLATE.md`
 
 ## Working Style
 

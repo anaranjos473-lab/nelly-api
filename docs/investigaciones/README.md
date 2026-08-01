@@ -5,6 +5,13 @@ Documentos para incidencias, ciclos de vida y auditorias en curso.
 ## Documentos
 
 - [`ICV-01_Pedidos_oficiales_con_evidencia_historica_insuficiente.md`](./../ICV-01_Pedidos_oficiales_con_evidencia_historica_insuficiente.md)
+- [`INDEX.md`](./INDEX.md)
+- [`FRONT_TEMPLATE.md`](./FRONT_TEMPLATE.md)
+- [`PILOT_DATASET_001.md`](./PILOT_DATASET_001.md)
+- [`PILOT_DATASET_001_MATRIX.md`](./PILOT_DATASET_001_MATRIX.md)
+- [`KITCHEN_SYNC_001.md`](./KITCHEN_SYNC_001.md)
+- [`CONTRACT_AUDIT_001.md`](./CONTRACT_AUDIT_001.md)
+- [`GO_LIVE_READINESS_CHECKLIST.md`](./GO_LIVE_READINESS_CHECKLIST.md)
 - [`INDICE_CASOS_ICV.md`](./../INDICE_CASOS_ICV.md)
 - [`CICP_Certificacion_Integridad_y_Consistencia_de_Persistencia.md`](./../CICP_Certificacion_Integridad_y_Consistencia_de_Persistencia.md)
 - [`C3_CERTIFICATION_FINDINGS.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/C3_CERTIFICATION_FINDINGS.md)
@@ -14,3 +21,31 @@ Documentos para incidencias, ciclos de vida y auditorias en curso.
 ## Regla
 
 Las investigaciones deben mantenerse separadas de las certificaciones para evitar mezclar hipotesis con hechos cerrados.
+
+## Protocolo de trabajo
+
+Para abrir y resolver incidentes usar el protocolo oficial:
+
+- [`nelly-rca.prompt.md`](./../../prompts/nelly-rca.prompt.md)
+
+Ese protocolo exige:
+
+- clasificacion previa,
+- reproduccion antes de codigo,
+- evidencia tecnica independiente,
+- una correccion minima por iteracion,
+- recertificacion obligatoria,
+- cierre documental.
+
+## Gobernanza
+
+El protocolo incorpora ademas:
+
+- severidad obligatoria,
+- matriz de impacto,
+- criterio de salida por fase,
+- registro de decisiones para correcciones relevantes.
+
+El indice maestro de investigaciones vive en:
+
+- [`INDEX.md`](./INDEX.md)
