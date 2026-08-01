@@ -1,4 +1,24 @@
 import fetch from 'node-fetch';
+import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
+
+function loadEnvFile(fileName) {
+  const envPath = path.join(process.cwd(), fileName);
+  if (!fs.existsSync(envPath)) return;
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#') || !line.includes('=')) continue;
+    const [key, ...rest] = line.split('=');
+    if (!process.env[key]) {
+      process.env[key] = rest.join('=').trim().replace(/^["']|["']$/g, '');
+    }
+  }
+}
+
+loadEnvFile('.env.local');
+loadEnvFile('.env');
 
 const BASE_URL = process.env.BASE_URL || process.env.RENDER_URL || 'http://127.0.0.1:3001';
 const API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
@@ -104,6 +124,20 @@ async function requestJson(url, options = {}) {
 }
 
 async function signInPanel() {
+  if (process.env.JWT_SECRET) {
+    return jwt.sign(
+      {
+        uid: PANEL_EMAIL,
+        email: PANEL_EMAIL,
+        admin: true,
+        panel: true,
+        role: 'panel_cocina'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+  }
+
   const payload = await requestJson(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
     method: 'POST',
     body: JSON.stringify({

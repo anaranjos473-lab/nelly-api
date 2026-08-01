@@ -7,6 +7,7 @@
 - Baseline certificado intacto.
 - Prepiloto operacional aprobado.
 - Expediente documental consolidado.
+- Doctor Operativo previo: `OPERABLE`.
 
 ### Bloque 2. Condicion de entrada
 
@@ -25,3 +26,8 @@
 - El piloto controlado puede iniciar bajo control documental.
 - No se autoriza ampliar alcance sin evidencia adicional.
 
+### Bloque 5. Apertura de jornada
+
+- Jornada `JORNADA_001` abierta.
+- Estado inicial autorizado para la corrida.
+- Base de evidencia congelada antes de la primera ejecucion.

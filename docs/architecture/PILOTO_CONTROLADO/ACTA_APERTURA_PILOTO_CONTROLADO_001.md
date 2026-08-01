@@ -31,6 +31,7 @@ Abrir formalmente el piloto controlado para validar operacion con alcance limita
 
 ## Condiciones de arranque
 
+- Doctor Operativo ejecutado y en `OPERABLE`.
 - GO / NO-GO con decision `GO RECOMENDADO`.
 - Prepiloto validado con 3 de 3 ciclos completos.
 - Backend operativo y dashboard consistente.
@@ -69,6 +70,15 @@ Con la evidencia disponible, el piloto controlado queda autorizado para iniciar 
 
 **PILOTO CONTROLADO: ABIERTO**
 
+## Apertura de jornada
+
+| Campo | Valor |
+| --- | --- |
+| Jornada | `JORNADA_001` |
+| Estado | `ABIERTA` |
+| Doctor previo | `OPERABLE` |
+| Hora de apertura | `2026-08-01` |
+
 ## Firmas
 
 | Rol | Nombre | Firma | Fecha |
@@ -76,4 +86,3 @@ Con la evidencia disponible, el piloto controlado queda autorizado para iniciar 
 | Responsable tecnico | Codex |  | 2026-08-01 |
 | Responsable operativo |  |  |  |
 | Revisor de calidad |  |  |  |
-
