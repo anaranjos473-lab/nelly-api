@@ -75,6 +75,60 @@ async function requestRaw(label, url, options = {}) {
   };
 }
 
+function createTraceId() {
+  return `RUNNER-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+async function traceStep(traceId, stepName, fn) {
+  const startedAt = Date.now();
+  const startedPerf = process.hrtime.bigint();
+  console.log(`[RUNNER][${traceId}] ${stepName} START`, {
+    ts: nowIso(),
+    perf_now_ms: Number(startedPerf) / 1e6
+  });
+  try {
+    const result = await fn();
+    const endedPerf = process.hrtime.bigint();
+    console.log(`[RUNNER][${traceId}] ${stepName} END`, {
+      ts: nowIso(),
+      perf_now_ms: Number(endedPerf) / 1e6,
+      duration_ms: Number(endedPerf - startedPerf) / 1e6,
+      duration_wall_ms: Date.now() - startedAt
+    });
+    return result;
+  } catch (error) {
+    const endedPerf = process.hrtime.bigint();
+    console.log(`[RUNNER][${traceId}] ${stepName} ERROR`, {
+      ts: nowIso(),
+      perf_now_ms: Number(endedPerf) / 1e6,
+      duration_ms: Number(endedPerf - startedPerf) / 1e6,
+      duration_wall_ms: Date.now() - startedAt,
+      error: error?.message || String(error)
+    });
+    throw error;
+  }
+}
+
+function failFastResult(traceId, label, result) {
+  if (result?.ok) return;
+  const error = {
+    ok: false,
+    traceId,
+    fase: label,
+    http: result?.status ?? null,
+    statusText: result?.statusText ?? null,
+    networkError: result?.networkError ?? null,
+    body: redactBody(result?.body ?? null),
+    durationMs: result?.durationMs ?? null
+  };
+  console.log(JSON.stringify(error, null, 2));
+  process.exit(1);
+}
+
 async function withTimeout(label, promise, ms) {
   let timeout;
   try {
@@ -182,6 +236,11 @@ function headers(token) {
 }
 
 async function main() {
+  const traceId = createTraceId();
+  console.log(`[RUNNER][${traceId}] RUNNER START`, {
+    ts: nowIso(),
+    pid: process.pid
+  });
   console.error('[diag] loading env');
   loadEnvFile('.env.local');
   loadEnvFile('.env');
@@ -193,26 +252,43 @@ async function main() {
   FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY || FIREBASE_API_KEY;
   AUTH_BOOTSTRAP_TOKEN = process.env.AUTH_BOOTSTRAP_TOKEN || AUTH_BOOTSTRAP_TOKEN;
 
-  console.error('[diag] initializing firebase admin');
-  if (!admin.apps.length) {
-    const serviceAccount = loadServiceAccount();
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com'
-    });
-  }
+  await traceStep(traceId, 'ENV LOAD', async () => {
+    return {
+      baseUrl: BASE_URL,
+      pedidoId: PEDIDO_ID,
+      driverUid: DRIVER_UID,
+      panelUid: PANEL_UID
+    };
+  });
+
+  await traceStep(traceId, 'FIREBASE ADMIN INIT', async () => {
+    if (!admin.apps.length) {
+      const serviceAccount = loadServiceAccount();
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com'
+      });
+    }
+    return true;
+  });
 
   const db = admin.database();
-  console.error('[diag] resolving api key');
-  await resolveFirebaseApiKey();
-  console.error('[diag] requesting bootstrap tokens');
-  const panelBootstrap = await getBootstrapToken('panel', PANEL_UID);
-  const driverBootstrap = await getBootstrapToken('driver', DRIVER_UID);
-  console.error('[diag] exchanging custom tokens');
-  const panelAuth = await exchangeCustomToken(panelBootstrap.rawToken);
-  const driverAuth = await exchangeCustomToken(driverBootstrap.rawToken);
+  const steps = [];
+
+  const apiKey = await traceStep(traceId, 'RESOLVE FIREBASE API KEY', async () => resolveFirebaseApiKey());
+  FIREBASE_API_KEY = apiKey;
+
+  const panelBootstrap = await traceStep(traceId, 'GET PANEL BOOTSTRAP TOKEN', async () => getBootstrapToken('panel', PANEL_UID));
+  const driverBootstrap = await traceStep(traceId, 'GET DRIVER BOOTSTRAP TOKEN', async () => getBootstrapToken('driver', DRIVER_UID));
+
+  const panelAuth = await traceStep(traceId, 'EXCHANGE PANEL CUSTOM TOKEN', async () => exchangeCustomToken(panelBootstrap.rawToken));
+  const driverAuth = await traceStep(traceId, 'EXCHANGE DRIVER CUSTOM TOKEN', async () => exchangeCustomToken(driverBootstrap.rawToken));
   delete panelBootstrap.rawToken;
   delete driverBootstrap.rawToken;
+
+  steps.push(panelBootstrap);
+  steps.push(driverBootstrap);
+  steps.push({ label: 'auth-mode', panel: panelAuth.mode, driver: driverAuth.mode, panelUid: panelAuth.uid || PANEL_UID, driverUid: driverAuth.uid || DRIVER_UID });
 
   const pedido = {
     id: PEDIDO_ID,
@@ -228,40 +304,39 @@ async function main() {
     estado_pedido: 'PENDIENTE'
   };
 
-  const steps = [];
-  steps.push(panelBootstrap);
-  steps.push(driverBootstrap);
-  steps.push({ label: 'auth-mode', panel: panelAuth.mode, driver: driverAuth.mode, panelUid: panelAuth.uid || PANEL_UID, driverUid: driverAuth.uid || DRIVER_UID });
+  await traceStep(traceId, `SET RTDB pedidos/${PEDIDO_ID}`, async () => {
+    await withTimeout(`set pedidos/${PEDIDO_ID}`, db.ref(`pedidos/${PEDIDO_ID}`).set(pedido), RTDB_TIMEOUT_MS);
+  });
 
-  console.error('[diag] creating pedido in rtdb');
-  await withTimeout(`set pedidos/${PEDIDO_ID}`, db.ref(`pedidos/${PEDIDO_ID}`).set(pedido), RTDB_TIMEOUT_MS);
-  steps.push({ label: 'snapshot-created', state: await snapshot(db, PEDIDO_ID, DRIVER_UID) });
+  steps.push(await traceStep(traceId, 'SNAPSHOT CREATED', async () => snapshot(db, PEDIDO_ID, DRIVER_UID)));
 
-  console.error('[diag] dispatch-order');
-  steps.push(await requestRaw('dispatch-order', `${BASE_URL}/api/delivery/dispatch-order`, {
+  const dispatch = await traceStep(traceId, 'REQUEST dispatch-order', async () => requestRaw('dispatch-order', `${BASE_URL}/api/delivery/dispatch-order`, {
     method: 'POST',
     headers: headers(panelAuth.token),
     body: JSON.stringify({ pedidoId: PEDIDO_ID, pedido })
   }));
+  steps.push(dispatch);
+  failFastResult(traceId, 'dispatch-order', dispatch);
 
-  console.error('[diag] accept-order');
-  steps.push(await requestRaw('accept-order', `${BASE_URL}/api/delivery/accept-order`, {
+  const accept = await traceStep(traceId, 'REQUEST accept-order', async () => requestRaw('accept-order', `${BASE_URL}/api/delivery/accept-order`, {
     method: 'POST',
     headers: headers(driverAuth.token),
     body: JSON.stringify({ pedidoId: PEDIDO_ID })
   }));
+  steps.push(accept);
+  failFastResult(traceId, 'accept-order', accept);
 
-  steps.push({ label: 'snapshot-before-complete', state: await snapshot(db, PEDIDO_ID, DRIVER_UID) });
+  steps.push(await traceStep(traceId, 'SNAPSHOT BEFORE COMPLETE', async () => snapshot(db, PEDIDO_ID, DRIVER_UID)));
 
-  console.error('[diag] complete-order');
-  const complete = await requestRaw('complete-order', `${BASE_URL}/api/delivery/complete-order`, {
+  const complete = await traceStep(traceId, 'REQUEST complete-order', async () => requestRaw('complete-order', `${BASE_URL}/api/delivery/complete-order`, {
     method: 'POST',
     headers: headers(panelAuth.token),
     body: JSON.stringify({ pedidoId: PEDIDO_ID })
-  });
+  }));
   steps.push(complete);
+  failFastResult(traceId, 'complete-order', complete);
 
-  const finalState = await snapshot(db, PEDIDO_ID, DRIVER_UID);
+  const finalState = await traceStep(traceId, 'SNAPSHOT AFTER COMPLETE', async () => snapshot(db, PEDIDO_ID, DRIVER_UID));
   steps.push({ label: 'snapshot-after-complete', state: finalState });
 
   const cierre = {
@@ -274,6 +349,7 @@ async function main() {
 
   console.log(JSON.stringify({
     ok: Object.values(cierre).every(Boolean),
+    traceId,
     baseUrl: BASE_URL,
     pedidoId: PEDIDO_ID,
     driverUid: DRIVER_UID,
@@ -285,7 +361,11 @@ async function main() {
     process.exit(1);
   }
 
-  await admin.app().delete();
+  await traceStep(traceId, 'ADMIN DELETE', async () => admin.app().delete());
+  console.log(`[RUNNER][${traceId}] RUNNER END`, {
+    ts: nowIso(),
+    pid: process.pid
+  });
   process.exit(0);
 }
 

@@ -1,4 +1,5 @@
 import express from 'express';
+import { performance } from 'node:perf_hooks';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/debtLockService.js';
 import {
@@ -31,8 +32,29 @@ import { verifyToken } from '../src/utils/jwt.js';
 
 const router = express.Router();
 
-async function resolveAuthenticatedUser(token) {
+function getRequestTraceId(req, prefix) {
+  if (!req.__nellyTraceId) {
+    req.__nellyTraceId = `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  }
+  return req.__nellyTraceId;
+}
+
+function logAuthTrace(traceId, point, extra = {}) {
+  console.log(`[AUTH][${traceId}] ${point}`, {
+    ts: new Date().toISOString(),
+    perf_now_ms: Number(performance.now().toFixed(3)),
+    hrtime_ns: process.hrtime.bigint().toString(),
+    ...extra
+  });
+}
+
+async function resolveAuthenticatedUser(token, traceId) {
+  const authTraceId = traceId || `auth-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  console.time(`[AUTH][${authTraceId}] resolveAuthenticatedUser`);
+  logAuthTrace(authTraceId, 'T0 resolveAuthenticatedUser START');
   if (process.env.DEV_AUTH_TOKEN && token === process.env.DEV_AUTH_TOKEN) {
+    logAuthTrace(authTraceId, 'T3 resolveAuthenticatedUser END (dev auth)');
+    console.timeEnd(`[AUTH][${authTraceId}] resolveAuthenticatedUser`);
     return {
       uid: process.env.DEV_AUTH_UID || 'dev-user',
       admin: false,
@@ -42,10 +64,21 @@ async function resolveAuthenticatedUser(token) {
 
   try {
     const admin = await getAdmin();
-    return await admin.auth().verifyIdToken(token);
+    logAuthTrace(authTraceId, 'T1 before verifyIdToken');
+    console.time(`[AUTH][${authTraceId}] verifyIdToken`);
+    const decoded = await admin.auth().verifyIdToken(token);
+    logAuthTrace(authTraceId, 'T2 after verifyIdToken await (resolved)');
+    console.timeEnd(`[AUTH][${authTraceId}] verifyIdToken`);
+    logAuthTrace(authTraceId, 'T3 resolveAuthenticatedUser END (verifyIdToken)');
+    console.timeEnd(`[AUTH][${authTraceId}] resolveAuthenticatedUser`);
+    return decoded;
   } catch (error) {
+    logAuthTrace(authTraceId, 'T2 after verifyIdToken await (rejected)', { error: error?.message || String(error) });
+    console.timeEnd(`[AUTH][${authTraceId}] verifyIdToken`);
     try {
       const decoded = verifyToken(token);
+      logAuthTrace(authTraceId, 'T3 resolveAuthenticatedUser END (jwt fallback)');
+      console.timeEnd(`[AUTH][${authTraceId}] resolveAuthenticatedUser`);
       return {
         uid: decoded.uid || decoded.sub,
         admin: Boolean(decoded.admin),
@@ -55,6 +88,8 @@ async function resolveAuthenticatedUser(token) {
       };
     } catch (jwtError) {
       console.error('[AUTH][DELIVERY] No se pudo resolver token', { message: error.message, jwtMessage: jwtError.message });
+      logAuthTrace(authTraceId, 'T3 resolveAuthenticatedUser END (error)', { error: error?.message || String(error), jwtError: jwtError?.message || String(jwtError) });
+      console.timeEnd(`[AUTH][${authTraceId}] resolveAuthenticatedUser`);
       throw error;
     }
   }
@@ -73,12 +108,16 @@ function decodeJwtPayload(token) {
 
 async function requireFirebaseUser(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
+  const traceId = getRequestTraceId(req, 'req');
   if (!token) {
     return res.status(401).json({ ok: false, error: 'Token requerido' });
   }
 
   try {
-    req.firebaseUser = await resolveAuthenticatedUser(token);
+    console.time(`[AUTH][${traceId}] requireFirebaseUser`);
+    console.log(`[AUTH][${traceId}] requireFirebaseUser token recibido`);
+    req.firebaseUser = await resolveAuthenticatedUser(token, traceId);
+    console.timeEnd(`[AUTH][${traceId}] requireFirebaseUser`);
     return next();
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
@@ -91,9 +130,11 @@ async function requireFirebaseUser(req, res, next) {
           panel: Boolean(decoded.panel || decoded.claims?.panel),
           role: decoded.role || decoded.claims?.role || (decoded.driver ? 'driver' : undefined)
         };
+        console.timeEnd(`[AUTH][${traceId}] requireFirebaseUser`);
         return next();
       }
     }
+    console.timeEnd(`[AUTH][${traceId}] requireFirebaseUser`);
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
   }
 }
@@ -104,6 +145,9 @@ async function requireAdminOrPanel(req, res, next) {
     return res.status(401).json({ ok: false, error: 'Token requerido' });
   }
 
+  const traceId = getRequestTraceId(req, 'panel');
+  console.time(`[AUTH][${traceId}] requireAdminOrPanel`);
+  console.log(`[AUTH][${traceId}] requireAdminOrPanel token recibido`);
   if (process.env.DEV_AUTH_TOKEN && token === process.env.DEV_AUTH_TOKEN) {
     req.user = {
       uid: process.env.DEV_AUTH_UID || 'dev-user',
@@ -111,14 +155,18 @@ async function requireAdminOrPanel(req, res, next) {
       panel: true,
       role: 'panel_cocina'
     };
+    console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
     return next();
   }
 
   try {
-    const decodedToken = await resolveAuthenticatedUser(token);
+    console.log(`[AUTH][${traceId}] requireAdminOrPanel resolveAuthenticatedUser start`);
+    const decodedToken = await resolveAuthenticatedUser(token, traceId);
+    console.log(`[AUTH][${traceId}] requireAdminOrPanel resolveAuthenticatedUser done`);
 
     if (decodedToken.admin === true || decodedToken.role === 'panel_cocina' || decodedToken.panel === true) {
       req.user = decodedToken;
+      console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
       return next();
     }
 
@@ -133,10 +181,12 @@ async function requireAdminOrPanel(req, res, next) {
           panel: Boolean(decoded.panel || claims.panel),
           role: decoded.role || claims.role || 'panel_cocina'
         };
+        console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
         return next();
       }
     }
 
+    console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
     return res.status(403).json({ ok: false, error: 'No autorizado' });
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
@@ -150,9 +200,11 @@ async function requireAdminOrPanel(req, res, next) {
           panel: Boolean(decoded.panel || claims.panel),
           role: decoded.role || claims.role || 'panel_cocina'
         };
+        console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
         return next();
       }
     }
+    console.timeEnd(`[AUTH][${traceId}] requireAdminOrPanel`);
     return res.status(401).json({ ok: false, error: 'Token invalido o expirado' });
   }
 }
@@ -164,7 +216,8 @@ async function requireFirebaseUserAnyRole(req, res, next) {
   }
 
   try {
-    req.firebaseUser = await resolveAuthenticatedUser(token);
+    const traceId = getRequestTraceId(req, 'req');
+    req.firebaseUser = await resolveAuthenticatedUser(token, traceId);
     return next();
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
@@ -203,13 +256,19 @@ function generateShortId(timestamp) {
 
 router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
   try {
+    const traceId = getRequestTraceId(req, 'dispatch');
+    logAuthTrace(traceId, 'T4 dispatch-order handler START');
+    console.time(`[FLOW][${traceId}] dispatch-order`);
+    console.log(`[FLOW][${traceId}] dispatch-order start`);
     const pedidoId = String(req.body?.pedidoId || req.body?.orderId || '').trim();
     if (!pedidoId) {
+      console.timeEnd(`[FLOW][${traceId}] dispatch-order`);
       return res.status(400).json({ ok: false, error: 'pedidoId es requerido' });
     }
 
     const admin = await getAdmin();
     const db = admin.database();
+    console.log(`[FLOW][${traceId}] dispatch-order reading pedido`);
     const pedidoSnap = await db.ref(`pedidos/${pedidoId}`).once('value');
     const pedidoActual = pedidoSnap.val() || {};
     const pedidoInput = req.body?.pedido && typeof req.body.pedido === 'object' ? req.body.pedido : {};
@@ -239,10 +298,17 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       disponible: true
     };
 
+    console.log(`[FLOW][${traceId}] dispatch-order writing updates`);
     await db.ref().update(buildDispatchSyncWrites(pedidoId, pedidoActual, payloadListo));
 
+    console.log(`[FLOW][${traceId}] dispatch-order response ready`);
+    console.timeEnd(`[FLOW][${traceId}] dispatch-order`);
+    logAuthTrace(traceId, 'T5 dispatch-order handler END', { ok: true });
     return res.json({ ok: true, pedidoId, estado: 'LISTO', pedido: payloadListo });
   } catch (error) {
+    const traceId = getRequestTraceId(req, 'dispatch');
+    console.timeEnd(`[FLOW][${traceId}] dispatch-order`);
+    logAuthTrace(traceId, 'T5 dispatch-order handler END', { ok: false, error: error?.message || String(error) });
     return next(error);
   }
 });
