@@ -16,4 +16,4 @@ Expediente operativo del piloto controlado de Nelly.
 
 ## Estado
 
-Preparado para continuidad operativa con Jornada 002 abierta.
+Preparado para continuidad operativa con Jornada 002 cerrada en verde.

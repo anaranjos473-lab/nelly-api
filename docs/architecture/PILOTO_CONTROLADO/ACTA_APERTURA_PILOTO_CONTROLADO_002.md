@@ -71,3 +71,41 @@ Abrir formalmente la segunda jornada del piloto controlado para confirmar contin
 | Responsable operativo | Codex |  | 2026-08-01 |
 | Revisor de calidad |  |  |  |
 
+## Cierre de jornada 002
+
+### Resumen de corrida
+
+| Corrida | Resultado | Observacion |
+| --- | --- | --- |
+| RC2-A | `PASS` | Flujo base extremo a extremo completado. |
+| RC2-B | `PASS` | Variacion normal con transicion idempotente y cierre correcto. |
+| RC2-C | `PASS` | Robustez validada con reintento invalido y cierre correcto. |
+
+### Evidencia consolidada
+
+- `create` -> `OK` en las tres corridas.
+- `dispatch` -> `OK` en las tres corridas.
+- `accept` -> `OK` en las tres corridas.
+- `complete` -> `OK` en las tres corridas.
+- `snapshot` -> `OK` en las tres corridas.
+- `pedidos_activos = 0` al cierre de cada corrida.
+- `dashboard` en estado consistente durante toda la jornada.
+
+### Hallazgos
+
+- La primera corrida valido el flujo base sin incidentes operativos.
+- La segunda corrida valido la transicion idempotente en `EN_CURSO` sin romper el cierre.
+- La tercera corrida valido un reintento invalido de aceptacion sin afectar el cierre.
+
+### Dictamen diario
+
+| Campo | Valor |
+| --- | --- |
+| Resultado | `VERDE` |
+| Estado | `Jornada estable` |
+| GO | `Permanece vigente` |
+| Continuidad | `Autorizada` |
+
+### Decision posterior
+
+La Jornada 002 queda cerrada administrativamente con resultado positivo y puede continuar la siguiente jornada bajo la misma disciplina operativa.

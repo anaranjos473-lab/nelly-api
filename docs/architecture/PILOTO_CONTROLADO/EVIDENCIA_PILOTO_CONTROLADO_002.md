@@ -31,3 +31,12 @@
 - Estado inicial autorizado para la corrida.
 - Base de evidencia congelada antes de la primera ejecucion.
 
+### Bloque 6. Cierre de jornada 002
+
+- RC2-A: `PASS`.
+- RC2-B: `PASS`.
+- RC2-C: `PASS`.
+- `pedidos_activos = 0` al cierre de cada corrida.
+- Dashboard consistente durante toda la jornada.
+- Dictamen diario: `VERDE`.
+- GO vigente para continuar la siguiente jornada.
