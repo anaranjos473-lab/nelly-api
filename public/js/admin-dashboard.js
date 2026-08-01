@@ -244,7 +244,15 @@ function setGovPage(pageId, options = {}) {
 }
 
 function getActiveLocation() {
-  return locationState[activeLocationTarget];
+  return locationState[activeLocationTarget === "store" ? "store" : "client"];
+}
+
+function getLocationKey(target = activeLocationTarget) {
+  return target === "store" ? "store" : "client";
+}
+
+function getLocationState(target = activeLocationTarget) {
+  return locationState[getLocationKey(target)];
 }
 
 function normalizeSearchText(value) {
@@ -269,10 +277,10 @@ function findLocalGeocodeResult(query) {
   };
 }
 
-function getManualLocationFallback(query) {
+function getManualLocationFallback(query, target = activeLocationTarget) {
   const normalized = String(query || "").trim();
   if (!normalized) return null;
-  const active = getActiveLocation();
+  const active = getLocationState(target);
   return {
     lat: active.lat || LOCAL_MAP_CENTER.lat,
     lng: active.lng || LOCAL_MAP_CENTER.lng,
@@ -297,7 +305,7 @@ function updateTargetButtons() {
 function setActiveLocationTarget(target) {
   activeLocationTarget = target === "store" ? "store" : "client";
   updateTargetButtons();
-  const active = getActiveLocation();
+  const active = getLocationState(activeLocationTarget);
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = activeLocationTarget === "client"
       ? "Capturando ubicacion del cliente."
@@ -319,8 +327,8 @@ function setActiveLocationTarget(target) {
 }
 
 function setSelectedLocation(next = {}, target = activeLocationTarget) {
-  const targetKey = target === "store" ? "store" : "client";
-  const current = getActiveLocation();
+  const targetKey = getLocationKey(target);
+  const current = getLocationState(targetKey);
   const updated = {
     lat: Number.isFinite(next.lat) ? next.lat : current.lat,
     lng: Number.isFinite(next.lng) ? next.lng : current.lng,
@@ -497,8 +505,8 @@ function updateEmbeddedMap(lat, lng, zoom = 15) {
 }
 
 function syncLocationFromActivePoint(labelConfirmado, target = activeLocationTarget) {
-  const targetKey = target === "store" ? "store" : "client";
-  const active = getActiveLocation();
+  const targetKey = getLocationKey(target);
+  const active = getLocationState(targetKey);
   const lat = Number(active.lat);
   const lng = Number(active.lng);
   if (!coordenadaValida(lat, lng)) return null;
@@ -599,7 +607,7 @@ async function refreshLocationFromCenter(trigger = "moved", target = activeLocat
     setSelectedLocation({
       lat,
       lng,
-      address: address || getActiveLocation().address,
+      address: address || getLocationState(target).address,
       label: trigger === "search" ? "Direccion encontrada" : "Ubicacion actualizada"
     }, target);
   } catch (_error) {
@@ -655,12 +663,13 @@ function initOrderMap() {
         const lat = Number(position[0]);
         const lng = Number(position[1]);
         if (coordenadaValida(lat, lng)) {
-          locationState[activeLocationTarget] = {
-            ...locationState[activeLocationTarget],
+          const targetKey = getLocationKey(activeLocationTarget);
+          locationState[targetKey] = {
+            ...locationState[targetKey],
             lat,
             lng
           };
-          setLocalMapMarkerPosition(activeLocationTarget, lat, lng);
+          setLocalMapMarkerPosition(targetKey, lat, lng);
         }
       }
       return this;
@@ -1866,7 +1875,7 @@ if (ui.useCurrentLocation) {
       }
       setOrderFeedback("Ubicacion actual aplicada al mapa.", "ok");
     }, async () => {
-      const fallback = getManualLocationFallback(String(ui.locationSearch?.value || "Ubicacion actual"));
+      const fallback = getManualLocationFallback(String(ui.locationSearch?.value || "Ubicacion actual"), target);
       if (fallback) {
         setSelectedLocation({
           lat: fallback.lat,
@@ -1927,6 +1936,10 @@ function initializeManualOrderLocation() {
   if (ui.orderShipping && !ui.orderShipping.value) {
     ui.orderShipping.value = "45.00";
   }
+  if (ui.orderClientLat) ui.orderClientLat.value = String(locationState.client.lat);
+  if (ui.orderClientLng) ui.orderClientLng.value = String(locationState.client.lng);
+  if (ui.orderStoreLat) ui.orderStoreLat.value = String(locationState.store.lat);
+  if (ui.orderStoreLng) ui.orderStoreLng.value = String(locationState.store.lng);
   setSelectedLocation({
     lat: locationState.client.lat,
     lng: locationState.client.lng,
