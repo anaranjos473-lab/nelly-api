@@ -28,4 +28,10 @@ Expediente operativo del piloto controlado de Nelly.
 
 ## Estado
 
-Preparado para continuidad operativa con Jornada 002 cerrada en verde.
+Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`.
+
+## Arranque
+
+- Baseline congelado en `main`.
+- Soporte operativo activo en `pilot-support`.
+- Referencia de liberacion: [`GO_LIVE_CERTIFICATION_001.md`](./GO_LIVE_CERTIFICATION_001.md)
