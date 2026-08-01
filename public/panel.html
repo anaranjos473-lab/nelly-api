@@ -3385,6 +3385,19 @@
                 }, 2200);
             }
 
+            function obtenerIdentificadoresPedido(pedido) {
+                if (!pedido || typeof pedido !== 'object') {
+                    return [];
+                }
+                return [
+                    pedido.shortId,
+                    pedido.id_pedido,
+                    pedido.id,
+                    pedido.pedido_id,
+                    pedido._rtdbKey
+                ].map((valor) => String(valor || '').trim()).filter(Boolean);
+            }
+
             function pedidoDesdeEstado(id) {
                 const keyResuelta = resolverKeyPedido(id);
                 return kitchenState.orders.pedidosPendientes.get(keyResuelta)
@@ -3406,7 +3419,7 @@
                     const vistosMap = new Set();
                     const listaMap = [];
                     fromMaps.forEach((pedido) => {
-                        const firma = String(pedido?.id_pedido || pedido?.id || pedido?.shortId || pedido?._rtdbKey || '');
+                        const firma = obtenerIdentificadoresPedido(pedido)[0] || '';
                         if (!firma || vistosMap.has(firma)) return;
                         vistosMap.add(firma);
                         listaMap.push({ ...pedido });
@@ -3668,7 +3681,7 @@
                     if (recalculados.length) {
                         count.textContent = String(recalculados.length);
                         sidebar.innerHTML = recalculados.map((pedido, index) => {
-                            const pedidoId = pedido.shortId || pedido.id_pedido || pedido.id || '';
+                            const pedidoId = obtenerIdentificadoresPedido(pedido)[0] || '';
                             const label = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                             const objetivo = calcularMetaOperacion(pedido);
                             const tiempo = formatearTiempoOperacion(pedido);
@@ -3699,7 +3712,7 @@
                         }).join('');
                         if (!id && recalculados[0]) {
                             const primero = recalculados[0];
-                            window.__nellyPedidoEnfoque = String(primero.shortId || primero.id_pedido || primero.id || '');
+                            window.__nellyPedidoEnfoque = obtenerIdentificadoresPedido(primero)[0] || '';
                             renderOperacionEnfoque(window.__nellyPedidoEnfoque);
                             return;
                         }
@@ -3708,7 +3721,7 @@
                 count.textContent = String(pedidosFinales.length);
 
                 sidebar.innerHTML = pedidosFinales.map((pedido, index) => {
-                    const pedidoId = pedido.shortId || pedido.id_pedido || pedido.id || '';
+                    const pedidoId = obtenerIdentificadoresPedido(pedido)[0] || '';
                     const label = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                     const objetivo = calcularMetaOperacion(pedido);
                     const tiempo = formatearTiempoOperacion(pedido);
@@ -3764,7 +3777,7 @@
                     return;
                 }
 
-                const displayId = pedido.shortId || pedido.id_pedido || pedido.id || id;
+                const displayId = obtenerIdentificadoresPedido(pedido)[0] || String(id || '').trim();
                 window.__nellyPedidoEnfoqueData = pedido;
                 const nombre = pedido.cliente_nombre || pedido.cliente || 'Cliente';
                 const direccion = pedido.direccion || 'Dirección no disponible';
@@ -4068,11 +4081,11 @@
             };
 
             window.reimprimirTicket = (id) => {
-                const keyResuelta = resolverKeyPedido(id);
+                const keyResuelta = resolverKeyPedido(String(id || '').trim());
                 const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta)
                     || kitchenState.orders.pedidosReparto.get(keyResuelta)
                     || kitchenState.orders.pedidosEnCamino.get(keyResuelta);
-                const folio = pedido?.shortId || pedido?.id_pedido || keyResuelta;
+                const folio = obtenerIdentificadoresPedido(pedido)[0] || keyResuelta;
                 if (!pedido) {
                     showToast('Pedido no encontrado para reimprimir', 'err');
                     return;
@@ -4116,7 +4129,7 @@
                 `Reparto: ${pedido.reparto_at || pedido.asignado_at || '—'}`
             ];
             const detalle = [
-                `Pedido: #${pedido.shortId || pedido.id_pedido || keyResuelta}`,
+                `Pedido: #${obtenerIdentificadoresPedido(pedido)[0] || keyResuelta}`,
                 `Cliente: ${pedido.cliente_nombre || pedido.cliente || 'Cliente'}`,
                 `Teléfono: ${telefono}`,
                 `Dirección: ${pedido.direccion || 'No disponible'}`,
@@ -4131,7 +4144,7 @@
         };
 
         window.verLineaTiempoPedido = (id) => {
-            const keyResuelta = resolverKeyPedido(id);
+            const keyResuelta = resolverKeyPedido(String(id || '').trim());
             const selectorKey = String(keyResuelta).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
             const card = document.querySelector(`[data-pedido-id="${selectorKey}"]`);
             if (!card) {
@@ -5442,7 +5455,12 @@
 
             for (const mapa of [kitchenState.orders.pedidosPendientes, kitchenState.orders.pedidosReparto, kitchenState.orders.pedidosEnCamino]) {
                 for (const [key, pedido] of mapa.entries()) {
-                    if (pedido.id_pedido === identificador || pedido.id === identificador || pedido.pedido_id === identificador) {
+                    if (
+                        pedido.shortId === identificador ||
+                        pedido.id_pedido === identificador ||
+                        pedido.id === identificador ||
+                        pedido.pedido_id === identificador
+                    ) {
                         return key;
                     }
                 }
