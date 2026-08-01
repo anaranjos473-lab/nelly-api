@@ -3429,7 +3429,7 @@
 
                 const canonical = Array.isArray(window.__nellyPedidosCocinaCanonical)
                     ? window.__nellyPedidosCocinaCanonical
-                    : (Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : []);
+                    : [];
                 if (!canonical.length) {
                     return [];
                 }
@@ -3657,9 +3657,6 @@
                     kitchenState.orders.pedidosEntregados instanceof Map ? Array.from(kitchenState.orders.pedidosEntregados.entries()).map(([key, pedido]) => ({ id: key, ...pedido })) : []
                 ];
                 const pedidosBase = fuentesOperativas.flat();
-                if (!pedidosBase.length && Array.isArray(window.__nellyOperationOrders) && window.__nellyOperationOrders.length) {
-                    pedidosBase.push(...window.__nellyOperationOrders.map((pedido) => ({ ...pedido })));
-                }
                 const pedidosOperativos = pedidosBase
                     .filter((pedido) => esPedidoDelMesActual(pedido))
                     .sort(compararPedidosOperacion);
@@ -5683,6 +5680,17 @@
                     error: null
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                if (activeOrders.length === 0) {
+                    window.__nellyPedidosCocinaCanonical = [];
+                    window.__nellyOperationOrders = [];
+                    window.__nellyPedidosCocinaRenderizados = {
+                        pedidosPendientes: [],
+                        pedidosReparto: [],
+                        pedidosEnCamino: [],
+                        pedidosEntregados: [],
+                        at: Date.now()
+                    };
+                }
                 capturarFotoEstadoCocina('cargarPedidosActivosDesdeContrato:after-contract', {
                     contract_version: archiveEngineActiveOrdersMeta.contract_version,
                     active_orders: archiveEngineActiveOrdersCache.length

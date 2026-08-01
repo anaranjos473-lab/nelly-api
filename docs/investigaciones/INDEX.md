@@ -9,6 +9,7 @@ Tabla maestra de investigaciones, frentes y decisiones RCA en Nelly OS.
 | KITCHEN_SYNC_001 | Abierto | S2 | Pendiente | 2026-08-01 |
 | PILOT_DATASET_001 | Cerrado | S2 | Nelly OS | 2026-08-01 |
 | DATASET_FINALIZATION_001 | Cerrado | S2 | Nelly OS | 2026-08-01 |
+| ACTIVE_ORDER_CLASSIFICATION_001 | Resuelto bajo observacion | S2 | Nelly OS | 2026-08-01 |
 | CONTRACT_AUDIT_001 | Abierto | S1 | Pendiente | 2026-08-01 |
 | CONTRACT_AUDIT_EXECUTION_001 | Bloqueado | S1 | Pendiente | 2026-08-01 |
 | ICV-01 | Cerrado por limite de evidencia | S2 | Nelly OS | 2026-08-01 |
@@ -24,6 +25,7 @@ Tabla maestra de investigaciones, frentes y decisiones RCA en Nelly OS.
 - Para abrir un frente nuevo, usar [`FRONT_TEMPLATE.md`](./FRONT_TEMPLATE.md).
 - Ver frente detallado: [`PILOT_DATASET_001.md`](./PILOT_DATASET_001.md).
 - Ver frente detallado: [`DATASET_FINALIZATION_001.md`](./DATASET_FINALIZATION_001.md).
+- Ver frente detallado: [`ACTIVE_ORDER_CLASSIFICATION_001.md`](./ACTIVE_ORDER_CLASSIFICATION_001.md).
 - Ver frente detallado: [`KITCHEN_SYNC_001.md`](./KITCHEN_SYNC_001.md).
 - Ver frente detallado: [`CONTRACT_AUDIT_001.md`](./CONTRACT_AUDIT_001.md).
 

@@ -296,16 +296,6 @@ export function createRenderManager() {
         });
       }
 
-      if (!tienePedidosEntrantes && canonicalPrevio.length > 0) {
-        return renderState.lastOrderLists || {
-          pendientes: 0,
-          listo: 0,
-          reparto: 0,
-          entregados: 0,
-          at: Date.now()
-        };
-      }
-
       [contenedorPendientes, contenedorListo, contenedorReparto, contenedorEntregados].forEach((node) => {
         if (node) {
           node.innerHTML = '';
