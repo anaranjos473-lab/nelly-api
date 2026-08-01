@@ -2,7 +2,7 @@
 
 ## Indice de evidencia
 
-Este archivo concentrara la evidencia por caso una vez iniciada la ejecucion.
+Este archivo concentra la evidencia por caso una vez iniciada la ejecucion.
 
 ## Evidencia registrada
 
@@ -20,15 +20,27 @@ Este archivo concentrara la evidencia por caso una vez iniciada la ejecucion.
 
 ### POS-002
 
-- `pedidoId`: `ECOSYS_POS2_1785575430411`
+- **Recertificacion posterior al parche atomico**
+- `pedidoId`: `ECOSYS_POS2_1785578304736`
 - `driverA`: `8mo8182LJsgV7vKMSpiCekFKAG23`
 - `driverC`: `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`
 - `payload.json`: pedido de certificacion `POS-002`
 - `respuesta.dispatch`: `200`
 - `respuesta.accept.driverA`: `200`
+- `respuesta.accept.driverC`: `409`
+- `estado final`: unico ganador con rechazo del segundo intento concurrente
+- `dashboard`: `ok=false` (observacion no bloqueante para la atomicidad)
+
+## Historial forense
+
+La siguiente evidencia permanece como antecedente del defecto ya corregido:
+
+- `pedidoId`: `ECOSYS_POS2_1785575430411`
+- `driverA`: `8mo8182LJsgV7vKMSpiCekFKAG23`
+- `driverC`: `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`
+- `respuesta.accept.driverA`: `200`
 - `respuesta.accept.driverC`: `200`
 - `estado final`: adjudicacion no atomica, ambos conductores aceptaron el mismo pedido
-- `dashboard`: `ok=false`
 
 ## Plantilla por caso
 
@@ -151,3 +163,4 @@ Este archivo concentrara la evidencia por caso una vez iniciada la ejecucion.
 - `captura-crm.png`
 - `captura-finanzas.png`
 - `captura-analytics.png`
+

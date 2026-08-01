@@ -21,7 +21,7 @@ For the domain certification standard, use:
 | Incident Render Kitchen 404 Data Access | `CLOSED` | Deploy desynchronization on Render caused `/api/data-architecture/data-access` to return 404 until `main` was aligned and redeployed. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 | DOMAIN_CERT_001 | `CERTIFIED` | Rector protocol for formal domain certification of Nelly Delivery. |
-| ECOSYSTEM_CERT_001 | `PAUSED` | Integration certification detected a critical adjudication defect at `POS-002`. |
+| ECOSYSTEM_CERT_001 | `IN VALIDATION` | Integration certification resumed after atomic-assignment fix; recertifying from `POS-002`. |
 | ATOMIC_ASSIGNMENT_001 | `OPEN` | New certification front for atomic acceptance under concurrency. |
 | PANEL_VISUAL_001 | `APPROVED` | Visual and functional certification of the full panel across desktop and mobile. |
 | Incident Panel ShortId | `CLOSED` | Frontend identity mismatch between visible `shortId` and `resolverKeyPedido()` fixed by aligning the panel resolver. |
