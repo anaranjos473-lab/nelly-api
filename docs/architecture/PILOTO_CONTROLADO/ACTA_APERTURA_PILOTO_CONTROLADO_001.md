@@ -86,3 +86,42 @@ Con la evidencia disponible, el piloto controlado queda autorizado para iniciar 
 | Responsable tecnico | Codex |  | 2026-08-01 |
 | Responsable operativo |  |  |  |
 | Revisor de calidad |  |  |  |
+
+## Cierre de jornada 001
+
+### Resumen de corrida
+
+| Corrida | Resultado | Observacion |
+| --- | --- | --- |
+| RC2-A | `PASS` | Flujo base extremo a extremo completado. |
+| RC2-B | `PASS` | Variacion normal con transicion idempotente y cierre correcto. |
+| RC2-C | `PASS` | Robustez validada con reintento invalido y cierre correcto. |
+
+### Evidencia consolidada
+
+- `create` -> `OK` en las tres corridas.
+- `dispatch` -> `OK` en las tres corridas.
+- `accept` -> `OK` en las tres corridas.
+- `complete` -> `OK` en las tres corridas.
+- `snapshot` -> `OK` en las tres corridas.
+- `pedidos_activos = 0` al cierre de cada corrida.
+- `dashboard` en estado consistente durante toda la jornada.
+
+### Hallazgos
+
+- La primera corrida mostró una transicion operativa invalida al intentar `LLEGUE_A_TIENDA`; el flujo siguio limpio y el pedido cerro en `ENTREGADO`.
+- La segunda corrida valido `EN_CURSO` como transicion idempotente sin romper el flujo.
+- La tercera corrida valido un reintento invalido de aceptacion sin afectar el cierre.
+
+### Dictamen diario
+
+| Campo | Valor |
+| --- | --- |
+| Resultado | `VERDE` |
+| Estado | `Jornada estable` |
+| GO | `Permanece vigente` |
+| Continuidad | `Autorizada` |
+
+### Decision posterior
+
+La Jornada 001 queda cerrada administrativamente con resultado positivo y puede continuar la siguiente corrida bajo la misma disciplina operativa.
