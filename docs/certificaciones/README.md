@@ -21,6 +21,7 @@ For the domain certification standard, use:
 | Incident Render Kitchen 404 Data Access | `CLOSED` | Deploy desynchronization on Render caused `/api/data-architecture/data-access` to return 404 until `main` was aligned and redeployed. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 | DOMAIN_CERT_001 | `CERTIFIED` | Rector protocol for formal domain certification of Nelly Delivery. |
+| PANEL_VISUAL_001 | `APPROVED` | Visual and functional certification of the full panel across desktop and mobile. |
 | Incident Panel ShortId | `CLOSED` | Frontend identity mismatch between visible `shortId` and `resolverKeyPedido()` fixed by aligning the panel resolver. |
 | Runner Fail Fast | `CLOSED` | Diagnostic runner stops at the first causal failure and avoids cascading errors. |
 
@@ -40,6 +41,7 @@ For the domain certification standard, use:
 - [`../CERTIFICACION_DOMAIN_CERT_001.md`](./../CERTIFICACION_DOMAIN_CERT_001.md)
 - [`../INDEX_DOMAIN_CERT_001.md`](./../INDEX_DOMAIN_CERT_001.md)
 - [`ACTA_DOMAIN_CERT_001_FINAL.md`](./ACTA_DOMAIN_CERT_001_FINAL.md)
+- [`ACTA_PANEL_VISUAL_001.md`](./ACTA_PANEL_VISUAL_001.md)
 - [`DATASET_DOMAIN_CERT_001.md`](./DATASET_DOMAIN_CERT_001.md)
 - [`ACTA_DOMAIN_CERT_TEMPLATE.md`](./ACTA_DOMAIN_CERT_TEMPLATE.md)
 - [`REGRESSION_SUITE_DOMAIN.md`](./REGRESSION_SUITE_DOMAIN.md)

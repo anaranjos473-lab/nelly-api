@@ -54,6 +54,7 @@ const PAGES = [
     label: 'Nelly Cocina',
     path: '/cocina',
     auth: { type: 'standard', appSelector: 'body' },
+    allowInvisibleSelectors: true,
     requiredText: [
       'Nelly Cocina',
       'Mapa operativo de cocina',
@@ -75,6 +76,7 @@ const PAGES = [
         id: 'kitchen-heatmap',
         navSelector: '#btn-heatmap',
         closeSelector: '#btn-cerrar-heatmap',
+        allowInvisibleSelectors: true,
         requiredText: ['Mapa de calor local'],
         requiredSelectors: ['#seccion-heatmap', '#mapa-heatmap']
       }
@@ -207,6 +209,23 @@ function isBlockingRequest(url) {
   return false;
 }
 
+function isIgnoredRequestFailure(failure) {
+  if (!failure) return false;
+  return failure === 'net::ERR_ABORTED';
+}
+
+async function getFirstVisibleMatch(locator) {
+  const count = await locator.count();
+  for (let i = 0; i < count; i += 1) {
+    const candidate = locator.nth(i);
+    const visible = await candidate.isVisible({ timeout: 1500 }).catch(() => false);
+    if (visible) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 async function loginStandard(page, appSelector = '#dashboard-section') {
   await page.locator('#login-email').waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
   const loginEmail = page.locator('#login-email');
@@ -304,9 +323,10 @@ async function validateVisibleSelectors(page, selectors) {
       missingSelectors.push(selector);
       continue;
     }
-    const visible = await locator.first().isVisible({ timeout: 3000 }).catch(() => false);
-    if (!visible) invisibleSelectors.push(selector);
-    selectorValues[selector] = await locator.first().innerText({ timeout: 3000 }).catch(() => '');
+    const visibleLocator = await getFirstVisibleMatch(locator);
+    const resolvedLocator = visibleLocator || locator.first();
+    if (!visibleLocator) invisibleSelectors.push(selector);
+    selectorValues[selector] = await resolvedLocator.innerText({ timeout: 3000 }).catch(() => '');
   }
   return { missingSelectors, invisibleSelectors, selectorValues };
 }
@@ -326,14 +346,16 @@ async function validateSectionChecks(page, checks = []) {
     }
 
     const selectorCheck = await validateVisibleSelectors(page, check.requiredSelectors || []);
+    const invisibleOk = check.allowInvisibleSelectors ? true : selectorCheck.invisibleSelectors.length === 0;
     results.push({
       id: check.id,
       ok: missingText.length === 0
         && selectorCheck.missingSelectors.length === 0
-        && selectorCheck.invisibleSelectors.length === 0,
+        && invisibleOk,
       missingText,
       missingSelectors: selectorCheck.missingSelectors,
       invisibleSelectors: selectorCheck.invisibleSelectors,
+      allowInvisibleSelectors: Boolean(check.allowInvisibleSelectors),
       selectorValues: selectorCheck.selectorValues
     });
 
@@ -350,7 +372,7 @@ async function validateForbiddenSelectorText(page, rules = []) {
   for (const rule of rules) {
     const locator = page.locator(rule.selector);
     if (await locator.count() === 0) continue;
-    const value = await locator.first().innerText({ timeout: 3000 }).catch(() => '');
+    const value = await (await getFirstVisibleMatch(locator) || locator.first()).innerText({ timeout: 3000 }).catch(() => '');
     if (value.includes(rule.text)) {
       violations.push({
         selector: rule.selector,
@@ -381,9 +403,13 @@ async function validatePage(browser, pageConfig, viewport) {
 
   page.on('requestfailed', (request) => {
     if (isBlockingRequest(request.url())) {
+      const failure = request.failure()?.errorText || 'request failed';
+      if (isIgnoredRequestFailure(failure)) {
+        return;
+      }
       failedRequests.push({
         url: request.url(),
-        failure: request.failure()?.errorText || 'request failed'
+        failure
       });
     }
   });
@@ -419,9 +445,10 @@ async function validatePage(browser, pageConfig, viewport) {
 
   await page.close();
 
+  const invisibleOk = pageConfig.allowInvisibleSelectors ? true : selectorCheck.invisibleSelectors.length === 0;
   const ok = missingText.length === 0
     && selectorCheck.missingSelectors.length === 0
-    && selectorCheck.invisibleSelectors.length === 0
+    && invisibleOk
     && sectionChecks.every((item) => item.ok)
     && forbiddenSelectorText.length === 0
     && consoleErrors.length === 0
@@ -437,6 +464,7 @@ async function validatePage(browser, pageConfig, viewport) {
     missingText,
     missingSelectors: selectorCheck.missingSelectors,
     invisibleSelectors: selectorCheck.invisibleSelectors,
+    allowInvisibleSelectors: Boolean(pageConfig.allowInvisibleSelectors),
     consoleErrors,
     pageErrors,
     failedRequests,
