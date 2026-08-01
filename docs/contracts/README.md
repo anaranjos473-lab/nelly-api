@@ -1,14 +1,11 @@
-# Contracts
+# Contracts Index
 
-Contratos críticos del ecosistema Nelly Delivery.
+## Entry Point
 
-## Documentos
+- [docs README](../README.md)
+- [DOMAIN_CERT_001 Index](../INDEX_DOMAIN_CERT_001.md)
+- [Data Access Contract v1](./DATA_ACCESS_CONTRACT_v1.md)
 
-- [`ACCEPT_ORDER.md`](./ACCEPT_ORDER.md)
-- [`COMPLETE_ORDER.md`](./COMPLETE_ORDER.md)
-- [`DRIVER_TOKEN.md`](./DRIVER_TOKEN.md)
-- [`UPDATE_LOCATION.md`](./UPDATE_LOCATION.md)
+## Rule
 
-## Regla
-
-Todo contrato debe declarar request, response, errores y invariantes.
+Before changing a contract, confirm whether the change affects the rector protocol or any certified flow.

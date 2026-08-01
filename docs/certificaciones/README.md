@@ -2,6 +2,11 @@
 
 Register of functional certifications and approved baselines.
 
+For the domain certification standard, use:
+
+- [docs README](../README.md)
+- [DOMAIN_CERT_001 Index](../INDEX_DOMAIN_CERT_001.md)
+
 ## State of Certifications
 
 | Certification | State | Observations |
@@ -15,6 +20,7 @@ Register of functional certifications and approved baselines.
 | NAE Release Report v1.0 | `CERTIFIED` | Final frozen release report for NAE v1.0. |
 | Incident Render Kitchen 404 Data Access | `CLOSED` | Deploy desynchronization on Render caused `/api/data-architecture/data-access` to return 404 until `main` was aligned and redeployed. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
+| DOMAIN_CERT_001 | `CERTIFIED` | Rector protocol for formal domain certification of Nelly Delivery. |
 
 ## Documents
 
@@ -29,6 +35,15 @@ Register of functional certifications and approved baselines.
 - [`NAE_RELEASE_REPORT_v1.0.md`](./NAE_RELEASE_REPORT_v1.0.md)
 - [`INCIDENTE_RENDER_KITCHEN_404_DATA_ACCESS.md`](./INCIDENTE_RENDER_KITCHEN_404_DATA_ACCESS.md)
 - [`functional-metrics-baseline.json`](./functional-metrics-baseline.json)
+- [`../CERTIFICACION_DOMAIN_CERT_001.md`](./../CERTIFICACION_DOMAIN_CERT_001.md)
+- [`../INDEX_DOMAIN_CERT_001.md`](./../INDEX_DOMAIN_CERT_001.md)
+- [`ACTA_DOMAIN_CERT_001_FINAL.md`](./ACTA_DOMAIN_CERT_001_FINAL.md)
+- [`DATASET_DOMAIN_CERT_001.md`](./DATASET_DOMAIN_CERT_001.md)
+- [`ACTA_DOMAIN_CERT_TEMPLATE.md`](./ACTA_DOMAIN_CERT_TEMPLATE.md)
+- [`REGRESSION_SUITE_DOMAIN.md`](./REGRESSION_SUITE_DOMAIN.md)
+- [`CHANGELOG_DOMAIN_CERT.md`](./CHANGELOG_DOMAIN_CERT.md)
+- [`CERT_HISTORY/README.md`](./CERT_HISTORY/README.md)
+- [`DOMAIN_CERT_001/README.md`](./DOMAIN_CERT_001/README.md)
 
 ## Rule
 
