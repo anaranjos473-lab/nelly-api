@@ -335,10 +335,50 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
       return res.status(acceptCheck.status).json(payload);
     }
 
-    const acceptedAt = Date.now();
-    const payload = buildAcceptedOrderPayload(pedido, uid, acceptedAt);
+    const lockRef = db.ref(`accept_locks/${pedidoId}`);
+    const lockResult = await lockRef.transaction((current) => {
+      if (current) {
+        return;
+      }
+      return {
+        uid,
+        takenAt: Date.now()
+      };
+    });
 
-    await db.ref().update(buildAcceptSyncWrites(pedidoId, uid, payload));
+    if (!lockResult.committed) {
+      return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+    }
+
+    const currentSnap = await pedidoRef.once('value');
+    const currentPedido = currentSnap.val();
+    if (!currentPedido) {
+      await lockRef.remove();
+      return res.status(404).json({ ok: false, error: 'Pedido no disponible' });
+    }
+
+    const estadoActual = estadoOperativo(currentPedido.estado_pedido || currentPedido.estado);
+    const driverActual = getDriverUidFromOrder(currentPedido);
+    if (driverActual && driverActual !== uid) {
+      await lockRef.remove();
+      return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+    }
+
+    if (estadoActual !== 'LISTO') {
+      await lockRef.remove();
+      return res.status(409).json({
+        ok: false,
+        error: 'Transicion invalida: el pedido no esta listo para reparto',
+        estadoActual
+      });
+    }
+
+    const acceptedAt = Date.now();
+    const payload = buildAcceptedOrderPayload(currentPedido, uid, acceptedAt);
+    await db.ref().update({
+      ...buildAcceptSyncWrites(pedidoId, uid, payload),
+      [`accept_locks/${pedidoId}`]: null
+    });
 
     return res.json({ ok: true, pedidoId, repartidorId: uid });
   } catch (error) {

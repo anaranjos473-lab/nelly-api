@@ -2,12 +2,26 @@
 
 ## Indice
 
-Este archivo concentrara la evidencia del frente de adjudicacion atomica.
+Este archivo concentra la evidencia del frente de adjudicacion atomica.
 
 ## Evidencia por caso
 
 ### AA-001
 
+- **Recertificacion posterior al lock atomico**
+- `pedidoId`: `ATOMIC_1785577782448`
+- `driverA`: `8mo8182LJsgV7vKMSpiCekFKAG23`
+- `driverB`: `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`
+- `payload.json`: pedido ya despachado a `LISTO`
+- `respuesta.dispatch`: `200`
+- `respuesta.accept.driverA`: `200`
+- `respuesta.accept.driverB`: `409`
+- `estado final`: un solo ganador; el segundo repartidor fue rechazado
+- `driverA_pedido_activo`: `ATOMIC_1785577782448`
+- `driverB_pedido_activo`: `ATOMIC_1785577460645`
+- `snapshot`: `pedidos_en_camino` y `pedidos` quedaron asociados a `driverA`; `driverB` no obtuvo el pedido
+
+- **Evidencia forense historica previa al lock atomico**
 - `pedidoId`: `ATOMIC_1785576938704`
 - `driverA`: `8mo8182LJsgV7vKMSpiCekFKAG23`
 - `driverB`: `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`
@@ -22,6 +36,10 @@ Este archivo concentrara la evidencia del frente de adjudicacion atomica.
 - `driverA_pedido_activo`: `ATOMIC_1785576938704`
 - `driverB_pedido_activo`: `ATOMIC_1785576938704`
 - `snapshot`: `pedidos_en_camino` y `pedidos` quedaron apuntando al driver A, mientras el driver B tambien mantuvo `pedido_activo`
+
+## Plantilla por caso
+
+### AA-001
 
 - `trace.log`
 - `payload.json`
@@ -52,3 +70,4 @@ Este archivo concentrara la evidencia del frente de adjudicacion atomica.
 - `respuesta.json`
 - `estado-inicial.json`
 - `estado-final.json`
+
