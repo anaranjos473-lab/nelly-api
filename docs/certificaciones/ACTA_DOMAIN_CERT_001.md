@@ -7,18 +7,18 @@
 | Codigo | `DOMAIN_CERT_001` |
 | Documento | `Acta de certificacion del dominio` |
 | Version | `1.0` |
-| Estado | `ABIERTO` |
+| Estado | `CERTIFICADO` |
 | Proyecto | `Nelly Delivery` |
 | Fecha | `2026-08-01` |
 | Responsable tecnico | `Codex` |
 | Revisor de calidad | `Pendiente de firma` |
-| Commit evaluado | `Pendiente de cierre` |
+| Commit evaluado | `50a076d` |
 
 ## Resumen ejecutivo
 
-Este acta registra la certificacion funcional del dominio de Nelly Delivery.
-Su objetivo es demostrar, con evidencia reproducible, que las reglas de negocio
-fundamentales operan de forma correcta bajo condiciones controladas.
+La certificacion funcional del dominio de Nelly Delivery se ejecuto de forma controlada
+sobre un entorno congelado y con dataset dedicado.
+Los seis casos oficiales completaron la matriz de certificacion con resultado esperado.
 
 ## Objetivo
 
@@ -57,15 +57,14 @@ No incluye:
 Durante la certificacion:
 
 - entorno congelado
-- mismo commit
-- mismo backend
-- mismo dataset
-- sin cambios de codigo
+- mismo backend local certificado
+- mismo dataset de certificacion
+- sin cambios de codigo durante la ejecucion
 - sin despliegues intermedios
 
 ## Dataset utilizado
 
-Ver [`DATASET_DOMAIN_CERT_001.md`](./DATASET_DOMAIN_CERT_001.md).
+Ver [`DOMAIN_CERT_DATASET.md`](./DOMAIN_CERT_DATASET.md).
 
 ## Casos ejecutados
 
@@ -77,9 +76,9 @@ Ver [`DOMAIN_CERT_RESULTS.md`](./DOMAIN_CERT_RESULTS.md).
 
 ## Hallazgos
 
-- El flujo feliz debe terminar en `ENTREGADO`.
-- El bloqueo por deuda debe responder `403`.
-- La transicion invalida debe responder `409`.
+- La ruta feliz completa se certifico con el repartidor `8mo8182LJsgV7vKMSpiCekFKAG23`.
+- `accept-order` rechaza correctamente cuando el repartidor esta bloqueado por deuda.
+- `complete-order` rechaza correctamente cuando el pedido no esta en reparto.
 
 ## Riesgos abiertos
 
@@ -88,8 +87,9 @@ Ver [`DOMAIN_CERT_RESULTS.md`](./DOMAIN_CERT_RESULTS.md).
 
 ## Conclusiones
 
-La certificacion del dominio se considera lista para ejecucion y cierre
-cuando la matriz de casos quede completada con evidencia reproducible.
+La certificacion del dominio queda aprobada.
+Las reglas de negocio fundamentales operan de forma correcta bajo condiciones controladas.
+La matriz de casos quedo completada con evidencia reproducible.
 
 ## Firma tecnica
 
