@@ -83,3 +83,4 @@ app/build/
 /screen*.png
 /window*.xml
 /temp_*
+diagnosticos/
