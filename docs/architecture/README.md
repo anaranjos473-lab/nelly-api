@@ -8,6 +8,7 @@
 - [Checklist pre piloto](./CHECKLIST_PRE_PILOTO_CONTROLADO_V1.md)
 - [Hoja de corrida pre piloto](./HOJA_CORRIDA_PRE_PILOTO_CONTROLADO_V1.md)
 - [Expediente pre piloto](./PRE_PILOTO_CONTROLADO/README.md)
+- [Expediente piloto controlado](./PILOTO_CONTROLADO/README.md)
 
 ## Rule
 
