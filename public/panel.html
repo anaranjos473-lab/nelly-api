@@ -3776,21 +3776,21 @@
 
                 const displayId = obtenerIdentificadoresPedido(pedido)[0] || String(id || '').trim();
                 window.__nellyPedidoEnfoqueData = pedido;
-                const nombre = pedido.cliente_nombre || pedido.cliente || 'Cliente';
-                const direccion = pedido.direccion || 'Dirección no disponible';
-                const rawProductos = String(pedido.descripcion || pedido.items || pedido.productos || 'Sin productos');
-                const productos = rawProductos.split(/\n|,|·/).map((s) => s.trim()).filter(Boolean);
+                const vista = normalizarPedidoParaVista(pedido);
+                const nombre = vista.cliente;
+                const direccion = vista.direccion;
+                const productos = vista.resumenProductos;
                 const cronometro = formatearTiempoOperacion(pedido);
                 const objetivo = calcularMetaOperacion(pedido);
                 const riesgo = clasificarRiesgoOperacion(pedido);
                 const estadoVisible = clasificarEstadoOperacion(pedido);
                 const progreso = calcularProgresoOperacion(pedido);
-                const notas = pedido.notas || pedido.nota || pedido.referencia || 'Sin notas';
+                const notas = vista.notas;
                 const repartidor = pedido.repartidor_nombre || pedido.repartidor || pedido.driver_nombre || 'Buscando...';
                 const eta = pedido.eta || pedido.eta_estimada || pedido.eta_estimado || 'Sin asignar';
                 const pago = normalizarMetodoPagoOperacion(pedido);
                 const pagoCompletado = pago.pagado || pagoConfirmadoOperacion(displayId);
-                const totalCobro = Number(pedido.monto || pedido.total || pedido.monto_total || 0);
+                const totalCobro = vista.total;
                 const timelineEventos = [
                     ['Recibido', '✓', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
                     ['Preparando', '✓', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
@@ -3806,14 +3806,14 @@
                     </div>
                 `).join('');
                 const productosHtml = productos.map((p) => {
-                    const [cantidadRaw, ...resto] = p.split(/\sx\s|\s×\s/i);
-                    const productoNombre = resto.length ? resto.join(' x ') : p;
+                    const productoNombre = typeof p === 'string' ? p : String(p?.nombre || 'Producto');
+                    const cantidad = typeof p === 'string' ? 1 : Number(p?.cantidad || 1);
                     return `
                         <div class="operation-focus__product-row">
                             <span class="operation-focus__product-emoji">${obtenerIconoProducto(productoNombre)}</span>
                             <div class="operation-focus__product-copy">
                                 <strong>${escapeHtmlOperacion(productoNombre)}</strong>
-                                <span>${escapeHtmlOperacion(cantidadRaw && resto.length ? `x${cantidadRaw}` : ' ')} </span>
+                                <span>${escapeHtmlOperacion(cantidad > 1 ? `x${cantidad}` : ' ')} </span>
                             </div>
                         </div>
                     `;
@@ -3950,6 +3950,60 @@
                     }
                 }
                 return resolverPedidoOperacion(valor) || pedidoEnfoque || null;
+            }
+
+            function normalizarPedidoParaVista(pedido = {}) {
+                const cliente = String(pedido?.cliente_nombre || pedido?.cliente || 'Cliente').trim();
+                const telefono = String(pedido?.telefono || pedido?.phone || pedido?.contacto || 'No disponible').trim();
+                const direccion = String(pedido?.direccion || pedido?.ubicacion || 'Dirección no disponible').trim();
+                const notas = String(pedido?.notas || pedido?.nota || pedido?.referencia || pedido?.observaciones || 'Sin notas').trim();
+                const totalNumero = Number(pedido?.monto || pedido?.total || pedido?.monto_total || 0);
+                const total = Number.isFinite(totalNumero) ? totalNumero : 0;
+
+                const productosBase = Array.isArray(pedido?.items)
+                    ? pedido.items
+                    : Array.isArray(pedido?.productos)
+                        ? pedido.productos
+                        : [];
+
+                const productos = productosBase
+                    .map((item) => {
+                        if (item && typeof item === 'object') {
+                            const nombre = String(item.nombre || item.producto || item.descripcion || item.name || 'Producto').trim();
+                            const cantidad = Number(item.cantidad || item.qty || item.quantity || 1);
+                            const extras = Array.isArray(item.modificadores)
+                                ? item.modificadores.map((mod) => String(mod?.nombre || mod?.descripcion || mod || '').trim()).filter(Boolean)
+                                : [];
+                            return {
+                                nombre,
+                                cantidad: Number.isFinite(cantidad) && cantidad > 0 ? cantidad : 1,
+                                extras
+                            };
+                        }
+                        const texto = String(item || '').trim();
+                        return texto ? { nombre: texto, cantidad: 1, extras: [] } : null;
+                    })
+                    .filter(Boolean);
+
+                const resumenProductos = productos.length
+                    ? productos.map((item) => {
+                        const extras = Array.isArray(item.extras) && item.extras.length ? ` (${item.extras.join(', ')})` : '';
+                        return `${item.nombre}${item.cantidad > 1 ? ` x${item.cantidad}` : ''}${extras}`;
+                    })
+                    : String(pedido?.descripcion || pedido?.productos || 'Sin productos')
+                        .split(/\n|,|·/)
+                        .map((texto) => texto.trim())
+                        .filter(Boolean);
+
+                return {
+                    cliente,
+                    telefono,
+                    direccion,
+                    notas,
+                    total,
+                    productos,
+                    resumenProductos
+                };
             }
 
             window.renderOperacionEnfoque = renderOperacionEnfoque;
@@ -4100,25 +4154,13 @@
             }
             const keyResuelta = pedido._rtdbKey || pedido.id_pedido || pedido.id || id;
 
-            const productosFuente = Array.isArray(pedido.items)
-                ? pedido.items
-                : Array.isArray(pedido.productos)
-                    ? pedido.productos
-                    : String(pedido.descripcion || '').split(/\n|,|·/).map((item) => item.trim()).filter(Boolean);
-            const productos = productosFuente.map((item) => {
-                if (item && typeof item === 'object') {
-                    const nombre = String(item.nombre || item.producto || item.descripcion || 'Producto').trim();
-                    const cantidad = Number(item.cantidad || item.qty || 1);
-                    const extras = Array.isArray(item.modificadores)
-                        ? item.modificadores.map((mod) => String(mod?.nombre || mod?.descripcion || mod || '').trim()).filter(Boolean)
-                        : [];
-                    return `${nombre}${Number.isFinite(cantidad) && cantidad > 1 ? ` x${cantidad}` : ''}${extras.length ? ` (${extras.join(', ')})` : ''}`;
-                }
-                return String(item);
-            }).filter(Boolean);
-
-            const telefono = String(pedido.telefono || pedido.phone || pedido.contacto || 'No disponible').trim();
-            const notas = String(pedido.notas || pedido.nota || pedido.referencia || pedido.observaciones || 'Sin notas').trim();
+            const vista = normalizarPedidoParaVista(pedido);
+            const productos = vista.productos.map((item) => {
+                const extras = Array.isArray(item.extras) && item.extras.length ? ` (${item.extras.join(', ')})` : '';
+                return `${item.nombre}${item.cantidad > 1 ? ` x${item.cantidad}` : ''}${extras}`;
+            });
+            const telefono = vista.telefono;
+            const notas = vista.notas;
             const timeline = [
                 `Recibido: ${pedido.recibido_at || pedido.created_at || pedido.createdAt || '—'}`,
                 `Preparando: ${pedido.preparando_at || pedido.iniciado_at || '—'}`,
@@ -4127,11 +4169,11 @@
             ];
             const detalle = [
                 `Pedido: #${obtenerIdentificadoresPedido(pedido)[0] || keyResuelta}`,
-                `Cliente: ${pedido.cliente_nombre || pedido.cliente || 'Cliente'}`,
+                `Cliente: ${vista.cliente}`,
                 `Teléfono: ${telefono}`,
-                `Dirección: ${pedido.direccion || 'No disponible'}`,
+                `Dirección: ${vista.direccion}`,
                 `Estado: ${pedido.estado || 'sin estado'}`,
-                `Monto: $${Number(pedido.monto || pedido.total || 0).toFixed(2)}`,
+                `Monto: $${Number(vista.total || 0).toFixed(2)}`,
                 `Productos: ${productos.length ? productos.join(' | ') : 'Sin productos'}`,
                 `Notas: ${notas}`,
                 ...timeline
@@ -5913,7 +5955,13 @@
             }
 
             const keyResuelta = resolverKeyPedido(id);
-            const pedido = kitchenState.orders.pedidosPendientes.get(keyResuelta);
+            const pedido =
+                kitchenState.orders.pedidosPendientes.get(keyResuelta)
+                || kitchenState.orders.pedidosReparto.get(keyResuelta)
+                || kitchenState.orders.pedidosEnCamino.get(keyResuelta)
+                || kitchenState.orders.pedidosEntregados.get(keyResuelta)
+                || resolverPedidoOperacion(keyResuelta)
+                || resolverPedidoOperacion(id);
             if (!pedido) {
                 const yaEnReparto = kitchenState.orders.pedidosReparto.has(keyResuelta) || kitchenState.orders.pedidosEnCamino.has(keyResuelta);
                 if (yaEnReparto) {

@@ -318,7 +318,8 @@ function setActiveLocationTarget(target) {
   updateOrderValidationState();
 }
 
-function setSelectedLocation(next = {}) {
+function setSelectedLocation(next = {}, target = activeLocationTarget) {
+  const targetKey = target === "store" ? "store" : "client";
   const current = getActiveLocation();
   const updated = {
     lat: Number.isFinite(next.lat) ? next.lat : current.lat,
@@ -326,22 +327,22 @@ function setSelectedLocation(next = {}) {
     address: String(next.address || current.address || "").trim(),
     label: String(next.label || current.label || "").trim()
   };
-  locationState[activeLocationTarget] = updated;
+  locationState[targetKey] = updated;
 
-  if (activeLocationTarget === "client") {
+  if (targetKey === "client") {
     if (ui.orderClientLat) ui.orderClientLat.value = String(updated.lat);
     if (ui.orderClientLng) ui.orderClientLng.value = String(updated.lng);
+    if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
   } else {
     if (ui.orderStoreLat) ui.orderStoreLat.value = String(updated.lat);
     if (ui.orderStoreLng) ui.orderStoreLng.value = String(updated.lng);
   }
-  if (ui.orderAddress && updated.address) ui.orderAddress.value = updated.address;
 
   if (ui.locationFoundAddress) {
     ui.locationFoundAddress.textContent = updated.address || "Sin ubicacion aun";
   }
   if (ui.locationCaptureState) {
-    ui.locationCaptureState.textContent = updated.label || (activeLocationTarget === "client"
+    ui.locationCaptureState.textContent = updated.label || (targetKey === "client"
       ? "Capturando ubicacion del cliente."
       : "Capturando ubicacion de la tienda.");
   }
@@ -495,7 +496,8 @@ function updateEmbeddedMap(lat, lng, zoom = 15) {
   }
 }
 
-function syncLocationFromActivePoint(labelConfirmado) {
+function syncLocationFromActivePoint(labelConfirmado, target = activeLocationTarget) {
+  const targetKey = target === "store" ? "store" : "client";
   const active = getActiveLocation();
   const lat = Number(active.lat);
   const lng = Number(active.lng);
@@ -506,8 +508,8 @@ function syncLocationFromActivePoint(labelConfirmado) {
     address: active.address || String(ui.locationSearch?.value || "").trim(),
     label: labelConfirmado || "Ubicacion actualizada"
   };
-  locationState[activeLocationTarget] = updated;
-  if (activeLocationTarget === "client") {
+  locationState[targetKey] = updated;
+  if (targetKey === "client") {
     if (ui.orderClientLat) ui.orderClientLat.value = String(lat);
     if (ui.orderClientLng) ui.orderClientLng.value = String(lng);
   } else {
@@ -586,7 +588,7 @@ async function reverseGeocode(lat, lng) {
   return payload?.display_name || "";
 }
 
-async function refreshLocationFromCenter(trigger = "moved") {
+async function refreshLocationFromCenter(trigger = "moved", target = activeLocationTarget) {
   if (!orderMapInstance || reverseLookupInFlight) return;
   const center = orderMapInstance.getCenter();
   const lat = Number(center.lat);
@@ -599,13 +601,13 @@ async function refreshLocationFromCenter(trigger = "moved") {
       lng,
       address: address || getActiveLocation().address,
       label: trigger === "search" ? "Direccion encontrada" : "Ubicacion actualizada"
-    });
+    }, target);
   } catch (_error) {
     setSelectedLocation({
       lat,
       lng,
       label: "Ubicacion tecnica actualizada"
-    });
+    }, target);
   } finally {
     reverseLookupInFlight = false;
   }
@@ -1780,7 +1782,10 @@ if (ui.restaurantListBody) {
 }
 
 if (ui.locationSearchBtn) {
-  ui.locationSearchBtn.addEventListener("click", async () => {
+  ui.locationSearchBtn.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = activeLocationTarget;
     const query = String(ui.locationSearch?.value || "").trim();
     if (!query) {
       setOrderFeedback("Escribe una direccion para buscar.", "error");
@@ -1798,7 +1803,7 @@ if (ui.locationSearchBtn) {
         lng: result.lng,
         address: result.address,
         label: result.manual ? "Direccion capturada; ajusta el punto en el mapa" : "Direccion encontrada"
-      });
+      }, target);
       updateMapMarker(result.lat, result.lng, 17);
       renderOrderPreview();
       setOrderFeedback(result.manual
@@ -1819,19 +1824,26 @@ if (ui.locationSearch) {
 }
 
 if (ui.targetClient) {
-  ui.targetClient.addEventListener("click", () => {
+  ui.targetClient.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     setActiveLocationTarget("client");
   });
 }
 
 if (ui.targetStore) {
-  ui.targetStore.addEventListener("click", () => {
+  ui.targetStore.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     setActiveLocationTarget("store");
   });
 }
 
 if (ui.useCurrentLocation) {
-  ui.useCurrentLocation.addEventListener("click", () => {
+  ui.useCurrentLocation.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = activeLocationTarget;
     if (!navigator.geolocation) {
       setOrderFeedback("El navegador no soporta geolocalizacion.", "error");
       return;
@@ -1848,9 +1860,9 @@ if (ui.useCurrentLocation) {
           lng,
           address: address || "",
           label: "Ubicacion actual"
-        });
+        }, target);
       } catch (_error) {
-        setSelectedLocation({ lat, lng, label: "Ubicacion actual" });
+        setSelectedLocation({ lat, lng, label: "Ubicacion actual" }, target);
       }
       setOrderFeedback("Ubicacion actual aplicada al mapa.", "ok");
     }, async () => {
@@ -1861,7 +1873,7 @@ if (ui.useCurrentLocation) {
           lng: fallback.lng,
           address: fallback.address,
           label: "Ubicacion actual aproximada"
-        });
+        }, target);
         updateMapMarker(fallback.lat, fallback.lng, 16);
         setOrderFeedback("No se pudo leer el GPS; se uso una ubicacion aproximada.", "error");
         return;
@@ -1876,14 +1888,21 @@ if (ui.useCurrentLocation) {
 }
 
   if (ui.confirmLocation) {
-  ui.confirmLocation.addEventListener("click", async () => {
+  ui.confirmLocation.addEventListener("click", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = activeLocationTarget;
     const labelConfirmado = activeLocationTarget === "client"
       ? "Ubicacion del cliente confirmada"
       : "Ubicacion de la tienda confirmada";
-    const updated = syncLocationFromActivePoint(labelConfirmado);
+    const updated = syncLocationFromActivePoint(labelConfirmado, target);
     if (!updated && orderMapInstance) {
-      await refreshLocationFromCenter("confirm");
-      syncLocationFromActivePoint(labelConfirmado);
+      await refreshLocationFromCenter("confirm", target);
+      const refreshed = syncLocationFromActivePoint(labelConfirmado, target);
+      if (!refreshed) {
+        setOrderFeedback("No se pudo fijar la ubicacion seleccionada.", "error");
+        return;
+      }
     }
     setOrderFeedback("Ubicacion confirmada para el pedido.", "ok");
   });

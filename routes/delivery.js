@@ -375,6 +375,14 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
 
     const acceptedAt = Date.now();
     const payload = buildAcceptedOrderPayload(currentPedido, uid, acceptedAt);
+    console.log('[TRACE_ACCEPT_ORDER]', {
+      pedidoId,
+      uid,
+      estado_anterior: estadoActual,
+      estado_nuevo: payload.estado,
+      timestamp: acceptedAt,
+      traceId: traceId || null
+    });
     await db.ref().update({
       ...buildAcceptSyncWrites(pedidoId, uid, payload),
       [`accept_locks/${pedidoId}`]: null
@@ -467,6 +475,16 @@ router.post('/update-location', requireFirebaseUser, async (req, res, next) => {
       currentOrder: pedidoActual,
       stateHint: estadoPayload
     });
+    if (estadoPayload) {
+      console.log('[TRACE_UPDATE_LOCATION]', {
+        pedidoId: pedidoId || null,
+        uid,
+        stateHint: estadoPayload,
+        estado_anterior: normalizeOrderState(pedidoActual?.estado_pedido || pedidoActual?.estado || pedidoActual?.logistica?.estado || ''),
+        estado_nuevo: estadoPayload,
+        timestamp
+      });
+    }
     await db.ref().update(updates);
     return res.json({ ok: true, ubicacion: ubicacionSync });
   } catch (error) {
