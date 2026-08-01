@@ -223,6 +223,7 @@ No iniciar el piloto si:
 
 Antes de la primera jornada deben estar disponibles:
 
+- `CHECKLIST_PRE_PILOTO_CONTROLADO_V1.md`
 - `RUNBOOK_OPERATIVO_PILOTO_V1.md`
 - `VALIDACION_PANELES_PRE_PILOTO_V1.md`
 - `RC2_PILOTO_CONTROLADO_V1.md`
