@@ -21,6 +21,7 @@ For the domain certification standard, use:
 | Incident Render Kitchen 404 Data Access | `CLOSED` | Deploy desynchronization on Render caused `/api/data-architecture/data-access` to return 404 until `main` was aligned and redeployed. |
 | Kitchen Premium E2E Pre-B3 | `APPROVED` | Functional baseline for B3 entry frozen from the certified end-to-end validation. |
 | DOMAIN_CERT_001 | `CERTIFIED` | Rector protocol for formal domain certification of Nelly Delivery. |
+| ECOSYSTEM_CERT_001 | `OPEN` | Integration certification baseline prepared for the full Nelly ecosystem. |
 | PANEL_VISUAL_001 | `APPROVED` | Visual and functional certification of the full panel across desktop and mobile. |
 | Incident Panel ShortId | `CLOSED` | Frontend identity mismatch between visible `shortId` and `resolverKeyPedido()` fixed by aligning the panel resolver. |
 | Runner Fail Fast | `CLOSED` | Diagnostic runner stops at the first causal failure and avoids cascading errors. |
@@ -43,6 +44,11 @@ For the domain certification standard, use:
 - [`ACTA_DOMAIN_CERT_001_FINAL.md`](./ACTA_DOMAIN_CERT_001_FINAL.md)
 - [`ACTA_PANEL_VISUAL_001.md`](./ACTA_PANEL_VISUAL_001.md)
 - [`ACTA_DOMAIN_CERT_001.md`](./ACTA_DOMAIN_CERT_001.md)
+- [`ACTA_BASE_ECOSYSTEM_CERT_001.md`](./ACTA_BASE_ECOSYSTEM_CERT_001.md)
+- [`ECOSYSTEM_CERT_DATASET.md`](./ECOSYSTEM_CERT_DATASET.md)
+- [`ECOSYSTEM_CERT_CASES.md`](./ECOSYSTEM_CERT_CASES.md)
+- [`ECOSYSTEM_CERT_RESULTS.md`](./ECOSYSTEM_CERT_RESULTS.md)
+- [`ECOSYSTEM_CERT_EVIDENCE.md`](./ECOSYSTEM_CERT_EVIDENCE.md)
 - [`DATASET_DOMAIN_CERT_001.md`](./DATASET_DOMAIN_CERT_001.md)
 - [`DOMAIN_CERT_DATASET.md`](./DOMAIN_CERT_DATASET.md)
 - [`DOMAIN_CERT_CASES.md`](./DOMAIN_CERT_CASES.md)
