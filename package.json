@@ -18,6 +18,7 @@
     "validate:firebase": "node scripts/validation/validate-firebase.js",
     "validate:operational-port": "node scripts/validation/validate-operational-port.js",
     "validate:panels-pre-pilot": "node scripts/validation/validate-panels-pre-pilot.mjs",
+    "audit:contract": "node scripts/validation/contract-audit-001.mjs",
     "validate:all": "npm run validate:routes && npm run validate:data-model && npm run validate:data-architecture && npm run validate:contracts && npm run validate:domain-contracts && npm run validate:firebase",
     "doctor": "node scripts/validation/doctor.js",
     "doctor:operational": "node scripts/validation/operational-doctor.js"
