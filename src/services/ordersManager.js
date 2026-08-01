@@ -143,6 +143,12 @@ function canAcceptOrder({ driver, order, uid }) {
     return { ok: false, error: 'Limite de deuda alcanzado', status: 403 };
   }
 
+  const driverEstado = String(driver?.estado || '').trim().toUpperCase();
+  const driverDisponible = driver?.disponible;
+  if (driverEstado === 'OFFLINE' || driverDisponible === false) {
+    return { ok: false, error: 'Repartidor desconectado', status: 409 };
+  }
+
   if (!order) {
     return { ok: false, error: 'Pedido no disponible', status: 404 };
   }
