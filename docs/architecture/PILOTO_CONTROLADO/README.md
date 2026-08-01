@@ -4,6 +4,9 @@ Expediente operativo del piloto controlado de Nelly.
 
 ## Contenido
 
+- [PLAN_JORNADA_002_V1.md](./PLAN_JORNADA_002_V1.md)
+- [ACTA_APERTURA_PILOTO_CONTROLADO_002.md](./ACTA_APERTURA_PILOTO_CONTROLADO_002.md)
+- [EVIDENCIA_PILOTO_CONTROLADO_002.md](./EVIDENCIA_PILOTO_CONTROLADO_002.md)
 - [ACTA_APERTURA_PILOTO_CONTROLADO_001.md](./ACTA_APERTURA_PILOTO_CONTROLADO_001.md)
 - [EVIDENCIA_PILOTO_CONTROLADO_001.md](./EVIDENCIA_PILOTO_CONTROLADO_001.md)
 - [GO_NO_GO_PILOTO_CONTROLADO_001.md](./GO_NO_GO_PILOTO_CONTROLADO_001.md)
@@ -13,5 +16,4 @@ Expediente operativo del piloto controlado de Nelly.
 
 ## Estado
 
-Preparado para inicio condicionado a GO/NO-GO.
-
+Preparado para continuidad operativa con Jornada 002 abierta.
