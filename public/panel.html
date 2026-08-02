@@ -309,6 +309,18 @@
         .btn-danger:hover { background-color: #c0392b; }
         .btn-success { background-color: #2ecc71; }
         .btn-success:hover { background-color: #27ae60; }
+        .btn-success:disabled,
+        .btn-success.is-disabled {
+            background-color: #64748b;
+            color: #e2e8f0;
+            cursor: not-allowed;
+            opacity: 0.9;
+            box-shadow: none;
+        }
+        .btn-success:disabled:hover,
+        .btn-success.is-disabled:hover {
+            background-color: #64748b;
+        }
         .btn-neutral { background-color: #94a3b8; cursor: not-allowed; opacity: 0.85; }
         .btn-header-action {
             border: none;
@@ -3398,6 +3410,31 @@
                 ].map((valor) => String(valor || '').trim()).filter(Boolean);
             }
 
+            function obtenerFirmaPedidoOperacion(pedido = {}) {
+                return String(
+                    pedido?.id ||
+                    pedido?.id_pedido ||
+                    pedido?.pedido_id ||
+                    pedido?._rtdbKey ||
+                    pedido?.shortId ||
+                    ''
+                ).trim();
+            }
+
+            function obtenerEtiquetaVisiblePedido(pedido = {}, pedidos = []) {
+                const shortId = String(pedido?.shortId || pedido?.id_pedido || pedido?.id || pedido?.pedido_id || '').trim();
+                const interno = String(pedido?.id || pedido?.id_pedido || pedido?.pedido_id || pedido?._rtdbKey || '').trim();
+                const base = shortId ? `#${shortId}` : (interno ? `#${interno}` : '#----');
+                if (!shortId || !Array.isArray(pedidos) || pedidos.length < 2) {
+                    return base;
+                }
+                const duplicados = pedidos.filter((item) => String(item?.shortId || '').trim() === shortId).length;
+                if (duplicados > 1 && interno) {
+                    return `${base} · ${interno}`;
+                }
+                return base;
+            }
+
             function pedidoDesdeEstado(id) {
                 const keyResuelta = resolverKeyPedido(id);
                 return kitchenState.orders.pedidosPendientes.get(keyResuelta)
@@ -3419,7 +3456,7 @@
                     const vistosMap = new Set();
                     const listaMap = [];
                     fromMaps.forEach((pedido) => {
-                        const firma = obtenerIdentificadoresPedido(pedido)[0] || '';
+                        const firma = obtenerFirmaPedidoOperacion(pedido);
                         if (!firma || vistosMap.has(firma)) return;
                         vistosMap.add(firma);
                         listaMap.push({ ...pedido });
@@ -3709,7 +3746,7 @@
                         }).join('');
                         if (!id && recalculados[0]) {
                             const primero = recalculados[0];
-                            window.__nellyPedidoEnfoque = obtenerIdentificadoresPedido(primero)[0] || '';
+                            window.__nellyPedidoEnfoque = obtenerFirmaPedidoOperacion(primero);
                             renderOperacionEnfoque(window.__nellyPedidoEnfoque);
                             return;
                         }
@@ -3774,7 +3811,8 @@
                     return;
                 }
 
-                const displayId = obtenerIdentificadoresPedido(pedido)[0] || String(id || '').trim();
+                const displayId = obtenerEtiquetaVisiblePedido(pedido, pedidosFinales);
+                const pedidoKey = obtenerFirmaPedidoOperacion(pedido) || String(id || '').trim();
                 window.__nellyPedidoEnfoqueData = pedido;
                 const vista = normalizarPedidoParaVista(pedido);
                 const nombre = vista.cliente;
@@ -3791,6 +3829,7 @@
                 const pago = normalizarMetodoPagoOperacion(pedido);
                 const pagoCompletado = pago.pagado || pagoConfirmadoOperacion(displayId);
                 const totalCobro = vista.total;
+                const estadoEsperaRepartidor = estadoVisible === 'ESPERANDO REPARTIDOR';
                 const timelineEventos = [
                     ['Recibido', '✓', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
                     ['Preparando', '✓', pedido.preparando_at || pedido.iniciado_at || '2:00 PM', true],
@@ -3819,7 +3858,7 @@
                     `;
                 }).join('');
 
-                title.textContent = `Pedido #${displayId}`;
+                title.textContent = `Pedido ${displayId}`;
                 subtitle.textContent = nombre;
                 body.innerHTML = `
                     <div class="operation-focus__detail-shell is-premium">
@@ -3907,7 +3946,7 @@
                                 <span class="operation-focus__intel-mark">IA</span>
                                 <span>Tiempo restante estimado: <strong>${escapeHtmlOperacion(String(Math.max(0, Math.round(objetivo * (1 - progreso / 100)))))} min</strong><br>Sugerencia: puedes iniciar el siguiente pedido.</span>
                             </div>
-                            <button class="nelly-btn btn-success" type="button" onclick="window.moverAReparto('${String(displayId).replace(/'/g, "\\'")}')">✓ MARCAR LISTO</button>
+                            <button class="nelly-btn btn-success${estadoEsperaRepartidor ? ' is-disabled' : ''}" type="button" ${estadoEsperaRepartidor ? 'disabled aria-disabled="true"' : `onclick="window.moverAReparto('${String(pedidoKey).replace(/'/g, "\\'")}')"`}>${estadoEsperaRepartidor ? 'ESPERANDO REPARTIDOR' : '✓ MARCAR LISTO'}</button>
                         </div>
                     </div>
                 `;
