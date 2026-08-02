@@ -255,6 +255,26 @@ function getLocationState(target = activeLocationTarget) {
   return locationState[getLocationKey(target)];
 }
 
+function snapshotManualOrderLocations() {
+  const snapshot = {
+    activeLocationTarget,
+    client: {
+      lat: Number(locationState.client.lat),
+      lng: Number(locationState.client.lng),
+      address: String(locationState.client.address || ""),
+      label: String(locationState.client.label || "")
+    },
+    store: {
+      lat: Number(locationState.store.lat),
+      lng: Number(locationState.store.lng),
+      address: String(locationState.store.address || ""),
+      label: String(locationState.store.label || "")
+    }
+  };
+  window.__nellyManualOrderLocationSnapshot = snapshot;
+  return snapshot;
+}
+
 function normalizeSearchText(value) {
   return String(value || "")
     .normalize("NFD")
@@ -362,6 +382,7 @@ function setSelectedLocation(next = {}, target = activeLocationTarget) {
   if (orderMapReady && coordenadaValida(updated.lat, updated.lng)) {
     updateMapMarker(updated.lat, updated.lng, 17);
   }
+  snapshotManualOrderLocations();
   renderOrderPreview();
   updateOrderValidationState();
 }
@@ -533,6 +554,7 @@ function syncLocationFromActivePoint(labelConfirmado, target = activeLocationTar
   if (ui.locationCaptureState) {
     ui.locationCaptureState.textContent = updated.label;
   }
+  snapshotManualOrderLocations();
   renderOrderPreview();
   updateOrderValidationState();
   return updated;
@@ -1522,6 +1544,7 @@ async function createManualOrder(event) {
     deliveryMethod ? `entrega ${deliveryMethod}` : '',
     reference ? `ref ${reference}` : ''
   ].filter(Boolean).join(' - ');
+  const locationSnapshot = snapshotManualOrderLocations();
 
   try {
     const user = auth.currentUser;
@@ -1563,6 +1586,23 @@ async function createManualOrder(event) {
           estado: 'pendiente'
         }
       })
+    });
+
+    console.log('[ADMIN][ORDER_PAYLOAD]', {
+      locationSnapshot,
+      payloadPreview: {
+        cliente_nombre: client,
+        telefono: phone,
+        direccion: address,
+        cliente_lat: clientLat,
+        cliente_lng: clientLng,
+        tienda_lat: storeLat,
+        tienda_lng: storeLng,
+        subtotal: Number(subtotal.toFixed(2)),
+        costo_envio: Number(shipping.toFixed(2)),
+        propina: Number(tip.toFixed(2)),
+        total
+      }
     });
 
     const payload = await response.json().catch(() => ({}));
