@@ -200,6 +200,11 @@ let activeLocationTarget = "client";
 let localMapZoom = 1;
 let localMapPan = { x: 0, y: 0 };
 let localMapDrag = null;
+let currentManualCommerce = {
+  comercio_id: 'global',
+  comercio_codigo: 'GLOBAL',
+  comercio_nombre: 'GLOBAL'
+};
 let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
   store: { lat: 16.7599, lng: -93.18863, address: "Benjaminas, Tuxtla Gutierrez, Chiapas, Mexico", label: "" }
@@ -885,6 +890,12 @@ function renderRestaurantList(restaurantes = []) {
     ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
     : [];
   const latest = sorted[0];
+  const latestActive = sorted.find((restaurant) => String(restaurant?.estado || '').trim().toLowerCase() === 'activo') || latest;
+  currentManualCommerce = {
+    comercio_id: String(latestActive?.id || latestActive?.restaurant_id || latestActive?.merchant_id || 'global').trim() || 'global',
+    comercio_codigo: String(latestActive?.codigo_comercio || latestActive?.commerce_code || latestActive?.short_code || latestActive?.id || 'GLOBAL').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '') || 'GLOBAL',
+    comercio_nombre: String(latestActive?.nombre_comercial || latestActive?.nombre || 'GLOBAL').trim() || 'GLOBAL'
+  };
   if (ui.restaurantLastName) {
     ui.restaurantLastName.textContent = latest?.nombre_comercial || latest?.nombre || 'Sin registros aun';
   }
@@ -1563,6 +1574,9 @@ async function createManualOrder(event) {
         Authorization: `Bearer ${idToken}`
       },
       body: JSON.stringify({
+        comercio_id: currentManualCommerce.comercio_id,
+        comercio_codigo: currentManualCommerce.comercio_codigo,
+        comercio_nombre: currentManualCommerce.comercio_nombre,
         cliente_nombre: client,
         telefono: phone,
         direccion: address,
@@ -1590,7 +1604,11 @@ async function createManualOrder(event) {
 
     console.log('[ADMIN][ORDER_PAYLOAD]', {
       locationSnapshot,
+      commerceSnapshot: { ...currentManualCommerce },
       payloadPreview: {
+        comercio_id: currentManualCommerce.comercio_id,
+        comercio_codigo: currentManualCommerce.comercio_codigo,
+        comercio_nombre: currentManualCommerce.comercio_nombre,
         cliente_nombre: client,
         telefono: phone,
         direccion: address,
