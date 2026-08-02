@@ -28,6 +28,7 @@ import {
   normalizeOrderState,
   roundMoney
 } from '../src/services/ordersManager.js';
+import { allocateCommerceShortId, resolveCommerceIdentity } from '../src/services/orderShortIdService.js';
 import { verifyToken } from '../src/utils/jwt.js';
 
 const router = express.Router();
@@ -246,14 +247,6 @@ function isAdminOrPanelUser(user = {}) {
   return user.admin === true || user.panel === true || user.role === 'panel_cocina';
 }
 
-function generateShortId(timestamp) {
-  const date = new Date(Number(timestamp) || Date.now());
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const suffix = String(Math.floor(Math.random() * 90) + 10);
-  return `${month}${day}-${suffix}`;
-}
-
 router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
   try {
     const traceId = getRequestTraceId(req, 'dispatch');
@@ -273,17 +266,33 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
     const pedidoActual = pedidoSnap.val() || {};
     const pedidoInput = req.body?.pedido && typeof req.body.pedido === 'object' ? req.body.pedido : {};
     const dispatchedAt = Date.now();
-  const pedidoBase = {
+    const pedidoBase = {
       ...pedidoInput,
       ...pedidoActual,
       id: pedidoActual.id || pedidoInput.id || pedidoId,
       id_pedido: pedidoActual.id_pedido || pedidoInput.id_pedido || pedidoId,
       pedido_id: pedidoActual.pedido_id || pedidoInput.pedido_id || pedidoId
     };
+    const commerce = resolveCommerceIdentity({
+      comercio_id: pedidoBase.comercio_id,
+      comercio_nombre: pedidoBase.comercio_nombre,
+      restaurante_nombre: pedidoBase.restaurante_nombre,
+      tienda_nombre: pedidoBase.tienda_nombre,
+      restaurant_name: pedidoBase.restaurant_name,
+      nombre_comercial: pedidoBase.nombre_comercial
+    });
+    const shortIdAllocation = pedidoBase.shortId
+      ? { shortId: pedidoBase.shortId, commerceKey: commerce.commerceKey }
+      : await allocateCommerceShortId(db, {
+          timestamp: pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt,
+          commerceKey: commerce.commerceKey
+        });
     const pedidoPool = buildPoolDispatchOrder(pedidoBase);
     const payloadListo = {
       ...pedidoPool,
-      shortId: pedidoBase.shortId || generateShortId(pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt),
+      shortId: pedidoBase.shortId || shortIdAllocation.shortId,
+      comercio_nombre: pedidoBase.comercio_nombre || commerce.commerceName,
+      comercio_id: pedidoBase.comercio_id || commerce.commerceKey,
       estado: 'LISTO',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),

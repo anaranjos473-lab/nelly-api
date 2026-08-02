@@ -5105,7 +5105,7 @@
                 const mm = String(fecha.getMonth() + 1).padStart(2, '0');
                 const dd = String(fecha.getDate()).padStart(2, '0');
                 const seq = String(Math.max(1, Number(indice) || 1)).padStart(2, '0');
-                return `${mm}${dd}-#${seq}`;
+                return `${mm}${dd}-${seq}`;
             }
 
             function asignarShortIdsDiarios(lista = []) {

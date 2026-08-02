@@ -54,6 +54,23 @@ function normalizeAdminOrderRequest(input = {}) {
   const telefono = String(input.telefono || '').trim();
   const direccion = String(input.direccion || '').trim();
   const descripcion = String(input.descripcion || '').trim();
+  const comercio_nombre = String(
+    input.comercio_nombre
+    || input.restaurante_nombre
+    || input.tienda_nombre
+    || input.restaurant_name
+    || input.nombre_comercial
+    || ''
+  ).trim();
+  const comercio_id = String(
+    input.comercio_id
+    || input.tienda_id
+    || input.merchant_id
+    || input.restaurant_id
+    || input.merchantId
+    || input.restaurantId
+    || ''
+  ).trim();
   const tipo_ubicacion = String(input.tipo_ubicacion || '').trim() || 'otro';
   const metodo_entrega = String(input.metodo_entrega || '').trim() || 'puerta';
   const referencia_ubicacion = String(input.referencia_ubicacion || '').trim();
@@ -81,6 +98,8 @@ function normalizeAdminOrderRequest(input = {}) {
     telefono,
     direccion,
     descripcion,
+    comercio_nombre,
+    comercio_id,
     tipo_ubicacion,
     metodo_entrega,
     referencia_ubicacion,
@@ -146,6 +165,8 @@ function buildAdminOrderPayload({
   telefono,
   direccion,
   descripcion,
+  comercio_nombre,
+  comercio_id,
   tipo_ubicacion,
   metodo_entrega,
   referencia_ubicacion,
@@ -189,6 +210,8 @@ function buildAdminOrderPayload({
     latTienda: coordenadas.tiendaLat,
     lngTienda: coordenadas.tiendaLng,
     descripcion: String(descripcion || '').trim(),
+    comercio_nombre: String(comercio_nombre || '').trim(),
+    comercio_id: String(comercio_id || '').trim(),
     items: canonical.order.items.length > 0 ? normalizedItems : [],
     lineas: canonical.order.lineas,
     subtotal: roundMoney(subtotal),

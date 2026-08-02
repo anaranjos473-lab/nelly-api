@@ -9,6 +9,7 @@ import {
 } from '../src/services/adminSyncService.js';
 import { buildOperationalDashboardSnapshot } from '../src/services/operationalDashboardService.js';
 import { listRestaurantOnboardingLocal, saveRestaurantOnboardingLocal, updateRestaurantOnboardingLocal } from '../src/services/localRestaurantOnboardingStore.js';
+import { allocateCommerceShortId, resolveCommerceIdentity } from '../src/services/orderShortIdService.js';
 
 const router = express.Router();
 
@@ -482,14 +483,6 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
     }
 });
 
-function generateShortId(timestamp) {
-    const date = new Date(Number(timestamp) || Date.now());
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const suffix = String(Math.floor(Math.random() * 90) + 10);
-    return `${month}${day}-${suffix}`;
-}
-
 // --- ENDPOINT: CREAR PEDIDO ---
 router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     try {
@@ -551,16 +544,30 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         const timestamp = Date.now();
         const pedidoId = `PED_${timestamp}`;
+        const commerce = resolveCommerceIdentity({
+            comercio_id: req.body?.comercio_id,
+            comercio_nombre: req.body?.comercio_nombre,
+            restaurante_nombre: req.body?.restaurante_nombre,
+            tienda_nombre: req.body?.tienda_nombre,
+            restaurant_name: req.body?.restaurant_name,
+            nombre_comercial: req.body?.nombre_comercial
+        });
+        const shortIdAllocation = await allocateCommerceShortId(db, {
+            timestamp,
+            commerceKey: commerce.commerceKey
+        });
 
         const nuevoPedido = buildPersistedAdminOrderRecord({
             pedidoId,
             timestamp,
-            shortId: generateShortId(timestamp),
+            shortId: shortIdAllocation.shortId,
             normalizedRequest: {
                 cliente_nombre,
                 telefono,
                 direccion,
                 descripcion,
+                comercio_nombre: commerce.commerceName,
+                comercio_id: commerce.commerceKey,
                 tipo_ubicacion,
                 metodo_entrega,
                 referencia_ubicacion,
@@ -577,7 +584,10 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         await db.ref(`pedidos/${pedidoId}`).set(nuevoPedido);
 
-        console.log(`[ADMIN] Pedido creado: ${pedidoId}`);
+        console.log(`[ADMIN] Pedido creado: ${pedidoId}`, {
+            commerceKey: commerce.commerceKey,
+            shortId: shortIdAllocation.shortId
+        });
 
         return res.status(201).json({ ok: true, id: pedidoId, pedido: nuevoPedido });
     } catch (error) {
