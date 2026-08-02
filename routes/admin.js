@@ -554,7 +554,8 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
         });
         const shortIdAllocation = await allocateCommerceShortId(db, {
             timestamp,
-            commerceKey: commerce.commerceKey
+            commerceKey: commerce.commerceKey,
+            commerceCode: commerce.commerceCode
         });
 
         const nuevoPedido = buildPersistedAdminOrderRecord({
@@ -568,6 +569,7 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
                 descripcion,
                 comercio_nombre: commerce.commerceName,
                 comercio_id: commerce.commerceKey,
+                comercio_codigo: commerce.commerceCode,
                 tipo_ubicacion,
                 metodo_entrega,
                 referencia_ubicacion,
@@ -586,6 +588,7 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
 
         console.log(`[ADMIN] Pedido creado: ${pedidoId}`, {
             commerceKey: commerce.commerceKey,
+            commerceCode: commerce.commerceCode,
             shortId: shortIdAllocation.shortId
         });
 

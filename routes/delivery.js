@@ -282,10 +282,11 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       nombre_comercial: pedidoBase.nombre_comercial
     });
     const shortIdAllocation = pedidoBase.shortId
-      ? { shortId: pedidoBase.shortId, commerceKey: commerce.commerceKey }
+      ? { shortId: pedidoBase.shortId, commerceKey: commerce.commerceKey, commerceCode: commerce.commerceCode }
       : await allocateCommerceShortId(db, {
           timestamp: pedidoBase.fecha_creacion || pedidoBase.createdAt || pedidoBase.created_at || dispatchedAt,
-          commerceKey: commerce.commerceKey
+          commerceKey: commerce.commerceKey,
+          commerceCode: commerce.commerceCode
         });
     const pedidoPool = buildPoolDispatchOrder(pedidoBase);
     const payloadListo = {
@@ -293,6 +294,7 @@ router.post('/dispatch-order', requireAdminOrPanel, async (req, res, next) => {
       shortId: pedidoBase.shortId || shortIdAllocation.shortId,
       comercio_nombre: pedidoBase.comercio_nombre || commerce.commerceName,
       comercio_id: pedidoBase.comercio_id || commerce.commerceKey,
+      comercio_codigo: pedidoBase.comercio_codigo || commerce.commerceCode,
       estado: 'LISTO',
       estado_pedido: 'LISTO',
       hora_cocina: pedidoBase.hora_cocina || new Date(dispatchedAt).toISOString(),

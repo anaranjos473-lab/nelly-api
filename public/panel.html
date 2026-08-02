@@ -5099,13 +5099,35 @@
                 return getPedidoTimestampLocal(b) - getPedidoTimestampLocal(a);
             }
 
+            function normalizarCodigoComercioVisible(valor = '') {
+                const base = String(valor || 'COMERCIO')
+                    .trim()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toUpperCase();
+                const limpio = base
+                    .replace(/[^A-Z0-9]+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                return limpio.slice(0, 24) || 'COMERCIO';
+            }
+
             function formatearShortIdDiario(pedido = {}, indice = 1) {
                 const timestamp = getPedidoTimestampLocal(pedido);
                 const fecha = new Date(timestamp);
-                const mm = String(fecha.getMonth() + 1).padStart(2, '0');
-                const dd = String(fecha.getDate()).padStart(2, '0');
-                const seq = String(Math.max(1, Number(indice) || 1)).padStart(2, '0');
-                return `${mm}${dd}-${seq}`;
+                const yyyy = String(fecha.getUTCFullYear());
+                const mm = String(fecha.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(fecha.getUTCDate()).padStart(2, '0');
+                const comercio = normalizarCodigoComercioVisible(
+                    pedido.comercio_id
+                    || pedido.comercio_codigo
+                    || pedido.comercio_nombre
+                    || pedido.nombre_comercial
+                    || pedido.comercio
+                    || 'COMERCIO'
+                );
+                const seq = String(Math.max(1, Number(indice) || 1)).padStart(3, '0');
+                return `${comercio}-${yyyy}${mm}${dd}-${seq}`;
             }
 
             function asignarShortIdsDiarios(lista = []) {

@@ -9,6 +9,19 @@ function sanitizeFirebaseKey(value = '') {
     .slice(0, 120) || 'global';
 }
 
+function normalizeCommerceCode(value = '') {
+  const raw = String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+  const cleaned = raw
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned.slice(0, 24) || 'COMERCIO';
+}
+
 function resolveCommerceIdentity(input = {}) {
   const commerceName = String(
     input.comercio_nombre
@@ -27,22 +40,27 @@ function resolveCommerceIdentity(input = {}) {
     || input.restaurantId
     || ''
   ).trim();
-  const commerceKeySource = commerceId || commerceName || 'global';
+  const commerceCode = normalizeCommerceCode(commerceId || commerceName || 'global');
   return {
-    commerceKey: sanitizeFirebaseKey(commerceKeySource),
-    commerceName: commerceName || commerceId || 'global'
+    commerceKey: sanitizeFirebaseKey(commerceId || commerceName || 'global'),
+    commerceCode,
+    commerceName: commerceName || commerceId || commerceCode
   };
 }
 
-function formatShortIdFromSequence(timestamp, sequence) {
+function formatShortIdFromSequence(timestamp, sequence, commerceCode = 'COMERCIO') {
   const date = new Date(Number(timestamp) || Date.now());
+  const year = String(date.getUTCFullYear());
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
   const seq = String(Math.max(1, Number(sequence) || 1)).padStart(3, '0');
-  return `${month}${day}-${seq}`;
+  return `${normalizeCommerceCode(commerceCode)}-${year}${month}${day}-${seq}`;
 }
 
-async function allocateCommerceShortId(db, { timestamp = Date.now(), commerceKey = 'global' } = {}) {
+async function allocateCommerceShortId(
+  db,
+  { timestamp = Date.now(), commerceKey = 'global', commerceCode = 'COMERCIO' } = {}
+) {
   const day = new Date(Number(timestamp) || Date.now()).toISOString().slice(0, 10);
   const key = sanitizeFirebaseKey(commerceKey);
   const sequenceRef = db.ref(`order_sequences/${key}/${day}`);
@@ -52,8 +70,9 @@ async function allocateCommerceShortId(db, { timestamp = Date.now(), commerceKey
   }
   const sequence = Number(transaction.snapshot.val() || 0);
   return {
-    shortId: formatShortIdFromSequence(timestamp, sequence),
+    shortId: formatShortIdFromSequence(timestamp, sequence, commerceCode),
     commerceKey: key,
+    commerceCode: normalizeCommerceCode(commerceCode),
     sequence,
     day
   };
@@ -62,6 +81,7 @@ async function allocateCommerceShortId(db, { timestamp = Date.now(), commerceKey
 export {
   allocateCommerceShortId,
   formatShortIdFromSequence,
+  normalizeCommerceCode,
   resolveCommerceIdentity,
   sanitizeFirebaseKey
 };
