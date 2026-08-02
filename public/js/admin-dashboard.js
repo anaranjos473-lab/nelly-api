@@ -119,6 +119,7 @@ const ui = {
   metricFraudesDetectados: document.getElementById("metric-fraudes-detectados"),
   orderForm: document.getElementById("manual-order-form"),
   orderCommerce: document.getElementById("order-commerce"),
+  orderCommerceHint: document.getElementById("order-commerce-hint"),
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
   orderAddress: document.getElementById("order-address"),
@@ -871,34 +872,47 @@ function syncCurrentManualCommerce(selectedCommerceId) {
 function renderManualCommerceOptions(restaurantes = []) {
   if (!ui.orderCommerce) return;
   const previousSelection = String(ui.orderCommerce.value || '').trim();
-  manualCommerceOptions = Array.isArray(restaurantes)
-    ? restaurantes
-        .slice()
-        .sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
-        .map((restaurant, index) => buildManualCommerceOption(restaurant, index))
+  const restaurantsSorted = Array.isArray(restaurantes)
+    ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
     : [];
+  const activeRestaurants = restaurantsSorted.filter((restaurant) => String(restaurant?.estado || '').trim().toLowerCase() === 'activo');
+  const targetRestaurants = activeRestaurants.length === 1 ? activeRestaurants : activeRestaurants;
+  manualCommerceOptions = targetRestaurants.map((restaurant, index) => buildManualCommerceOption(restaurant, index));
 
-  const optionsMarkup = [
-    '<option value="">Selecciona un comercio</option>',
-    ...manualCommerceOptions.map((option) => {
-      const selected = previousSelection && previousSelection === option.commerceId ? ' selected' : '';
-      return `<option value="${escapeHtml(option.commerceId)}"${selected}>${escapeHtml(option.label)}</option>`;
-    })
-  ].join('');
-  ui.orderCommerce.innerHTML = optionsMarkup;
-
-  const selectedOption = manualCommerceOptions.find((option) => option.commerceId === previousSelection)
-    || manualCommerceOptions.find((option) => option.isActive)
-    || manualCommerceOptions[0]
-    || null;
-  if (selectedOption) {
+  if (activeRestaurants.length === 1) {
+    const selectedOption = manualCommerceOptions[0];
+    ui.orderCommerce.innerHTML = `<option value="${escapeHtml(selectedOption.commerceId)}" selected>${escapeHtml(selectedOption.label)}</option>`;
+    ui.orderCommerce.disabled = true;
+    if (ui.orderCommerceHint) {
+      ui.orderCommerceHint.textContent = `Comercio asignado automaticamente: ${selectedOption.commerceName} (${selectedOption.commerceCode}).`;
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-emerald-200';
+    }
     syncCurrentManualCommerce(selectedOption.commerceId);
+    return;
+  }
+
+  ui.orderCommerce.disabled = true;
+  currentManualCommerce = null;
+
+  if (manualCommerceOptions.length > 0) {
+    ui.orderCommerce.innerHTML = [
+      '<option value="">No hay un comercio unico activo</option>',
+      ...manualCommerceOptions.map((option) => `<option value="${escapeHtml(option.commerceId)}">${escapeHtml(option.label)}</option>`)
+    ].join('');
+    if (ui.orderCommerceHint) {
+      ui.orderCommerceHint.textContent = 'Hay mas de un comercio activo. Resuelve la ambiguedad antes de crear pedidos manuales.';
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-amber-200';
+    }
   } else {
-    currentManualCommerce = {
-      comercio_id: 'global',
-      comercio_codigo: 'GLOBAL',
-      comercio_nombre: 'GLOBAL'
-    };
+    ui.orderCommerce.innerHTML = '<option value="">No hay comercios activos</option>';
+    if (ui.orderCommerceHint) {
+      ui.orderCommerceHint.textContent = 'No hay comercios activos disponibles para asignar el pedido.';
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-red-200';
+    }
+  }
+
+  if (ui.orderCommerce.value !== previousSelection) {
+    ui.orderCommerce.value = previousSelection || '';
   }
 }
 
@@ -1417,7 +1431,8 @@ function updateOrderValidationState() {
 
   validations.forEach(([input, ok]) => setFieldState(input, ok));
 
-  const canSubmit = validations.every(([, ok]) => ok);
+  const commerceReady = Boolean(currentManualCommerce && currentManualCommerce.comercio_id && currentManualCommerce.comercio_id !== 'global');
+  const canSubmit = validations.every(([, ok]) => ok) && commerceReady;
   if (ui.orderSubmit) {
     ui.orderSubmit.disabled = !canSubmit;
   }
@@ -1429,6 +1444,16 @@ function updateOrderValidationState() {
       head.className = canSubmit
         ? 'text-sm font-semibold text-emerald-200'
         : 'text-sm font-semibold text-amber-200';
+    }
+  }
+
+  if (ui.orderCommerceHint) {
+    if (commerceReady) {
+      ui.orderCommerceHint.textContent = `Comercio bloqueado automaticamente: ${currentManualCommerce.comercio_nombre} (${currentManualCommerce.comercio_codigo}).`;
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-emerald-200';
+    } else {
+      ui.orderCommerceHint.textContent = 'No se puede crear el pedido hasta que exista un comercio activo unico.';
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-red-200';
     }
   }
 
@@ -1576,6 +1601,11 @@ async function createManualOrder(event) {
   const tip = Number(ui.orderTip.value || 0);
   const paymentMethod = String(ui.orderPaymentMethod.value || 'efectivo').trim();
   const notes = String(ui.orderNotes.value || '').trim();
+
+  if (!currentManualCommerce || !currentManualCommerce.comercio_id || currentManualCommerce.comercio_id === 'global') {
+    setOrderFeedback('No se puede crear el pedido: el comercio no esta bloqueado o existe ambiguedad en los comercios activos.', 'error');
+    return;
+  }
 
   if (!client || !phone || !address || !itemsText) {
     setOrderFeedback('Completa cliente, telefono, direccion y lista de items.', 'error');
