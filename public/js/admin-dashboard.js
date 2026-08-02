@@ -118,6 +118,7 @@ const ui = {
   metricTiempoEntrega: document.getElementById("metric-tiempo-entrega"),
   metricFraudesDetectados: document.getElementById("metric-fraudes-detectados"),
   orderForm: document.getElementById("manual-order-form"),
+  orderCommerce: document.getElementById("order-commerce"),
   orderClient: document.getElementById("order-client"),
   orderPhone: document.getElementById("order-phone"),
   orderAddress: document.getElementById("order-address"),
@@ -205,6 +206,7 @@ let currentManualCommerce = {
   comercio_codigo: 'GLOBAL',
   comercio_nombre: 'GLOBAL'
 };
+let manualCommerceOptions = [];
 let locationState = {
   client: { lat: 16.75, lng: -93.12, address: "", label: "" },
   store: { lat: 16.7599, lng: -93.18863, address: "Benjaminas, Tuxtla Gutierrez, Chiapas, Mexico", label: "" }
@@ -829,6 +831,77 @@ function applyRestaurantStatusChip(status) {
   ui.restaurantLastStatus.className = `${baseClasses} ${statusClasses[normalized] || 'bg-slate-700/40 text-slate-200 border border-slate-600/50'}`;
 }
 
+function buildManualCommerceOption(restaurant, index = 0) {
+  const commerceId = String(restaurant?.id || restaurant?.restaurant_id || restaurant?.merchant_id || `restaurant-${index + 1}`).trim() || `restaurant-${index + 1}`;
+  const commerceCode = String(restaurant?.codigo_comercio || restaurant?.commerce_code || restaurant?.short_code || commerceId)
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'GLOBAL';
+  const commerceName = String(restaurant?.nombre_comercial || restaurant?.nombre || 'Sin nombre').trim() || 'Sin nombre';
+  const isActive = String(restaurant?.estado || '').trim().toLowerCase() === 'activo';
+  return {
+    commerceId,
+    commerceCode,
+    commerceName,
+    isActive,
+    label: `${commerceName} (${commerceCode})${isActive ? ' - Activo' : ''}`
+  };
+}
+
+function syncCurrentManualCommerce(selectedCommerceId) {
+  const fallbackCommerce = manualCommerceOptions.find((option) => option.isActive) || manualCommerceOptions[0] || {
+    commerceId: 'global',
+    commerceCode: 'GLOBAL',
+    commerceName: 'GLOBAL'
+  };
+  const selectedOption = manualCommerceOptions.find((option) => option.commerceId === selectedCommerceId) || fallbackCommerce;
+  currentManualCommerce = {
+    comercio_id: selectedOption.commerceId,
+    comercio_codigo: selectedOption.commerceCode,
+    comercio_nombre: selectedOption.commerceName
+  };
+  if (ui.orderCommerce && ui.orderCommerce.value !== selectedOption.commerceId) {
+    ui.orderCommerce.value = selectedOption.commerceId;
+  }
+  return selectedOption;
+}
+
+function renderManualCommerceOptions(restaurantes = []) {
+  if (!ui.orderCommerce) return;
+  const previousSelection = String(ui.orderCommerce.value || '').trim();
+  manualCommerceOptions = Array.isArray(restaurantes)
+    ? restaurantes
+        .slice()
+        .sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
+        .map((restaurant, index) => buildManualCommerceOption(restaurant, index))
+    : [];
+
+  const optionsMarkup = [
+    '<option value="">Selecciona un comercio</option>',
+    ...manualCommerceOptions.map((option) => {
+      const selected = previousSelection && previousSelection === option.commerceId ? ' selected' : '';
+      return `<option value="${escapeHtml(option.commerceId)}"${selected}>${escapeHtml(option.label)}</option>`;
+    })
+  ].join('');
+  ui.orderCommerce.innerHTML = optionsMarkup;
+
+  const selectedOption = manualCommerceOptions.find((option) => option.commerceId === previousSelection)
+    || manualCommerceOptions.find((option) => option.isActive)
+    || manualCommerceOptions[0]
+    || null;
+  if (selectedOption) {
+    syncCurrentManualCommerce(selectedOption.commerceId);
+  } else {
+    currentManualCommerce = {
+      comercio_id: 'global',
+      comercio_codigo: 'GLOBAL',
+      comercio_nombre: 'GLOBAL'
+    };
+  }
+}
+
 function getRestaurantStatusChipClass(status) {
   const normalized = String(status || '').trim().toLowerCase();
   const baseClasses = 'inline-flex w-fit items-center rounded-full px-2.5 py-1 text-[11px] font-semibold';
@@ -890,12 +963,13 @@ function renderRestaurantList(restaurantes = []) {
     ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
     : [];
   const latest = sorted[0];
-  const latestActive = sorted.find((restaurant) => String(restaurant?.estado || '').trim().toLowerCase() === 'activo') || latest;
-  currentManualCommerce = {
-    comercio_id: String(latestActive?.id || latestActive?.restaurant_id || latestActive?.merchant_id || 'global').trim() || 'global',
-    comercio_codigo: String(latestActive?.codigo_comercio || latestActive?.commerce_code || latestActive?.short_code || latestActive?.id || 'GLOBAL').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '') || 'GLOBAL',
-    comercio_nombre: String(latestActive?.nombre_comercial || latestActive?.nombre || 'GLOBAL').trim() || 'GLOBAL'
-  };
+  renderManualCommerceOptions(restaurantes);
+  if (ui.orderCommerce && !ui.orderCommerce.value) {
+    const latestActive = sorted.find((restaurant) => String(restaurant?.estado || '').trim().toLowerCase() === 'activo') || latest;
+    if (latestActive) {
+      syncCurrentManualCommerce(String(latestActive?.id || latestActive?.restaurant_id || latestActive?.merchant_id || 'global').trim() || 'global');
+    }
+  }
   if (ui.restaurantLastName) {
     ui.restaurantLastName.textContent = latest?.nombre_comercial || latest?.nombre || 'Sin registros aun';
   }
@@ -1781,6 +1855,11 @@ if (ui.restaurantForm) {
 }
 if (ui.restaurantRefresh) {
   ui.restaurantRefresh.addEventListener("click", refreshRestaurantList);
+}
+if (ui.orderCommerce) {
+  ui.orderCommerce.addEventListener("change", () => {
+    syncCurrentManualCommerce(String(ui.orderCommerce.value || '').trim());
+  });
 }
 if (ui.restaurantFilterAll) {
   ui.restaurantFilterAll.addEventListener("click", () => {
