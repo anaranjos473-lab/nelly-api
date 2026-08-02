@@ -3,6 +3,29 @@ import path from 'path';
 import admin from 'firebase-admin';
 import { allocateCommerceShortId, resolveCommerceIdentity } from '../../src/services/orderShortIdService.js';
 
+function createLocalTransactionDb() {
+  const store = new Map();
+  return {
+    ref(refPath) {
+      return {
+        async transaction(updateFn) {
+          const current = store.has(refPath) ? store.get(refPath) : null;
+          const next = updateFn(current);
+          if (next === undefined) {
+            return { committed: false, snapshot: { val: () => current } };
+          }
+          store.set(refPath, next);
+          return { committed: true, snapshot: { val: () => next } };
+        },
+        async once() {
+          const value = store.has(refPath) ? store.get(refPath) : null;
+          return { val: () => value };
+        }
+      };
+    }
+  };
+}
+
 function loadServiceAccount() {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -69,15 +92,20 @@ async function runConcurrentAllocation(db, scenario, count = 5) {
 }
 
 async function main() {
-  const serviceAccount = loadServiceAccount();
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com'
-    });
-  }
+  const mode = String(process.env.SHORT_ID_CERTIFICATION_MODE || 'local').trim().toLowerCase();
+  const db = mode === 'firebase'
+    ? (() => {
+        const serviceAccount = loadServiceAccount();
+        if (!admin.apps.length) {
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com'
+          });
+        }
+        return admin.database();
+      })()
+    : createLocalTransactionDb();
 
-  const db = admin.database();
   const commerceA = buildScenario('COMERCIO_A', 'QA-COMERCIO-A', 'QA Comercio A');
   const commerceB = buildScenario('COMERCIO_B', 'QA-COMERCIO-B', 'QA Comercio B');
 
