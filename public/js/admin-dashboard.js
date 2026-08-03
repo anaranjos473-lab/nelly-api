@@ -673,10 +673,6 @@ function initOrderMap() {
       </div>
       <div class="map-fix-footer">
         <span class="map-fix-coords">Lat: <span id="location-map-lat">16.750000</span> | Lng: <span id="location-map-lng">-93.120000</span></span>
-        <span class="map-fix-actions">
-          <button id="map-confirm-point" class="map-fix-confirm" type="button">Confirmar punto</button>
-          <button id="map-cancel-point" class="map-fix-cancel" type="button">Cancelar</button>
-        </span>
       </div>
     </div>
   `;
@@ -705,12 +701,6 @@ function initOrderMap() {
       return this;
     }
   };
-  document.getElementById("map-confirm-point")?.addEventListener("click", () => {
-    ui.confirmLocation?.click();
-  });
-  document.getElementById("map-cancel-point")?.addEventListener("click", () => {
-    setOrderFeedback("Captura de punto cancelada. Puedes seleccionar otro punto.", "error");
-  });
   updateMapFixCoords(getActiveLocation().lat, getActiveLocation().lng);
   if (ui.orderStoreLat && !ui.orderStoreLat.value) {
     ui.orderStoreLat.value = String(locationState.store.lat);
@@ -1314,7 +1304,7 @@ function renderOrderPreview() {
         <strong data-preview-location>${escapeHtml(address || 'Direccion pendiente')}</strong>
       </div>
       <div>
-        <span>Metodo</span>
+        <span>Metodo entrega</span>
         <strong>${escapeHtml(deliveryMethod || 'puerta')}</strong>
       </div>
     </div>
