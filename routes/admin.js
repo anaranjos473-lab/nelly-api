@@ -486,6 +486,26 @@ router.get('/metricas/rentabilidad', requirePanelAdminEmailAuth, async (req, res
 // --- ENDPOINT: CREAR PEDIDO ---
 router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
     try {
+        const requestId = `REQ_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const traceId = `ADMIN_ORDER_TRACE_${requestId}`;
+        console.log('[ADMIN][CREATE_ORDER][TRACE_IN]', {
+            requestId,
+            traceId,
+            method: req.method,
+            path: req.originalUrl,
+            body: {
+                comercio_id: req.body?.comercio_id,
+                comercio_codigo: req.body?.comercio_codigo,
+                comercio_nombre: req.body?.comercio_nombre,
+                restaurante_nombre: req.body?.restaurante_nombre,
+                tienda_nombre: req.body?.tienda_nombre,
+                restaurant_name: req.body?.restaurant_name,
+                nombre_comercial: req.body?.nombre_comercial,
+                notas: req.body?.notas,
+                notas_ubicacion: req.body?.notas_ubicacion,
+                descripcion: req.body?.descripcion
+            }
+        });
         const {
             cliente_nombre,
             telefono,
@@ -559,6 +579,17 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             commerceCode: commerce.commerceCode
         });
 
+        console.log('[ADMIN][CREATE_ORDER][TRACE_COMMERCE]', {
+            requestId,
+            traceId,
+            commerce: {
+                commerceKey: commerce.commerceKey,
+                commerceCode: commerce.commerceCode,
+                commerceName: commerce.commerceName
+            },
+            shortIdAllocation
+        });
+
         const nuevoPedido = buildPersistedAdminOrderRecord({
             pedidoId,
             timestamp,
@@ -575,7 +606,7 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
                 metodo_entrega,
                 referencia_ubicacion,
                 notas_ubicacion,
-                notas: notes,
+                notas,
                 coordenadas,
                 normalizedItems,
                 subtotal,
@@ -586,9 +617,30 @@ router.post('/pedidos', requirePanelAdminEmailAuth, async (req, res) => {
             }
         });
 
+        console.log('[ADMIN][CREATE_ORDER][TRACE_OUT]', {
+            requestId,
+            traceId,
+            pedidoId,
+            commerce: {
+                comercio_id: nuevoPedido.comercio_id,
+                comercio_codigo: nuevoPedido.comercio_codigo,
+                comercio_nombre: nuevoPedido.comercio_nombre,
+                commerce_id: nuevoPedido.commerce_id,
+                commerce_code: nuevoPedido.commerce_code,
+                commerce_name: nuevoPedido.commerce_name,
+                id_comercio: nuevoPedido.id_comercio
+            },
+            notas: nuevoPedido.notas,
+            descripcion: nuevoPedido.descripcion,
+            shortId: nuevoPedido.shortId,
+            folio: nuevoPedido.folio
+        });
+
         await db.ref(`pedidos/${pedidoId}`).set(nuevoPedido);
 
         console.log(`[ADMIN] Pedido creado: ${pedidoId}`, {
+            requestId,
+            traceId,
             commerceKey: commerce.commerceKey,
             commerceCode: commerce.commerceCode,
             shortId: shortIdAllocation.shortId
