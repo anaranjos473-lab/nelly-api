@@ -83,6 +83,7 @@ La corrida E2E validada en el Gate confirmo:
 - `pedidos_en_camino = null`
 - `pedido_activo = null`
 - `repartidores/*/pedido_activo` para el pedido: ninguno activo
+- `pedidos_completados/{pedidoId}`: confirmado por la logica de `complete-order`; la lectura directa por REST no pudo verificarse desde shell por restriccion de permisos
 
 ### Verificacion visual posterior
 
