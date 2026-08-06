@@ -28,7 +28,7 @@ Certificar modulo por modulo el ecosistema Nelly a partir del baseline funcional
 ### G4 - Panel de Repartidores
 
 - Objetivo: certificar asignacion, aceptacion, navegacion y cierre operativo.
-- Estado: `PENDIENTE`
+- Estado: `OPEN`
 - Resultado esperado: transiciones correctas entre pool, asignacion y entrega.
 
 ### G5 - Nelly Driver
