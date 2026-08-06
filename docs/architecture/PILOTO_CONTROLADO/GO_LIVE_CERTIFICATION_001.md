@@ -113,6 +113,8 @@ Se autoriza iniciar el piloto controlado bajo monitoreo cercano y con congelamie
 - [`GO_LIVE_DRIVER_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/GO_LIVE_DRIVER_001.md)
 - [`DATASET_FINALIZATION_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/DATASET_FINALIZATION_001.md)
 - [`PILOT_DATASET_001.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/investigaciones/PILOT_DATASET_001.md)
+- [`GATE_E2E_001.md`](./GATE_E2E_001.md)
+- [`CHECKLIST_EJECUCION_GATE_E2E_001.md`](./CHECKLIST_EJECUCION_GATE_E2E_001.md)
 
 ## Cierre
 
