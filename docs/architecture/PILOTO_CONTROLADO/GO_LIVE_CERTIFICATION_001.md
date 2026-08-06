@@ -10,35 +10,72 @@
 
 ## Resumen ejecutivo
 
-La plataforma llego a un estado operativo apto para piloto controlado despues de:
+La plataforma quedo validada para piloto controlado en su nucleo transaccional de pedidos, despues de:
 
 - limpiar el dataset de certificacion que contaminaba `active_orders`;
-- recertificar el contrato de lectura;
-- validar que panel, cocina y driver reflejan un dataset limpio;
+- recertificar el contrato funcional del pedido manual;
 - completar una corrida E2E real con un pedido nuevo;
 - usar un conductor elegible para la aceptacion final sin tocar la politica de deuda.
 
-La corrida final demostro:
+### Certificacion modulo por modulo
 
-- creacion de pedido nueva: `PED_1785612556528`;
+#### 1. Creacion del pedido
+
+- pedido nuevo creado correctamente;
+- contrato completo en RTDB;
+- comercio real `PIZZERIA MIA` persistido;
+- `shortId` y `folio` consistentes.
+
+#### 2. Cocina
+
+- el pedido llega a la vista operativa de cocina;
+- el operador ve comercio, descripcion y notas;
+- la transicion a `LISTO` se ejecuta sin perder campos.
+
+#### 3. Reparto
+
+- el pedido aparece en `pedidos_para_reparto`;
+- el pedido pasa a `EN_CURSO` con conductor elegible;
+- el pedido sale de `pedidos_para_reparto`;
+- el pedido entra a `pedidos_en_camino`;
+- no se pierden comercio, notas, descripcion, `shortId` ni `folio`.
+
+#### 4. Entrega
+
+- el pedido finaliza en `ENTREGADO`;
+- `pedido_activo` queda liberado;
+- no reaparece como activo tras la transicion.
+
+#### 5. Historico
+
+- `pedidos_completados/{pedidoId}` conserva el contrato del pedido;
+- se mantienen `comercio_id`, `comercio_codigo`, `comercio_nombre`, `descripcion`, `notas`, `shortId` y `folio`.
+
+La corrida final validada en el Gate demostro:
+
+- creacion de pedido nueva: `PED_1786053513809`;
 - despacho exitoso a `LISTO`;
-- aceptacion exitosa con conductor elegible `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`;
+- aceptacion exitosa con conductor elegible `8mo8182LJsgV7vKMSpiCekFKAG23`;
 - cierre exitoso a `ENTREGADO`;
 - limpieza de `pedidos_para_reparto`, `pedidos_en_camino` y `pedido_activo`;
+- preservacion del contrato del pedido en el historico;
 - ausencia de reapertura del pedido tras recarga del panel y del driver.
 
 ## Alcance de la certificacion
 
 Esta acta cubre:
 
-- flujo de creacion;
+- flujo de creacion del pedido manual;
 - despacho;
 - aceptacion;
 - entrega;
 - limpieza del estado operativo;
 - comportamiento tras recarga;
-- consistencia entre panel, cocina y driver;
-- validacion de elegibilidad del conductor.
+- consistencia del contrato del pedido;
+- validacion de elegibilidad del conductor;
+- conservacion del historico.
+
+Esta acta no certifica todavia la totalidad del ecosistema Nelly. La certificacion aqui contenida corresponde al nucleo transaccional del flujo manual y a sus nodos operativos asociados.
 
 ## Evidencia principal
 
