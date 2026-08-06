@@ -77,6 +77,18 @@ Esta acta cubre:
 
 Esta acta no certifica todavia la totalidad del ecosistema Nelly. La certificacion aqui contenida corresponde al nucleo transaccional del flujo manual y a sus nodos operativos asociados.
 
+## Pendientes de certificacion funcional
+
+Quedan fuera del alcance certificado, por ahora, los siguientes frentes:
+
+- Panel Administrativo.
+- Panel de Cocina, incluyendo experiencia completa y casos operativos.
+- Panel de Repartidores.
+- Aplicacion Nelly Driver.
+- Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.
+- Modulos de monitoreo, metricas y operacion.
+- Integracion operativa completa entre todos los paneles.
+
 ## Evidencia principal
 
 ### Pedido final

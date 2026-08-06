@@ -37,6 +37,16 @@ Expediente operativo del piloto controlado de Nelly.
 
 Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`.
 
+## Pendientes de certificacion funcional
+
+- Panel Administrativo.
+- Panel de Cocina, incluyendo experiencia completa y casos operativos.
+- Panel de Repartidores.
+- Aplicacion Nelly Driver.
+- Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.
+- Modulos de monitoreo, metricas y operacion.
+- Integracion operativa completa entre todos los paneles.
+
 ## Arranque
 
 - Baseline congelado en `main`.
