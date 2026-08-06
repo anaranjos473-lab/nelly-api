@@ -59,6 +59,24 @@ No se observo, en la revision realizada:
 
 **Estado del gate G2:** `PASS preliminar / evidencia suficiente para continuar la certificacion documental`
 
+## Ejecucion funcional posterior
+
+Se ejecuto un submit equivalente del formulario manual contra `POST /api/admin/pedidos` con el comercio activo unico real:
+
+- `comercio_id`: `pizzeria-mia`
+- `comercio_codigo`: `PIZZERIA-MIA`
+- `comercio_nombre`: `PIZZERIA MIA`
+
+Resultado:
+
+- `status HTTP`: `201 Created`
+- `pedidoId`: `PED_1786058280447`
+- `shortId`: `PIZZERIA-MIA-20260806-008`
+- `folio`: `PIZZERIA-MIA-20260806-008`
+- contrato completo persistido en RTDB
+- sin fallback sintetico
+- sin ambiguedad de comercio
+
 ## Siguiente paso
 
 Formalizar el cierre del Gate G2 en el expediente del piloto y continuar con el siguiente gate del roadmap.

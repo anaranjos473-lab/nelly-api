@@ -78,6 +78,25 @@ El `G2-E2E` solo se aprueba si:
 - el comercio real unico se mantiene como fuente de verdad;
 - cada caso deja evidencia verificable.
 
+## Resultado funcional registrado
+
+- `requestId`: `G2-E2E-280440`
+- `pedidoId`: `PED_1786058280447`
+- `shortId`: `PIZZERIA-MIA-20260806-008`
+- `folio`: `PIZZERIA-MIA-20260806-008`
+- `comercio_id`: `pizzeria-mia`
+- `comercio_codigo`: `PIZZERIA-MIA`
+- `comercio_nombre`: `PIZZERIA MIA`
+- `status HTTP`: `201 Created`
+
+### Evidencia resumida
+
+- El Panel Administrativo usa el comercio real unico activo.
+- El submit del formulario manual responde correctamente.
+- RTDB persiste el contrato completo del pedido.
+- El contrato preserva `comercio_id`, `comercio_codigo`, `comercio_nombre`, `descripcion`, `notas`, `shortId` y `folio`.
+- La evidencia tecnica del backend confirma la salida correcta del flujo de alta manual.
+
 ## Criterio de rechazo
 
 El gate se rechaza si aparece cualquiera de estos casos:
@@ -88,6 +107,12 @@ El gate se rechaza si aparece cualquiera de estos casos:
 - divergencia entre formulario, RTDB y vista previa;
 - errores bloqueantes de consola o red;
 - inconsistencias entre lista y detalle.
+
+## Dictamen actual
+
+**Estado:** `PASS funcional preliminar`
+
+El bloque principal de G2-E2E quedo validado con un pedido real y un submit exitoso. Queda disponible la verificacion visual final del detalle si se desea ampliar la evidencia, pero no existe ya un bloqueo funcional para cerrar el gate.
 
 ## Siguiente paso
 
