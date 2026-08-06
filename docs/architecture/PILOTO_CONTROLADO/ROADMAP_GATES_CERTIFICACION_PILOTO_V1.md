@@ -16,14 +16,14 @@ Certificar modulo por modulo el ecosistema Nelly a partir del baseline funcional
 ### G2 - Panel Administrativo
 
 - Objetivo: certificar operaciones administrativas, alta, consulta y control.
-- Estado: `PENDIENTE`
-- Resultado esperado: panel consistente con el contrato y sin fallbacks.
+- Estado: `PASS funcional`
+- Resultado: panel consistente con el contrato, comercio real unico y alta manual persistente.
 
 ### G3 - Panel de Cocina
 
 - Objetivo: certificar preparacion, cambios de estado, tiempos y experiencia operativa.
-- Estado: `PENDIENTE`
-- Resultado esperado: flujo visual y funcional coherente con el contrato operativo.
+- Estado: `PASS funcional`
+- Resultado: `MARCAR LISTO` publica el pedido en `pedidos_para_reparto` y la vista pasa a `ESPERANDO REPARTIDOR`.
 
 ### G4 - Panel de Repartidores
 
@@ -76,4 +76,3 @@ Cada gate debe producir:
 ## Relacion con el piloto
 
 Este roadmap no altera el baseline certificado del flujo manual. Solo organiza la siguiente etapa de certificacion por dominios.
-

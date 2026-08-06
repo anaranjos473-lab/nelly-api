@@ -33,6 +33,7 @@ Expediente operativo del piloto controlado de Nelly.
 - [PLANTILLA_CIERRE_G2_E2E_PANEL_ADMINISTRATIVO.md](./PLANTILLA_CIERRE_G2_E2E_PANEL_ADMINISTRATIVO.md)
 - [G3_PANEL_DE_COCINA.md](./G3_PANEL_DE_COCINA.md)
 - [CHECKLIST_G3_PANEL_DE_COCINA.md](./CHECKLIST_G3_PANEL_DE_COCINA.md)
+- [G3_PANEL_DE_COCINA_EVIDENCIA.md](./G3_PANEL_DE_COCINA_EVIDENCIA.md)
 - [PLANTILLA_CIERRE_G3_PANEL_DE_COCINA.md](./PLANTILLA_CIERRE_G3_PANEL_DE_COCINA.md)
 - [ACTA_APERTURA_PILOTO_CONTROLADO_002.md](./ACTA_APERTURA_PILOTO_CONTROLADO_002.md)
 - [EVIDENCIA_PILOTO_CONTROLADO_002.md](./EVIDENCIA_PILOTO_CONTROLADO_002.md)
@@ -49,8 +50,8 @@ Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`
 
 ## Pendientes de certificacion funcional
 
-- Panel Administrativo.
-- Panel de Cocina, incluyendo experiencia completa y casos operativos.
+- Panel Administrativo, pendiente de ampliacion visual y casos negativos complementarios.
+- Panel de Cocina, pendiente de ampliacion funcional y casos operativos complementarios.
 - Panel de Repartidores.
 - Aplicacion Nelly Driver.
 - Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.

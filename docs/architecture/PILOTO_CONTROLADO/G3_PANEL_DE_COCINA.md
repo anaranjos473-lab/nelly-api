@@ -106,6 +106,16 @@ El `G3` solo se aprueba si:
 - no hay fallbacks sintenticos ni duplicidades visibles;
 - la vista de Cocina mantiene el contrato intacto.
 
+## Resultado funcional registrado
+
+- `pedidoId`: `PED_1786058280447`
+- `shortId`: `PIZZERIA-MIA-20260806-008`
+- `folio`: `PIZZERIA-MIA-20260806-008`
+- `buttonBefore`: `MARCAR LISTO`
+- `buttonAfter`: `ESPERANDO REPARTIDOR`
+- `pedidos_para_reparto`: contiene `PED_1786058280447`
+- `pedidos_en_camino`: aun no contiene el pedido en esta etapa
+
 ## Criterio de rechazo
 
 El gate se rechaza si aparece cualquiera de estos casos:
@@ -128,11 +138,21 @@ El gate se rechaza si aparece cualquiera de estos casos:
 - `requestId`;
 - `traceId`.
 
+## Dictamen actual
+
+**Estado:** `PASS funcional`
+
+La corrida validada confirma que el Panel de Cocina:
+
+- carga pedidos vigentes;
+- ejecuta `MARCAR LISTO` correctamente;
+- cambia a `ESPERANDO REPARTIDOR`;
+- publica el pedido en `pedidos_para_reparto`;
+- conserva el contrato del pedido durante la transicion observada.
+
 ## Siguiente paso
 
-Si el gate aprueba:
-
-1. registrar el resultado;
+1. registrar el resultado en el expediente del piloto;
 2. congelar el comportamiento validado de Cocina;
 3. actualizar el roadmap de certificacion;
 4. abrir G4 - Panel de Repartidores.
