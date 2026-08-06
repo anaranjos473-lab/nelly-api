@@ -125,7 +125,20 @@ El gate se rechaza si aparece cualquiera de estos casos:
 
 ## Estado actual
 
-**Estado del gate G4:** `OPEN`
+**Estado del gate G4:** `PASS funcional`
+
+## Evidencia de cierre
+
+- Pedido validado: `P1_1784843558599_5`
+- `shortId` / `folio`: `0723-42`
+- Repartidor elegible: `722TIHtM6VQdF4bzOcNdnSxQHF92`
+- Estado previo: `LISTO` + `pedidos_para_reparto/{pedidoId}` activo
+- Estado posterior: `EN_CURSO`
+- `pedidos_para_reparto/{pedidoId}`: eliminado
+- `pedidos_en_camino/{pedidoId}`: creado
+- `repartidores/{uid}/pedido_activo`: creado
+- Respuesta de `accept-order`: `200 OK`
+- Contrato preservado durante la transición: `SI`
 
 ## Siguiente paso
 

@@ -38,6 +38,7 @@ Expediente operativo del piloto controlado de Nelly.
 - [G4_PANEL_DE_REPARTIDORES.md](./G4_PANEL_DE_REPARTIDORES.md)
 - [CHECKLIST_G4_PANEL_DE_REPARTIDORES.md](./CHECKLIST_G4_PANEL_DE_REPARTIDORES.md)
 - [PLANTILLA_CIERRE_G4_PANEL_DE_REPARTIDORES.md](./PLANTILLA_CIERRE_G4_PANEL_DE_REPARTIDORES.md)
+- [G4_PANEL_DE_REPARTIDORES_EVIDENCIA.md](./G4_PANEL_DE_REPARTIDORES_EVIDENCIA.md)
 - [ACTA_APERTURA_PILOTO_CONTROLADO_002.md](./ACTA_APERTURA_PILOTO_CONTROLADO_002.md)
 - [EVIDENCIA_PILOTO_CONTROLADO_002.md](./EVIDENCIA_PILOTO_CONTROLADO_002.md)
 - [ACTA_APERTURA_PILOTO_CONTROLADO_001.md](./ACTA_APERTURA_PILOTO_CONTROLADO_001.md)
@@ -55,7 +56,7 @@ Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`
 
 - Panel Administrativo, pendiente de ampliacion visual y casos negativos complementarios.
 - Panel de Cocina, pendiente de ampliacion funcional y casos operativos complementarios.
-- Panel de Repartidores.
+- Panel de Repartidores, pendiente de ampliacion visual y casos negativos complementarios.
 - Aplicacion Nelly Driver.
 - Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.
 - Modulos de monitoreo, metricas y operacion.
