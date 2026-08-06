@@ -3894,6 +3894,10 @@
                             <div class="operation-focus__section">
                                 <span class="operation-focus__section-label">Cliente y dirección</span>
                                 <div class="operation-focus__identity">
+                                    <span class="operation-focus__identity-icon">🏪</span>
+                                    <div class="operation-focus__identity-copy"><strong>${escapeHtmlOperacion(comercio)}</strong></div>
+                                </div>
+                                <div class="operation-focus__identity">
                                     <span class="operation-focus__identity-icon">♙</span>
                                     <div class="operation-focus__identity-copy"><strong>${escapeHtmlOperacion(nombre)}</strong></div>
                                 </div>
@@ -3995,6 +3999,13 @@
                 const cliente = String(pedido?.cliente_nombre || pedido?.cliente || 'Cliente').trim();
                 const telefono = String(pedido?.telefono || pedido?.phone || pedido?.contacto || 'No disponible').trim();
                 const direccion = String(pedido?.direccion || pedido?.ubicacion || 'Dirección no disponible').trim();
+                const comercio = String(
+                    pedido?.comercio_nombre
+                    || pedido?.nombre_comercial
+                    || pedido?.tienda_nombre
+                    || pedido?.restaurante_nombre
+                    || 'Comercio no disponible'
+                ).trim();
                 const notas = String(pedido?.notas || pedido?.nota || pedido?.referencia || pedido?.observaciones || 'Sin notas').trim();
                 const totalNumero = Number(pedido?.monto || pedido?.total || pedido?.monto_total || 0);
                 const total = Number.isFinite(totalNumero) ? totalNumero : 0;
@@ -4038,6 +4049,7 @@
                     cliente,
                     telefono,
                     direccion,
+                    comercio,
                     notas,
                     total,
                     productos,
