@@ -1,8 +1,8 @@
-# G4 - Panel de Repartidores
+# G4 - Flujo de asignacion de repartidores (cliente provisional)
 
 ## Objetivo
 
-Certificar que el Panel de Repartidores consume correctamente el pool de pedidos, permite la aceptacion operativa, mantiene el pedido activo del conductor y respeta la cadena `LISTO -> EN_CURSO -> ENTREGADO` sin duplicidades ni estados inventados.
+Certificar temporalmente el backend y la logica de asignacion de repartidores mediante un cliente provisional, validando que el flujo `LISTO -> EN_CURSO -> ENTREGADO` se cumple sin duplicidades ni estados inventados.
 
 ## Baseline de referencia
 
@@ -11,17 +11,18 @@ Certificar que el Panel de Repartidores consume correctamente el pool de pedidos
 - `G2_E2E_PANEL_ADMINISTRATIVO` aprobado
 - `G3_PANEL_DE_COCINA` aprobado
 - `market_v1/restaurantes` como fuente oficial de comercios
+- `Nelly Driver` como cliente operativo definitivo para la siguiente etapa
 
 ## Alcance
 
-Este gate valida exclusivamente:
+Este gate valida exclusivamente el flujo temporal de asignacion mediante el cliente provisional:
 
 - carga de pedidos disponibles para reparto;
 - visualizacion correcta de folio, comercio, cliente y estado operativo;
 - aceptacion de un pedido por un repartidor elegible;
 - creacion de `repartidores/{uid}/pedido_activo`;
 - movimiento a `pedidos_en_camino`;
-- coherencia visual del panel de repartidores y/o vista logistica;
+- coherencia visual del cliente provisional y/o vista logistica;
 - manejo basico de errores y pedidos no disponibles.
 
 ## Campos y comportamientos a certificar
@@ -99,7 +100,7 @@ El `G4` solo se aprueba si:
 - el pedido aparece en `pedidos_en_camino`;
 - `repartidores/{uid}/pedido_activo` queda asignado;
 - no hay fallbacks sintenticos ni duplicidades visibles;
-- la vista de repartidores mantiene el contrato intacto.
+- el cliente provisional mantiene el contrato intacto.
 
 ## Criterio de rechazo
 
@@ -127,6 +128,12 @@ El gate se rechaza si aparece cualquiera de estos casos:
 
 **Estado del gate G4:** `PASS funcional`
 
+## Clasificacion operativa
+
+- Cliente oficial de reparto: `Nelly Driver`
+- Cliente provisional de certificacion: `Panel de Repartidores`
+- Uso posterior al cierre de G5: `Soporte / diagnostico`
+
 ## Evidencia de cierre
 
 - Pedido validado: `P1_1784843558599_5`
@@ -142,7 +149,7 @@ El gate se rechaza si aparece cualquiera de estos casos:
 
 ## Siguiente paso
 
-Ejecutar una corrida controlada de reparto sobre un pedido listo y documentar el resultado.
+Abrir `G5 - Nelly Driver` como cliente operativo definitivo y dejar el cliente provisional restringido a soporte y diagnostico.
 
 ## Referencias
 

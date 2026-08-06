@@ -25,15 +25,16 @@ Certificar modulo por modulo el ecosistema Nelly a partir del baseline funcional
 - Estado: `PASS funcional`
 - Resultado: `MARCAR LISTO` publica el pedido en `pedidos_para_reparto` y la vista pasa a `ESPERANDO REPARTIDOR`.
 
-### G4 - Panel de Repartidores
+### G4 - Flujo de asignacion de repartidores (cliente provisional)
 
-- Objetivo: certificar asignacion, aceptacion, navegacion y cierre operativo.
+- Objetivo: certificar temporalmente el backend y la logica de asignacion mediante un cliente provisional.
 - Estado: `PASS funcional`
 - Resultado: el pedido `P1_1784843558599_5` paso de `LISTO` a `EN_CURSO`, se creo `pedidos_en_camino/{pedidoId}` y `repartidores/{uid}/pedido_activo`, y se limpio `pedidos_para_reparto/{pedidoId}`.
+- Clasificacion: cliente operativo oficial `Nelly Driver`; cliente provisional `Panel de Repartidores` restringido a soporte y diagnostico tras G5.
 
 ### G5 - Nelly Driver
 
-- Objetivo: certificar la aplicacion Android en operacion real.
+- Objetivo: certificar la aplicacion Android como cliente operativo definitivo de repartidores.
 - Estado: `PENDIENTE`
 - Resultado esperado: consumo correcto del flujo, estados y acciones del repartidor.
 

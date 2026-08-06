@@ -56,8 +56,8 @@ Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`
 
 - Panel Administrativo, pendiente de ampliacion visual y casos negativos complementarios.
 - Panel de Cocina, pendiente de ampliacion funcional y casos operativos complementarios.
-- Panel de Repartidores, pendiente de ampliacion visual y casos negativos complementarios.
-- Aplicacion Nelly Driver.
+- Cliente provisional de asignacion (Panel de Repartidores), restringido a soporte y diagnostico tras G5.
+- Aplicacion Nelly Driver, cliente operativo definitivo de repartidores.
 - Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.
 - Modulos de monitoreo, metricas y operacion.
 - Integracion operativa completa entre todos los paneles.
