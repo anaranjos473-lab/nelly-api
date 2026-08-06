@@ -866,16 +866,7 @@ function renderManualCommerceOptions(restaurantes = []) {
     ? restaurantes.slice().sort((a, b) => Number(b?.creado_en || 0) - Number(a?.creado_en || 0))
     : [];
   const activeRestaurants = restaurantsSorted.filter((restaurant) => String(restaurant?.estado || '').trim().toLowerCase() === 'activo');
-  const syntheticFallback = {
-    id: 'pizzeria-mia',
-    nombre_comercial: 'PIZZERIA MIA',
-    estado: 'Activo',
-    codigo_comercio: 'PIZZERIA-MIA',
-    creado_en: Date.now(),
-    updated_at: Date.now(),
-    __synthetic: true
-  };
-  const targetRestaurants = activeRestaurants.length > 0 ? activeRestaurants : [syntheticFallback];
+  const targetRestaurants = activeRestaurants;
   manualCommerceOptions = targetRestaurants.map((restaurant, index) => buildManualCommerceOption(restaurant, index));
 
   if (activeRestaurants.length === 1) {
@@ -894,23 +885,23 @@ function renderManualCommerceOptions(restaurantes = []) {
 
   if (manualCommerceOptions.length > 0) {
     ui.orderCommerce.innerHTML = [
-      '<option value="">Comercio semilla PIZZERIA MIA</option>',
+      '<option value="">Selecciona un comercio activo</option>',
       ...manualCommerceOptions.map((option) => `<option value="${escapeHtml(option.commerceId)}">${escapeHtml(option.label)}</option>`)
     ].join('');
     if (ui.orderCommerceHint) {
-      ui.orderCommerceHint.textContent = 'Se usara PIZZERIA MIA como comercio semilla mientras no exista un comercio activo unico.';
-      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-emerald-200';
+      ui.orderCommerceHint.textContent = 'Selecciona un comercio activo para crear pedidos manuales.';
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-amber-200';
     }
   } else {
-    ui.orderCommerce.innerHTML = '<option value="pizzeria-mia" selected>PIZZERIA MIA (PIZZERIA-MIA)</option>';
+    ui.orderCommerce.innerHTML = '<option value="" selected>No hay comercios activos</option>';
     currentManualCommerce = {
-      comercio_id: 'pizzeria-mia',
-      comercio_codigo: 'PIZZERIA-MIA',
-      comercio_nombre: 'PIZZERIA MIA'
+      comercio_id: 'global',
+      comercio_codigo: 'GLOBAL',
+      comercio_nombre: 'GLOBAL'
     };
     if (ui.orderCommerceHint) {
-      ui.orderCommerceHint.textContent = 'Comercio semilla PIZZERIA MIA listo para crear pedidos manuales.';
-      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-emerald-200';
+      ui.orderCommerceHint.textContent = 'No se puede crear el pedido hasta que exista un comercio activo unico.';
+      ui.orderCommerceHint.className = 'gov-feedback gov-span-2 mt-2 text-red-200';
     }
     return;
   }
