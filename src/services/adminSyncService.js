@@ -181,7 +181,8 @@ function buildAdminOrderPayload({
   costo_envio,
   propina,
   total,
-  pago
+  pago,
+  shortId = null
 }) {
   const canonical = buildCanonicalOrder({
     id: pedidoId,
@@ -200,8 +201,8 @@ function buildAdminOrderPayload({
     id: pedidoId,
     pedido_id: pedidoId,
     id_pedido: pedidoId,
-    shortId: null,
-    folio: null,
+    shortId: String(shortId || '').trim() || null,
+    folio: String(shortId || '').trim() || null,
     cliente_nombre: String(cliente_nombre).trim(),
     cliente: String(cliente_nombre).trim(),
     telefono: String(telefono).trim(),
@@ -261,6 +262,7 @@ function buildPersistedAdminOrderRecord({
   const payload = buildAdminOrderPayload({
     pedidoId,
     timestamp,
+    shortId,
     ...normalizedRequest
   });
 

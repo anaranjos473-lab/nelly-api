@@ -49,6 +49,24 @@ Esta acta cubre:
 - `estado final`: `ENTREGADO`
 - `conductorId`: `9XPSCLkFUWeZnxWoFgZEf0uzkTe2`
 
+### Recertificacion Gate E2E-001
+
+- `pedidoId`: `PED_1786053513809`
+- `shortId`: `PIZZERIA-MIA-20260806-005`
+- `folio`: `PIZZERIA-MIA-20260806-005`
+- `comercio_nombre`: `PIZZERIA MIA`
+- `estado final`: `ENTREGADO`
+- `conductorId`: `8mo8182LJsgV7vKMSpiCekFKAG23`
+- `resultado`: `PASS`
+
+La corrida E2E validada en el Gate confirmo:
+
+- creacion con contrato completo;
+- despacho a `LISTO`;
+- aceptacion en `EN_CURSO`;
+- entrega a `ENTREGADO`;
+- preservacion de `comercio_id`, `comercio_codigo`, `comercio_nombre`, `descripcion`, `notas`, `shortId` y `folio`.
+
 ### Resultado de la corrida
 
 - `POST /api/admin/pedidos` -> `201 Created`

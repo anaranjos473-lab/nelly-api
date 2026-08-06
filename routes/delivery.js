@@ -349,6 +349,9 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     const lockRef = db.ref(`accept_locks/${pedidoId}`);
     const lockResult = await lockRef.transaction((current) => {
       if (current) {
+        if (current.uid === uid) {
+          return current;
+        }
         return;
       }
       return {
@@ -358,7 +361,10 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
     });
 
     if (!lockResult.committed) {
-      return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+      const existingLock = lockResult.snapshot?.val?.() || lockResult.snapshot?.val || null;
+      if (!existingLock || existingLock.uid !== uid) {
+        return res.status(409).json({ ok: false, error: 'El pedido ya fue tomado por otro repartidor' });
+      }
     }
 
     const currentSnap = await pedidoRef.once('value');
@@ -386,14 +392,6 @@ router.post('/accept-order', requireFirebaseUser, async (req, res, next) => {
 
     const acceptedAt = Date.now();
     const payload = buildAcceptedOrderPayload(currentPedido, uid, acceptedAt);
-    console.log('[TRACE_ACCEPT_ORDER]', {
-      pedidoId,
-      uid,
-      estado_anterior: estadoActual,
-      estado_nuevo: payload.estado,
-      timestamp: acceptedAt,
-      traceId: traceId || null
-    });
     await db.ref().update({
       ...buildAcceptSyncWrites(pedidoId, uid, payload),
       [`accept_locks/${pedidoId}`]: null
