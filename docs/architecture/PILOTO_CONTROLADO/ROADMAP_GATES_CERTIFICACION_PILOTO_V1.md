@@ -32,10 +32,16 @@ Certificar modulo por modulo el ecosistema Nelly a partir del baseline funcional
 - Resultado: el pedido `P1_1784843558599_5` paso de `LISTO` a `EN_CURSO`, se creo `pedidos_en_camino/{pedidoId}` y `repartidores/{uid}/pedido_activo`, y se limpio `pedidos_para_reparto/{pedidoId}`.
 - Clasificacion: cliente operativo oficial `Nelly Driver`; cliente provisional `Panel de Repartidores` restringido a soporte y diagnostico tras G5.
 
+### G5-P0 - Preparacion del ambiente Android
+
+- Objetivo: verificar que el ambiente de certificacion de `Nelly Driver` esta limpio antes de iniciar G5.
+- Estado: `OPEN`
+- Resultado esperado: conductor de prueba limpio, sin `pedido_activo` ni misiones residuales, GPS y Storage disponibles, y RTDB sin referencias operativas de pruebas anteriores.
+
 ### G5 - Nelly Driver
 
 - Objetivo: certificar la aplicacion Android como cliente operativo definitivo de repartidores.
-- Estado: `OPEN`
+- Estado: `BLOCKED until G5-P0 PASS`
 - Resultado esperado: consumo correcto del flujo, estados y acciones del repartidor.
 
 ### G6 - Dashboard Comercial

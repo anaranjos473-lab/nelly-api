@@ -39,6 +39,9 @@ Expediente operativo del piloto controlado de Nelly.
 - [CHECKLIST_G4_PANEL_DE_REPARTIDORES.md](./CHECKLIST_G4_PANEL_DE_REPARTIDORES.md)
 - [PLANTILLA_CIERRE_G4_PANEL_DE_REPARTIDORES.md](./PLANTILLA_CIERRE_G4_PANEL_DE_REPARTIDORES.md)
 - [G4_PANEL_DE_REPARTIDORES_EVIDENCIA.md](./G4_PANEL_DE_REPARTIDORES_EVIDENCIA.md)
+- [G5_P0_PREPARACION_AMBIENTE_ANDROID.md](./G5_P0_PREPARACION_AMBIENTE_ANDROID.md)
+- [CHECKLIST_G5_P0_PREPARACION_AMBIENTE_ANDROID.md](./CHECKLIST_G5_P0_PREPARACION_AMBIENTE_ANDROID.md)
+- [PLANTILLA_CIERRE_G5_P0_PREPARACION_AMBIENTE_ANDROID.md](./PLANTILLA_CIERRE_G5_P0_PREPARACION_AMBIENTE_ANDROID.md)
 - [G5_NELLY_DRIVER.md](./G5_NELLY_DRIVER.md)
 - [CHECKLIST_G5_NELLY_DRIVER.md](./CHECKLIST_G5_NELLY_DRIVER.md)
 - [PLANTILLA_CIERRE_G5_NELLY_DRIVER.md](./PLANTILLA_CIERRE_G5_NELLY_DRIVER.md)
@@ -60,6 +63,7 @@ Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`
 - Panel Administrativo, pendiente de ampliacion visual y casos negativos complementarios.
 - Panel de Cocina, pendiente de ampliacion funcional y casos operativos complementarios.
 - Cliente provisional de asignacion (Panel de Repartidores), restringido a soporte y diagnostico tras G5.
+- Preparacion del ambiente Android para G5.
 - Aplicacion Nelly Driver, cliente operativo definitivo de repartidores.
 - Dashboard Comercial, incluyendo CRM e Inteligencia Comercial.
 - Modulos de monitoreo, metricas y operacion.
