@@ -35,7 +35,7 @@ Certificar modulo por modulo el ecosistema Nelly a partir del baseline funcional
 ### G5 - Nelly Driver
 
 - Objetivo: certificar la aplicacion Android como cliente operativo definitivo de repartidores.
-- Estado: `PENDIENTE`
+- Estado: `OPEN`
 - Resultado esperado: consumo correcto del flujo, estados y acciones del repartidor.
 
 ### G6 - Dashboard Comercial
