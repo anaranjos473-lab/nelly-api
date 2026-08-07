@@ -15,6 +15,16 @@
 
 Escribir aqui el resultado final de la corrida funcional de `Nelly Driver`.
 
+## Clasificacion de bloques
+
+- `Bloque A`:
+- `Bloque B`:
+- `Bloque C`:
+- `Bloque D`:
+- `Bloque E`:
+- `Bloque F`:
+- `Bloque G`:
+
 ## Evidencia
 
 - Captura inicial:
@@ -26,12 +36,6 @@ Escribir aqui el resultado final de la corrida funcional de `Nelly Driver`.
 
 ## Resultado
 
-- `Bloque A`:
-- `Bloque B`:
-- `Bloque C`:
-- `Bloque D`:
-- `Bloque E`:
-- `Bloque F`:
 - `Estado final`:
 
 ## Observaciones

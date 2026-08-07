@@ -6,15 +6,16 @@ Certificar `Nelly Driver` como cliente operativo definitivo de repartidores.
 
 ## Lista de campo
 
-- [ ] La app abre correctamente.
-- [ ] El repartidor ve pedidos elegibles.
+- [ ] Inicio de sesion correcto.
+- [ ] Perfil del repartidor cargado.
+- [ ] Radar muestra pedidos validos.
 - [ ] El pedido correcto muestra comercio, folio y cliente reales.
-- [ ] La aceptacion cambia el pedido a `EN_CURSO`.
-- [ ] `pedido_activo` queda asignado al conductor.
+- [ ] Aceptacion cambia el pedido a `EN_CURSO`.
+- [ ] `pedido_activo` queda asignado.
 - [ ] `pedidos_en_camino` refleja la transicion.
 - [ ] La ubicacion se actualiza sin romper el estado.
-- [ ] La entrega libera el pedido correctamente.
-- [ ] No aparecen duplicidades ni fallbacks sintenticos.
+- [ ] La entrega limpia `pedido_activo` y conserva el historial.
+- [ ] No hay duplicidades ni fallbacks sintenticos.
 
 ## Evidencia minima
 
@@ -25,6 +26,16 @@ Certificar `Nelly Driver` como cliente operativo definitivo de repartidores.
 - `pedidos_en_camino`;
 - `requestId`;
 - `traceId`.
+
+## Bloques de certificacion
+
+- [ ] Bloque A - Inicio de operacion
+- [ ] Bloque B - Radar
+- [ ] Bloque C - Aceptacion
+- [ ] Bloque D - Pedido activo
+- [ ] Bloque E - Evidencia
+- [ ] Bloque F - GPS
+- [ ] Bloque G - Entrega
 
 ## Criterio
 
