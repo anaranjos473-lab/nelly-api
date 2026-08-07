@@ -15,15 +15,15 @@ Certificar la aplicacion Android `Nelly Driver` como cliente operativo definitiv
 
 ## Alcance
 
-Este gate valida exclusivamente `Nelly Driver` como cliente oficial de reparto:
+Este gate valida exclusivamente `Nelly Driver` como cliente oficial de reparto, organizado por capacidades operativas:
 
-- carga de pedidos disponibles;
-- visualizacion del pedido correcto;
-- aceptacion de un pedido elegible;
-- sincronizacion de estado con backend;
-- actualizacion de ubicacion;
-- cierre operativo correcto;
-- manejo basico de errores y reintentos.
+- inicio de operacion;
+- radar de pedidos;
+- aceptacion;
+- pedido activo;
+- evidencia;
+- GPS;
+- entrega y cierre.
 
 ## Campos y comportamientos a certificar
 
@@ -43,53 +43,76 @@ Este gate valida exclusivamente `Nelly Driver` como cliente oficial de reparto:
 - `pedido_activo`
 - `pedidos_en_camino`
 
-## Secuencia obligatoria
+## Bloques de certificacion
 
-### 1. Carga inicial
-
-Verificar que la app muestra pedidos elegibles y el estado real del conductor.
-
-### 2. Visualizacion
-
-Confirmar que el pedido muestra:
-
-- comercio real;
-- cliente;
-- folio;
-- estado disponible para aceptar;
-- sin datos sinteticos.
-
-### 3. Aceptacion
-
-Ejecutar la aceptacion de un pedido elegible.
+### Bloque A - Inicio de operacion
 
 Validar:
 
-- el pedido cambia a `EN_CURSO`;
-- `pedido_activo` se crea para el conductor;
-- `pedidos_en_camino/{pedidoId}` se mantiene o se crea segun corresponda;
-- `pedidos_para_reparto/{pedidoId}` queda limpio;
-- no se pierde el contrato.
+- inicio de sesion correcto;
+- identidad del repartidor validada;
+- perfil cargado;
+- estado `Disponible` funciona.
 
-### 4. Ubicacion y seguimiento
+### Bloque B - Radar
 
-Probar al menos:
+Validar:
 
-- actualizacion de ubicacion;
-- continuidad de estado;
-- reintento de red;
-- salida y reingreso a la app.
+- aparecen pedidos disponibles;
+- solo aparecen pedidos validos;
+- desaparecen cuando otro conductor los acepta;
+- no existen duplicados;
+- actualizacion en tiempo real.
 
-### 5. Cierre
+### Bloque C - Aceptacion
 
-Completar la entrega y validar:
+Validar:
 
-- `ENTREGADO`;
-- liberacion de `pedido_activo`;
-- contrato intacto;
-- no duplicidades.
+- `Radar -> Aceptar -> Backend -> Accept Order -> pedido_activo`;
+- bloqueo atomico;
+- un unico ganador;
+- limpieza del radar.
 
-### 6. Evidencia
+### Bloque D - Pedido activo
+
+Validar:
+
+- informacion del comercio;
+- informacion del cliente;
+- notas;
+- navegacion;
+- llamada;
+- WhatsApp, si aplica;
+- mapa.
+
+### Bloque E - Evidencia
+
+Validar:
+
+- fotografia;
+- reglas de Storage;
+- limite de tamano;
+- asociacion correcta al pedido.
+
+### Bloque F - GPS
+
+Validar:
+
+- envio periodico;
+- actualizacion en RTDB;
+- visualizacion en panel.
+
+### Bloque G - Entrega
+
+Validar:
+
+- `EN_CURSO -> ENTREGADO`;
+- limpieza de `pedido_activo`;
+- limpieza de `pedidos_en_camino`;
+- actualizacion financiera;
+- persistencia en historico.
+
+### Evidencia
 
 Registrar:
 
@@ -105,14 +128,25 @@ Registrar:
 
 El `G5` solo se aprueba si:
 
-- la app carga correctamente;
-- los pedidos mostrados corresponden al contrato real;
-- la aceptacion funciona una sola vez para un pedido elegible;
-- el pedido aparece en `pedidos_en_camino`;
-- `pedido_activo` queda asignado;
-- la ubicacion se sincroniza sin romper el estado;
-- el cierre libera correctamente el pedido;
-- no hay fallbacks sintenticos ni duplicidades visibles.
+- todos los bloques `A` a `G` estan en `PASS`;
+- la app no depende del Panel de Repartidores para operar;
+- no hay fallbacks temporales;
+- no hay intervencion manual del backend;
+- la app se recupera correctamente tras reinicio;
+- existe evidencia documentada para cada bloque;
+- no hay regresiones sobre `G1`, `G2`, `G3` ni `G4`.
+
+## Criterios de salida
+
+La aplicacion solo puede declararse cliente operativo oficial cuando:
+
+- todos los bloques `A` a `G` estan en `PASS`;
+- opera sin el Panel de Repartidores como dependencia funcional;
+- no hay fallbacks temporales;
+- no requiere intervencion manual del backend;
+- recupera correctamente su estado tras reinicio o perdida de conexion;
+- existe evidencia documentada para cada bloque;
+- no introduce regresiones sobre `G1`, `G2`, `G3` o `G4`.
 
 ## Criterio de rechazo
 
