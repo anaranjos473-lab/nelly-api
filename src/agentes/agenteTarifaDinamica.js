@@ -7,6 +7,7 @@ import { getOrderState } from '../services/ordersManager.js';
 
 // Ciclo de evaluación (Ej. cada 3 minutos = 180000 ms)
 const INTERVALO_EVALUACION = 180000; 
+const RUTA_CONFIGURACION_SISTEMA = 'configuracion/sistema';
 
 const evaluarMercado = async () => {
     try {
@@ -55,8 +56,22 @@ const evaluarMercado = async () => {
             }
         }
 
-        // 4. Actualizar la configuración global en RTDB
-        await rtdb.ref('configuracion/sistema').update({
+        // 4. Actualizar la configuración global en RTDB solo si cambió el estado relevante
+        const configRef = rtdb.ref(RUTA_CONFIGURACION_SISTEMA);
+        const configSnapshot = await configRef.once('value');
+        const configActual = configSnapshot.val() || {};
+        const multiplicadorActual = Number(configActual.multiplicadorTarifa);
+        const estadoDemandaActual = String(configActual.estadoDemanda || '');
+        const multiplicadorCoincide = Number.isFinite(multiplicadorActual)
+            && multiplicadorActual === nuevoMultiplicador;
+        const demandaCoincide = estadoDemandaActual === nivelDemanda;
+
+        if (multiplicadorCoincide && demandaCoincide) {
+            console.log(`ℹ️ [Mercado] Sin cambios operativos, se omite escritura en ${RUTA_CONFIGURACION_SISTEMA}.`);
+            return;
+        }
+
+        await configRef.update({
             multiplicadorTarifa: nuevoMultiplicador,
             estadoDemanda: nivelDemanda,
             ultimaActualizacion: new Date().toISOString()
