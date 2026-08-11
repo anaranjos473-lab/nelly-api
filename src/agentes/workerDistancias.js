@@ -16,7 +16,12 @@ const encontrarMejorConductor = (origen, conductores) => {
 	let mejor = null;
 	let minD = Infinity;
 
-	for (const [id, datos] of Object.entries(conductores)) {
+	const entries = Array.isArray(conductores)
+		? conductores.map((driver) => [driver?.id, driver]).filter(([id, datos]) => Boolean(id) && datos)
+		: Object.entries(conductores || {});
+
+	for (const [id, datos] of entries) {
+		if (!id || !datos) continue;
 		if (datos.estado !== FULFILLMENT_NODE_STATES.DISPONIBLE) continue;
 		const d = calcularDistancia(origen.lat, origen.lng, datos.lat, datos.lng);
 		if (d < minD && d <= 5.0) { // Radio de 5km en Tuxtla
@@ -28,8 +33,8 @@ const encontrarMejorConductor = (origen, conductores) => {
 };
 
 if (parentPort && workerData) {
-	const { origen, conductores } = workerData;
-	parentPort.postMessage(encontrarMejorConductor(origen, conductores));
+	const { origen, conductores, driversSnapshot } = workerData;
+	parentPort.postMessage(encontrarMejorConductor(origen, driversSnapshot || conductores || {}));
 }
 
 export {
