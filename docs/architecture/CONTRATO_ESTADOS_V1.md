@@ -15,8 +15,7 @@ Los nodos `pedidos_para_reparto`, `pedidos_en_camino`, `pedidos_asignados`, `ped
 ```text
 ADMIN -> PENDIENTE
 COCINA -> LISTO
-REPARTIDOR -> EN_CURSO
-REPARTIDOR -> ENTREGADO
+REPARTIDOR -> EN_CURSO -> LLEGUE_A_TIENDA -> PEDIDO_ABORDO -> LLEGUE_A_CLIENTE -> ENTREGADO
 ```
 
 `CANCELADO` puede cerrar el ciclo desde backend cuando aplique.
@@ -26,6 +25,9 @@ REPARTIDOR -> ENTREGADO
 - `PENDIENTE`
 - `LISTO`
 - `EN_CURSO`
+- `LLEGUE_A_TIENDA`
+- `PEDIDO_ABORDO`
+- `LLEGUE_A_CLIENTE`
 - `ENTREGADO`
 - `CANCELADO`
 
@@ -37,7 +39,10 @@ Los estados antiguos se aceptan solo como entrada heredada y deben traducirse:
 | --- | --- |
 | `PREPARANDO`, `COCINA` | `PENDIENTE` |
 | `PENDIENTE_ACEPTACION`, `LISTO_PARA_REPARTO`, `ESPERANDO_REPARTIDOR`, `DESPACHO` | `LISTO` |
-| `EN_CAMINO`, `EN_REPARTO`, `REPARTO`, `PEDIDO_ABORDO` | `EN_CURSO` |
+| `EN_CAMINO`, `EN_REPARTO`, `REPARTO` | `EN_CURSO` |
+| `LLEGUE_A_TIENDA` | `LLEGUE_A_TIENDA` |
+| `PEDIDO_ABORDO` | `PEDIDO_ABORDO` |
+| `LLEGUE_A_CLIENTE` | `LLEGUE_A_CLIENTE` |
 | `FINALIZADO` | `ENTREGADO` |
 
 ## Regla de ejecucion
@@ -49,5 +54,5 @@ El backend es el unico responsable de cambiar estados. Las apps leen `pedidos/{i
 El sistema pasa cuando completa tres ciclos consecutivos sin scripts ni manipulacion manual:
 
 ```text
-PENDIENTE -> LISTO -> EN_CURSO -> ENTREGADO
+PENDIENTE -> LISTO -> EN_CURSO -> LLEGUE_A_TIENDA -> PEDIDO_ABORDO -> LLEGUE_A_CLIENTE -> ENTREGADO
 ```

@@ -216,32 +216,87 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos.pedido_ok.repartidor_id).toBe('driver_ok');
   });
 
-  it('rechaza subestado enriquecido fuera del contrato logistico oficial', async () => {
+  it('acepta llegada a tienda como parte del contrato logistico enriquecido', async () => {
     state.repartidores.driver_ok.pedido_activo = 'pedido_transition';
     const res = await request(app)
       .post('/api/delivery/transition-order')
       .set('Authorization', 'Bearer driver-token')
       .send({ pedidoId: 'pedido_transition', estado: 'LLEGUE_A_TIENDA' });
 
-    expect(res.statusCode).toBe(409);
-    expect(res.body.estadoActual).toBe('EN_CURSO');
-    expect(res.body.estadoSiguiente).toBe('LLEGUE_A_TIENDA');
-    expect(state.pedidos.pedido_transition.estado).toBe('EN_CURSO');
-    expect(state.pedidos_en_camino.pedido_transition.estado).toBe('EN_CURSO');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.estadoAnterior).toBe('EN_CURSO');
+    expect(res.body.estado).toBe('LLEGUE_A_TIENDA');
+    expect(state.pedidos.pedido_transition.estado).toBe('LLEGUE_A_TIENDA');
+    expect(state.pedidos.pedido_transition.estado_pedido).toBe('LLEGUE_A_TIENDA');
+    expect(state.pedidos.pedido_transition.logistica.estado).toBe('LLEGUE_A_TIENDA');
+    expect(state.pedidos_en_camino.pedido_transition.estado).toBe('LLEGUE_A_TIENDA');
   });
 
-  it('rechaza llegada a cliente fuera del contrato logistico oficial', async () => {
+  it('acepta pedido abordo despues de llegada a tienda', async () => {
+    state.repartidores.driver_ok.pedido_activo = 'pedido_transition';
+    state.pedidos.pedido_transition = {
+      id_pedido: 'pedido_transition',
+      estado: 'LLEGUE_A_TIENDA',
+      estado_pedido: 'LLEGUE_A_TIENDA',
+      monto_total: 120,
+      repartidor_id: 'driver_ok',
+      conductorId: 'driver_ok'
+    };
+    state.pedidos_en_camino.pedido_transition = { ...state.pedidos.pedido_transition };
+
+    const res = await request(app)
+      .post('/api/delivery/transition-order')
+      .set('Authorization', 'Bearer driver-token')
+      .send({ pedidoId: 'pedido_transition', estado: 'PEDIDO_ABORDO' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.estadoAnterior).toBe('LLEGUE_A_TIENDA');
+    expect(res.body.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_transition.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_transition.estado_pedido).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos.pedido_transition.logistica.estado).toBe('PEDIDO_ABORDO');
+    expect(state.pedidos_en_camino.pedido_transition.estado).toBe('PEDIDO_ABORDO');
+  });
+
+  it('acepta llegada a cliente desde pedido abordo como cierre del tramo logistico', async () => {
+    state.repartidores.driver_ok.pedido_activo = 'pedido_transition';
+    state.pedidos.pedido_transition = {
+      id_pedido: 'pedido_transition',
+      estado: 'PEDIDO_ABORDO',
+      estado_pedido: 'PEDIDO_ABORDO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok',
+      conductorId: 'driver_ok'
+    };
+    state.pedidos_en_camino.pedido_transition = { ...state.pedidos.pedido_transition };
+
     const res = await request(app)
       .post('/api/delivery/transition-order')
       .set('Authorization', 'Bearer driver-token')
       .send({ pedidoId: 'pedido_transition', estado: 'LLEGUE_A_CLIENTE' });
 
-    expect(res.statusCode).toBe(409);
-    expect(res.body.estadoActual).toBe('EN_CURSO');
-    expect(state.pedidos.pedido_transition.estado).toBe('EN_CURSO');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.estadoAnterior).toBe('PEDIDO_ABORDO');
+    expect(res.body.estado).toBe('LLEGUE_A_CLIENTE');
+    expect(state.pedidos.pedido_transition.estado).toBe('LLEGUE_A_CLIENTE');
+    expect(state.pedidos.pedido_transition.estado_pedido).toBe('LLEGUE_A_CLIENTE');
+    expect(state.pedidos.pedido_transition.logistica.estado).toBe('LLEGUE_A_CLIENTE');
   });
 
   it('reconcilia de forma idempotente el indice de una transicion ya aplicada', async () => {
+    state.repartidores.driver_ok.pedido_activo = 'pedido_transition';
+    state.pedidos.pedido_transition = {
+      id_pedido: 'pedido_transition',
+      estado: 'EN_CURSO',
+      estado_pedido: 'EN_CURSO',
+      monto_total: 120,
+      repartidor_id: 'driver_ok',
+      conductorId: 'driver_ok'
+    };
+    state.pedidos_en_camino.pedido_transition = { ...state.pedidos.pedido_transition };
     state.pedidos_en_camino.pedido_transition.estado = 'EN_CURSO';
     const res = await request(app)
       .post('/api/delivery/transition-order')
