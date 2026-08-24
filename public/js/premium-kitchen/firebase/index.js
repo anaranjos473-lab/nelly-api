@@ -40,7 +40,8 @@ function makeUser(email, password, token) {
     email,
     password,
     async getIdToken() {
-      return token || createPanelToken(email);
+      const customToken = await createPanelToken(email);
+      return exchangeCustomTokenForIdToken(customToken);
     }
   };
 }
@@ -54,6 +55,28 @@ async function createPanelToken(email) {
     throw new Error(errorMessage(payload?.error, `HTTP ${response.status}`));
   }
   return payload.token;
+}
+
+async function exchangeCustomTokenForIdToken(customToken) {
+  if (!FIREBASE_WEB_API_KEY) {
+    return customToken;
+  }
+
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${FIREBASE_WEB_API_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      token: customToken,
+      returnSecureToken: true
+    })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload?.idToken) {
+    throw new Error(errorMessage(payload?.error, `HTTP ${response.status}`));
+  }
+  return payload.idToken;
 }
 
 export async function signInWithEmailAndPassword(_auth, email, password) {
@@ -77,7 +100,7 @@ export async function signInWithCustomToken(_auth, token) {
   currentUser = {
     token,
     async getIdToken() {
-      return token;
+      return exchangeCustomTokenForIdToken(token);
     }
   };
 
