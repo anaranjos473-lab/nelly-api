@@ -5161,13 +5161,8 @@
                 return limpio.slice(0, 24) || 'COMERCIO';
             }
 
-            function formatearShortIdDiario(pedido = {}, indice = 1) {
-                const timestamp = getPedidoTimestampLocal(pedido);
-                const fecha = new Date(timestamp);
-                const yyyy = String(fecha.getUTCFullYear());
-                const mm = String(fecha.getUTCMonth() + 1).padStart(2, '0');
-                const dd = String(fecha.getUTCDate()).padStart(2, '0');
-                const comercio = normalizarCodigoComercioVisible(
+            function obtenerCodigoComercioFolio(pedido = {}) {
+                return normalizarCodigoComercioVisible(
                     pedido.comercio_id
                     || pedido.comercio_codigo
                     || pedido.comercio_nombre
@@ -5175,20 +5170,119 @@
                     || pedido.comercio
                     || 'COMERCIO'
                 );
-                const seq = String(Math.max(1, Number(indice) || 1)).padStart(3, '0');
-                return `${comercio}-${yyyy}${mm}${dd}-${seq}`;
+            }
+
+            function obtenerPartesFechaFolio(pedido = {}) {
+                const timestamp = getPedidoTimestampLocal(pedido);
+                const fecha = new Date(timestamp);
+                const yyyy = String(fecha.getUTCFullYear());
+                const yy = yyyy.slice(-2);
+                const mm = String(fecha.getUTCMonth() + 1).padStart(2, '0');
+                const dd = String(fecha.getUTCDate()).padStart(2, '0');
+                return {
+                    keyDia: `${yyyy}-${mm}-${dd}`,
+                    corto: `${yy}${mm}${dd}`,
+                    largo: `${yyyy}${mm}${dd}`
+                };
+            }
+
+            function formatearShortIdDiario(pedido = {}, indice = 1) {
+                const fecha = obtenerPartesFechaFolio(pedido);
+                const comercio = obtenerCodigoComercioFolio(pedido);
+                const seq = String(Math.max(1, Number(indice) || 1)).padStart(2, '0');
+                return `${comercio}-${fecha.corto}-${seq}`;
+            }
+
+            function extraerSecuenciaFolioDiario(pedido = {}, folio = '') {
+                const valor = String(folio || '').trim().toUpperCase();
+                const comercio = obtenerCodigoComercioFolio(pedido);
+                const prefix = `${comercio}-`;
+                if (!valor.startsWith(prefix)) {
+                    return null;
+                }
+                const partes = valor.slice(prefix.length).split('-');
+                if (partes.length !== 2) {
+                    return null;
+                }
+                const fecha = obtenerPartesFechaFolio(pedido);
+                const [fechaFolio, secuencia] = partes;
+                if (fechaFolio !== fecha.corto && fechaFolio !== fecha.largo) {
+                    return null;
+                }
+                if (!/^\d+$/.test(secuencia)) {
+                    return null;
+                }
+                return Number(secuencia);
+            }
+
+            function obtenerFoliosCandidatosPedido(pedido = {}) {
+                return [
+                    pedido.shortId,
+                    pedido.short_id,
+                    pedido.folio,
+                    pedido.folio_operativo,
+                    pedido.id_pedido,
+                    pedido.pedido_id,
+                    pedido.id
+                ].map((valor) => String(valor || '').trim()).filter(Boolean);
+            }
+
+            function obtenerFolioOperativoDeclarado(pedido = {}) {
+                const camposPreferidos = [
+                    pedido.shortId,
+                    pedido.short_id,
+                    pedido.folio,
+                    pedido.folio_operativo
+                ];
+                const declarado = camposPreferidos.map((valor) => String(valor || '').trim()).find(Boolean);
+                if (declarado) {
+                    return declarado;
+                }
+                return obtenerFoliosCandidatosPedido(pedido)
+                    .find((folio) => extraerSecuenciaFolioDiario(pedido, folio) !== null) || '';
+            }
+
+            function crearEstadoFoliosFallback(lista = []) {
+                const maximos = new Map();
+                lista.forEach((pedido) => {
+                    if (!pedido || typeof pedido !== 'object') {
+                        return;
+                    }
+                    const comercio = obtenerCodigoComercioFolio(pedido);
+                    const fecha = obtenerPartesFechaFolio(pedido);
+                    const key = `${comercio}|${fecha.keyDia}`;
+                    obtenerFoliosCandidatosPedido(pedido).forEach((folio) => {
+                        const secuencia = extraerSecuenciaFolioDiario(pedido, folio);
+                        if (secuencia !== null) {
+                            maximos.set(key, Math.max(maximos.get(key) || 0, secuencia));
+                        }
+                    });
+                });
+                return { maximos };
+            }
+
+            function asignarShortIdFallbackOperativo(pedido = {}, estadoFolios = crearEstadoFoliosFallback()) {
+                const declarado = obtenerFolioOperativoDeclarado(pedido);
+                const comercio = obtenerCodigoComercioFolio(pedido);
+                const fecha = obtenerPartesFechaFolio(pedido);
+                const key = `${comercio}|${fecha.keyDia}`;
+                if (declarado) {
+                    const secuenciaDeclarada = extraerSecuenciaFolioDiario(pedido, declarado);
+                    if (secuenciaDeclarada !== null) {
+                        estadoFolios.maximos.set(key, Math.max(estadoFolios.maximos.get(key) || 0, secuenciaDeclarada));
+                    }
+                    return declarado;
+                }
+                const siguiente = (estadoFolios.maximos.get(key) || 0) + 1;
+                estadoFolios.maximos.set(key, siguiente);
+                return formatearShortIdDiario(pedido, siguiente);
             }
 
             function asignarShortIdsDiarios(lista = []) {
-                const porDia = new Map();
+                const estadoFolios = crearEstadoFoliosFallback(lista);
                 return lista.map((pedido) => {
                     const copia = { ...pedido };
-                    const timestamp = getPedidoTimestampLocal(copia);
-                    const fecha = new Date(timestamp);
-                    const keyDia = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-                    const siguiente = (porDia.get(keyDia) || 0) + 1;
-                    porDia.set(keyDia, siguiente);
-                    copia.shortId = copia.shortId || formatearShortIdDiario(copia, siguiente);
+                    copia.shortId = asignarShortIdFallbackOperativo(copia, estadoFolios);
                     return copia;
                 });
             }
@@ -5501,6 +5595,15 @@
             const raiz = snapshot.val();
             const idsVisibles = [];
             const pedidosCrudos = [];
+            const estadoFoliosFallback = crearEstadoFoliosFallback(
+                raiz && typeof raiz === "object"
+                    ? Object.entries(raiz).map(([key, value]) => (
+                        value && typeof value === "object"
+                            ? { ...value, id: value.id || value.id_pedido || key }
+                            : value
+                    ))
+                    : []
+            );
             if (raiz && typeof raiz === "object") {
                 Object.entries(raiz).forEach(([key, value]) => {
                     if (!value || typeof value !== "object") {
@@ -5518,7 +5621,7 @@
                         _rtdbKey: key,
                         __source: "rtdb_pedidos"
                     };
-                    pedido.shortId = pedido.shortId || formatearShortIdDiario(pedido, idsVisibles.length + pedidosCrudos.length);
+                    pedido.shortId = asignarShortIdFallbackOperativo(pedido, estadoFoliosFallback);
                     pedidosCrudos.push(pedido);
 
                 if (fase === "COCINA") {
@@ -5587,6 +5690,7 @@
 
             const idsVisibles = [];
             const pedidosCrudos = [];
+            const estadoFoliosFallback = crearEstadoFoliosFallback(lista);
 
             lista.forEach((value, index) => {
                 if (!value || typeof value !== 'object') {
@@ -5604,7 +5708,7 @@
                     _rtdbKey: value._rtdbKey || pedidoId,
                     __source: 'contract_active_orders'
                 };
-                pedido.shortId = pedido.shortId || formatearShortIdDiario(pedido, idsVisibles.length + pedidosCrudos.length);
+                pedido.shortId = asignarShortIdFallbackOperativo(pedido, estadoFoliosFallback);
                 pedidosCrudos.push(pedido);
 
                 if (fase === 'COCINA') {
