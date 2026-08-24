@@ -3816,6 +3816,7 @@
                 window.__nellyPedidoEnfoqueData = pedido;
                 const vista = normalizarPedidoParaVista(pedido);
                 const nombre = vista.cliente;
+                const comercio = vista.comercio;
                 const direccion = vista.direccion;
                 const productos = vista.resumenProductos;
                 const cronometro = formatearTiempoOperacion(pedido);
@@ -4525,6 +4526,7 @@
         const restaurantConfig = getRestaurantConfig();
         const RENDER_DEBOUNCE_MS = kitchenConfig.render.debounceMs;
         const METRICAS_REFRESH_MS = kitchenConfig.metrics.refreshMs;
+        const ACTIVE_ORDERS_REFRESH_MS = 30000;
         let eficienciaMinimaPct = kitchenConfig.metrics.eficienciaMinimaPct;
         let alertaMinIntervalMs = kitchenConfig.alerts.minIntervalMs;
         let alertaMinEventos = kitchenConfig.alerts.minEventos;
@@ -4552,6 +4554,8 @@
             error: null
         };
         let archiveEngineActiveOrdersLoadPromise = null;
+        let archiveEngineActiveOrdersSignature = '';
+        let activeOrdersRefreshTimer = null;
         window.__nellyKitchenBootstrapDone = window.__nellyKitchenBootstrapDone === true;
         window.__nellyKitchenInitialFocusDone = window.__nellyKitchenInitialFocusDone === true;
         window.__nellyKitchenStateTrace = Array.isArray(window.__nellyKitchenStateTrace) ? window.__nellyKitchenStateTrace : [];
@@ -4561,6 +4565,39 @@
             return Array.isArray(lista)
                 ? lista.slice(0, 12).map((pedido) => String(pedido?.id || pedido?.id_pedido || pedido?.pedido_id || pedido?.shortId || '')).filter(Boolean)
                 : [];
+        }
+
+        function construirFirmaActiveOrders(pedidos = []) {
+            if (!Array.isArray(pedidos)) {
+                return '[]';
+            }
+            return JSON.stringify(pedidos);
+        }
+
+        function cocinaOperativaParaActiveOrdersRefresh() {
+            const jornadaActiva = localStorage.getItem('nelly-kitchen-jornada-activa');
+            const activa = jornadaActiva === null ? true : jornadaActiva === '1';
+            return activa && !kitchenState.sync.recepcionPausada;
+        }
+
+        function detenerActiveOrdersRefreshControlado() {
+            if (!activeOrdersRefreshTimer) {
+                return;
+            }
+            clearInterval(activeOrdersRefreshTimer);
+            activeOrdersRefreshTimer = null;
+        }
+
+        function iniciarActiveOrdersRefreshControlado() {
+            if (activeOrdersRefreshTimer) {
+                return;
+            }
+            activeOrdersRefreshTimer = setInterval(() => {
+                if (!cocinaOperativaParaActiveOrdersRefresh()) {
+                    return;
+                }
+                void cargarPedidosActivosDesdeContrato({ origen: 'active-orders-refresh' });
+            }, ACTIVE_ORDERS_REFRESH_MS);
         }
 
         function capturarFotoEstadoCocina(origen = 'desconocido', extra = {}) {
@@ -5667,10 +5704,12 @@
                     limpiarListeners();
                     listenersActivos.push(iniciarSincronizacion());
                 }
+                iniciarActiveOrdersRefreshControlado();
                 void window.cargarPedidosActivosDesdeContrato().then(() => {
                     solicitarRenderPanel('nae-active-orders');
                 });
             } else {
+                detenerActiveOrdersRefreshControlado();
                 limpiarListeners();
                 autenticarPanelConBackend();
             }
@@ -5760,7 +5799,7 @@
             return auth.currentUser.getIdToken();
         }
 
-        async function cargarPedidosActivosDesdeContrato() {
+        async function cargarPedidosActivosDesdeContrato(opciones = {}) {
             if (archiveEngineActiveOrdersLoadPromise) {
                 return archiveEngineActiveOrdersLoadPromise;
             }
@@ -5787,6 +5826,9 @@
                     historical_orders: Array.isArray(data?.historical_orders) ? data.historical_orders.length : 0
                 };
                 const activeOrders = Array.isArray(data?.active_orders) ? data.active_orders : [];
+                const firmaSiguiente = construirFirmaActiveOrders(activeOrders);
+                const snapshotCambio = firmaSiguiente !== archiveEngineActiveOrdersSignature;
+                archiveEngineActiveOrdersSignature = firmaSiguiente;
                 archiveEngineActiveOrdersCache = activeOrders.map((pedido) => ({ ...pedido, __source: 'archive_engine' }));
                 archiveEngineActiveOrdersMeta = {
                     source: 'archive-engine',
@@ -5808,9 +5850,18 @@
                 }
                 capturarFotoEstadoCocina('cargarPedidosActivosDesdeContrato:after-contract', {
                     contract_version: archiveEngineActiveOrdersMeta.contract_version,
-                    active_orders: archiveEngineActiveOrdersCache.length
+                    active_orders: archiveEngineActiveOrdersCache.length,
+                    changed: snapshotCambio
+                });
+                console.info('[COCINA] ACTIVE_ORDERS_REFRESH', {
+                    origen: opciones.origen || 'manual',
+                    count: archiveEngineActiveOrdersCache.length,
+                    changed: snapshotCambio
                 });
                 logDebug(`NAE activos cargados: ${archiveEngineActiveOrdersCache.length}`, 'ok');
+                if (!snapshotCambio) {
+                    return archiveEngineActiveOrdersCache;
+                }
                 sincronizarPedidosOperativosDesdeContrato(archiveEngineActiveOrdersCache, 'nae-active-orders');
                 return archiveEngineActiveOrdersCache;
             } catch (error) {
@@ -6046,10 +6097,10 @@
                 return;
             }
 
-            try {
-                const rtdbKey = pedido._rtdbKey || keyResuelta;
-                const estadoOriginal = pedido.estado || 'pendiente';
+            const rtdbKey = pedido._rtdbKey || keyResuelta;
+            const estadoOriginal = pedido.estado || 'pendiente';
 
+            try {
                 const datos = limpiarPedido(pedido);
                 const payloadReparto = construirPayloadReparto({ ...pedido, id: rtdbKey }, datos);
                 logDebug(`MOVE start key=${rtdbKey}`);

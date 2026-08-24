@@ -50,10 +50,10 @@ function resolveCommerceIdentity(input = {}) {
 
 function formatShortIdFromSequence(timestamp, sequence, commerceCode = 'COMERCIO') {
   const date = new Date(Number(timestamp) || Date.now());
-  const year = String(date.getUTCFullYear());
+  const year = String(date.getUTCFullYear()).slice(-2);
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
-  const seq = String(Math.max(1, Number(sequence) || 1)).padStart(3, '0');
+  const seq = String(Math.max(1, Number(sequence) || 1)).padStart(2, '0');
   return `${normalizeCommerceCode(commerceCode)}-${year}${month}${day}-${seq}`;
 }
 
