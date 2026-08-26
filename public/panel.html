@@ -3156,6 +3156,8 @@
                 ? 'https://nelly-api-8lh1.onrender.com'
                 : window.location.origin;
         const IS_LOCAL_PANEL = ['127.0.0.1', 'localhost', '::1'].includes(window.location.hostname);
+        window.__nellyPanelBootstrapToken = String(window.__nellyPanelBootstrapToken || '').trim();
+        window.__nellyPanelAuthMode = String(window.__nellyPanelAuthMode || '').trim();
         const renderManager = getRenderManager();
 
             // Mostrar/ocultar modal del mapa de repartidores activos
@@ -5795,8 +5797,37 @@
             listenersActivos.forEach(unsub => { try { unsub(); } catch {} });
             listenersActivos = [];
         }
+
+        function activarSesionPanelLocal(token, origen = 'bootstrap-local') {
+            const bootstrapToken = String(token || '').trim();
+            if (!bootstrapToken) {
+                return false;
+            }
+
+            window.__nellyPanelBootstrapToken = bootstrapToken;
+            window.__nellyPanelAuthMode = origen;
+            renderManager.renderSystemHealth({
+                text: 'SISTEMA LOCAL',
+                className: 'nelly-state nelly-state--success mt-2',
+                addClass: 'online',
+                removeClasses: ['status-error']
+            });
+
+            if (!kitchenState.sync.sincronizacionIniciada) {
+                kitchenState.sync.sincronizacionIniciada = true;
+                limpiarListeners();
+                listenersActivos.push(iniciarSincronizacion());
+            }
+            iniciarActiveOrdersRefreshControlado();
+            void window.cargarPedidosActivosDesdeContrato().then(() => {
+                solicitarRenderPanel('nae-active-orders');
+            });
+            return true;
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                window.__nellyPanelAuthMode = 'firebase';
                 renderManager.renderSystemHealth({
                     text: 'SISTEMA ONLINE',
                     className: 'nelly-state nelly-state--success mt-2',
@@ -5813,6 +5844,10 @@
                     solicitarRenderPanel('nae-active-orders');
                 });
             } else {
+                if (IS_LOCAL_PANEL && window.__nellyPanelBootstrapToken) {
+                    activarSesionPanelLocal(window.__nellyPanelBootstrapToken, 'bootstrap-local');
+                    return;
+                }
                 detenerActiveOrdersRefreshControlado();
                 limpiarListeners();
                 autenticarPanelConBackend();
@@ -5857,22 +5892,17 @@
                 }
 
                 if (!response) {
-                    if (IS_LOCAL_PANEL) {
-                        await signInWithCustomToken(auth, 'local-panel-cocina-token');
-                        renderManager.renderSystemHealth({
-                            text: 'SISTEMA LOCAL',
-                            className: 'nelly-state nelly-state--success mt-2',
-                            addClass: 'online',
-                            removeClasses: ['status-error']
-                        });
-                        return;
-                    }
                     throw new Error("token_request_failed_all_endpoints");
                 }
 
                 const data = await response.json();
                 if (!data?.token) {
                     throw new Error("token_invalido");
+                }
+
+                if (IS_LOCAL_PANEL) {
+                    activarSesionPanelLocal(data.token, data.authMode || 'bootstrap-local');
+                    return;
                 }
 
                 await signInWithCustomToken(auth, data.token);
@@ -5892,8 +5922,15 @@
         }
 
         async function obtenerIdTokenPanel() {
+            if (IS_LOCAL_PANEL && window.__nellyPanelBootstrapToken) {
+                return window.__nellyPanelBootstrapToken;
+            }
             if (!auth.currentUser) {
                 await autenticarPanelConBackend();
+            }
+
+            if (IS_LOCAL_PANEL && window.__nellyPanelBootstrapToken) {
+                return window.__nellyPanelBootstrapToken;
             }
 
             if (!auth.currentUser) {
@@ -5910,12 +5947,15 @@
 
             archiveEngineActiveOrdersLoadPromise = (async () => {
             try {
-                const token = await obtenerIdTokenPanel();
+                const token = IS_LOCAL_PANEL && window.__nellyPanelBootstrapToken
+                    ? window.__nellyPanelBootstrapToken
+                    : await obtenerIdTokenPanel();
+                const headers = token
+                    ? { Authorization: `Bearer ${token}` }
+                    : {};
                 const response = await fetch(DATA_ACCESS_ENDPOINT, {
                     method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers
                 });
                 if (!response.ok) {
                     throw new Error(`data_access_http_${response.status}`);
@@ -5930,6 +5970,8 @@
                     historical_orders: Array.isArray(data?.historical_orders) ? data.historical_orders.length : 0
                 };
                 const activeOrders = Array.isArray(data?.active_orders) ? data.active_orders : [];
+                const todayOrders = Array.isArray(data?.today_orders) ? data.today_orders : [];
+                const historicalOrders = Array.isArray(data?.historical_orders) ? data.historical_orders : [];
                 const firmaSiguiente = construirFirmaActiveOrders(activeOrders);
                 const snapshotCambio = firmaSiguiente !== archiveEngineActiveOrdersSignature;
                 archiveEngineActiveOrdersSignature = firmaSiguiente;
@@ -5941,14 +5983,53 @@
                     error: null
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                if (IS_LOCAL_PANEL) {
+                    const pedidosEntregadosContrato = [...todayOrders, ...historicalOrders]
+                        .filter((pedido) => {
+                            const estado = normalizarEstado(pedido?.estado_pedido || pedido?.estado || '');
+                            return estado === 'ENTREGADO' || estado === 'FINALIZADO';
+                        })
+                        .map((pedido, index) => {
+                            const key = String(
+                                pedido?.id ||
+                                pedido?.id_pedido ||
+                                pedido?.pedido_id ||
+                                pedido?._rtdbKey ||
+                                pedido?.shortId ||
+                                `historico-${index}`
+                            ).trim();
+                            return {
+                                key,
+                                pedido: {
+                                    ...pedido,
+                                    estado: normalizarEstado(pedido?.estado_pedido || pedido?.estado || 'ENTREGADO'),
+                                    fase: 'ENTREGADO',
+                                    _rtdbKey: pedido?._rtdbKey || pedido?.id || pedido?.id_pedido || pedido?.pedido_id || key,
+                                    __source: 'data_access_historical_orders'
+                                }
+                            };
+                        });
+                    vaciarMapaPedidosCocina(kitchenState.orders.pedidosEntregados, 'pedidosEntregados', 'data-access-historical-local', {
+                        operacion: 'historical_orders_snapshot',
+                        size: pedidosEntregadosContrato.length
+                    });
+                    pedidosEntregadosContrato.forEach(({ key, pedido }) => {
+                        asignarPedidoMapaCocina(kitchenState.orders.pedidosEntregados, 'pedidosEntregados', key, pedido, 'data-access-historical-local', {
+                            operacion: 'historical_orders_snapshot'
+                        });
+                    });
+                }
                 if (activeOrders.length === 0) {
                     window.__nellyPedidosCocinaCanonical = [];
                     window.__nellyOperationOrders = [];
+                    const renderizadosPrevios = window.__nellyPedidosCocinaRenderizados;
                     window.__nellyPedidosCocinaRenderizados = {
                         pedidosPendientes: [],
                         pedidosReparto: [],
                         pedidosEnCamino: [],
-                        pedidosEntregados: [],
+                        pedidosEntregados: Array.isArray(renderizadosPrevios?.pedidosEntregados)
+                            ? renderizadosPrevios.pedidosEntregados
+                            : [],
                         at: Date.now()
                     };
                 }
