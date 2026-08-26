@@ -78,6 +78,10 @@ class PedidoViewModel(
         }
     }
 
+    fun detenerAudioPedido() {
+        repository.detenerNotificacionPedido()
+    }
+
     override fun onCleared() {
         detenerSincronizacion()
         super.onCleared()

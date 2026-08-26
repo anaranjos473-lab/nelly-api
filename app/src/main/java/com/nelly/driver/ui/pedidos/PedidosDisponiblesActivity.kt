@@ -297,9 +297,11 @@ class PedidosDisponiblesActivity : AppCompatActivity() {
                     Log.i(TAG_ICV02_ACTIVITY, "radarVisibleSinRecreacion tras complete-order")
                     Log.i(TAG_ICV02_SERVICE, "stopService DeliveryTrackingService")
                     stopService(Intent(this, DeliveryTrackingService::class.java))
+                    DeliveryTrackingService.cancelTrackingNotification(this)
 
                     Log.i(TAG_ICV02_VM, "limpiarPedidoActivoLocal requested")
                     viewModel.limpiarPedidoActivoLocal()
+                    viewModel.detenerAudioPedido()
 
                     Toast.makeText(this, "Pedido completado", Toast.LENGTH_SHORT).show()
 

@@ -35,6 +35,8 @@ class PedidoRepository(
     private val syncScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private var listener: ValueEventListener? = null
     private var connectedListener: ValueEventListener? = null
+    @Volatile
+    private var currentNotificationPlayer: MediaPlayer? = null
     private val idsPrevios = mutableSetOf<String>()
     private var cargaInicialCompletada = false
     private val _syncEventos = MutableStateFlow("IDLE")
@@ -263,13 +265,36 @@ class PedidoRepository(
     }
 
     private fun reproducirNotificacionPedido() {
+        detenerNotificacionPedido()
         val player = MediaPlayer.create(appContext, R.raw.notificacion_pedido) ?: return
-        player.setOnCompletionListener { it.release() }
+        currentNotificationPlayer = player
+        player.setOnCompletionListener {
+            it.release()
+            if (currentNotificationPlayer === it) {
+                currentNotificationPlayer = null
+            }
+        }
         player.setOnErrorListener { mp, _, _ ->
             mp.release()
+            if (currentNotificationPlayer === mp) {
+                currentNotificationPlayer = null
+            }
             true
         }
         player.start()
+    }
+
+    fun detenerNotificacionPedido() {
+        val player = currentNotificationPlayer ?: return
+        currentNotificationPlayer = null
+        runCatching {
+            if (player.isPlaying) {
+                player.stop()
+            }
+        }
+        runCatching {
+            player.release()
+        }
     }
 
     fun aceptarPedido(
@@ -314,6 +339,7 @@ class PedidoRepository(
 
         orderCompleteClient.completeOrder(pedidoId) { response ->
             if (response.ok) {
+                detenerNotificacionPedido()
                 _pedidoActivoId.value = null
                 syncScope.launch {
                     pedidoDao.borrarTodaLaTabla()

@@ -1,6 +1,9 @@
 package com.nelly.driver.service
 
 import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,7 +14,9 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationCompat
 import com.nelly.driver.BuildConfig
+import com.nelly.driver.R
 import com.nelly.driver.data.remote.LocationUpdateClient
 
 class DeliveryTrackingService : Service() {
@@ -47,12 +52,14 @@ class DeliveryTrackingService : Service() {
         super.onCreate()
         Log.i(TAG_ICV02_SERVICE, "onCreate")
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        ensureNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         pedidoIdActivo = intent?.getStringExtra(EXTRA_PEDIDO_ID)
         Log.i(TAG_ICV02_SERVICE, "onStartCommand pedidoId=${pedidoIdActivo ?: "null"} flags=$flags startId=$startId")
 
+        startForeground(NOTIFICATION_ID, getNotification())
         handler.removeCallbacks(trackingRunnable)
         handler.post(trackingRunnable)
 
@@ -63,6 +70,8 @@ class DeliveryTrackingService : Service() {
         Log.i(TAG_ICV02_SERVICE, "onDestroy pedidoId=${pedidoIdActivo ?: "null"}")
         handler.removeCallbacks(trackingRunnable)
         pedidoIdActivo = null
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        cancelNotification(this)
         super.onDestroy()
     }
 
@@ -96,10 +105,51 @@ class DeliveryTrackingService : Service() {
         return fine || coarse
     }
 
+    private fun getNotification(): Notification {
+        val contentText = if (pedidoIdActivo.isNullOrBlank()) {
+            "Esperando pedidos - Turno Activo"
+        } else {
+            "Repartiendo pedido #$pedidoIdActivo"
+        }
+
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Nelly Driver Online")
+            .setContentText(contentText)
+            .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
+    private fun ensureNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (manager.getNotificationChannel(CHANNEL_ID) != null) return
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Tracking de Nelly Driver",
+            NotificationManager.IMPORTANCE_LOW
+        )
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun cancelNotification(context: android.content.Context) {
+        val manager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.cancel(NOTIFICATION_ID)
+    }
+
     companion object {
         const val EXTRA_PEDIDO_ID = "PEDIDO_ID"
         private const val TAG = "NellyTracking"
         private const val TAG_ICV02_SERVICE = "ICV02_SERVICE"
         private const val TRACKING_INTERVAL_MS = 30_000L
+        private const val CHANNEL_ID = "tracking_channel"
+        private const val NOTIFICATION_ID = 4201
+
+        fun cancelTrackingNotification(context: android.content.Context) {
+            val manager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            manager.cancel(NOTIFICATION_ID)
+        }
     }
 }
