@@ -6,6 +6,12 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "pilot:toolbox": "node scripts/pilot-toolbox.mjs",
+    "pilot:toolbox:check": "node scripts/pilot-toolbox.mjs check",
+    "pilot:toolbox:doctor": "node scripts/pilot-toolbox.mjs doctor",
+    "pilot:toolbox:operational": "node scripts/pilot-toolbox.mjs operational",
+    "pilot:toolbox:ui": "node scripts/pilot-toolbox.mjs ui",
+    "pilot:toolbox:full": "node scripts/pilot-toolbox.mjs full",
     "ov1:rotation": "node scripts/ov1-rotation-3-drivers.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit --cacheDirectory=.jest-cache",
     "deploy": "firebase deploy",

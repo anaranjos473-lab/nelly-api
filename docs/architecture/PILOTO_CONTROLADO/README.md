@@ -4,6 +4,7 @@ Expediente operativo del piloto controlado de Nelly.
 
 ## Contenido
 
+- [TOOLBOX_OPERATIVO_PILOTO.md](./TOOLBOX_OPERATIVO_PILOTO.md)
 - [ACTA_GENERAL_PILOTO_CONTROLADO.md](./ACTA_GENERAL_PILOTO_CONTROLADO.md)
 - [ACTA_CONTRACT_AUDIT_EXECUTION_001.md](./ACTA_CONTRACT_AUDIT_EXECUTION_001.md)
 - [CHECKLIST_CONTRACT_AUDIT_EXECUTION_001.md](./CHECKLIST_CONTRACT_AUDIT_EXECUTION_001.md)
@@ -74,3 +75,4 @@ Piloto controlado autorizado y listo para ejecucion operativa en `pilot-support`
 - Baseline congelado en `main`.
 - Soporte operativo activo en `pilot-support`.
 - Referencia de liberacion: [`GO_LIVE_CERTIFICATION_001.md`](./GO_LIVE_CERTIFICATION_001.md)
+- Entrada rapida a validaciones: `npm run pilot:toolbox -- index`
