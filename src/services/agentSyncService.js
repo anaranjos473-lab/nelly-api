@@ -23,12 +23,17 @@ function buildSupportRescuePayload(pedidoId, conductorId, estadoDestino, timesta
 }
 
 function buildDispatchAssignmentPayload(pedidoId, conductorId, timestamp = Date.now()) {
+  const estado = normalizeOrderState('EN_CURSO');
   return {
-    [`pedidos/${pedidoId}`]: {
-      conductorId,
-      estado: normalizeOrderState('EN_CURSO'),
-      timestampActualizacion: timestamp
-    }
+    [`pedidos/${pedidoId}/conductorId`]: conductorId,
+    [`pedidos/${pedidoId}/repartidor_id`]: conductorId,
+    [`pedidos/${pedidoId}/estado`]: estado,
+    [`pedidos/${pedidoId}/estado_pedido`]: estado,
+    [`pedidos/${pedidoId}/logistica/estado`]: estado,
+    [`pedidos/${pedidoId}/logistica/repartidor_id`]: conductorId,
+    [`pedidos/${pedidoId}/logistica/repartidor_uid`]: conductorId,
+    [`pedidos/${pedidoId}/logistica/asignacion_activa`]: true,
+    [`pedidos/${pedidoId}/timestampActualizacion`]: timestamp
   };
 }
 
