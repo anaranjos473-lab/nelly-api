@@ -13,6 +13,8 @@ import pedidosRouter from './routes/pedidos.js';
 import panelRouter from './routes/panel.js';
 import dataArchitectureRouter from './routes/dataArchitecture.js';
 import zonasRouter from './routes/zonas.js';
+import zonasAdminRouter from './routes/zonasAdmin.js';
+import zonasTerritorialesRouter from './routes/zonasTerritoriales.js';
 import soporteRoutes from './routes/soporte.js';
 import notificacionesRouter from './routes/notificaciones.js';
 import ordenesRouter from './routes/ordenes.js';
@@ -270,8 +272,10 @@ app.use('/api/pedidos', pedidosRouter);
 app.use('/api/repartidores', repartidoresRouter);
 app.use('/api/drivers', repartidoresRouter);
 app.use('/api/zonas', zonasRouter);
+app.use('/api/zonas-territoriales', zonasTerritorialesRouter);
 app.use('/api/notificaciones', notificacionesRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/admin/zonas', zonasAdminRouter);
 
 app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });

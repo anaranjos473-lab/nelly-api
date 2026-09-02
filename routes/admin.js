@@ -40,7 +40,7 @@ function decodeJwtPayload(token) {
 }
 
 // --- MIDDLEWARE: AUTENTICACIÓN PANEL ADMIN ---
-const requirePanelAdminEmailAuth = async (req, res, next) => {
+export const requirePanelAdminEmailAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization || '';
     const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
 
