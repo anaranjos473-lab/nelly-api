@@ -15,11 +15,17 @@ Concentrar en un solo lugar:
 ## Comandos rapidos
 
 ```bash
+npm run pilot:guard -- index
+npm run pilot:guard -- doctor
+npm run pilot:guard -- diagnose-panel PED_ID
 npm run pilot:toolbox -- index
 npm run pilot:toolbox -- check
 npm run pilot:toolbox -- doctor
 npm run pilot:toolbox -- operational
 npm run pilot:toolbox -- ui
+npm run pilot:toolbox -- diagnose-panel PED_ID
+npm run pilot:toolbox -- diagnose-panel-runtime PED_ID
+npm run pilot:toolbox -- diagnose-auth PED_ID
 npm run pilot:toolbox -- full
 ```
 
@@ -32,7 +38,21 @@ npm run pilot:toolbox -- full
 | `doctor` | Correr el doctor general existente. |
 | `operational` | Correr el doctor operacional existente. |
 | `ui` | Validar paneles con Playwright. |
+| `diagnose-panel` | Diagnosticar bootstrap local, hidratacion y render del panel para un pedido. |
+| `diagnose-panel-runtime` | Comparar HTML local vs servido, scripts cargados y orden de runtime del panel. |
+| `diagnose-auth` | Separar carga de Firebase, señales observables de callback y resultado bootstrap. |
 | `full` | Encadenar todos los chequeos anteriores. |
+
+## Pilot Guard
+
+`pilot:guard` es el alias estable para volver al punto de arranque del piloto sin tener que recordar el nombre del script subyacente. Usa exactamente los mismos comandos que `pilot:toolbox`, por ejemplo:
+
+```bash
+npm run pilot:guard -- doctor
+npm run pilot:guard -- diagnose-panel PED_ID
+```
+
+El objetivo es que futuras sesiones arranquen siempre desde el mismo punto, con el mismo mapa operativo y la misma trazabilidad documental.
 
 ## Mapa rapido
 
@@ -121,6 +141,40 @@ Estas variables se usan frecuentemente en flujos de auth y bootstrap. El toolbox
 - `DRIVER_TEST_NAME`
 - `P1_PANEL_EMAIL`
 - `P1_PANEL_PASSWORD`
+
+## Diagnostico bootstrap del panel
+
+Cuando se necesite seguir la cadena `bootstrapToken -> authMode -> active_orders -> canonical -> operationOrders -> render`, usar:
+
+```bash
+npm run pilot:toolbox -- diagnose-panel PED_ID
+```
+
+Cuando se necesite comparar el HTML local contra el runtime que realmente abre el Guard, usar:
+
+```bash
+npm run pilot:toolbox -- diagnose-panel-runtime PED_ID
+```
+
+`diagnose-panel` clasifica el pedido inspeccionado antes de emitir un veredicto:
+
+- `ACTIVE`: pertenece a `active_orders` y debe poder llegar al panel operativo.
+- `HISTORICAL` / `HISTORICAL_DELIVERED`: pertenece a una coleccion historica o ya fue entregado; no se marca como fallo si no aparece en las colas activas.
+- `NOT_FOUND`: no fue localizado en las colecciones consultadas.
+
+La clasificacion queda guardada en `diagnosis.json` junto con `source` y `state`.
+
+La evidencia se guarda en `.codex-tmp/pilot-guard/<timestamp>-<pedidoId>/` con:
+
+- `manifest.json`
+- `git.json`
+- `backend.json`
+- `auth.json`
+- `data-access.json`
+- `panel-trace.json`
+- `diagnosis.json`
+- `runtime.json`
+- `auth-diagnosis.json`
 
 ## Que rescata esta herramienta
 
