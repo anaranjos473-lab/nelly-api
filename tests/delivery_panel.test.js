@@ -538,7 +538,8 @@ describe('Delivery y panel API', () => {
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
     expect(state.pedidos.pedido_ok.logistica.estado).toBe('ENTREGADO');
     expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
-    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
+    expect(state.repartidores.driver_ok.finanzas.saldo_ganancias).toBe(-21.6);
+    expect(state.repartidores.driver_ok.finanzas.deuda_actual).toBe(121.6);
   });
 
   it('reconcilia complete-order idempotente y limpia indices residuales', async () => {
@@ -590,7 +591,7 @@ describe('Delivery y panel API', () => {
     expect(res.body.ok).toBe(true);
     expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
     expect(state.repartidores.driver_ok.uid).toBe('driver_ok');
-    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(21.6);
+    expect(state.repartidores.driver_ok.finanzas.saldo_ganancias).toBe(-21.6);
   });
 
   it('usa costo_envio como ganancia cuando Android envia comision cero', async () => {
@@ -599,16 +600,16 @@ describe('Delivery y panel API', () => {
       finanzas: { deuda_actual: 0, limite_deuda: 300, saldo_ganancias: 0 },
       pedido_activo: 'pedido_ok'
     };
-    state.pedidos.pedido_ok = {
-      id_pedido: 'pedido_ok',
+    state.pedidos.pedido_ok_zero = {
+      id_pedido: 'pedido_ok_zero',
       estado: 'LLEGUE_A_CLIENTE',
       monto_total: 243,
       costo_envio: 68,
       propina: 5,
       repartidor_id: 'driver_ok'
     };
-    state.pedidos_en_camino.pedido_ok = {
-      id_pedido: 'pedido_ok',
+    state.pedidos_en_camino.pedido_ok_zero = {
+      id_pedido: 'pedido_ok_zero',
       estado: 'LLEGUE_A_CLIENTE',
       monto_total: 243,
       costo_envio: 68,
@@ -618,20 +619,18 @@ describe('Delivery y panel API', () => {
     const res = await request(app)
       .post('/api/delivery/complete-order')
       .set('Authorization', 'Bearer driver-token')
-      .send({ pedidoId: 'pedido_ok', comision: 0 });
+      .send({ pedidoId: 'pedido_ok_zero', comision: 0 });
 
     expect(res.statusCode).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.comision).toBe(68);
-    expect(state.pedidos.pedido_ok.estado).toBe('ENTREGADO');
-    expect(state.pedidos.pedido_ok.ganancia_neta).toBe(68);
-    expect(state.pedidos.pedido_ok.tarifa_entrega).toBe(68);
-    expect(state.pedidos_en_camino.pedido_ok).toBeNull();
+    expect(state.pedidos.pedido_ok_zero.estado).toBe('ENTREGADO');
+    expect(state.pedidos.pedido_ok_zero.ganancia_neta).toBe(68);
+    expect(state.pedidos.pedido_ok_zero.tarifa_entrega).toBe(68);
+    expect(state.pedidos_en_camino.pedido_ok_zero).toBeNull();
     expect(state.repartidores.driver_ok.pedido_activo).toBeNull();
-    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.pedido_id).toBe('pedido_ok');
-    expect(state.repartidores.driver_ok.finanzas.ultimo_cobro_efectivo.monto).toBe(68);
-    expect(state.repartidores.driver_ok.finanzas.ganancia_hoy).toBe(68);
-    expect(state.repartidores.driver_ok.finanzas.saldo_ganancias).toBe(68);
+    expect(state.repartidores.driver_ok.finanzas.saldo_ganancias).toBe(-68);
+    expect(state.repartidores.driver_ok.finanzas.deuda_actual).toBe(68);
   });
 
   it('no duplica finanzas si complete-order se reintenta sobre pedido entregado', async () => {

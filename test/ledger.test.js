@@ -9,7 +9,8 @@ describe('Ledger domain', () => {
       actor_id: 'driver-1',
       monto: 30,
       saldo_antes: 100,
-      ocurrio_en: 1,
+      idempotency_key: 'PAGO_REPARTIDOR:ORD-1',
+      ocurrido_en: 1,
       registrado_en: 1
     });
 
@@ -25,7 +26,8 @@ describe('Ledger domain', () => {
         referencia_id: 'ORD-1',
         monto: 30,
         saldo_antes: 100,
-        ocurrio_en: 1,
+        idempotency_key: 'PAGO_REPARTIDOR:ORD-1',
+        ocurrido_en: 1,
         registrado_en: 1
       }
     ]);
@@ -35,7 +37,8 @@ describe('Ledger domain', () => {
       subtipo: 'ajuste',
       referencia_id: 'ORD-1',
       monto: -10,
-      ocurrio_en: 2,
+      idempotency_key: 'AJUSTE_MANUAL:ORD-1',
+      ocurrido_en: 2,
       registrado_en: 2
     });
 

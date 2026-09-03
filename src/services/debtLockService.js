@@ -1,4 +1,5 @@
 import { createLedgerEntry } from '../domain/index.js';
+import { appendFinancialEntry, buildFinancialEntry } from './financialCoreService.js';
 
 const LIMITES_DEUDA_POR_NIVEL = Object.freeze({
   BRONCE: 300,
@@ -44,6 +45,7 @@ function resumenFinanciero(uid, result = {}) {
     deudaActual: toNumberSafe(result?.finanzas?.deuda_actual, 0),
     limiteDeuda: toNumberSafe(result?.finanzas?.limite_deuda, 0),
     saldoGanancias: toNumberSafe(result?.finanzas?.saldo_ganancias, 0),
+    saldoEfectivo: toNumberSafe(result?.finanzas?.saldo_efectivo, 0),
     bloqueadoPorDeuda: Boolean(result?.estatus?.bloqueado_por_deuda)
   };
 }
@@ -146,7 +148,8 @@ function buildDebtLedgerEntry({
     monto,
     saldo_antes: saldoAntes,
     moneda: 'MXN',
-    ocurrio_en: now,
+    idempotency_key: `${tipo}:${pedidoId || uid}`,
+    ocurrido_en: now,
     registrado_en: now,
     metadata: {
       source: 'debtLockService'
@@ -160,6 +163,39 @@ export {
   buildDebtLedgerEntry
 };
 
+export async function registrarComisionNellyTx(db, { uid, montoComision, pedidoId, origen = 'complete-order' }) {
+  const monto = roundMoney(montoComision);
+  if (!uid || monto <= 0 || !pedidoId) {
+    throw new Error('uid, pedidoId y montoComision (> 0) son requeridos');
+  }
+
+  const entry = buildFinancialEntry({
+    tipo: 'COMISION_NELLY',
+    subtipo: 'pedido_entregado',
+    origen,
+    referencia_id: pedidoId,
+    actor_id: uid,
+    monto: -monto
+  });
+  const result = await appendFinancialEntry(db, entry);
+  const ref = db.ref(`repartidores/${uid}`);
+  const snapshot = await ref.once('value');
+  const current = snapshot.val() || {};
+  const nivel = extraerNivel(current);
+  const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
+  const deuda = extraerDeudaActual(current);
+  const bloqueado = deuda > limite;
+  await ref.update({
+    uid: current.uid || uid,
+    estatus: { ...(current.estatus || {}), nivel, bloqueado_por_deuda: bloqueado, actualizado_en: Date.now() },
+    perfil: { ...(current.perfil || {}), bloqueado_por_deuda: bloqueado },
+    finanzas: { ...(current.finanzas || {}), limite_deuda: limite },
+    billetera: { ...(current.billetera || {}), deuda_comision: deuda }
+  });
+  const refreshed = (await ref.once('value')).val() || {};
+  return { ...resumenFinanciero(uid, refreshed), ledger: result };
+}
+
 export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoId = null, origen = 'api' }) {
   const monto = roundMoney(montoEfectivo);
   if (!uid || monto <= 0) {
@@ -169,35 +205,44 @@ export async function registrarCobroEfectivoTx(db, { uid, montoEfectivo, pedidoI
   // FIX: Leer el nodo ANTES de la transacción para evitar null en callback
   // Firebase RTDB tiene un comportamiento donde el callback puede recibir null
   // aunque el nodo exista, causando abort automático si retornas undefined
-  const refPreread = db.ref(`repartidores/${uid}`);
-  const snapPreread = await refPreread.once('value');
-  const fallbackData = snapPreread.val() || {};
-
+  const entry = buildFinancialEntry({
+    tipo: 'COBRO_EFECTIVO',
+    subtipo: 'custodia_cliente',
+    origen,
+    referencia_id: pedidoId || `EFECTIVO:${uid}:${Date.now()}`,
+    actor_id: uid,
+    monto
+  });
+  const result = await appendFinancialEntry(db, entry);
   const ref = db.ref(`repartidores/${uid}`);
-  const tx = await ref.transaction((actual) => {
-    // Usar fallback si actual es null (sucede con concurrencia en Firebase)
-    const current = (actual && typeof actual === 'object') ? actual : fallbackData;
-    return {
-      ...current,
-      ...buildDebtChargePayload(current, {
-        uid,
-        monto,
-        pedidoId,
-        origen,
-        now: Date.now(),
-        limite: LIMITES_DEUDA_POR_NIVEL[extraerNivel(current)]
-      })
-    };
+  const snapshot = await ref.once('value');
+  const current = snapshot.val() || {};
+  const nivel = extraerNivel(current);
+  const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
+  const deuda = extraerDeudaActual(current);
+  const bloqueado = deuda > limite;
+
+  await ref.update({
+    estatus: { ...(current.estatus || {}), nivel, bloqueado_por_deuda: bloqueado, actualizado_en: Date.now() },
+    perfil: { ...(current.perfil || {}), bloqueado_por_deuda: bloqueado },
+    finanzas: {
+      ...(current.finanzas || {}),
+      limite_deuda: limite,
+      ultimo_cobro_efectivo: { monto, pedido_id: pedidoId || null, origen, timestamp: Date.now() }
+    },
+    billetera: { ...(current.billetera || {}), deuda_comision: deuda }
   });
 
-  if (!tx.committed || !tx.snapshot.exists()) {
-    throw new Error('No se pudo aplicar el cobro en transaccion');
-  }
-
-  return resumenFinanciero(uid, tx.snapshot.val() || {});
+  const refreshed = (await ref.once('value')).val() || {};
+  return { ...resumenFinanciero(uid, refreshed), ledger: result };
 }
 
-export async function registrarPagoDeudaTx(db, { uid, montoPago, origen = 'panel' }) {
+export async function registrarPagoDeudaTx(db, {
+  uid,
+  montoPago,
+  origen = 'panel',
+  idempotencyKey = null
+}) {
   const monto = roundMoney(montoPago);
   if (!uid || monto <= 0) {
     throw new Error('uid y montoPago (> 0) son requeridos');
@@ -205,26 +250,36 @@ export async function registrarPagoDeudaTx(db, { uid, montoPago, origen = 'panel
 
   // Igual que en el cobro en efectivo, hacemos un pre-read para evitar que
   // Firebase entregue null al callback de transaction y la operación se aborte.
-  const refPreread = db.ref(`repartidores/${uid}`);
-  const snapPreread = await refPreread.once('value');
-  const fallbackData = snapPreread.val() || {};
-  const current = (fallbackData && typeof fallbackData === 'object') ? fallbackData : null;
-  if (!current) {
-    throw new Error('No se pudo leer el estado actual del repartidor');
-  }
-
+  const referenciaId = idempotencyKey || `PAGO_DEUDA:${uid}:${Date.now()}`;
+  const entry = buildFinancialEntry({
+    tipo: 'LIQUIDACION',
+    subtipo: 'DEUDA',
+    origen,
+    referencia_id: referenciaId,
+    idempotency_key: idempotencyKey,
+    actor_id: uid,
+    monto: -monto
+  });
+  const result = await appendFinancialEntry(db, entry);
+  const ref = db.ref(`repartidores/${uid}`);
+  const snapshot = await ref.once('value');
+  const current = snapshot.val() || {};
   const nivel = extraerNivel(current);
   const limite = LIMITES_DEUDA_POR_NIVEL[nivel];
-  await refPreread.update({
-    ...current,
-    ...buildDebtPaymentPayload(current, {
-      monto,
-      origen,
-      now: Date.now(),
-      limite
-    })
+  const deuda = extraerDeudaActual(current);
+  const bloqueado = deuda > limite;
+  await ref.update({
+    uid: current.uid || uid,
+    estatus: { ...(current.estatus || {}), nivel, bloqueado_por_deuda: bloqueado, actualizado_en: Date.now() },
+    perfil: { ...(current.perfil || {}), bloqueado_por_deuda: bloqueado },
+    finanzas: {
+      ...(current.finanzas || {}),
+      deuda_actual: deuda,
+      limite_deuda: limite,
+      ultimo_pago_deuda: { monto, origen, timestamp: Date.now() }
+    },
+    billetera: { ...(current.billetera || {}), deuda_comision: deuda }
   });
-
-  const refreshed = (await refPreread.once('value')).val() || {};
-  return resumenFinanciero(uid, refreshed);
+  const refreshed = (await ref.once('value')).val() || {};
+  return { ...resumenFinanciero(uid, refreshed), ledger: result };
 }

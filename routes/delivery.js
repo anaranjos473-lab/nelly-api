@@ -1,7 +1,7 @@
 import express from 'express';
 import { performance } from 'node:perf_hooks';
 import { getAdmin } from '../config/firebase-admin-esm.js';
-import { extraerDeudaActual, registrarCobroEfectivoTx } from '../src/services/debtLockService.js';
+import { extraerDeudaActual, registrarCobroEfectivoTx, registrarComisionNellyTx } from '../src/services/debtLockService.js';
 import {
   buildAcceptSyncWrites,
   buildCompleteSyncWrites,
@@ -578,9 +578,9 @@ router.post('/complete-order', requireFirebaseUserAnyRole, async (req, res, next
     const driverUid = getDriverUidFromOrder(pedido);
     const completedAt = Date.now();
     const finanzas = !alreadyCompleted && driverUid && comision > 0
-      ? await registrarCobroEfectivoTx(db, {
+      ? await registrarComisionNellyTx(db, {
         uid: driverUid,
-        montoEfectivo: comision,
+        montoComision: comision,
         pedidoId,
         origen: 'complete-order'
       })

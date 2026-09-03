@@ -35,7 +35,7 @@ describe('Domain contracts', () => {
     expect(validateOrderItem({ id: 'IT-1', pedido_id: 'ORD-1', producto_id: 'SKU-1', cantidad: 1, precio_unitario: 10 }).ok).toBe(true);
     expect(validateFulfillmentNode({ id: 'NODE-1', tipo: 'kitchen', estado: 'DISPONIBLE', capabilities: [] }).ok).toBe(true);
     expect(validateInventoryItem({ id: 'INV-1', sku: 'SKU-1', nodo_id: 'NODE-1', disponible: 10, reservado: 0 }).ok).toBe(true);
-    expect(validateLedgerEntry({ id: 'LED-1', tipo: 'cargo', monto: 10, moneda: 'MXN', referencia_id: 'ORD-1', ocurrido_en: 1 }).ok).toBe(true);
+    expect(validateLedgerEntry({ id: 'LED-1', tipo: 'cargo', monto: 10, moneda: 'MXN', referencia_id: 'ORD-1', idempotency_key: 'CARGO:ORD-1', ocurrido_en: 1 }).ok).toBe(true);
     expect(validatePayment({ id: 'PAY-1', pedido_id: 'ORD-1', metodo: 'cash', estado: 'CONFIRMADO', monto: 10 }).ok).toBe(true);
     expect(validateShipment({ id: 'SHP-1', pedido_id: 'ORD-1', repartidor_id: 'DRV-1', estado: 'EN_TRANSITO' }).ok).toBe(true);
     expect(validateDomainEvent({ id: 'EVT-1', tipo: 'pedido.creado', aggregate_id: 'ORD-1', ocurrido_en: 1, registrado_en: 1 }).ok).toBe(true);

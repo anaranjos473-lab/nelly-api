@@ -4,7 +4,7 @@ const LEDGER_ENTRY_CONTRACT = buildContract(
   'LedgerEntry',
   '1.0.0',
   'ledger_entry',
-  ['id', 'tipo', 'monto', 'moneda', 'referencia_id', 'ocurrido_en'],
+  ['id', 'tipo', 'monto', 'moneda', 'referencia_id', 'idempotency_key', 'ocurrido_en'],
   ['metadata', 'descripcion']
 );
 

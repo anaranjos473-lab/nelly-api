@@ -1,4 +1,13 @@
 import { LEDGER_ENTRY_CONTRACT, validateLedgerEntry } from './contracts/ledgerEntry.js';
+import crypto from 'node:crypto';
+
+function buildDeterministicEntryId(idempotencyKey) {
+  const key = String(idempotencyKey || '').trim();
+  if (!key) return null;
+  const safeKey = key.replace(/[.#$\[\]/]/g, '_').replace(/[^a-zA-Z0-9_:-]/g, '_');
+  const digest = crypto.createHash('sha256').update(key).digest('hex').slice(0, 16);
+  return `${safeKey.slice(0, 100)}_${digest}`;
+}
 
 function createLedgerEntry({
   tipo,
@@ -9,12 +18,14 @@ function createLedgerEntry({
   monto = 0,
   moneda = 'MXN',
   saldo_antes = 0,
-  ocurrio_en = Date.now(),
+  idempotency_key,
+  ocurrido_en = Date.now(),
   registrado_en = Date.now(),
   metadata = {}
 } = {}) {
+  const resolvedIdempotencyKey = String(idempotency_key || '').trim();
   const entry = Object.freeze({
-    id: `${String(tipo || 'mov').toLowerCase()}_${String(referencia_id || 'ref')}_${ocurrio_en}`,
+    id: buildDeterministicEntryId(resolvedIdempotencyKey),
     tipo,
     subtipo,
     origen,
@@ -24,7 +35,8 @@ function createLedgerEntry({
     moneda,
     saldo_antes: Number(saldo_antes),
     saldo_despues: Number(saldo_antes) + Number(monto),
-    ocurrido_en: ocurrio_en,
+    idempotency_key: resolvedIdempotencyKey,
+    ocurrido_en,
     registrado_en,
     metadata: { ...metadata }
   });

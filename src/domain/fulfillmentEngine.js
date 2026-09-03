@@ -71,7 +71,8 @@ function createFulfillmentEngine({
       actor_id: uid,
       monto: Number(comision || tarifaEntrega || 0),
       moneda: 'MXN',
-      ocurrio_en: completedAt,
+      idempotency_key: `FULFILLMENT:${aggregateId}`,
+      ocurrido_en: completedAt,
       registrado_en: completedAt,
       metadata: {
         event_id: event.id,

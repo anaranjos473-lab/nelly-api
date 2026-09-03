@@ -159,13 +159,14 @@ router.get('/finanzas/repartidores-deuda', requirePanelUser, async (_req, res, n
 
 router.post('/finanzas/registrar-pago-deuda', requirePanelUser, async (req, res, next) => {
   try {
-    const { uid, monto_pago: montoPago } = req.body;
+    const { uid, monto_pago: montoPago, idempotency_key: idempotencyKey } = req.body;
     const origen = String(req.body?.origen || 'panel').trim().toLowerCase() === 'piloto' ? 'piloto' : 'panel';
     const admin = await getAdmin();
     const result = await registrarPagoDeudaTx(admin.database(), {
       uid,
       montoPago,
-      origen
+      origen,
+      idempotencyKey
     });
     return res.json({ ok: true, origen, ...result });
   } catch (error) {
