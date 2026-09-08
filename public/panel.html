@@ -3686,6 +3686,7 @@
                 const body = document.getElementById('operation-focus-body');
                 const count = document.getElementById('operation-focus-count');
                 if (!sidebar || !title || !subtitle || !body || !count) return;
+                renderEstadoFuenteOperativa();
 
                 const filtros = getKitchenFilters();
                 const columnasActivas = obtenerColumnasActivasOperacion();
@@ -3832,6 +3833,8 @@
                 const pago = normalizarMetodoPagoOperacion(pedido);
                 const pagoCompletado = pago.pagado || pagoConfirmadoOperacion(displayId);
                 const totalCobro = vista.total;
+                const mutacionesPermitidas = String(archiveEngineActiveOrdersMeta?.source_status || 'UNAVAILABLE').toUpperCase() === 'FRESH';
+                const pagoBloqueado = pagoCompletado || !mutacionesPermitidas;
                 const estadoEsperaRepartidor = estadoVisible === 'ESPERANDO REPARTIDOR';
                 const timelineEventos = [
                     ['Recibido', '✓', pedido.recibido_at || pedido.created_at || pedido.createdAt || '1:59 PM', true],
@@ -3930,7 +3933,7 @@
                                 <div class="operation-focus__payment-method ${pagoCompletado ? 'is-green' : ''}">${escapeHtmlOperacion(pago.etiqueta)}</div>
                                 <span class="operation-focus__payment-status ${pagoCompletado ? 'is-paid' : 'is-due'}">${pagoCompletado ? '✔ Pagado' : 'Debe cobrarse'}</span>
                                 <div class="operation-focus__payment-amount">Total a cobrar: $${Number.isFinite(totalCobro) ? totalCobro.toFixed(2) : '0.00'}</div>
-                                <button class="operation-focus__payment-action" type="button" ${pagoCompletado ? 'disabled' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : 'Confirmar pago'}</button>
+                                <button class="operation-focus__payment-action" type="button" ${pagoBloqueado ? 'disabled aria-disabled="true"' : `onclick="window.confirmarPagoPedido && window.confirmarPagoPedido('${String(displayId).replace(/'/g, "\\'")}')"`}>${pagoCompletado ? 'Pagado' : (!mutacionesPermitidas ? 'FUENTE NO DISPONIBLE' : 'Confirmar pago')}</button>
                             </div>
                         </div>
                         <div class="operation-focus__premium-bottom">
@@ -3953,7 +3956,7 @@
                                 <span class="operation-focus__intel-mark">IA</span>
                                 <span>Tiempo restante estimado: <strong>${escapeHtmlOperacion(String(Math.max(0, Math.round(objetivo * (1 - progreso / 100)))))} min</strong><br>Sugerencia: puedes iniciar el siguiente pedido.</span>
                             </div>
-                            <button class="nelly-btn btn-success${estadoEsperaRepartidor ? ' is-disabled' : ''}" type="button" ${estadoEsperaRepartidor ? 'disabled aria-disabled="true"' : `onclick="window.moverAReparto('${String(pedidoKey).replace(/'/g, "\\'")}')"`}>${estadoEsperaRepartidor ? 'ESPERANDO REPARTIDOR' : '✓ MARCAR LISTO'}</button>
+                            <button class="nelly-btn btn-success${estadoEsperaRepartidor || !mutacionesPermitidas ? ' is-disabled' : ''}" type="button" ${estadoEsperaRepartidor || !mutacionesPermitidas ? 'disabled aria-disabled="true"' : `onclick="window.moverAReparto('${String(pedidoKey).replace(/'/g, "\\'")}')"`}>${estadoEsperaRepartidor ? 'ESPERANDO REPARTIDOR' : (!mutacionesPermitidas ? 'FUENTE NO DISPONIBLE' : '✓ MARCAR LISTO')}</button>
                         </div>
                     </div>
                 `;
@@ -4118,6 +4121,9 @@
             };
 
             window.confirmarPagoPedido = (id) => {
+                if (!fuentePermiteMutaciones()) {
+                    return;
+                }
                 showToast('Iniciando confirmación de pago', 'ok');
                 mostrarAccionVisibleOperacion('Iniciando confirmación de pago', 'ok');
                 const pedido = obtenerPedidoEnfoqueActual(id);
@@ -4549,8 +4555,14 @@
         };
         const RESTAURANT_NAME = restaurantConfig.name || 'Restaurante';
         let archiveEngineActiveOrdersCache = [];
+        let archiveEngineHasTrustedSnapshot = false;
         let archiveEngineActiveOrdersMeta = {
-            source: 'fallback-local',
+            source: 'initial',
+            source_status: 'UNAVAILABLE',
+            last_success_at: null,
+            observed_at: null,
+            snapshot_signature: null,
+            stale_reason: null,
             contract_version: 'v1',
             generatedAt: null,
             error: null
@@ -4574,6 +4586,52 @@
                 return '[]';
             }
             return JSON.stringify(pedidos);
+        }
+
+        function renderEstadoFuenteOperativa() {
+            const subtitle = document.getElementById('operation-focus-subtitle');
+            if (!subtitle) return;
+
+            let indicator = document.getElementById('operation-focus-source-status');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'operation-focus-source-status';
+                indicator.style.fontSize = '0.76rem';
+                indicator.style.fontWeight = '700';
+                indicator.style.marginTop = '0.35rem';
+                subtitle.insertAdjacentElement('afterend', indicator);
+            }
+
+            const meta = archiveEngineActiveOrdersMeta || {};
+            const status = String(meta.source_status || 'UNAVAILABLE').toUpperCase();
+            const labels = {
+                FRESH: 'FRESH - Datos actualizados',
+                STALE: 'STALE - Datos obsoletos',
+                UNAVAILABLE: 'UNAVAILABLE - Fuente no disponible'
+            };
+            const colors = {
+                FRESH: '#15803d',
+                STALE: '#b45309',
+                UNAVAILABLE: '#b91c1c'
+            };
+            const lastSuccess = meta.last_success_at
+                ? ` Ultima lectura: ${new Date(meta.last_success_at).toLocaleString('es-MX')}.`
+                : '';
+            const reason = meta.stale_reason ? ` Motivo: ${meta.stale_reason}.` : '';
+            indicator.textContent = `${labels[status] || labels.UNAVAILABLE}.${lastSuccess}${reason}`;
+            indicator.style.color = colors[status] || colors.UNAVAILABLE;
+        }
+
+        function fuentePermiteMutaciones() {
+            const status = String(archiveEngineActiveOrdersMeta?.source_status || 'UNAVAILABLE').toUpperCase();
+            if (status === 'FRESH') return true;
+
+            const mensaje = status === 'STALE'
+                ? 'Operacion bloqueada: los datos de Cocina estan obsoletos.'
+                : 'Operacion bloqueada: la fuente de pedidos no esta disponible.';
+            logDebug(mensaje, 'err');
+            showToast(mensaje, 'err');
+            return false;
         }
 
         function cocinaOperativaParaActiveOrdersRefresh() {
@@ -5946,6 +6004,7 @@
             }
 
             archiveEngineActiveOrdersLoadPromise = (async () => {
+            const observedAt = new Date().toISOString();
             try {
                 const token = IS_LOCAL_PANEL && window.__nellyPanelBootstrapToken
                     ? window.__nellyPanelBootstrapToken
@@ -5978,11 +6037,18 @@
                 archiveEngineActiveOrdersCache = activeOrders.map((pedido) => ({ ...pedido, __source: 'archive_engine' }));
                 archiveEngineActiveOrdersMeta = {
                     source: 'archive-engine',
+                    source_status: 'FRESH',
+                    last_success_at: observedAt,
+                    observed_at: observedAt,
+                    snapshot_signature: firmaSiguiente,
+                    stale_reason: null,
                     contract_version: String(data?.contract_version || 'v1'),
                     generatedAt: data?.generatedAt || new Date().toISOString(),
                     error: null
                 };
+                archiveEngineHasTrustedSnapshot = true;
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
+                renderEstadoFuenteOperativa();
                 if (IS_LOCAL_PANEL) {
                     const pedidosEntregadosContrato = [...todayOrders, ...historicalOrders]
                         .filter((pedido) => {
@@ -6050,21 +6116,30 @@
                 sincronizarPedidosOperativosDesdeContrato(archiveEngineActiveOrdersCache, 'nae-active-orders');
                 return archiveEngineActiveOrdersCache;
             } catch (error) {
+                const reason = String(error?.message || error || 'unknown');
+                const observedAt = new Date().toISOString();
+                const hasTrustedSnapshot = archiveEngineHasTrustedSnapshot;
                 archiveEngineActiveOrdersMeta = {
-                    source: 'fallback-local',
+                    source: hasTrustedSnapshot ? 'fallback-local' : 'unavailable',
+                    source_status: hasTrustedSnapshot ? 'STALE' : 'UNAVAILABLE',
+                    last_success_at: hasTrustedSnapshot ? archiveEngineActiveOrdersMeta.last_success_at : null,
+                    observed_at: observedAt,
+                    snapshot_signature: hasTrustedSnapshot ? archiveEngineActiveOrdersMeta.snapshot_signature : null,
+                    stale_reason: reason,
                     contract_version: 'v1',
-                    generatedAt: null,
-                    error: String(error?.message || error || 'unknown')
+                    generatedAt: hasTrustedSnapshot ? archiveEngineActiveOrdersMeta.generatedAt : null,
+                    error: reason
                 };
                 window.__nellyArchiveEngineMeta = archiveEngineActiveOrdersMeta;
-                console.warn('[NAE] fallback local para Cocina:', archiveEngineActiveOrdersMeta.error);
-                if (!(Array.isArray(archiveEngineActiveOrdersCache) && archiveEngineActiveOrdersCache.length > 0)) {
+                renderEstadoFuenteOperativa();
+                console.warn('[NAE] fuente de Cocina no disponible:', archiveEngineActiveOrdersMeta.error);
+                if (!hasTrustedSnapshot) {
                     capturarFotoEstadoCocina('cargarPedidosActivosDesdeContrato:fallback-vacio', {
                         error: archiveEngineActiveOrdersMeta.error
                     });
                     sincronizarPedidosOperativosDesdeContrato([], 'nae-active-orders-fallback');
                 } else {
-                    logDebug('NAE fallback ignorado para no vaciar la cola ya visible', 'warn');
+                    logDebug('NAE en STALE: se conserva el ultimo snapshot confiable', 'warn');
                 }
                 return [];
             } finally {
@@ -6259,6 +6334,9 @@
         }
 
         window.moverAReparto = async function(id) {
+            if (!fuentePermiteMutaciones()) {
+                return;
+            }
             if (!confirm('Â¿Enviar pedido a la flota de reparto?')) {
                 return;
             }
@@ -6334,6 +6412,9 @@
         };
 
         window.finalizarPedido = async function(id) {
+            if (!fuentePermiteMutaciones()) {
+                return;
+            }
             const keyResuelta = resolverKeyPedido(id);
             const pedido = kitchenState.orders.pedidosReparto.get(keyResuelta) || kitchenState.orders.pedidosEnCamino.get(keyResuelta) || kitchenState.orders.pedidosPendientes.get(keyResuelta);
             const estadoNormalizado = pedido ? normalizarEstado(pedido.estado) : null;
