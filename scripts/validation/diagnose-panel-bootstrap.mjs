@@ -471,11 +471,37 @@ async function requestJson(url, headers = {}) {
   return parseMaybeJson(text);
 }
 
+async function getFirebaseIdToken() {
+  const existingToken = normalizeText(process.env.PANEL_FIREBASE_ID_TOKEN || process.env.FIREBASE_ID_TOKEN);
+  if (existingToken) return existingToken;
+
+  const apiKey = normalizeText(process.env.PANEL_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY);
+  const email = normalizeText(process.env.PANEL_FIREBASE_EMAIL || process.env.FIREBASE_EMAIL);
+  const password = String(process.env.PANEL_FIREBASE_PASSWORD || process.env.FIREBASE_PASSWORD || '');
+  if (!apiKey || !email || !password) return null;
+
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, returnSecureToken: true })
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.idToken) {
+    throw new Error(`firebase_auth_http_${response.status}`);
+  }
+  return body.idToken;
+}
+
 async function getPanelToken() {
   const headers = {};
   const bootstrapToken = normalizeText(process.env.AUTH_BOOTSTRAP_TOKEN);
   if (bootstrapToken) {
     headers['x-auth-bootstrap-token'] = bootstrapToken;
+  } else {
+    const firebaseIdToken = await getFirebaseIdToken();
+    if (firebaseIdToken) {
+      headers.Authorization = `Bearer ${firebaseIdToken}`;
+    }
   }
   const response = await fetch(TOKEN_URL, { headers });
   if (!response.ok) {
