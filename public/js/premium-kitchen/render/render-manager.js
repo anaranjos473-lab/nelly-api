@@ -104,12 +104,57 @@ function normalizeProductName(name) {
     .trim();
 }
 
+function positiveAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+export function resolveOrderAmount(pedido = {}) {
+  const monto = positiveAmount(pedido?.monto);
+  const total = positiveAmount(pedido?.total);
+  const montoTotal = positiveAmount(pedido?.monto_total);
+  const rawMonto = pedido?.monto;
+  const montoIsExplicitZero = rawMonto === 0 || String(rawMonto ?? '').trim() === '0';
+
+  if (monto != null) {
+    return { value: monto, source: 'monto', conflict: false };
+  }
+  if (montoIsExplicitZero && total != null) {
+    return { value: total, source: 'total', conflict: true };
+  }
+  if (total != null) {
+    return { value: total, source: 'total', conflict: false };
+  }
+  if (montoTotal != null) {
+    return { value: montoTotal, source: 'monto_total', conflict: false };
+  }
+  return { value: 0, source: null, conflict: false };
+}
+
+export function resolveOrderProducts(pedido = {}) {
+  const items = Array.isArray(pedido?.items) ? pedido.items : [];
+  if (items.length > 0) {
+    return { value: items, source: 'items' };
+  }
+  const productos = Array.isArray(pedido?.productos) ? pedido.productos : [];
+  if (productos.length > 0) {
+    return { value: productos, source: 'productos' };
+  }
+  return { value: [], source: null };
+}
+
 function extractOrderProducts(pedido = {}) {
+  const resolved = resolveOrderProducts(pedido).value;
+  const structured = resolved.map((item) => {
+    if (item && typeof item === 'object') {
+      return item.nombre || item.producto || item.descripcion || item.name || '';
+    }
+    return item;
+  });
   const raw = [
-    pedido.descripcion,
-    pedido.productos,
-    pedido.items,
-    pedido.detalle
+     pedido.descripcion,
+     structured.length ? structured : null,
+     pedido.detalle
   ].filter(Boolean).join(' | ');
   if (!raw) {
     return [];
@@ -487,7 +532,7 @@ export function createRenderManager() {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 
-      const monto = Number(pedido.monto || pedido.total || 0);
+      const monto = resolveOrderAmount(pedido).value;
       const displayId = pedido.shortId || pedido.id_pedido || formatDailyShortId(pedido, 1);
       const estadoNormalizado = normalize(pedido.estado);
       const fase = toPhase(estadoNormalizado);
@@ -552,7 +597,13 @@ export function createRenderManager() {
             { label: estadoNormalizado === 'LISTO' ? 'Marcado listo' : 'En cocina', time: pedido.fecha_despacho || null },
             { label: estadoNormalizado === 'EN_CURSO' ? 'En reparto' : 'Esperando repartidor', time: pedido.eta_repartidor || pedido.repartidor_eta || null }
           ];
-      const resumenProductos = String(pedido.descripcion || 'Sin descripcion').replace(/\s+/g, ' ').trim();
+      const productosResueltos = resolveOrderProducts(pedido).value;
+      const resumenProductos = String(
+        pedido.descripcion
+        || (productosResueltos.length
+          ? productosResueltos.map((item) => item?.nombre || item?.producto || item?.descripcion || item?.name || item).join(', ')
+          : 'Sin descripcion')
+      ).replace(/\s+/g, ' ').trim();
       const resumenProductosCorto = resumenProductos.length > 58 ? `${resumenProductos.slice(0, 55).trim()}...` : resumenProductos;
       const telefono = String(pedido.telefono || pedido.phone || pedido.contacto || 'No disponible').trim();
       const modificadores = Array.isArray(pedido.modificadores)
@@ -562,8 +613,7 @@ export function createRenderManager() {
             return String(mod.nombre || mod.descripcion || mod.modificador || '').trim();
           }).filter(Boolean)
         : [];
-      const subitems = Array.isArray(pedido.items)
-        ? pedido.items.map((item) => {
+      const subitems = productosResueltos.map((item) => {
             if (!item || typeof item !== 'object') return String(item || '').trim();
             const nombre = String(item.nombre || item.producto || item.descripcion || 'Producto').trim();
             const cantidad = Number(item.cantidad || item.qty || 1);
@@ -571,8 +621,7 @@ export function createRenderManager() {
               ? item.modificadores.map((mod) => String(mod?.nombre || mod?.descripcion || mod || '').trim()).filter(Boolean)
               : [];
             return `${nombre}${Number.isFinite(cantidad) && cantidad > 1 ? ` x${cantidad}` : ''}${extras.length ? ` (${extras.join(', ')})` : ''}`;
-          }).filter(Boolean)
-        : [];
+          }).filter(Boolean);
       const detallesId = `details-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
       const timelineSteps = [
         { label: 'Recibido', done: true },

@@ -3147,7 +3147,7 @@
         import { auth, rtdb, onValue, ref, onChildAdded, onChildChanged, onChildRemoved, orderByChild, query, runTransaction, set, off } from "./js/premium-kitchen/firebase/index.js";
         import { getKitchenState } from "./js/premium-kitchen/state/kitchen-state.js";
         import { getKitchenConfig, getRestaurantConfig } from "./js/premium-kitchen/state/kitchen-config.js";
-        import { getRenderManager } from "./js/premium-kitchen/render/render-manager.js";
+        import { getRenderManager, resolveOrderAmount, resolveOrderProducts } from "./js/premium-kitchen/render/render-manager.js";
         import { normalizarEstado, construirFilaEstadoVacio } from "./js/premium-kitchen/panel-state-utils.mjs";
         import { onAuthStateChanged, signInWithCustomToken } from "./js/premium-kitchen/firebase/index.js";
 
@@ -4013,14 +4013,26 @@
                     || 'Comercio no disponible'
                 ).trim();
                 const notas = String(pedido?.notas || pedido?.nota || pedido?.referencia || pedido?.observaciones || 'Sin notas').trim();
-                const totalNumero = Number(pedido?.monto || pedido?.total || pedido?.monto_total || 0);
-                const total = Number.isFinite(totalNumero) ? totalNumero : 0;
-
-                const productosBase = Array.isArray(pedido?.items)
-                    ? pedido.items
-                    : Array.isArray(pedido?.productos)
-                        ? pedido.productos
+                const amountResolution = resolveOrderAmount(pedido);
+                const total = amountResolution.value;
+                if (amountResolution.conflict && typeof window !== 'undefined') {
+                    window.__nellyOrderDiagnostics = Array.isArray(window.__nellyOrderDiagnostics)
+                        ? window.__nellyOrderDiagnostics
                         : [];
+                    const diagnosticKey = String(pedido?.id || pedido?.id_pedido || pedido?.pedido_id || 'unknown');
+                    if (!window.__nellyOrderDiagnostics.some((item) => item.key === diagnosticKey)) {
+                        window.__nellyOrderDiagnostics.push({
+                            key: diagnosticKey,
+                            type: 'ORDER_AMOUNT_CONFLICT',
+                            monto: pedido?.monto,
+                            total: pedido?.total,
+                            monto_total: pedido?.monto_total,
+                            observed_at: new Date().toISOString()
+                        });
+                    }
+                }
+
+                const productosBase = resolveOrderProducts(pedido).value;
 
                 const productos = productosBase
                     .map((item) => {
