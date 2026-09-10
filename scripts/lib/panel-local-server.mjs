@@ -127,7 +127,11 @@ export async function startPanelLocalServer() {
 
 export async function stopPanelLocalServer(server) {
   if (!server) return;
+  server.closeAllConnections?.();
+  server.closeIdleConnections?.();
   await new Promise((resolve) => {
+    const timeout = setTimeout(resolve, 3000);
+    timeout.unref?.();
     server.close(() => resolve());
   });
 }

@@ -18,6 +18,8 @@ const DATA_ACCESS_URL = `${BACKEND_BASE_URL}/api/data-architecture/data-access`;
 const HEALTH_URL = `${BACKEND_BASE_URL}/api/health`;
 const PANEL_WAIT_MS = Number(process.env.PANEL_WAIT_MS || 12000);
 const OUTPUT_DIR = process.env.PILOT_GUARD_OUTPUT_DIR || `.codex-tmp/pilot-guard/${new Date().toISOString().replace(/[:.]/g, '-')}-${pedidoId}`;
+const FORENSIC_ROOT = process.env.PILOT_FORENSIC_ROOT || '.codex-tmp/pilot-forensics';
+const FORENSIC_RETENTION_DAYS = 7;
 
 function normalizeText(value) {
   return String(value ?? '').trim();
@@ -38,6 +40,130 @@ function safeJson(value) {
     return JSON.parse(JSON.stringify(value));
   } catch {
     return String(value);
+  }
+}
+
+const SENSITIVE_KEY = /(authorization|token|password|secret|cookie|api[_-]?key|credential|private[_-]?key|session)/i;
+
+function sanitizeForensic(value, seen = new WeakSet()) {
+  if (value === null || typeof value !== 'object') return value;
+  if (seen.has(value)) return '[CIRCULAR]';
+  seen.add(value);
+  if (Array.isArray(value)) return value.map((item) => sanitizeForensic(item, seen));
+  const output = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (SENSITIVE_KEY.test(key)) continue;
+    output[key] = sanitizeForensic(item, seen);
+  }
+  return output;
+}
+
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined && value !== null);
+}
+
+function criticalOrderFields(order = {}) {
+  return {
+    cliente: firstDefined(order.cliente_nombre, order.cliente, null),
+    comercio: firstDefined(order.comercio_nombre, order.comercio, order.tienda_nombre, null),
+    direccion: firstDefined(order.direccion, order.ubicacion, null),
+    items: firstDefined(order.items, order.lineas, order.productos, null),
+    total: firstDefined(order.total, order.monto_total, order.monto, null),
+    pago: firstDefined(order.pago, order.metodo_pago, null),
+    shortId: firstDefined(order.shortId, order.short_id, order.folio, null)
+  };
+}
+
+function hasMeaningfulItems(value) {
+  return Array.isArray(value) ? value.length > 0 : Boolean(value && String(value).trim());
+}
+
+function numericAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function buildForensicCapture({ result, activeOrder, pageState }) {
+  const detail = pageState?.detailCapture || {};
+  const normalized = pageState?.canonical || pageState?.operation || null;
+  const renderInput = pageState?.renderizados?.pedidosEnCamino || pageState?.renderizados?.pedidosReparto || pageState?.renderizados?.pedidosPendientes || pageState?.renderizados?.pedidosEntregados || null;
+  const sourceStatus = normalizeText(result?.panel?.archiveMeta?.source_status || result?.panel?.contractSnapshot?.source_status) || null;
+  const sourceFields = criticalOrderFields(result?.rtdb?.order || {});
+  const contractFields = criticalOrderFields(activeOrder || {});
+  const normalizedFields = criticalOrderFields(normalized || {});
+  const renderFields = criticalOrderFields(renderInput || detail.focusData || {});
+  const detailText = normalizeText(detail.detailText);
+  const symptoms = [];
+  if (/Dirección no disponible/i.test(detailText)) symptoms.push('ADDRESS_DEFAULT');
+  if (/Comercio no disponible/i.test(detailText)) symptoms.push('COMMERCE_DEFAULT');
+  if (/Sin productos/i.test(detailText)) symptoms.push('PRODUCTS_DEFAULT');
+  if (/Total a cobrar:\s*\$0\.00/i.test(detailText)) symptoms.push('ZERO_AMOUNT');
+  if (/Cliente(?:\s|$)/i.test(detailText) && !sourceFields.cliente) symptoms.push('CLIENT_DEFAULT');
+
+  const valueMismatches = [];
+  if (numericAmount(sourceFields.total) !== null && numericAmount(renderFields.total) !== null && numericAmount(sourceFields.total) !== numericAmount(renderFields.total)) valueMismatches.push('total');
+  if (hasMeaningfulItems(sourceFields.items) && !hasMeaningfulItems(renderFields.items)) valueMismatches.push('items');
+  if (sourceFields.cliente && !renderFields.cliente) valueMismatches.push('cliente');
+  if (sourceFields.direccion && !renderFields.direccion) valueMismatches.push('direccion');
+  if (sourceFields.comercio && !renderFields.comercio) valueMismatches.push('comercio');
+
+  const triggers = [];
+  if (sourceStatus && sourceStatus !== 'FRESH') triggers.push('STALE');
+  if (symptoms.length > 0) triggers.push('DEFAULT_APPEARED');
+  if (valueMismatches.length > 0) triggers.push('VALUE_MISMATCH');
+  if ((numericAmount(sourceFields.total) || 0) > 0 && numericAmount(renderFields.total) === 0) triggers.push('RENDER_ANOMALY');
+  if (process.env.PILOT_FORENSIC_CAPTURE === 'true') triggers.push('MANUAL_FORENSIC_CAPTURE');
+
+  if (triggers.length === 0) return null;
+  return sanitizeForensic({
+    schema_version: '1.0',
+    captured_at: new Date().toISOString(),
+    trigger: [...new Set(triggers)],
+    correlation: {
+      pedido_id: result.pedidoId,
+      short_id: firstDefined(result?.rtdb?.order?.shortId, result?.rtdb?.order?.short_id, result?.rtdb?.order?.folio, detail.focusData?.shortId, null)
+    },
+    source: {
+      source_status: sourceStatus,
+      snapshot_signature: result?.panel?.archiveMeta?.snapshot_signature || result?.panel?.contractSnapshot?.snapshot_signature || null,
+      pedido: result?.rtdb?.order || null
+    },
+    contract: { active_order: activeOrder || null },
+    kitchen: {
+      normalized_order: normalized,
+      observed_fields: { source: sourceFields, contract: contractFields, normalized: normalizedFields }
+    },
+    render: {
+      render_input: renderInput,
+      observed_fields: renderFields,
+      effective_values: {
+        amount: firstDefined(detail.focusData?.total, detail.focusData?.monto_total, detail.focusData?.monto, renderFields.total, null),
+        products: firstDefined(detail.focusData?.items, detail.focusData?.lineas, renderFields.items, null)
+      }
+    },
+    ui: {
+      symptoms,
+      detail_title: detail.detailTitle || null,
+      detail_subtitle: detail.detailSubtitle || null,
+      detail_text: detail.detailText || '',
+      detail_html: detail.detailHtml || ''
+    },
+    diagnostic: {
+      first_divergence: null,
+      classification: 'INSUFFICIENT_EVIDENCE',
+      value_mismatches: valueMismatches
+    }
+  });
+}
+
+async function pruneForensicArtifacts() {
+  const cutoff = Date.now() - FORENSIC_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  const entries = await fs.readdir(FORENSIC_ROOT, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const directory = path.join(FORENSIC_ROOT, entry.name);
+    const stats = await fs.stat(directory).catch(() => null);
+    if (stats && stats.mtimeMs < cutoff) await fs.rm(directory, { recursive: true, force: true });
   }
 }
 
@@ -733,6 +859,35 @@ async function main() {
   await page.waitForTimeout(PANEL_WAIT_MS);
 
   const pageState = await page.evaluate((targetPedidoId) => {
+    const detailCapture = {
+      requestedPedidoId: targetPedidoId,
+      selectionAttempted: false,
+      selectionError: null,
+      focusData: null,
+      detailTitle: null,
+      detailSubtitle: null,
+      detailText: '',
+      detailHtml: '',
+      cardHtml: ''
+    };
+    try {
+      if (typeof window.mostrarPedidoEnPanel === 'function') {
+        detailCapture.selectionAttempted = true;
+        window.mostrarPedidoEnPanel(targetPedidoId);
+      }
+      detailCapture.focusData = window.__nellyPedidoEnfoqueData
+        ? JSON.parse(JSON.stringify(window.__nellyPedidoEnfoqueData))
+        : null;
+      detailCapture.detailTitle = document.getElementById('operation-focus-title')?.textContent || null;
+      detailCapture.detailSubtitle = document.getElementById('operation-focus-subtitle')?.textContent || null;
+      const detailBody = document.getElementById('operation-focus-body');
+      detailCapture.detailText = detailBody?.innerText || '';
+      detailCapture.detailHtml = detailBody?.innerHTML || '';
+      const card = document.querySelector(`[data-pedido-id="${CSS.escape(targetPedidoId)}"]`);
+      detailCapture.cardHtml = card?.outerHTML || '';
+    } catch (error) {
+      detailCapture.selectionError = error?.message || String(error);
+    }
     const canonical = Array.isArray(window.__nellyPedidosCocinaCanonical) ? window.__nellyPedidosCocinaCanonical : [];
     const operation = Array.isArray(window.__nellyOperationOrders) ? window.__nellyOperationOrders : [];
     const renderizados = window.__nellyPedidosCocinaRenderizados || {};
@@ -771,6 +926,7 @@ async function main() {
         pedidosEnCamino: findById(Array.isArray(renderizados.pedidosEnCamino) ? renderizados.pedidosEnCamino : []),
         pedidosEntregados: findById(Array.isArray(renderizados.pedidosEntregados) ? renderizados.pedidosEntregados : [])
       },
+      detailCapture,
       renderizadosCount,
       bodyText: document.body.innerText,
       pageUrl: window.location.href,
@@ -895,6 +1051,7 @@ async function main() {
       __nellyPedidosCocinaRenderizados_count: Number(pageState?.renderizadosCount || 0),
       completeness: panelCompleteness,
       renderizados: pageState?.renderizados || null,
+      detailCapture: pageState?.detailCapture || null,
       order: panelOrder,
       bodyIncludesPedidoId: Boolean(pageState?.bodyText?.includes(pedidoId))
     },
@@ -963,8 +1120,17 @@ async function main() {
       authDiagnosis: path.join(OUTPUT_DIR, 'auth-diagnosis.json'),
       authTrace: path.join(OUTPUT_DIR, 'auth-trace.json'),
       moduleEvaluationTrace: path.join(OUTPUT_DIR, 'module-evaluation-trace.json'),
-      moduleHttpTrace: path.join(OUTPUT_DIR, 'module-http-trace.json')
+      moduleHttpTrace: path.join(OUTPUT_DIR, 'module-http-trace.json'),
+      forensicTrace: path.join(FORENSIC_ROOT, `${new Date().toISOString().replace(/[:.]/g, '-')}-${pedidoId}`, 'forensic-order-trace.json')
     }
+  };
+
+  const forensicCapture = buildForensicCapture({ result, activeOrder, pageState });
+  result.forensic = {
+    captured: Boolean(forensicCapture),
+    trigger: forensicCapture?.trigger || [],
+    artifact: forensicCapture ? result.files.forensicTrace : null,
+    retention_days: FORENSIC_RETENTION_DAYS
   };
 
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
@@ -974,8 +1140,16 @@ async function main() {
     pedidoId: result.pedidoId,
     generatedAt: new Date().toISOString(),
     outputDir: OUTPUT_DIR,
-    files: result.files
+    files: result.files,
+    forensic: result.forensic
   }, null, 2), 'utf8');
+
+  await pruneForensicArtifacts();
+  if (forensicCapture) {
+    const forensicDirectory = path.dirname(result.files.forensicTrace);
+    await fs.mkdir(forensicDirectory, { recursive: true });
+    await fs.writeFile(result.files.forensicTrace, JSON.stringify(forensicCapture, null, 2), 'utf8');
+  }
 
   await fs.writeFile(path.join(OUTPUT_DIR, 'git.json'), JSON.stringify(result.git, null, 2), 'utf8');
   await fs.writeFile(path.join(OUTPUT_DIR, 'backend.json'), JSON.stringify({
@@ -1026,6 +1200,7 @@ async function main() {
     panel: {
       found: result.panel.found,
       completeness: result.panel.completeness,
+      detailCapture: result.panel.detailCapture,
       renderizados: result.panel.renderizados,
       order: result.panel.order
     },
@@ -1057,7 +1232,8 @@ async function main() {
       bootstrapTokenPresent: result.panel.bootstrapTokenPresent,
       pageUrl: result.panel.pageUrl,
       scripts: result.panel.scripts,
-      bodyIncludesPedidoId: result.panel.bodyIncludesPedidoId
+      bodyIncludesPedidoId: result.panel.bodyIncludesPedidoId,
+      detailCapture: result.panel.detailCapture
     }
   }, null, 2), 'utf8');
   await fs.writeFile(path.join(OUTPUT_DIR, 'auth-diagnosis.json'), JSON.stringify({
