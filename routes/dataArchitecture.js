@@ -102,13 +102,31 @@ router.get('/archive', requireDataArchitectureAccess, async (_req, res, next) =>
 });
 
 router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next) => {
+  const startedAt = process.hrtime.bigint();
+  const trace = {
+    request_id: String(_req.headers['x-request-id'] || `data-access-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    received_at: new Date().toISOString(),
+    firebase_start_at: null,
+    firebase_end_at: null,
+    serialization_start_at: null,
+    serialization_end_at: null,
+    response_at: null
+  };
+
+  const elapsedMs = () => Number((Number(process.hrtime.bigint() - startedAt) / 1e6).toFixed(3));
+  const durationMs = (start, end) => start && end
+    ? Number((new Date(end).getTime() - new Date(start).getTime()).toFixed(3))
+    : null;
+
   try {
     const admin = await getAdmin();
+    trace.firebase_start_at = new Date().toISOString();
     const snapshot = await admin.database().ref('pedidos').once('value');
+    trace.firebase_end_at = new Date().toISOString();
     const pedidos = snapshot.val() || {};
     const orders = Object.entries(pedidos).map(([id, pedido]) => ({ id, ...pedido }));
     const contract = buildDataAccessContract(orders);
-    return res.json({
+    const body = {
       ok: true,
       contract_version: 'v1',
       generatedAt: contract.generatedAt,
@@ -118,8 +136,27 @@ router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next
       monthly_summary: contract.getMonthlySummary(),
       annual_summary: contract.getAnnualSummary(),
       audit_index: contract.getAuditIndex()
+    };
+
+    trace.serialization_start_at = new Date().toISOString();
+    JSON.stringify(body);
+    trace.serialization_end_at = new Date().toISOString();
+    trace.response_at = new Date().toISOString();
+    console.info('[DATA_ACCESS_TIMING]', {
+      ...trace,
+      elapsed_ms: elapsedMs(),
+      firebase_ms: durationMs(trace.firebase_start_at, trace.firebase_end_at),
+      serialization_ms: durationMs(trace.serialization_start_at, trace.serialization_end_at)
     });
+
+    return res.json(body);
   } catch (error) {
+    trace.response_at = new Date().toISOString();
+    console.error('[DATA_ACCESS_TIMING_ERROR]', {
+      ...trace,
+      elapsed_ms: elapsedMs(),
+      error: error?.message || String(error)
+    });
     return next(error);
   }
 });
