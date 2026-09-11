@@ -103,6 +103,8 @@ router.get('/archive', requireDataArchitectureAccess, async (_req, res, next) =>
 
 router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next) => {
   const startedAt = process.hrtime.bigint();
+  let finishAt = null;
+  let closeAt = null;
   const trace = {
     request_id: String(_req.headers['x-request-id'] || `data-access-${Date.now()}-${Math.random().toString(16).slice(2)}`),
     received_at: new Date().toISOString(),
@@ -112,6 +114,30 @@ router.get('/data-access', requireDataArchitectureAccess, async (_req, res, next
     serialization_end_at: null,
     response_at: null
   };
+
+  const logResponseLifecycle = () => {
+    console.info('[DATA_ACCESS_RESPONSE_LIFECYCLE]', {
+      request_id: trace.request_id,
+      response_at: trace.response_at,
+      finish_at: finishAt,
+      close_at: closeAt,
+      finish_ms: trace.response_at && finishAt
+        ? Number((new Date(finishAt).getTime() - new Date(trace.response_at).getTime()).toFixed(3))
+        : null,
+      close_ms: trace.response_at && closeAt
+        ? Number((new Date(closeAt).getTime() - new Date(trace.response_at).getTime()).toFixed(3))
+        : null
+    });
+  };
+
+  res.once('finish', () => {
+    finishAt = new Date().toISOString();
+    logResponseLifecycle();
+  });
+  res.once('close', () => {
+    closeAt = new Date().toISOString();
+    logResponseLifecycle();
+  });
 
   const elapsedMs = () => Number((Number(process.hrtime.bigint() - startedAt) / 1e6).toFixed(3));
   const durationMs = (start, end) => start && end
