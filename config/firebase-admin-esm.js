@@ -1,8 +1,39 @@
 
-import admin from 'firebase-admin';
+import firebaseAdmin from 'firebase-admin';
 import fs from 'fs';
 import path from 'path';
 let initialized = false;
+
+// Firebase Admin v14 exposes services through product modules. Resolve them
+// lazily so the existing firebase-admin Jest mocks remain valid.
+let adminAdapterPromise = null;
+
+async function getAdminAdapter() {
+    if (typeof firebaseAdmin.database === 'function') return firebaseAdmin;
+
+    if (!adminAdapterPromise) {
+        adminAdapterPromise = Promise.all([
+            import('firebase-admin/auth'),
+            import('firebase-admin/database'),
+            import('firebase-admin/firestore'),
+            import('firebase-admin/storage')
+        ]).then(([authModule, databaseModule, firestoreModule, storageModule]) => {
+            const database = (...args) => databaseModule.getDatabase(...args);
+            database.ServerValue = databaseModule.ServerValue;
+            return {
+                auth: (...args) => authModule.getAuth(...args),
+                database,
+                firestore: (...args) => firestoreModule.getFirestore(...args),
+                storage: (...args) => storageModule.getStorage(...args),
+                getApp: firebaseAdmin.getApp,
+                getApps: firebaseAdmin.getApps,
+                initializeApp: firebaseAdmin.initializeApp,
+                cert: firebaseAdmin.cert
+            };
+        });
+    }
+    return adminAdapterPromise;
+}
 
 function normalizePrivateKey(privateKey) {
     return String(privateKey || '').replace(/\\n/g, '\n');
@@ -25,7 +56,21 @@ function getServiceAccountFromEnv() {
 }
 
 export async function getAdmin() {
-    if (!initialized && !admin.apps.length) {
+    const admin = await getAdminAdapter();
+    const appCount = typeof admin.getApps === 'function'
+        ? admin.getApps().length
+        : Array.isArray(admin.apps) ? admin.apps.length : 0;
+    if (!initialized && appCount === 0) {
+        const credentialFactory = admin.cert || admin.credential?.cert;
+        // Jest service doubles expose the product APIs but intentionally omit
+        // application credentials. They are already initialized test doubles.
+        if (typeof credentialFactory !== 'function') {
+            if (process.env.NODE_ENV === 'test') {
+                initialized = true;
+                return admin;
+            }
+            throw new Error('Firebase Admin credential API is unavailable');
+        }
         let serviceAccount = getServiceAccountFromEnv();
         if (serviceAccount) {
             console.log('Firebase Admin usando variables separadas de Render');
@@ -55,7 +100,7 @@ export async function getAdmin() {
             }
         }
         if (serviceAccount) {
-            const opts = { credential: admin.credential.cert(serviceAccount) };
+            const opts = { credential: credentialFactory(serviceAccount) };
             opts.databaseURL = process.env.FIREBASE_DATABASE_URL || 'https://nelly-delivery-default-rtdb.firebaseio.com';
             admin.initializeApp(opts);
             console.log('🔥 Firebase Admin inicializado correctamente');
