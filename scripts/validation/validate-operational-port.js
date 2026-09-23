@@ -21,9 +21,9 @@ loadEnvFile('.env.local');
 loadEnvFile('.env');
 
 const BASE_URL = process.env.BASE_URL || process.env.RENDER_URL || 'http://127.0.0.1:3001';
-const API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
+const API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || '';
 const PANEL_EMAIL = process.env.P1_PANEL_EMAIL || 'admin@nellydelivery.com';
-const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || 'NellyS4Test123!';
+const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || '';
 const MAX_DELIVERY_AVG_MINUTES = Number(process.env.MAX_DELIVERY_AVG_MINUTES || 240);
 
 const DIAGNOSTICS = {
@@ -117,7 +117,9 @@ async function requestJson(url, options = {}) {
   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
     error.status = response.status;
-    error.body = body;
+    error.body = url.includes('identitytoolkit.googleapis.com')
+      ? { redacted: 'Firebase Auth response omitted' }
+      : body;
     throw error;
   }
   return body;
@@ -173,7 +175,23 @@ function assertDiagnostic(condition, code, message, details = {}) {
   }
 }
 
+function requireRuntimeAuth() {
+  if (process.env.JWT_SECRET) return;
+
+  const missing = [
+    ['FIREBASE_WEB_API_KEY or FIREBASE_API_KEY', API_KEY],
+    ['P1_PANEL_PASSWORD', PANEL_PASSWORD]
+  ]
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(`Faltan variables requeridas: ${missing.join(', ')}`);
+  }
+}
+
 async function main() {
+  requireRuntimeAuth();
+
   let health = null;
   try {
     health = await requestJson(`${BASE_URL}/api/health`);

@@ -2,12 +2,6 @@
 import fs from 'fs';
 import path from 'path';
 
-function maskSecret(value) {
-  if (!value) return '';
-  if (value.length <= 8) return '****';
-  return value.slice(0, 2) + '****' + value.slice(-2);
-}
-
 function failFastIfMissing(vars) {
   const missing = Object.entries(vars).filter(([k, v]) => !v);
   if (missing.length) {
@@ -57,8 +51,8 @@ export function validateEnv() {
     throw new Error('Faltan credenciales compatibles de Firebase Admin. Deteniendo startup.');
   }
 
-  // Log seguro (masking)
-  Object.entries(required).forEach(([k, v]) => {
-    console.log(`ENV ${k}: ${maskSecret(v)}`);
+  // Report only configuration state; never expose any part of a secret in logs.
+  Object.keys(required).forEach((key) => {
+    console.log(`ENV ${key}: configured`);
   });
 }

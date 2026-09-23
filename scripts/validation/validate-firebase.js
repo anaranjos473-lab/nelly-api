@@ -25,6 +25,24 @@ if (fs.existsSync(path.join(ROOT, 'firebase.json'))) {
   }
 }
 
+const securityRulesPath = path.join(ROOT, 'security_rules.json');
+if (fs.existsSync(securityRulesPath)) {
+  const securityRules = JSON.parse(fs.readFileSync(securityRulesPath, 'utf8'));
+  const pedidos = securityRules?.rules?.pedidos;
+  if (!pedidos || pedidos['.read'] !== 'auth != null') {
+    console.error('security_rules.json debe requerir autenticacion para leer pedidos');
+    ok = false;
+  }
+  if (!pedidos || pedidos['.write'] !== false || pedidos?.$pedido_id?.['.write'] !== false) {
+    console.error('security_rules.json debe impedir escrituras directas de clientes en pedidos');
+    ok = false;
+  }
+  if (!Array.isArray(pedidos?.['.indexOn']) || !pedidos['.indexOn'].includes('estado')) {
+    console.error('security_rules.json debe indexar pedidos.estado');
+    ok = false;
+  }
+}
+
 if (!ok) {
   process.exit(1);
 }

@@ -23,7 +23,7 @@ ref.on('value', (snapshot) => {
     const token = snapshot.val();
     if (token && token !== lastToken) {
         if (lastToken !== null) {
-            console.log(`\n[NOTIFICACIÓN] Token FCM actualizado para ${idConductor}:\n${token}\n`);
+            console.log(`[NOTIFICACION] Token FCM actualizado para ${idConductor}`);
         } else {
             console.log(`[INFO] Token inicial detectado para ${idConductor}`);
         }

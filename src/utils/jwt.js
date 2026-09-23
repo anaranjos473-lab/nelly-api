@@ -2,15 +2,10 @@
 import jwt from 'jsonwebtoken';
 
 function getSecret() {
-  if (process.env.JWT_SECRET) {
-    return process.env.JWT_SECRET;
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET es obligatorio');
   }
-
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET es obligatorio en production');
-  }
-
-  return 'test-only-secret';
+  return process.env.JWT_SECRET;
 }
 
 export const generateToken = (payload) => {

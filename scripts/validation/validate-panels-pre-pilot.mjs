@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 
 const BASE_URL = process.env.BASE_URL || process.env.RENDER_URL || 'http://127.0.0.1:3001';
 const PANEL_EMAIL = process.env.P1_PANEL_EMAIL || 'admin@nellydelivery.com';
-const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || 'NellyS4Test123!';
+const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || '';
 const OUTPUT_DIR = process.env.PANEL_VALIDATION_OUTPUT_DIR || '.codex-tmp/panel-validation';
 
 const PAGES = [
@@ -478,6 +478,10 @@ async function validatePage(browser, pageConfig, viewport) {
 }
 
 async function main() {
+  if (!PANEL_PASSWORD) {
+    throw new Error('Falta la variable requerida: P1_PANEL_PASSWORD');
+  }
+
   await mkdir(OUTPUT_DIR, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const results = [];

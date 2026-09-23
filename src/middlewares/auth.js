@@ -1,7 +1,12 @@
 // src/middlewares/auth.js
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+function getJwtSecret() {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET es obligatorio');
+  }
+  return process.env.JWT_SECRET;
+}
 
 export const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -10,7 +15,7 @@ export const authenticateJWT = (req, res, next) => {
   }
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     req.user = decoded;
     next();
   } catch (err) {
@@ -19,5 +24,5 @@ export const authenticateJWT = (req, res, next) => {
 };
 
 export const generateToken = (payload) => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '12h' });
 };

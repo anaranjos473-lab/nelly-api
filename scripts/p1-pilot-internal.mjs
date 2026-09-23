@@ -1,16 +1,30 @@
 import fetch from 'node-fetch';
 
 const BASE_URL = process.env.RENDER_URL || 'http://127.0.0.1:3015';
-const API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
+const API_KEY = process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY || '';
 const PANEL_EMAIL = process.env.P1_PANEL_EMAIL || 'admin@nellydelivery.com';
-const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || 'NellyS4Test123!';
+const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || '';
 const DRIVER_EMAIL = process.env.P1_DRIVER_EMAIL || 'driver-tuxtla-001@nelly.com';
-const DRIVER_PASSWORD = process.env.P1_DRIVER_PASSWORD || 'Nelly2026#';
+const DRIVER_PASSWORD = process.env.P1_DRIVER_PASSWORD || '';
 const CYCLES = Number(process.env.P1_CYCLES || 3);
 const DELAY_MS = Number(process.env.P1_DELAY_MS || 0);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function requireRuntimeSecrets() {
+  const missing = [
+    ['FIREBASE_API_KEY or FIREBASE_WEB_API_KEY', API_KEY],
+    ['P1_PANEL_PASSWORD', PANEL_PASSWORD],
+    ['P1_DRIVER_PASSWORD', DRIVER_PASSWORD]
+  ]
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+
+  if (missing.length > 0) {
+    throw new Error(`Faltan variables requeridas: ${missing.join(', ')}`);
+  }
 }
 
 async function requestJson(url, options = {}) {
@@ -31,7 +45,9 @@ async function requestJson(url, options = {}) {
   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
     error.status = response.status;
-    error.body = body;
+    error.body = url.includes('identitytoolkit.googleapis.com')
+      ? { redacted: 'Firebase Auth response omitted' }
+      : body;
     throw error;
   }
   return body;
@@ -102,6 +118,8 @@ async function runCycle(index) {
 }
 
 async function main() {
+  requireRuntimeSecrets();
+
   const startedAt = Date.now();
   const runs = [];
   const errors = [];

@@ -17,7 +17,7 @@ const uid = 'bmKUeqDqHgbaaBmc8MUQXuyssLv2';
 const token1 = await db.ref(`repartidores/${uid}/fcm_token`).once('value');
 const token2 = await db.ref(`repartidores_activos/${uid}/fcm_token`).once('value');
 
-console.log('🔔 FCM TOKEN VERIFICATION:');
-console.log('repartidores:', token1.val() ? '✅ SYNCED (' + token1.val().substring(0, 30) + '...)' : '❌ MISSING');
-console.log('repartidores_activos:', token2.val() ? '✅ SYNCED (' + token2.val().substring(0, 30) + '...)' : '❌ MISSING');
+console.log('FCM TOKEN VERIFICATION:');
+console.log('repartidores:', token1.val() ? 'SYNCED' : 'MISSING');
+console.log('repartidores_activos:', token2.val() ? 'SYNCED' : 'MISSING');
 process.exit(0);

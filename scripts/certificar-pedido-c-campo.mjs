@@ -3,7 +3,6 @@ import path from 'path';
 import admin from 'firebase-admin';
 
 const DEFAULT_BASE_URL = 'https://nelly-api-8lh1.onrender.com';
-const DEFAULT_FIREBASE_API_KEY = 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
 const STATE_PATH = path.join(process.cwd(), '.codex-tmp', 'pedido-c-state.json');
 
 const STEP = String(process.env.STEP || process.argv[2] || 'inspect').toLowerCase();
@@ -14,7 +13,7 @@ const ADMIN_EMAILS = String(process.env.ADMIN_EMAIL || 'admin@nellydelivery.com,
   .map((email) => email.trim())
   .filter(Boolean);
 const DRIVER_EMAIL = process.env.DRIVER_EMAIL || 'driver-tuxtla-001@nelly.com';
-const DRIVER_PASSWORD = process.env.DRIVER_PASSWORD || 'Nelly2026#';
+const DRIVER_PASSWORD = process.env.DRIVER_PASSWORD || '';
 
 function loadEnvFile(fileName) {
   const fullPath = path.join(process.cwd(), fileName);
@@ -106,6 +105,7 @@ async function exchangeCustomToken(apiKey, customToken) {
 }
 
 async function signInDriver(apiKey) {
+  if (!DRIVER_PASSWORD) throw new Error('DRIVER_PASSWORD es requerido para autenticar el repartidor de certificacion');
   const result = await requestJson(
     'driver-signin',
     `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
@@ -123,7 +123,9 @@ async function signInDriver(apiKey) {
 
 async function resolveApiKey() {
   const result = await requestRaw('firebase-config', `${BASE_URL}/api/public/firebase-config`);
-  return result.body?.apiKey || process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY || DEFAULT_FIREBASE_API_KEY;
+  const apiKey = result.body?.apiKey || process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY;
+  if (!apiKey) throw new Error('FIREBASE_API_KEY o FIREBASE_WEB_API_KEY es requerido');
+  return apiKey;
 }
 
 async function createAdminIdToken(apiKey) {

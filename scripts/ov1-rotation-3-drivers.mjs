@@ -4,14 +4,14 @@ const BASE_URL = process.env.RENDER_URL || process.env.BASE_URL || 'http://127.0
 const CYCLES = Number(process.env.P1_CYCLES || process.env.OV1_CYCLES || 20);
 const DELAY_MS = Number(process.env.P1_DELAY_MS || process.env.OV1_DELAY_MS || 0);
 const PANEL_EMAIL = process.env.P1_PANEL_EMAIL || 'admin@nellydelivery.com';
-const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || 'NellyS4Test123!';
-const API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyAhHZvA2T-1xkIrCBpljgWPzDmynucT9_E';
+const PANEL_PASSWORD = process.env.P1_PANEL_PASSWORD || '';
+const API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || '';
 const TOKEN_EXPIRY_SKEW_MS = Number(process.env.OV1_TOKEN_EXPIRY_SKEW_MS || 60_000);
 
 const DRIVERS = [
-  { uid: process.env.P1_DRIVER_1_UID || 'ULILm4AyJGbfQzuUlC9ySpGrQrf1', email: process.env.P1_DRIVER_1_EMAIL || 'pilot_p1_002@nelly.com', password: process.env.P1_DRIVER_1_PASSWORD || 'PilotP1!2026' },
-  { uid: process.env.P1_DRIVER_2_UID || 'iXXl1erAQxW0Hht0CLWzlOYGaAi1', email: process.env.P1_DRIVER_2_EMAIL || 'pilot_p1_003@nelly.com', password: process.env.P1_DRIVER_2_PASSWORD || 'PilotP1!2026' },
-  { uid: process.env.P1_DRIVER_3_UID || '9XPSCLkFUWeZnxWoFgZEf0uzkTe2', email: process.env.P1_DRIVER_3_EMAIL || 'pilot_p1_004@nelly.com', password: process.env.P1_DRIVER_3_PASSWORD || 'PilotP1!2026' }
+  { uid: process.env.P1_DRIVER_1_UID || 'ULILm4AyJGbfQzuUlC9ySpGrQrf1', email: process.env.P1_DRIVER_1_EMAIL || 'pilot_p1_002@nelly.com', password: process.env.P1_DRIVER_1_PASSWORD || '' },
+  { uid: process.env.P1_DRIVER_2_UID || 'iXXl1erAQxW0Hht0CLWzlOYGaAi1', email: process.env.P1_DRIVER_2_EMAIL || 'pilot_p1_003@nelly.com', password: process.env.P1_DRIVER_2_PASSWORD || '' },
+  { uid: process.env.P1_DRIVER_3_UID || '9XPSCLkFUWeZnxWoFgZEf0uzkTe2', email: process.env.P1_DRIVER_3_EMAIL || 'pilot_p1_004@nelly.com', password: process.env.P1_DRIVER_3_PASSWORD || '' }
 ];
 
 const tokenCache = new Map();
@@ -23,6 +23,18 @@ const authStats = {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function requireRuntimeSecrets() {
+  const required = [
+    ['FIREBASE_WEB_API_KEY or FIREBASE_API_KEY', API_KEY],
+    ['P1_PANEL_PASSWORD', PANEL_PASSWORD],
+    ...DRIVERS.map((driver, index) => [`P1_DRIVER_${index + 1}_PASSWORD`, driver.password])
+  ];
+  const missing = required.filter(([, value]) => !value).map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(`Faltan variables requeridas: ${missing.join(', ')}`);
+  }
 }
 
 async function requestJson(url, options = {}) {
@@ -43,7 +55,9 @@ async function requestJson(url, options = {}) {
   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
     error.status = response.status;
-    error.body = body;
+    error.body = url.includes('identitytoolkit.googleapis.com')
+      ? { redacted: 'Firebase Auth response omitted' }
+      : body;
     throw error;
   }
   return body;
@@ -153,6 +167,8 @@ async function runCycle(index) {
 }
 
 async function main() {
+  requireRuntimeSecrets();
+
   const runs = [];
   const errors = [];
 

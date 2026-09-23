@@ -2,12 +2,6 @@
 import fs from 'fs';
 import path from 'path';
 
-function maskSecret(value) {
-  if (!value) return '';
-  if (value.length <= 8) return '****';
-  return value.slice(0, 2) + '****' + value.slice(-2);
-}
-
 export function getFirebaseAdminConfig() {
   if (!process.env.FIREBASE_ADMIN_JSON) {
     throw new Error('FALTA variable crítica: FIREBASE_ADMIN_JSON');
@@ -18,11 +12,8 @@ export function getFirebaseAdminConfig() {
   } catch (e) {
     throw new Error('FIREBASE_ADMIN_JSON inválido: ' + e.message);
   }
-  // Nunca loggear private_key ni secretos completos
-  console.log('FIREBASE_ADMIN_JSON cargado:', {
-    client_email: maskSecret(config.client_email),
-    project_id: config.project_id
-  });
+  // Presence is sufficient for diagnostics; do not log identifiers or secret fragments.
+  console.log('FIREBASE_ADMIN_JSON configured');
   return config;
 }
 

@@ -61,7 +61,7 @@ async function testCompleteOrder(token, pedidoId) {
     
     console.log(`\n🧪 POST ${BASE_URL}/api/delivery/complete-order`);
     console.log(`📝 Body: ${data}`);
-    console.log(`🔑 Token (primeros 50 chars): ${token.substring(0, 50)}...`);
+    console.log('Admin token created (not printed).');
     
     const req = https.request(options, (res) => {
       let responseData = '';
