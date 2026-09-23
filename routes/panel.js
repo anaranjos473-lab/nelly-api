@@ -1,6 +1,9 @@
 import express from 'express';
 import { getAdmin } from '../config/firebase-admin-esm.js';
 import { extraerDeudaActual, registrarPagoDeudaTx } from '../src/services/debtLockService.js';
+import { buildFiscalOrderReview } from '../src/services/nellyFiscalService.js';
+import { buildFiscalCase, buildFiscalControlCenter } from '../src/services/fiscalCaseService.js';
+import { requireFiscalPermission } from '../src/middlewares/fiscalAuthorization.js';
 
 const router = express.Router();
 
@@ -169,6 +172,58 @@ router.post('/finanzas/registrar-pago-deuda', requirePanelUser, async (req, res,
       idempotencyKey
     });
     return res.json({ ok: true, origen, ...result });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/fiscal/orders/:orderId/review', requirePanelUser, requireFiscalPermission('FISCAL_VIEW', {
+  action: 'REVIEW_ORDER', resource: 'fiscal_order'
+}), async (req, res, next) => {
+  try {
+    const orderId = String(req.params.orderId || '').trim();
+    if (!orderId) return res.status(400).json({ ok: false, error: 'orderId es requerido' });
+
+    const admin = await getAdmin();
+    const db = admin.database();
+    const [orderSnapshot, ledgerSnapshot] = await Promise.all([
+      db.ref(`pedidos/${orderId}`).once('value'),
+      db.ref('ledger').once('value')
+    ]);
+    if (!orderSnapshot.exists()) {
+      return res.status(404).json({ ok: false, error: 'Pedido no encontrado' });
+    }
+
+    const ledgerEntries = Object.values(ledgerSnapshot.val() || {});
+    const fiscalCase = buildFiscalCase({
+      order: orderSnapshot.val(),
+      ledgerEntries
+    });
+    return res.json({
+      ok: true,
+      agent: 'NELLY-FISCAL',
+      review: fiscalCase.review,
+      fiscalCase
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/fiscal/summary', requirePanelUser, requireFiscalPermission('FISCAL_VIEW', {
+  action: 'VIEW_SUMMARY', resource: 'fiscal_summary'
+}), async (_req, res, next) => {
+  try {
+    const admin = await getAdmin();
+    const db = admin.database();
+    const [ordersSnapshot, ledgerSnapshot] = await Promise.all([
+      db.ref('pedidos').once('value'),
+      db.ref('ledger').once('value')
+    ]);
+    const orders = Object.values(ordersSnapshot.val() || {});
+    const ledgerEntries = Object.values(ledgerSnapshot.val() || {});
+    const cases = orders.map((order) => buildFiscalCase({ order, ledgerEntries }));
+    return res.json({ ok: true, agent: 'NELLY-FISCAL', summary: buildFiscalControlCenter(cases) });
   } catch (error) {
     return next(error);
   }
