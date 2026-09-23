@@ -18,6 +18,7 @@ import zonasTerritorialesRouter from './routes/zonasTerritoriales.js';
 import soporteRoutes from './routes/soporte.js';
 import notificacionesRouter from './routes/notificaciones.js';
 import ordenesRouter from './routes/ordenes.js';
+import operationalEvidenceRouter from './routes/operationalEvidence.js';
 import { getFirebaseConfig } from './config/firebase-config.js';
 import rateLimiter from './src/middlewares/rateLimiter.js';
 import secureHeaders from './src/middlewares/secureHeaders.js';
@@ -276,6 +277,7 @@ app.use('/api/zonas-territoriales', zonasTerritorialesRouter);
 app.use('/api/notificaciones', notificacionesRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/admin/zonas', zonasAdminRouter);
+app.use('/api/operational-evidence', operationalEvidenceRouter);
 
 app.use((req, res) => {
     res.status(404).json({ success: false, message: `Route ${req.url} not found` });

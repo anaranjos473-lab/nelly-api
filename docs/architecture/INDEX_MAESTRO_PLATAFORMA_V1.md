@@ -50,6 +50,8 @@ El Plan Estrategico explica la vision y los principios que guian a Nelly como pl
 
 ### Bloque financiero
 - [`U1_3_LEDGER_FINANCIERO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/U1_3_LEDGER_FINANCIERO_V1.md)
+- [`GOAL_COMPLIANCE_READINESS_S3A.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/GOAL_COMPLIANCE_READINESS_S3A.md) - preparacion tecnica de solo lectura para evidencia laboral/fiscal potencial; no calcula ni activa obligaciones.
+- [`NELLY_COMPLIANCE_GAP_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/NELLY_COMPLIANCE_GAP_V1.md) - matriz de cumplimiento local, contratos reales y gate de produccion; no autoriza Sprint 3 bloqueado.
 - [`RC1_REPORTE_DIARIO_OPERATIVO_V1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/RC1_REPORTE_DIARIO_OPERATIVO_V1.md)
 - [`CERTIFICACION_FINAL_RC1.md`](/C:/Users/hp14/OneDrive/Desktop/nelly/docs/architecture/CERTIFICACION_FINAL_RC1.md)
 
