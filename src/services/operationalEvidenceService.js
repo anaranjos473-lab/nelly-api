@@ -11,6 +11,7 @@ export const WORK_EVENT_TYPES = new Set([
   'WAIT_STARTED',
   'ORDER_READY',
   'PICKUP',
+  'ARRIVED_DROPOFF',
   'DELIVERED',
   'CANCELLED',
   'DISCONNECTED'
@@ -136,6 +137,7 @@ function roundRatio(numerator, denominator) {
 
 export function summarizeDriverProductivity(events = {}) {
   const values = sortedEvents(events);
+  const workSummary = summarizeWorkEvents(events);
   const counts = values.reduce((accumulator, event) => {
     accumulator[event.event_type] = (accumulator[event.event_type] || 0) + 1;
     return accumulator;
@@ -148,11 +150,12 @@ export function summarizeDriverProductivity(events = {}) {
   );
 
   return {
-    ...summarizeWorkEvents(events),
+    ...workSummary,
     accepted_offers: counts.OFFER_ACCEPTED || 0,
     delivered_orders: deliveredOrderIds.size,
     cancelled_events: counts.CANCELLED || 0,
     delivery_completion_rate: roundRatio(deliveredOrderIds.size, counts.OFFER_ACCEPTED || 0),
+    observed_orders_per_hour: roundRatio(deliveredOrderIds.size * 60, workSummary.effective_work_minutes),
     metric_scope: 'OBSERVED_WORK_EVENTS_ONLY'
   };
 }
@@ -219,32 +222,75 @@ export function simulateDriverOperationalMode(events = {}) {
   };
 }
 
-function taskEvidenceByOrder(events = {}) {
+export function buildWorkTimeEvidence(events = {}) {
   const tasks = new Map();
   for (const event of sortedEvents(events)) {
     const orderId = event.references?.order_id;
     if (!orderId) continue;
     const task = tasks.get(orderId) || {
       order_id: orderId,
-      task_accepted_at: null,
-      task_completed_at: null,
-      completion_event: null
+      accepted_at: null,
+      arrived_pickup_at: null,
+      picked_up_at: null,
+      arrived_dropoff_at: null,
+      completed_at: null,
+      cancelled_at: null
     };
-    if (event.event_type === 'OFFER_ACCEPTED' && task.task_accepted_at === null) {
-      task.task_accepted_at = event.occurred_at;
-    }
-    if (['DELIVERED', 'CANCELLED'].includes(event.event_type)) {
-      task.task_completed_at = event.occurred_at;
-      task.completion_event = event.event_type;
-    }
+    if (event.event_type === 'OFFER_ACCEPTED' && task.accepted_at === null) task.accepted_at = event.occurred_at;
+    if (event.event_type === 'ARRIVED_MERCHANT' && task.arrived_pickup_at === null) task.arrived_pickup_at = event.occurred_at;
+    if (event.event_type === 'PICKUP' && task.picked_up_at === null) task.picked_up_at = event.occurred_at;
+    if (event.event_type === 'ARRIVED_DROPOFF' && task.arrived_dropoff_at === null) task.arrived_dropoff_at = event.occurred_at;
+    if (event.event_type === 'DELIVERED') task.completed_at = event.occurred_at;
+    if (event.event_type === 'CANCELLED') task.cancelled_at = event.occurred_at;
     tasks.set(orderId, task);
   }
 
   return [...tasks.values()].map((task) => ({
     ...task,
-    effective_work_seconds_observed: task.task_accepted_at && task.task_completed_at
-      ? Math.max(0, Math.round((task.task_completed_at - task.task_accepted_at) / 1000))
+    effective_work_seconds_observed: task.accepted_at && task.completed_at
+      ? Math.max(0, Math.round((task.completed_at - task.accepted_at) / 1000))
       : null
+  }));
+}
+
+export function buildRouteEvidence(events = {}) {
+  const routes = new Map();
+  for (const event of sortedEvents(events)) {
+    const routeId = event.references?.route_id;
+    if (!routeId) continue;
+    const route = routes.get(routeId) || {
+      route_id: routeId,
+      order_ids: new Set(),
+      first_observed_at: event.occurred_at,
+      last_observed_at: event.occurred_at,
+      observed_distance_meters: null,
+      estimated_eta_seconds: null,
+      h3_zone: null,
+      route_continuity_observed: false,
+      completion_events: []
+    };
+    const orderId = event.references?.order_id;
+    if (orderId) route.order_ids.add(orderId);
+    route.last_observed_at = event.occurred_at;
+    if (Number.isSafeInteger(event.metadata?.observed_distance_meters)) {
+      route.observed_distance_meters = event.metadata.observed_distance_meters;
+    }
+    if (Number.isSafeInteger(event.metadata?.estimated_eta_seconds)) {
+      route.estimated_eta_seconds = event.metadata.estimated_eta_seconds;
+    }
+    if (event.metadata?.h3_zone) route.h3_zone = event.metadata.h3_zone;
+    if (event.metadata?.route_continuity === true) route.route_continuity_observed = true;
+    if (['DELIVERED', 'CANCELLED'].includes(event.event_type) && orderId) {
+      route.completion_events.push({ order_id: orderId, event_type: event.event_type, occurred_at: event.occurred_at });
+    }
+    routes.set(routeId, route);
+  }
+
+  return [...routes.values()].map((route) => ({
+    ...route,
+    order_ids: [...route.order_ids].sort(),
+    route_order_count: route.order_ids.size,
+    metric_scope: 'OBSERVED_ROUTE_EVIDENCE_ONLY'
   }));
 }
 
@@ -281,7 +327,7 @@ export function buildComplianceReadiness({ driverId, events = {}, dispatchDecisi
     mode: 'READ_ONLY_PREPARATION',
     writes_performed: false,
     work_time: {
-      tasks: taskEvidenceByOrder(events),
+      tasks: buildWorkTimeEvidence(events),
       summary: summarizeWorkEvents(events)
     },
     earnings: {

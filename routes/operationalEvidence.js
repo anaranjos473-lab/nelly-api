@@ -4,6 +4,8 @@ import {
   REVIEW_OUTCOMES,
   WORK_EVENT_TYPES,
   buildComplianceReadiness,
+  buildRouteEvidence,
+  buildWorkTimeEvidence,
   createImmutableEvent,
   createIdempotencyFingerprint,
   isPrivilegedUser,
@@ -17,6 +19,24 @@ import {
 } from '../src/services/operationalEvidenceService.js';
 
 const router = express.Router();
+const ASSIGNMENT_FACTOR_FIELDS = new Set([
+  'distance_meters',
+  'eta_seconds',
+  'h3_zone',
+  'vehicle_type',
+  'availability',
+  'route_continuity',
+  'batch_possible',
+  'demand_level',
+  'capacity_available',
+  'proximity_band'
+]);
+const OBSERVED_EVIDENCE_FIELDS = new Set([
+  'observed_distance_meters',
+  'estimated_eta_seconds',
+  'h3_zone',
+  'route_continuity'
+]);
 
 function decodeJwtPayload(token) {
   const parts = String(token || '').split('.');
@@ -84,6 +104,11 @@ function optionalAssignmentFactors(value) {
   }
   return Object.fromEntries(Object.entries(value).map(([key, factor]) => {
     requireSafeId(key, 'assignment_factor');
+    if (!ASSIGNMENT_FACTOR_FIELDS.has(key)) {
+      const error = new Error('assignment_factor no permitido para evidencia operacional');
+      error.statusCode = 400;
+      throw error;
+    }
     if (!['string', 'number', 'boolean'].includes(typeof factor) || (typeof factor === 'number' && !Number.isFinite(factor))) {
       const error = new Error('assignment_factor invalido');
       error.statusCode = 400;
@@ -91,6 +116,52 @@ function optionalAssignmentFactors(value) {
     }
     return [key, factor];
   }));
+}
+
+function optionalNonNegativeInteger(value, field) {
+  if (value === undefined) return null;
+  const number = Number(value);
+  if (!Number.isSafeInteger(number) || number < 0) {
+    const error = new Error(`${field} invalido`);
+    error.statusCode = 400;
+    throw error;
+  }
+  return number;
+}
+
+function optionalWorkEvidence(value) {
+  if (value === undefined) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    const error = new Error('observed_evidence invalido');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (Object.keys(value).some((key) => !OBSERVED_EVIDENCE_FIELDS.has(key))) {
+    const error = new Error('observed_evidence contiene un campo no permitido');
+    error.statusCode = 400;
+    throw error;
+  }
+  const evidence = {};
+  const distance = optionalNonNegativeInteger(value.observed_distance_meters, 'observed_distance_meters');
+  const eta = optionalNonNegativeInteger(value.estimated_eta_seconds, 'estimated_eta_seconds');
+  if (distance !== null) evidence.observed_distance_meters = distance;
+  if (eta !== null) evidence.estimated_eta_seconds = eta;
+  if (value.h3_zone !== undefined) evidence.h3_zone = requireSafeId(value.h3_zone, 'h3_zone');
+  if (value.route_continuity !== undefined) {
+    if (typeof value.route_continuity !== 'boolean') {
+      const error = new Error('route_continuity invalido');
+      error.statusCode = 400;
+      throw error;
+    }
+    evidence.route_continuity = value.route_continuity;
+  }
+  return evidence;
+}
+
+function visibleDispatchDecisions(decisions, user) {
+  return isPrivilegedUser(user)
+    ? Object.values(decisions)
+    : Object.values(decisions).filter((decision) => decision.metadata?.candidate_driver_ids?.includes(user.uid));
 }
 
 function respondError(res, next, error) {
@@ -136,6 +207,8 @@ router.post('/work-events', requireAuthenticatedUser, async (req, res, next) => 
     }
     const occurredAt = requireTimestamp(req.body?.occurred_at, 'occurred_at');
     const orderId = req.body?.order_id ? requireSafeId(req.body.order_id, 'order_id') : null;
+    const routeId = req.body?.route_id ? requireSafeId(req.body.route_id, 'route_id') : null;
+    const observedEvidence = optionalWorkEvidence(req.body?.observed_evidence);
     const recordedAt = Date.now();
     const event = createImmutableEvent({
       id: eventId,
@@ -143,8 +216,8 @@ router.post('/work-events', requireAuthenticatedUser, async (req, res, next) => 
       actorId: req.firebaseUser.uid,
       occurredAt,
       recordedAt,
-      references: orderId ? { order_id: orderId } : {},
-      metadata: { source: 'api' }
+      references: { ...(orderId ? { order_id: orderId } : {}), ...(routeId ? { route_id: routeId } : {}) },
+      metadata: { source: 'api', ...observedEvidence }
     });
     const fingerprint = createIdempotencyFingerprint({ driverId, event: { ...event, recorded_at: undefined } });
     const persistedEvent = { ...event, idempotency_fingerprint: fingerprint };
@@ -179,6 +252,34 @@ router.get('/drivers/:driverId/productivity', requireAuthenticatedUser, async (r
     const admin = await getAdmin();
     const events = (await admin.database().ref(`work_ledger/${driverId}`).once('value')).val() || {};
     return res.json({ ok: true, driver_id: driverId, productivity: summarizeDriverProductivity(events) });
+  } catch (error) {
+    return respondError(res, next, error);
+  }
+});
+
+router.get('/drivers/:driverId/work-time-evidence', requireAuthenticatedUser, async (req, res, next) => {
+  try {
+    const driverId = requireSafeId(req.params.driverId, 'driver_id');
+    if (!canAccessDriver(req.firebaseUser, driverId)) {
+      return res.status(403).json({ ok: false, error: 'Permisos insuficientes' });
+    }
+    const admin = await getAdmin();
+    const events = (await admin.database().ref(`work_ledger/${driverId}`).once('value')).val() || {};
+    return res.json({ ok: true, driver_id: driverId, tasks: buildWorkTimeEvidence(events), writes_performed: false });
+  } catch (error) {
+    return respondError(res, next, error);
+  }
+});
+
+router.get('/drivers/:driverId/route-evidence', requireAuthenticatedUser, async (req, res, next) => {
+  try {
+    const driverId = requireSafeId(req.params.driverId, 'driver_id');
+    if (!canAccessDriver(req.firebaseUser, driverId)) {
+      return res.status(403).json({ ok: false, error: 'Permisos insuficientes' });
+    }
+    const admin = await getAdmin();
+    const events = (await admin.database().ref(`work_ledger/${driverId}`).once('value')).val() || {};
+    return res.json({ ok: true, driver_id: driverId, routes: buildRouteEvidence(events), writes_performed: false });
   } catch (error) {
     return respondError(res, next, error);
   }
@@ -287,6 +388,8 @@ router.post('/dispatch-decisions', requireAuthenticatedUser, requirePrivilegedUs
     const decision = requireString(req.body?.decision, 'decision', 80).toUpperCase();
     const reasonCodes = optionalReasonCodes(req.body?.reason_codes);
     const assignmentFactors = optionalAssignmentFactors(req.body?.assignment_factors);
+    const humanOverride = req.body?.human_override === true;
+    const reviewId = req.body?.review_id ? requireSafeId(req.body.review_id, 'review_id') : null;
     const candidateDriverIds = Array.isArray(req.body?.candidate_driver_ids)
       ? req.body.candidate_driver_ids.map((id) => requireSafeId(id, 'candidate_driver_id'))
       : [];
@@ -301,7 +404,9 @@ router.post('/dispatch-decisions', requireAuthenticatedUser, requirePrivilegedUs
         decision,
         candidate_driver_ids: candidateDriverIds,
         reason_codes: reasonCodes,
-        assignment_factors: assignmentFactors
+        assignment_factors: assignmentFactors,
+        human_override: humanOverride,
+        review_id: reviewId
       }
     });
     const fingerprint = createIdempotencyFingerprint({ orderId, record: { ...record, recorded_at: undefined } });
@@ -319,10 +424,32 @@ router.get('/orders/:orderId/dispatch-evidence', requireAuthenticatedUser, async
     const orderId = requireSafeId(req.params.orderId, 'order_id');
     const admin = await getAdmin();
     const decisions = (await admin.database().ref(`dispatch_decisions/${orderId}`).once('value')).val() || {};
-    const visibleDecisions = isPrivilegedUser(req.firebaseUser)
-      ? Object.values(decisions)
-      : Object.values(decisions).filter((decision) => decision.metadata?.candidate_driver_ids?.includes(req.firebaseUser.uid));
+    const visibleDecisions = visibleDispatchDecisions(decisions, req.firebaseUser);
     return res.json({ ok: true, order_id: orderId, decisions: visibleDecisions });
+  } catch (error) {
+    return respondError(res, next, error);
+  }
+});
+
+router.get('/orders/:orderId/assignment-evidence', requireAuthenticatedUser, async (req, res, next) => {
+  try {
+    const orderId = requireSafeId(req.params.orderId, 'order_id');
+    const admin = await getAdmin();
+    const decisions = (await admin.database().ref(`dispatch_decisions/${orderId}`).once('value')).val() || {};
+    const evidence = visibleDispatchDecisions(decisions, req.firebaseUser).map((decision) => ({
+      decision_id: decision.event_id,
+      order_id: decision.references?.order_id || orderId,
+      algorithm_id: decision.references?.algorithm_id || null,
+      algorithm_version: decision.references?.algorithm_version || null,
+      candidate_driver_ids: decision.metadata?.candidate_driver_ids || [],
+      reason_codes: decision.metadata?.reason_codes || [],
+      assignment_factors: decision.metadata?.assignment_factors || {},
+      human_override: decision.metadata?.human_override === true,
+      review_id: decision.metadata?.review_id || null,
+      decision: decision.metadata?.decision || null,
+      occurred_at: decision.occurred_at
+    }));
+    return res.json({ ok: true, order_id: orderId, evidence, writes_performed: false });
   } catch (error) {
     return respondError(res, next, error);
   }

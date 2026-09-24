@@ -31,6 +31,16 @@ IMPLEMENTADO -> VALIDADO LOCALMENTE -> PUBLICADO -> CERTIFICADO EN PRODUCCION
 | 1F | Merchant Performance | `GET /api/operational-evidence/merchants/:id/performance` | `IMPLEMENTED_LOCAL` | Solo actor privilegiado; no ingreso ni liquidacion. |
 | 2 | Driver Status Engine | `GET /api/operational-evidence/drivers/:id/status-simulation` | `CERTIFIED_LOCAL_CALCULATION_ONLY` | No escribe ni determina estatus laboral, pagos, IMSS, fiscal o contratos. |
 | 3A | Compliance Readiness | `GET /api/operational-evidence/drivers/:id/compliance-readiness` | `CERTIFIED_LOCAL_READ_ONLY` | Conserva evidencia; earnings/fiscal `NOT_COMPUTED`, weekly statement `NOT_ISSUED`. |
+| 3A P0 | Work Time Evidence | `GET /api/operational-evidence/drivers/:id/work-time-evidence` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Tiempos observados; sin estado laboral ni dinero. |
+| 3A P0 | Route Evidence | `GET /api/operational-evidence/drivers/:id/route-evidence` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Ruta, distancia/ETA observados y continuidad; sin tarifa ni payout. |
+| 3A P0 | Assignment Evidence | `GET /api/operational-evidence/orders/:id/assignment-evidence` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Factores, razones y override humano; no adjudica pedidos. |
+| 3B | Operational Intelligence | `GET /api/operational-intelligence/drivers/:id/summary` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Analitica temporal/ruta/ETA; sin dinero ni atribucion laboral. |
+| 3B | Route Productivity | `GET /api/operational-intelligence/drivers/:id/route-productivity` | `CERTIFIED_LOCAL_PENDING_RELEASE` | OPH y distancia observados por ruta; no payout. |
+| 3B | Bottlenecks | `GET /api/operational-intelligence/drivers/:id/bottlenecks` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Etapas observadas; no atribuye responsabilidad. |
+| 3B | ETA Accuracy | `GET /api/operational-intelligence/drivers/:id/eta-accuracy` | `CERTIFIED_LOCAL_PENDING_RELEASE` | ETA estimada versus tiempo observado; no modifica Radar/Dispatch. |
+| 3C | Decision Evidence | `GET /api/operational-decision-evidence/orders/:id/summary` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Reconstruye decision y resultado observado; no adjudica ni modifica pedidos. |
+| 3C | Decision Metrics | `GET /api/operational-decision-evidence/drivers/:id/metrics` | `CERTIFIED_LOCAL_PENDING_RELEASE` | Metricas observadas de decision/completitud; sin causalidad algoritmica ni dinero. |
+| 3D | Operational Core Release Readiness | `OPERATIONAL_CORE_RELEASE_MANIFEST_3D.md` | `READY_FOR_ISOLATED_COMMIT` | Allowlist, exclusiones, control de acceso y rollback a `5caaeeb`. |
 | 3 | IMSS Engine | Sin contrato | `BLOCKED` | Requiere decision legal y de seguridad social atribuible. |
 | 3 | Fiscal Engine | Sin contrato | `BLOCKED` | Requiere decision fiscal/contable atribuible. |
 | 3 | Contract Engine | Sin contrato | `BLOCKED` | Requiere modelo contractual y ADR. |
@@ -41,8 +51,8 @@ IMPLEMENTADO -> VALIDADO LOCALMENTE -> PUBLICADO -> CERTIFICADO EN PRODUCCION
 ## Evidencia local vigente
 
 ```text
-82/82 suites PASS
-308/308 tests PASS
+85/85 suites PASS
+316/316 tests PASS
 validate:routes PASS
 validate:firebase PASS
 git diff --check PASS (sin errores; avisos CRLF preexistentes)
